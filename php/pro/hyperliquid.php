@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class hyperliquid extends \ccxt\async\hyperliquid {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -105,39 +105,43 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            list($order, $globalParams) = $this->parseCreateOrderArgs ($symbol, $type, $side, $amount, $price, $params);
+            list($order, $globalParams) = $this->parseCreateEditOrderArgs (null, $symbol, $type, $side, $amount, $price, $params);
             $orders = Async\await($this->create_orders_ws(array( $order ), $globalParams));
-            return $orders[0];
+            $parsedOrder = $orders[0];
+            $orderInfo = $this->safe_dict($parsedOrder, 'info');
+            // handle potential error here
+            $this->handle_errors(null, null, null, null, null, $this->json($orderInfo), $orderInfo, null, null);
+            return $parsedOrder;
         }) ();
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
-             * edit a trade order
+             * edit a trade $order
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
              *
-             * @param {string} $id cancel order $id
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $id cancel $order $id
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
-             * @param {bool} [$params->postOnly] true or false whether the order is post-only
-             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
-             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-             * @param {string} [$params->vaultAddress] the vault address for order
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+             * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {string} [$params->clientOrderId] client $order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->vaultAddress] the vault address for $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws']['public'];
-            $postRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+            list($order, $globalParams) = $this->parseCreateEditOrderArgs ($id, $symbol, $type, $side, $amount, $price, $params);
+            $postRequest = $this->editOrdersRequest (array( $order ), $globalParams);
             $wrapped = $this->wrap_as_post_action($postRequest);
             $request = $this->safe_dict($wrapped, 'request', array());
             $requestId = $this->safe_string($wrapped, 'requestId');
@@ -146,7 +150,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $dataObject = $this->safe_dict($responseObject, 'data', array());
             $statuses = $this->safe_list($dataObject, 'statuses', array());
             $first = $this->safe_dict($statuses, 0, array());
-            return $this->parse_order($first, $market);
+            $parsedOrder = $this->parse_order($first, $market);
+            $orderInfo = $this->safe_dict($parsedOrder, 'info');
+            // handle potential error here
+            $this->handle_errors(null, null, null, null, null, $this->json($orderInfo), $orderInfo, null, null);
+            return $parsedOrder;
         }) ();
     }
 
@@ -171,7 +179,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -203,7 +211,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -533,7 +541,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -566,7 +574,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -665,7 +673,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
-            'order' => null,
+            'order' => $this->safe_string($trade, 'oid'),
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -698,7 +706,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );
@@ -732,7 +740,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );

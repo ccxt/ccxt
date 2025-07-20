@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitopro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
             'name' => 'BitoPro',
@@ -31,16 +31,29 @@ class bitopro extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrder' => false,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -51,19 +64,39 @@ class bitopro extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -76,6 +109,7 @@ class bitopro extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -86,10 +120,16 @@ class bitopro extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -146,6 +186,7 @@ class bitopro extends Exchange {
                         'wallet/withdraw/{currency}/id/{id}' => 1,
                         'wallet/depositHistory/{currency}' => 1,
                         'wallet/withdrawHistory/{currency}' => 1,
+                        'orders/open' => 1,
                     ),
                     'post' => array(
                         'orders/{pair}' => 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
@@ -199,6 +240,86 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
+                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true, // todo implement
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    // todo => implement through fetchOrders
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -250,6 +371,7 @@ class bitopro extends Exchange {
             //     }
             //
             $result = array();
+            $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($currencies); $i++) {
                 $currency = $currencies[$i];
                 $currencyId = $this->safe_string($currency, 'currency');
@@ -269,11 +391,12 @@ class bitopro extends Exchange {
                         'max' => null,
                     ),
                 );
+                $isFiat = $this->in_array($code, $fiatCurrencies);
                 $result[$code] = array(
                     'id' => $currencyId,
                     'code' => $code,
                     'info' => $currency,
-                    'type' => null,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
                     'active' => $deposit && $withdraw,
                     'deposit' => $deposit,
@@ -281,6 +404,7 @@ class bitopro extends Exchange {
                     'fee' => $fee,
                     'precision' => null,
                     'limits' => $limits,
+                    'networks' => null,
                 );
             }
             return $result;
@@ -1010,7 +1134,6 @@ class bitopro extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1037,6 +1160,7 @@ class bitopro extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1054,12 +1178,12 @@ class bitopro extends Exchange {
             }
             if ($orderType === 'STOP_LIMIT') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
-                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
+                if ($triggerPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice parameter for ' . $orderType . ' orders');
                 } else {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
                 $condition = $this->safe_string($params, 'condition');
                 if ($condition === null) {
@@ -1139,7 +1263,7 @@ class bitopro extends Exchange {
         return $orders;
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1175,7 +1299,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -1330,10 +1454,27 @@ class bitopro extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            $request = array(
-                'statusKind' => 'OPEN',
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+            /**
+             * fetch all unfilled currently open $orders
+             *
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privateGetOrdersOpen ($this->extend($request, $params)));
+            $orders = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 

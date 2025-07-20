@@ -208,6 +208,109 @@ public partial class bigone : Exchange
                     { "ZEC", "Zcash" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "mark", true },
+                            { "index", true },
+                            { "last", true },
+                        } },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -315,12 +418,9 @@ public partial class bigone : Exchange
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            object type = ((bool) isTrue(this.safeBool(currency, "is_fiat"))) ? "fiat" : "crypto";
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(currency, "binding_gateways", new List<object>() {});
             object currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, "withdrawal_scale", "scale"));
-            object currencyDepositEnabled = null;
-            object currencyWithdrawEnabled = null;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -328,7 +428,6 @@ public partial class bigone : Exchange
                 object networkCode = this.networkIdToCode(networkId);
                 object deposit = this.safeBool(chain, "is_deposit_enabled");
                 object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
-                object isActive = (isTrue(deposit) && isTrue(withdraw));
                 object minDepositAmount = this.safeString(chain, "min_deposit_amount");
                 object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
                 object withdrawalFee = this.safeString(chain, "withdrawal_fee");
@@ -339,7 +438,7 @@ public partial class bigone : Exchange
                     { "margin", null },
                     { "deposit", deposit },
                     { "withdraw", withdraw },
-                    { "active", isActive },
+                    { "active", null },
                     { "fee", this.parseNumber(withdrawalFee) },
                     { "precision", this.parseNumber(precision) },
                     { "limits", new Dictionary<string, object>() {
@@ -354,20 +453,34 @@ public partial class bigone : Exchange
                     } },
                     { "info", chain },
                 };
-                // fill global values
-                currencyDepositEnabled = ((bool) isTrue(isTrue((isEqual(currencyDepositEnabled, null))) || isTrue(deposit))) ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = ((bool) isTrue(isTrue((isEqual(currencyWithdrawEnabled, null))) || isTrue(withdraw))) ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = ((bool) isTrue(isTrue((isEqual(currencyMaxPrecision, null))) || isTrue(Precise.stringGt(currencyMaxPrecision, precision)))) ? precision : currencyMaxPrecision;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chainLength = getArrayLength(chains);
+            object type = null;
+            if (isTrue(this.safeBool(currency, "is_fiat")))
+            {
+                type = "fiat";
+            } else if (isTrue(isEqual(chainLength, 0)))
+            {
+                if (isTrue(this.isLeveragedCurrency(id)))
+                {
+                    type = "leveraged";
+                } else
+                {
+                    type = "other";
+                }
+            } else
+            {
+                type = "crypto";
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", name },
                 { "type", type },
                 { "active", null },
-                { "deposit", currencyDepositEnabled },
-                { "withdraw", currencyWithdrawEnabled },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
                 { "precision", this.parseNumber(currencyMaxPrecision) },
                 { "limits", new Dictionary<string, object>() {
@@ -381,7 +494,7 @@ public partial class bigone : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -1151,6 +1264,7 @@ public partial class bigone : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1163,22 +1277,35 @@ public partial class bigone : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
+        object until = this.safeInteger(parameters, "until");
+        object untilIsDefined = (!isEqual(until, null));
+        object sinceIsDefined = (!isEqual(since, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 500
+            limit = ((bool) isTrue((isTrue(sinceIsDefined) && isTrue(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         object request = new Dictionary<string, object>() {
             { "asset_pair_name", getValue(market, "id") },
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
             { "limit", limit },
         };
-        if (isTrue(!isEqual(since, null)))
+        if (isTrue(sinceIsDefined))
         {
             // const start = this.parseToInt (since / 1000);
             object duration = this.parseTimeframe(timeframe);
-            object end = this.sum(since, multiply(multiply(limit, duration), 1000));
-            ((IDictionary<string,object>)request)["time"] = this.iso8601(end);
+            object endByLimit = this.sum(since, multiply(multiply(limit, duration), 1000));
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["time"] = this.iso8601(mathMin(endByLimit, add(until, 1)));
+            } else
+            {
+                ((IDictionary<string,object>)request)["time"] = this.iso8601(endByLimit);
+            }
+        } else if (isTrue(untilIsDefined))
+        {
+            ((IDictionary<string,object>)request)["time"] = this.iso8601(add(until, 1));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, parameters));
         //
         //     {
@@ -1345,7 +1472,6 @@ public partial class bigone : Exchange
             { "postOnly", this.safeBool(order, "post_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },

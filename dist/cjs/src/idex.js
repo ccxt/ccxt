@@ -9,7 +9,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class idex
@@ -166,6 +166,81 @@ class idex extends idex$1 {
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo: revise
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': true,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 1000000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_ORDER_QUANTITY': errors.InvalidOrder,
@@ -195,10 +270,8 @@ class idex extends idex$1 {
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         const market = this.market(symbol);
-        const info = this.safeValue(market, 'info', {});
-        const quoteAssetPrecision = this.safeInteger(info, 'quoteAssetPrecision');
         price = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], this.precisionMode);
-        return this.decimalToPrecision(price, number.TRUNCATE, quoteAssetPrecision, number.DECIMAL_PLACES, number.PAD_WITH_ZERO);
+        return this.decimalToPrecision(price, number.TRUNCATE, market['precision']['quote'], number.TICK_SIZE, number.PAD_WITH_ZERO);
     }
     /**
      * @method
@@ -306,6 +379,8 @@ class idex extends idex$1 {
                 'precision': {
                     'amount': basePrecision,
                     'price': this.safeNumber(entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -1120,7 +1195,6 @@ class idex extends idex$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1185,12 +1259,13 @@ class idex extends idex$1 {
             'takeProfit': 5,
             'takeProfitLimit': 6,
         };
-        let stopPriceString = undefined;
-        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
-            if (!('stopPrice' in params)) {
-                throw new errors.BadRequest(this.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders');
+        const triggerPrice = this.safeString(params, 'triggerPrice', 'stopPrice');
+        let triggerPriceString = undefined;
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
+            if (triggerPrice === undefined) {
+                throw new errors.BadRequest(this.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders');
             }
-            stopPriceString = this.priceToPrecision(symbol, params['stopPrice']);
+            triggerPriceString = this.priceToPrecision(symbol, triggerPrice);
         }
         const limitTypeEnums = {
             'limit': 1,
@@ -1280,7 +1355,7 @@ class idex extends idex$1 {
             byteArray.push(encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.encode(stopPriceString || priceString);
+            const encodedPrice = this.encode(triggerPriceString || priceString);
             byteArray.push(encodedPrice);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -1314,7 +1389,7 @@ class idex extends idex$1 {
             request['parameters']['price'] = priceString;
         }
         if (type in stopLossTypeEnums) {
-            request['parameters']['stopPrice'] = stopPriceString || priceString;
+            request['parameters']['stopPrice'] = triggerPriceString || priceString;
         }
         if (amountEnum === 0) {
             request['parameters']['quantity'] = amountString;
@@ -1768,7 +1843,7 @@ class idex extends idex$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async fetchDepositAddress(code = undefined, params = {}) {
+    async fetchDepositAddress(code, params = {}) {
         const request = {};
         request['nonce'] = this.uuidv1();
         const response = await this.privateGetWallets(this.extend(request, params));

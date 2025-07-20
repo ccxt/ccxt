@@ -5,14 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class bitrue(ccxt.async_support.bitrue):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitrue, self).describe(), {
             'has': {
                 'ws': True,
@@ -36,15 +36,17 @@ class bitrue(ccxt.async_support.bitrue):
             },
             'api': {
                 'open': {
-                    'private': {
-                        'post': {
-                            'poseidon/api/v1/listenKey': 1,
-                        },
-                        'put': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
-                        },
-                        'delete': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'poseidon/api/v1/listenKey': 1,
+                            },
+                            'put': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
+                            'delete': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
                         },
                     },
                 },
@@ -405,7 +407,7 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
+            response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
             #
             #     {
             #         "msg": "succ",
@@ -429,7 +431,7 @@ class bitrue(ccxt.async_support.bitrue):
             'listenKey': listenKey,
         }
         try:
-            await self.openPrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
+            await self.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
             #
             # ಠ_ಠ
             #     {

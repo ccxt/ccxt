@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinone
@@ -29,18 +29,28 @@ class coinone extends coinone$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -49,20 +59,38 @@ class coinone extends coinone$1 {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -73,11 +101,17 @@ class coinone extends coinone$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'ws': true,
@@ -190,6 +224,65 @@ class coinone extends coinone$1 {
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined, // todo implement
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 '104': errors.OrderNotFound,
@@ -233,22 +326,20 @@ class coinone extends coinone$1 {
         //     }
         //
         const result = {};
-        const currencies = this.safeValue(response, 'currencies', []);
+        const currencies = this.safeList(response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString(entry, 'symbol');
-            const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
-            const withdrawStatus = this.safeString(entry, 'withdraw_status', '');
-            const depositStatus = this.safeString(entry, 'deposit_status', '');
-            const isWithdrawEnabled = withdrawStatus === 'normal';
-            const isDepositEnabled = depositStatus === 'normal';
-            result[code] = {
+            const isWithdrawEnabled = this.safeString(entry, 'withdraw_status', '') === 'normal';
+            const isDepositEnabled = this.safeString(entry, 'deposit_status', '') === 'normal';
+            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled && isDepositEnabled,
+                'name': this.safeString(entry, 'name'),
+                'active': undefined,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': this.safeNumber(entry, 'withdrawal_fee'),
@@ -264,7 +355,8 @@ class coinone extends coinone$1 {
                     },
                 },
                 'networks': {},
-            };
+                'type': type,
+            });
         }
         return result;
     }
@@ -314,7 +406,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'tickers', []);
+        const tickers = this.safeList(response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue(tickers, i);
@@ -569,7 +661,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'tickers', []);
+        const data = this.safeList(response, 'tickers', []);
         const ticker = this.safeDict(data, 0, {});
         return this.parseTicker(ticker, market);
     }
@@ -602,8 +694,8 @@ class coinone extends coinone$1 {
         //
         const timestamp = this.safeInteger(ticker, 'timestamp');
         const last = this.safeString(ticker, 'last');
-        const asks = this.safeValue(ticker, 'best_asks');
-        const bids = this.safeValue(ticker, 'best_bids');
+        const asks = this.safeList(ticker, 'best_asks', []);
+        const bids = this.safeList(ticker, 'best_bids', []);
         const baseId = this.safeString(ticker, 'target_currency');
         const quoteId = this.safeString(ticker, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -657,7 +749,7 @@ class coinone extends coinone$1 {
         //
         const timestamp = this.safeInteger(trade, 'timestamp');
         market = this.safeMarket(undefined, market);
-        const isSellerMaker = this.safeValue(trade, 'is_seller_maker');
+        const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
@@ -930,7 +1022,6 @@ class coinone extends coinone$1 {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString(order, 'averageExecutedPrice'),
@@ -1090,7 +1181,7 @@ class coinone extends coinone$1 {
         //         }
         //     }
         //
-        const walletAddress = this.safeValue(response, 'walletAddress', {});
+        const walletAddress = this.safeDict(response, 'walletAddress', {});
         const keys = Object.keys(walletAddress);
         const result = {};
         for (let i = 0; i < keys.length; i++) {

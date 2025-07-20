@@ -9,17 +9,24 @@ public partial class BaseTest
         public void baseTestsInit()
         {
             testLanguageSpecific();
+            testAfterConstructor();
             testExtend();
             testDeepExtend();
             testCryptography();
             testDatetime();
-            testNumber();
+            testDecimalToPrecision();
+            testNumberToString();
+            testPrecise();
             testSafeMethods();
+            testSafeTicker();
             // testJson ();
             testSortBy();
             testSum();
             testOmit();
             testGroupBy();
             testFilterBy();
+            testHandleMethods();
+            testRemoveRepeatedElementsFromArray();
+            testParsePrecision();
         }
 }

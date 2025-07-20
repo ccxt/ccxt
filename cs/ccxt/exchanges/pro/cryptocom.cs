@@ -27,6 +27,7 @@ public partial class cryptocom : ccxt.cryptocom
                 { "createOrderWs", true },
                 { "cancelOrderWs", true },
                 { "cancelAllOrders", true },
+                { "editOrderWs", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -105,7 +106,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     /**
      * @method
-     * @name cryptocom#watchOrderBook
+     * @name cryptocom#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
      * @param {string[]} symbols unified array of symbols
@@ -1213,6 +1214,34 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchPrivateRequest(messageHash, request);
     }
 
+    /**
+     * @method
+     * @name cryptocom#editOrderWs
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.editOrderRequest(id, symbol, amount, price, parameters);
+        object request = new Dictionary<string, object>() {
+            { "method", "private/amend-order" },
+            { "params", parameters },
+        };
+        object messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
+
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
@@ -1234,7 +1263,7 @@ public partial class cryptocom : ccxt.cryptocom
 
     /**
      * @method
-     * @name cryptocom#cancelOrder
+     * @name cryptocom#cancelOrderWs
      * @description cancels an open order
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
      * @param {string} id the order id of the order to cancel
@@ -1505,6 +1534,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "public/heartbeat", this.handlePing },
             { "public/auth", this.handleAuthenticate },
             { "private/create-order", this.handleOrder },
+            { "private/amend-order", this.handleOrder },
             { "private/cancel-order", this.handleOrder },
             { "private/cancel-all-orders", this.handleCancelAllOrders },
             { "private/close-position", this.handleOrder },

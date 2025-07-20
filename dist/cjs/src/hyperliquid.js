@@ -8,7 +8,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -22,7 +22,7 @@ class hyperliquid extends hyperliquid$1 {
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
-            'certified': false,
+            'certified': true,
             'pro': true,
             'dex': true,
             'has': {
@@ -47,8 +47,12 @@ class hyperliquid extends hyperliquid$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -65,7 +69,7 @@ class hyperliquid extends hyperliquid$1 {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -83,8 +87,9 @@ class hyperliquid extends hyperliquid$1 {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -159,6 +164,7 @@ class hyperliquid extends hyperliquid$1 {
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -171,12 +177,12 @@ class hyperliquid extends hyperliquid$1 {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.00045'),
+                    'maker': this.parseNumber('0.00015'),
                 },
                 'spot': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.0007'),
+                    'maker': this.parseNumber('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -190,7 +196,7 @@ class hyperliquid extends hyperliquid$1 {
                 'broad': {
                     'Price must be divisible by tick size.': errors.InvalidOrder,
                     'Order must have minimum value of $10': errors.InvalidOrder,
-                    'Insufficient margin to place order.': errors.InvalidOrder,
+                    'Insufficient margin to place order.': errors.InsufficientFunds,
                     'Reduce only order would increase position.': errors.InvalidOrder,
                     'Post only order would have immediately matched,': errors.InvalidOrder,
                     'Order could not immediately match against any resting orders.': errors.InvalidOrder,
@@ -200,15 +206,127 @@ class hyperliquid extends hyperliquid$1 {
                     'User or API Wallet ': errors.InvalidOrder,
                     'Order has invalid size': errors.InvalidOrder,
                     'Order price cannot be more than 80% away from the reference price': errors.InvalidOrder,
+                    'Order has zero size.': errors.InvalidOrder,
+                    'Insufficient spot balance asset': errors.InsufficientFunds,
+                    'Insufficient balance for withdrawal': errors.InsufficientFunds,
+                    'Insufficient balance for token transfer': errors.InsufficientFunds,
                 },
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': false,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'triggerPrice': true,
+                            'type': true,
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         });
     }
@@ -225,6 +343,9 @@ class hyperliquid extends hyperliquid$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        if (this.checkRequiredCredentials(false)) {
+            await this.handleBuilderFeeApproval();
+        }
         const request = {
             'type': 'meta',
         };
@@ -250,7 +371,7 @@ class hyperliquid extends hyperliquid$1 {
             const id = i;
             const name = this.safeString(data, 'name');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -261,6 +382,7 @@ class hyperliquid extends hyperliquid$1 {
                 'withdraw': undefined,
                 'networks': undefined,
                 'fee': undefined,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -271,7 +393,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -296,7 +418,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#fetchSwapMarkets
      * @description retrieves data on all swap markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -351,7 +473,56 @@ class hyperliquid extends hyperliquid$1 {
     }
     /**
      * @method
-     * @name hyperliquid#fetchMarkets
+     * @name hyperliquid#calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    calculatePricePrecision(price, amountPrecision, maxDecimals) {
+        let pricePrecision = 0;
+        const priceStr = this.numberToString(price);
+        if (priceStr === undefined) {
+            return 0;
+        }
+        const priceSplitted = priceStr.split('.');
+        if (Precise["default"].stringEq(priceStr, '0')) {
+            // Significant digits is always 5 in this case
+            const significantDigits = 5;
+            // Integer digits is always 0 in this case (0 doesn't count)
+            const integerDigits = 0;
+            // Calculate the price precision
+            pricePrecision = Math.min(maxDecimals - amountPrecision, significantDigits - integerDigits);
+        }
+        else if (Precise["default"].stringGt(priceStr, '0') && Precise["default"].stringLt(priceStr, '1')) {
+            // Significant digits, always 5 in this case
+            const significantDigits = 5;
+            // Get the part after the decimal separator
+            const decimalPart = this.safeString(priceSplitted, 1, '');
+            // Count the number of leading zeros in the decimal part
+            let leadingZeros = 0;
+            while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
+                leadingZeros = leadingZeros + 1;
+            }
+            // Calculate price precision based on leading zeros and significant digits
+            pricePrecision = leadingZeros + significantDigits;
+            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = Math.min(maxDecimals - amountPrecision, pricePrecision);
+        }
+        else {
+            // Count the numbers before the decimal separator
+            const integerPart = this.safeString(priceSplitted, 0, '');
+            // Get significant digits, take the max() of 5 and the integer digits count
+            const significantDigits = Math.max(5, integerPart.length);
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
+            pricePrecision = Math.min(maxDecimals - amountPrecision, significantDigits - integerPart.length);
+        }
+        return this.parseToInt(pricePrecision);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchSpotMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -438,9 +609,16 @@ class hyperliquid extends hyperliquid$1 {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.safeInteger(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecision = parseInt(amountPrecisionStr);
+            const price = this.safeNumber(extraData, 'midPx');
+            let pricePrecision = 0;
+            if (price !== undefined) {
+                pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            }
+            const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString(i + 10000);
+            const baseId = this.numberToString(index + 10000);
             markets.push(this.safeMarketStructure({
                 'id': marketName,
                 'symbol': symbol,
@@ -448,6 +626,7 @@ class hyperliquid extends hyperliquid$1 {
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
+                'baseName': baseName,
                 'quoteId': quoteId,
                 'settleId': undefined,
                 'type': 'spot',
@@ -469,8 +648,8 @@ class hyperliquid extends hyperliquid$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
+                    'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                    'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -518,7 +697,8 @@ class hyperliquid extends hyperliquid$1 {
         //     }
         //
         const quoteId = 'USDC';
-        const base = this.safeString(market, 'name');
+        const baseName = this.safeString(market, 'name');
+        const base = this.safeCurrencyCode(baseName);
         const quote = this.safeCurrencyCode(quoteId);
         const baseId = this.safeString(market, 'baseId');
         const settleId = 'USDC';
@@ -534,7 +714,19 @@ class hyperliquid extends hyperliquid$1 {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeNumber(fees, 'taker');
         const maker = this.safeNumber(fees, 'maker');
-        const amountPrecision = this.safeInteger(market, 'szDecimals');
+        const amountPrecisionStr = this.safeString(market, 'szDecimals');
+        const amountPrecision = parseInt(amountPrecisionStr);
+        const price = this.safeNumber(market, 'markPx', 0);
+        let pricePrecision = 0;
+        if (price !== undefined) {
+            pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        }
+        const pricePrecisionStr = this.numberToString(pricePrecision);
+        const isDelisted = this.safeBool(market, 'isDelisted');
+        let active = true;
+        if (isDelisted !== undefined) {
+            active = !isDelisted;
+        }
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -542,6 +734,7 @@ class hyperliquid extends hyperliquid$1 {
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
+            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
             'type': 'swap',
@@ -550,7 +743,7 @@ class hyperliquid extends hyperliquid$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': true,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -562,8 +755,8 @@ class hyperliquid extends hyperliquid$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
+                'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -596,6 +789,8 @@ class hyperliquid extends hyperliquid$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -603,10 +798,11 @@ class hyperliquid extends hyperliquid$1 {
         [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         const isSpot = (type === 'spot');
-        const reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
         const request = {
-            'type': reqType,
+            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo(this.extend(request, params));
@@ -661,12 +857,18 @@ class hyperliquid extends hyperliquid$1 {
             return this.safeBalance(spotBalances);
         }
         const data = this.safeDict(response, 'marginSummary', {});
+        const usdcBalance = {
+            'total': this.safeNumber(data, 'accountValue'),
+        };
+        if ((marginMode !== undefined) && (marginMode === 'isolated')) {
+            usdcBalance['free'] = this.safeNumber(response, 'withdrawable');
+        }
+        else {
+            usdcBalance['used'] = this.safeNumber(data, 'totalMarginUsed');
+        }
         const result = {
             'info': response,
-            'USDC': {
-                'total': this.safeNumber(data, 'accountValue'),
-                'free': this.safeNumber(response, 'withdrawable'),
-            },
+            'USDC': usdcBalance,
         };
         const timestamp = this.safeInteger(response, 'time');
         result['timestamp'] = timestamp;
@@ -688,7 +890,7 @@ class hyperliquid extends hyperliquid$1 {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['base'] : market['id'],
+            'coin': market['swap'] ? market['baseName'] : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -812,8 +1014,7 @@ class hyperliquid extends hyperliquid$1 {
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
             result.push(data);
         }
-        const funding_rates = this.parseFundingRates(result);
-        return this.filterByArray(funding_rates, 'symbol', symbols);
+        return this.parseFundingRates(result, symbols);
     }
     parseFundingRate(info, market = undefined) {
         //
@@ -927,7 +1128,7 @@ class hyperliquid extends hyperliquid$1 {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -989,9 +1190,10 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.address] wallet address that made trades
      * @param {string} [params.user] wallet address that made trades
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTrades', params);
         await this.loadMarkets();
@@ -1040,10 +1242,13 @@ class hyperliquid extends hyperliquid$1 {
     }
     priceToPrecision(symbol, price) {
         const market = this.market(symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        const result = this.decimalToPrecision(price, number.ROUND, 5, number.SIGNIFICANT_DIGITS, this.paddingMode);
-        const decimalParsedResult = this.decimalToPrecision(result, number.ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
-        return decimalParsedResult;
+        const priceStr = this.numberToString(price);
+        const integerPart = priceStr.split('.')[0];
+        const significantDigits = Math.max(5, integerPart.length);
+        const result = this.decimalToPrecision(price, number.ROUND, significantDigits, number.SIGNIFICANT_DIGITS, this.paddingMode);
+        const maxDecimals = market['spot'] ? 8 : 6;
+        const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
+        return this.decimalToPrecision(result, number.ROUND, subtractedValue, number.DECIMAL_PLACES, this.paddingMode);
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3.keccak_256, 'hex');
@@ -1137,13 +1342,24 @@ class hyperliquid extends hyperliquid$1 {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildTransferSig(message) {
+    buildUsdSendSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    buildUsdClassSendSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
@@ -1158,6 +1374,71 @@ class hyperliquid extends hyperliquid$1 {
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
+    }
+    buildApproveBuilderFeeSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:ApproveBuilderFee': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'maxFeeRate', 'type': 'string' },
+                { 'name': 'builder', 'type': 'address' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    async approveBuilderFee(builder, maxFeeRate) {
+        const nonce = this.milliseconds();
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'maxFeeRate': maxFeeRate,
+            'builder': builder,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveBuilderFeeSig(payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'maxFeeRate': payload['maxFeeRate'],
+            'builder': payload['builder'],
+            'nonce': nonce,
+            'type': 'approveBuilderFee',
+        };
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange(request);
+    }
+    async handleBuilderFeeApproval() {
+        const buildFee = this.safeBool(this.options, 'builderFee', true);
+        if (!buildFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        try {
+            const builder = this.safeString(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
+            await this.approveBuilderFee(builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        }
+        catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
+        return true;
     }
     /**
      * @method
@@ -1177,11 +1458,12 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-        const [order, globalParams] = this.parseCreateOrderArgs(symbol, type, side, amount, price, params);
+        const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders([order], globalParams);
         return orders[0];
     }
@@ -1196,6 +1478,7 @@ class hyperliquid extends hyperliquid$1 {
      */
     async createOrders(orders, params = {}) {
         await this.loadMarkets();
+        await this.handleBuilderFeeApproval();
         const request = this.createOrdersRequest(orders, params);
         const response = await this.privatePostExchange(request);
         //
@@ -1220,10 +1503,78 @@ class hyperliquid extends hyperliquid$1 {
         const statuses = this.safeList(data, 'statuses', []);
         return this.parseOrders(statuses, undefined);
     }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
+        type = type.toUpperCase();
+        side = side.toUpperCase();
+        const isMarket = (type === 'MARKET');
+        const isBuy = (side === 'BUY');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
+        const slippage = this.safeString(params, 'slippage');
+        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+        const postOnly = this.safeBool(params, 'postOnly', false);
+        if (postOnly) {
+            defaultTimeInForce = 'alo';
+        }
+        let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        timeInForce = this.capitalize(timeInForce);
+        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const isTrigger = (stopLossPrice || takeProfitPrice);
+        let px = undefined;
+        if (isMarket) {
+            if (price === undefined) {
+                throw new errors.ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
+            }
+            px = (isBuy) ? Precise["default"].stringMul(price, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price, Precise["default"].stringSub('1', slippage));
+            px = this.priceToPrecision(symbol, px); // round after adding slippage
+        }
+        else {
+            px = this.priceToPrecision(symbol, price);
+        }
+        const sz = this.amountToPrecision(symbol, amount);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        const orderType = {};
+        if (isTrigger) {
+            let isTp = false;
+            if (takeProfitPrice !== undefined) {
+                triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                isTp = true;
+            }
+            else {
+                triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+            }
+            orderType['trigger'] = {
+                'isMarket': isMarket,
+                'triggerPx': triggerPrice,
+                'tpsl': (isTp) ? 'tp' : 'sl',
+            };
+        }
+        else {
+            orderType['limit'] = {
+                'tif': timeInForce,
+            };
+        }
+        params = this.omit(params, ['clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly']);
+        const orderObj = {
+            'a': this.parseToInt(market['baseId']),
+            'b': isBuy,
+            'p': px,
+            's': sz,
+            'r': reduceOnly,
+            't': orderType,
+            // 'c': clientOrderId,
+        };
+        if (clientOrderId !== undefined) {
+            orderObj['c'] = clientOrderId;
+        }
+        return orderObj;
+    }
     createOrdersRequest(orders, params = {}) {
         /**
          * @method
-         * @name hyperliquid#createOrders
+         * @name hyperliquid#createOrdersRequest
          * @description create a list of trade orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -1254,89 +1605,69 @@ class hyperliquid extends hyperliquid$1 {
         params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
         const nonce = this.milliseconds();
         const orderReq = [];
+        let grouping = 'na';
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const type = this.safeStringUpper(rawOrder, 'type');
-            const isMarket = (type === 'MARKET');
             const side = this.safeStringUpper(rawOrder, 'side');
-            const isBuy = (side === 'BUY');
             const amount = this.safeString(rawOrder, 'amount');
             const price = this.safeString(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
-            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
-            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-            const postOnly = this.safeBool(orderParams, 'postOnly', false);
-            if (postOnly) {
-                defaultTimeInForce = 'alo';
-            }
-            let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
-            let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);
-            const takeProfitPrice = this.safeString(orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
-            let px = undefined;
-            if (isMarket) {
-                if (price === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
-                }
-                px = (isBuy) ? Precise["default"].stringMul(price, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price, Precise["default"].stringSub('1', slippage));
-                px = this.priceToPrecision(symbol, px); // round after adding slippage
-            }
-            else {
-                px = this.priceToPrecision(symbol, price);
-            }
-            const sz = this.amountToPrecision(symbol, amount);
-            const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
-            const orderType = {};
+            orderParams['slippage'] = slippage;
+            const stopLoss = this.safeValue(orderParams, 'stopLoss');
+            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const isTrigger = (stopLoss || takeProfit);
+            orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
+            const mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            orderReq.push(mainOrderObj);
             if (isTrigger) {
-                let isTp = false;
-                if (takeProfitPrice !== undefined) {
-                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    isTp = true;
+                // grouping opposed orders for sl/tp
+                const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
+                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                const stopLossOrderLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
+                const takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice']);
+                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
+                grouping = 'normalTpsl';
+                orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
+                let triggerOrderSide = '';
+                if (side === 'BUY') {
+                    triggerOrderSide = 'sell';
                 }
                 else {
-                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    triggerOrderSide = 'buy';
                 }
-                orderType['trigger'] = {
-                    'isMarket': isMarket,
-                    'triggerPx': triggerPrice,
-                    'tpsl': (isTp) ? 'tp' : 'sl',
-                };
+                if (takeProfit !== undefined) {
+                    const orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, {
+                        'takeProfitPrice': takeProfitOrderTriggerPrice,
+                        'reduceOnly': true,
+                    }));
+                    orderReq.push(orderObj);
+                }
+                if (stopLoss !== undefined) {
+                    const orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, {
+                        'stopLossPrice': stopLossOrderTriggerPrice,
+                        'reduceOnly': true,
+                    }));
+                    orderReq.push(orderObj);
+                }
             }
-            else {
-                orderType['limit'] = {
-                    'tif': timeInForce,
-                };
-            }
-            orderParams = this.omit(orderParams, ['clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly']);
-            const orderObj = {
-                'a': this.parseToInt(market['baseId']),
-                'b': isBuy,
-                'p': px,
-                's': sz,
-                'r': reduceOnly,
-                't': orderType,
-                // 'c': clientOrderId,
-            };
-            if (clientOrderId !== undefined) {
-                orderObj['c'] = clientOrderId;
-            }
-            orderReq.push(orderObj);
         }
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
-            'grouping': 'na',
-            // 'brokerCode': 1, // cant
+            'grouping': grouping,
         };
-        if (vaultAddress === undefined) {
-            orderAction['brokerCode'] = 1;
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            orderAction['builder'] = { 'b': wallet, 'f': this.safeInteger(this.options, 'feeInt', 10) };
         }
         const signature = this.signL1Action(orderAction, nonce, vaultAddress);
         const request = {
@@ -1362,6 +1693,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1379,6 +1711,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
@@ -1423,7 +1756,9 @@ class hyperliquid extends hyperliquid$1 {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1467,6 +1802,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
@@ -1507,7 +1843,9 @@ class hyperliquid extends hyperliquid$1 {
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1538,6 +1876,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
@@ -1553,7 +1892,9 @@ class hyperliquid extends hyperliquid$1 {
             'type': 'scheduleCancel',
             'time': nonce + timeout,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1570,86 +1911,117 @@ class hyperliquid extends hyperliquid$1 {
         //
         return response;
     }
-    editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    editOrdersRequest(orders, params = {}) {
         this.checkRequiredCredentials();
-        if (id === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument');
+        let hasClientOrderId = false;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+            if (clientOrderId !== undefined) {
+                hasClientOrderId = true;
+            }
         }
-        const market = this.market(symbol);
-        type = type.toUpperCase();
-        const isMarket = (type === 'MARKET');
-        side = side.toUpperCase();
-        const isBuy = (side === 'BUY');
-        const defaultSlippage = this.safeString(this.options, 'defaultSlippage');
-        const slippage = this.safeString(params, 'slippage', defaultSlippage);
-        let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
-        const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
-            defaultTimeInForce = 'alo';
+        if (hasClientOrderId) {
+            for (let i = 0; i < orders.length; i++) {
+                const rawOrder = orders[i];
+                const orderParams = this.safeDict(rawOrder, 'params', {});
+                const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+                if (clientOrderId === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' editOrders() all orders must have clientOrderId if at least one has a clientOrderId');
+                }
+            }
         }
-        let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
-        timeInForce = this.capitalize(timeInForce);
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
-        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
-        params = this.omit(params, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id']);
-        let px = price.toString();
-        if (isMarket) {
-            px = (isBuy) ? Precise["default"].stringMul(price.toString(), Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(price.toString(), Precise["default"].stringSub('1', slippage));
-        }
-        else {
-            px = this.priceToPrecision(symbol, price.toString());
-        }
-        const sz = this.amountToPrecision(symbol, amount);
-        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const orderType = {};
-        if (isTrigger) {
-            let isTp = false;
-            if (takeProfitPrice !== undefined) {
-                triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                isTp = true;
+        params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
+        const modifies = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const id = this.safeString(rawOrder, 'id');
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const market = this.market(marketId);
+            const symbol = market['symbol'];
+            const type = this.safeStringUpper(rawOrder, 'type');
+            const isMarket = (type === 'MARKET');
+            const side = this.safeStringUpper(rawOrder, 'side');
+            const isBuy = (side === 'BUY');
+            const amount = this.safeString(rawOrder, 'amount');
+            const price = this.safeString(rawOrder, 'price');
+            let orderParams = this.safeDict(rawOrder, 'params', {});
+            const defaultSlippage = this.safeString(this.options, 'defaultSlippage');
+            const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
+            let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
+            const postOnly = this.safeBool(orderParams, 'postOnly', false);
+            if (postOnly) {
+                defaultTimeInForce = 'alo';
+            }
+            let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            timeInForce = this.capitalize(timeInForce);
+            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
+            let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
+            const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);
+            const takeProfitPrice = this.safeString(orderParams, 'takeProfitPrice');
+            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
+            orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
+            let px = this.numberToString(price);
+            if (isMarket) {
+                px = (isBuy) ? Precise["default"].stringMul(px, Precise["default"].stringAdd('1', slippage)) : Precise["default"].stringMul(px, Precise["default"].stringSub('1', slippage));
+                px = this.priceToPrecision(symbol, px);
             }
             else {
-                triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                px = this.priceToPrecision(symbol, px);
             }
-            orderType['trigger'] = {
-                'isMarket': isMarket,
-                'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
+            const sz = this.amountToPrecision(symbol, amount);
+            const orderType = {};
+            if (isTrigger) {
+                let isTp = false;
+                if (takeProfitPrice !== undefined) {
+                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    isTp = true;
+                }
+                else {
+                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                }
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': triggerPrice,
+                    'tpsl': (isTp) ? 'tp' : 'sl',
+                };
+            }
+            else {
+                orderType['limit'] = {
+                    'tif': timeInForce,
+                };
+            }
+            if (triggerPrice === undefined) {
+                triggerPrice = '0';
+            }
+            const orderReq = {
+                'a': this.parseToInt(market['baseId']),
+                'b': isBuy,
+                'p': px,
+                's': sz,
+                'r': reduceOnly,
+                't': orderType,
+                // 'c': clientOrderId,
             };
-        }
-        else {
-            orderType['limit'] = {
-                'tif': timeInForce,
+            if (clientOrderId !== undefined) {
+                orderReq['c'] = clientOrderId;
+            }
+            const modifyReq = {
+                'oid': this.parseToInt(id),
+                'order': orderReq,
             };
-        }
-        if (triggerPrice === undefined) {
-            triggerPrice = '0';
+            modifies.push(modifyReq);
         }
         const nonce = this.milliseconds();
-        const orderReq = {
-            'a': this.parseToInt(market['baseId']),
-            'b': isBuy,
-            'p': px,
-            's': sz,
-            'r': reduceOnly,
-            't': orderType,
-            // 'c': clientOrderId,
-        };
-        if (clientOrderId !== undefined) {
-            orderReq['c'] = clientOrderId;
-        }
-        const modifyReq = {
-            'oid': this.parseToInt(id),
-            'order': orderReq,
-        };
         const modifyAction = {
             'type': 'batchModify',
-            'modifies': [modifyReq],
+            'modifies': modifies,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'editOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(modifyAction, nonce, vaultAddress);
         const request = {
             'action': modifyAction,
@@ -1658,7 +2030,6 @@ class hyperliquid extends hyperliquid$1 {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         return request;
@@ -1667,7 +2038,6 @@ class hyperliquid extends hyperliquid$1 {
      * @method
      * @name hyperliquid#editOrder
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -1682,12 +2052,30 @@ class hyperliquid extends hyperliquid$1 {
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        if (id === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument');
+        }
+        const [order, globalParams] = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params);
+        const orders = await this.editOrders([order], globalParams);
+        return orders[0];
+    }
+    /**
+     * @method
+     * @name hyperliquid#editOrders
+     * @description edit a list of trade orders
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders(orders, params = {}) {
+        await this.loadMarkets();
+        const request = this.editOrdersRequest(orders, params);
         const response = await this.privatePostExchange(request);
         //
         //     {
@@ -1727,8 +2115,47 @@ class hyperliquid extends hyperliquid$1 {
         const responseObject = this.safeDict(response, 'response', {});
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
-        const first = this.safeDict(statuses, 0, {});
-        return this.parseOrder(first, market);
+        return this.parseOrders(statuses);
+    }
+    /**
+     * @method
+     * @name hyperliquid#createVault
+     * @description creates a value
+     * @param {string} name The name of the vault
+     * @param {string} description The description of the vault
+     * @param {number} initialUsd The initialUsd of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    async createVault(name, description, initialUsd, params = {}) {
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(initialUsd), '1000000'));
+        const action = {
+            'type': 'createVault',
+            'name': name,
+            'description': description,
+            'initialUsd': usd,
+            'nonce': nonce,
+        };
+        const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "createVault",
+        //         "data": "0x04fddcbc9ce80219301bd16f18491bedf2a8c2b8"
+        //     }
+        // }
+        //
+        return response;
     }
     /**
      * @method
@@ -1744,10 +2171,13 @@ class hyperliquid extends hyperliquid$1 {
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
-            'coin': market['base'],
+            'coin': market['baseName'],
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1798,6 +2228,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1896,6 +2327,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1932,6 +2364,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1977,6 +2410,10 @@ class hyperliquid extends hyperliquid$1 {
         return this.parseOrder(data, market);
     }
     parseOrder(order, market = undefined) {
+        //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
         //
         //  fetchOpenOrders
         //
@@ -2068,6 +2505,13 @@ class hyperliquid extends hyperliquid$1 {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString(order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN(order, ['order', 'resting', 'filled']);
         if (entry === undefined) {
             entry = order;
@@ -2084,7 +2528,7 @@ class hyperliquid extends hyperliquid$1 {
             market = this.safeMarket(marketId, market);
         }
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2(order, 'timestamp', 'statusTimestamp');
+        const timestamp = this.safeInteger(entry, 'timestamp');
         const status = this.safeString2(order, 'status', 'ccxtStatus');
         order = this.omit(order, ['ccxtStatus']);
         let side = this.safeString(entry, 'side');
@@ -2093,6 +2537,11 @@ class hyperliquid extends hyperliquid$1 {
         }
         const totalAmount = this.safeString2(entry, 'origSz', 'totalSz');
         const remaining = this.safeString(entry, 'sz');
+        const tif = this.safeStringUpper(entry, 'tif');
+        let postOnly = undefined;
+        if (tif !== undefined) {
+            postOnly = (tif === 'ALO');
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(entry, 'oid'),
@@ -2100,11 +2549,11 @@ class hyperliquid extends hyperliquid$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType(this.safeStringLower(entry, 'orderType')),
-            'timeInForce': this.safeStringUpper(entry, 'tif'),
-            'postOnly': undefined,
+            'timeInForce': tif,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString(entry, 'limitPx'),
@@ -2148,6 +2597,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2226,6 +2676,11 @@ class hyperliquid extends hyperliquid$1 {
             side = (side === 'A') ? 'sell' : 'buy';
         }
         const fee = this.safeString(trade, 'fee');
+        let takerOrMaker = undefined;
+        const crossed = this.safeBool(trade, 'crossed');
+        if (crossed !== undefined) {
+            takerOrMaker = crossed ? 'taker' : 'maker';
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -2235,7 +2690,7 @@ class hyperliquid extends hyperliquid$1 {
             'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -2268,6 +2723,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -2412,6 +2868,8 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -2434,9 +2892,9 @@ class hyperliquid extends hyperliquid$1 {
             'isCross': isCross,
             'leverage': leverage,
         };
-        let vaultAddress = this.safeString(params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             if (vaultAddress.startsWith('0x')) {
                 vaultAddress = vaultAddress.replace('0x', '');
             }
@@ -2489,7 +2947,9 @@ class hyperliquid extends hyperliquid$1 {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -2520,6 +2980,8 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
@@ -2533,6 +2995,8 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
@@ -2553,7 +3017,9 @@ class hyperliquid extends hyperliquid$1 {
             'isBuy': true,
             'ntli': sz,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -2562,7 +3028,6 @@ class hyperliquid extends hyperliquid$1 {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         const response = await this.privatePostExchange(request);
@@ -2618,59 +3083,95 @@ class hyperliquid extends hyperliquid$1 {
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
-                throw new errors.NotSupported(this.id + 'transfer() only support spot <> swap transfer');
+                throw new errors.NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
-            const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
-            params = this.omit(params, 'vaultAddress');
+            let strAmount = this.numberToString(amount);
+            let vaultAddress = undefined;
+            [vaultAddress, params] = this.handleOptionAndParams(params, 'transfer', 'vaultAddress');
+            vaultAddress = this.formatVaultAddress(vaultAddress);
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action(action, nonce, vaultAddress);
-            const innerRequest = {
-                'action': action,
+            const transferPayload = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig(transferPayload);
+            const transferRequest = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange(innerRequest);
+            const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
-        // handle sub-account/different account transfer
-        this.checkAddress(toAccount);
+        // transfer between main account and subaccount
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'transfer() only support USDC');
+                throw new errors.NotSupported(this.id + ' transfer() only support USDC');
             }
         }
-        const payload = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-            'destination': toAccount,
-            'amount': this.numberToString(amount),
-            'time': nonce,
+        let isDeposit = false;
+        let subAccountAddress = undefined;
+        if (fromAccount === 'main') {
+            subAccountAddress = toAccount;
+            isDeposit = true;
+        }
+        else if (toAccount === 'main') {
+            subAccountAddress = fromAccount;
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' transfer() only support main <> subaccount transfer');
+        }
+        this.checkAddress(subAccountAddress);
+        const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
+        const action = {
+            'type': 'subAccountTransfer',
+            'subAccountUser': subAccountAddress,
+            'isDeposit': isDeposit,
+            'usd': usd,
         };
-        const sig = this.buildTransferSig(payload);
+        const sig = this.signL1Action(action, nonce);
         const request = {
-            'action': {
-                'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee',
-                'destination': toAccount,
-                'amount': amount.toString(),
-                'time': nonce,
-                'type': 'usdSend',
-            },
+            'action': action,
             'nonce': nonce,
             'signature': sig,
         };
         const response = await this.privatePostExchange(request);
-        return response;
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return this.parseTransfer(response);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        // {'response': {'type': 'default'}, 'status': 'ok'}
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'ok',
+        };
     }
     /**
      * @method
@@ -2693,10 +3194,12 @@ class hyperliquid extends hyperliquid$1 {
         if (code !== undefined) {
             code = code.toUpperCase();
             if (code !== 'USDC') {
-                throw new errors.NotSupported(this.id + 'withdraw() only support USDC');
+                throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'withdraw', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         params = this.omit(params, 'vaultAddress');
         const nonce = this.milliseconds();
         let action = {};
@@ -2780,7 +3283,7 @@ class hyperliquid extends hyperliquid$1 {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': this.safeInteger(delta, 'usdc'),
+            'amount': this.safeNumber(delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString(transaction, 'status'),
             'updated': undefined,
@@ -2796,6 +3299,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
@@ -2904,7 +3408,8 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @param {string} [params.subAccountAddress] sub account user address
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2996,6 +3501,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3041,6 +3547,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3077,6 +3584,154 @@ class hyperliquid extends hyperliquid$1 {
         const withdrawals = this.filterByArray(records, 'type', ['withdraw'], false);
         return this.parseTransactions(withdrawals, undefined, since, limit);
     }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const swapMarkets = await this.fetchSwapMarkets();
+        return this.parseOpenInterests(swapMarkets, symbols);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        symbol = this.symbol(symbol);
+        await this.loadMarkets();
+        const ois = await this.fetchOpenInterests([symbol], params);
+        return ois[symbol];
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //  {
+        //      szDecimals: '2',
+        //      name: 'HYPE',
+        //      maxLeverage: '3',
+        //      funding: '0.00014735',
+        //      openInterest: '14677900.74',
+        //      prevDayPx: '26.145',
+        //      dayNtlVlm: '299643445.12560016',
+        //      premium: '0.00081613',
+        //      oraclePx: '27.569',
+        //      markPx: '27.63',
+        //      midPx: '27.599',
+        //      impactPxs: [ '27.5915', '27.6319' ],
+        //      dayBaseVlm: '10790652.83',
+        //      baseId: 159
+        //  }
+        //
+        interest = this.safeDict(interest, 'info', {});
+        const coin = this.safeString(interest, 'name');
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId(coin);
+        }
+        return this.safeOpenInterest({
+            'symbol': this.safeSymbol(marketId),
+            'openInterestAmount': this.safeNumber(interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subAccountAddress] sub account user address
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let userAddress = undefined;
+        [userAddress, params] = this.handlePublicAddress('fetchFundingHistory', params);
+        const request = {
+            'user': userAddress,
+            'type': 'userFunding',
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo(this.extend(request, params));
+        //
+        // [
+        //     {
+        //         "time": 1734026400057,
+        //         "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //         "delta": {
+        //             "type": "funding",
+        //             "coin": "SOL",
+        //             "usdc": "75.635093",
+        //             "szi": "-7375.9",
+        //             "fundingRate": "0.00004381",
+        //             "nSamples": null
+        //         }
+        //     }
+        // ]
+        //
+        return this.parseIncomes(response, market, since, limit);
+    }
+    parseIncome(income, market = undefined) {
+        //
+        // {
+        //     "time": 1734026400057,
+        //     "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //     "delta": {
+        //         "type": "funding",
+        //         "coin": "SOL",
+        //         "usdc": "75.635093",
+        //         "szi": "-7375.9",
+        //         "fundingRate": "0.00004381",
+        //         "nSamples": null
+        //     }
+        // }
+        //
+        const id = this.safeString(income, 'hash');
+        const timestamp = this.safeInteger(income, 'time');
+        const delta = this.safeDict(income, 'delta');
+        const baseId = this.safeString(delta, 'coin');
+        const marketSymbol = baseId + '/USDC:USDC';
+        market = this.safeMarket(marketSymbol);
+        const symbol = market['symbol'];
+        const amount = this.safeString(delta, 'usdc');
+        const code = this.safeCurrencyCode('USDC');
+        const rate = this.safeNumber(delta, 'fundingRate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': id,
+            'amount': this.parseNumber(amount),
+            'rate': rate,
+        };
+    }
     extractTypeFromDelta(data = []) {
         const records = [];
         for (let i = 0; i < data.length; i++) {
@@ -3097,7 +3752,7 @@ class hyperliquid extends hyperliquid$1 {
     }
     handlePublicAddress(methodName, params) {
         let userAux = undefined;
-        [userAux, params] = this.handleOptionAndParams(params, methodName, 'user');
+        [userAux, params] = this.handleOptionAndParams2(params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [user, params] = this.handleOptionAndParams(params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
@@ -3112,7 +3767,7 @@ class hyperliquid extends hyperliquid$1 {
         if (coin.indexOf('/') > -1 || coin.indexOf('@') > -1) {
             return coin; // spot
         }
-        return coin + '/USDC:USDC';
+        return this.safeCurrencyCode(coin) + '/USDC:USDC';
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
@@ -3124,11 +3779,16 @@ class hyperliquid extends hyperliquid$1 {
         //         status: 'ok',
         //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
         //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString(response, 'status', '');
+        const error = this.safeString(response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString(response, 'response');
+        }
+        else if (error !== undefined) {
+            message = error;
         }
         else {
             const responsePayload = this.safeDict(response, 'response', {});
@@ -3168,10 +3828,11 @@ class hyperliquid extends hyperliquid$1 {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    parseCreateOrderArgs(symbol, type, side, amount, price = undefined, params = {}) {
+    parseCreateEditOrderArgs(id, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const vaultAddress = this.safeString(params, 'vaultAddress');
-        params = this.omit(params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams2(params, 'createOrder', 'vaultAddress', 'subAccountAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         symbol = market['symbol'];
         const order = {
             'symbol': symbol,
@@ -3184,6 +3845,9 @@ class hyperliquid extends hyperliquid$1 {
         const globalParams = {};
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
+        }
+        if (id !== undefined) {
+            order['id'] = id;
         }
         return [order, globalParams];
     }

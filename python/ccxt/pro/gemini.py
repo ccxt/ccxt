@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Tickers, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class gemini(ccxt.async_support.gemini):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gemini, self).describe(), {
             'has': {
                 'ws': True,

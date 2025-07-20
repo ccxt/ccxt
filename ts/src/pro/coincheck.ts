@@ -10,7 +10,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
 export default class coincheck extends coincheckRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

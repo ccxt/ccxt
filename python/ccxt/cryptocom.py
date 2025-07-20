@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class cryptocom(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(cryptocom, self).describe(), {
             'id': 'cryptocom',
             'name': 'Crypto.com',
@@ -58,6 +58,9 @@ class cryptocom(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
@@ -67,7 +70,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -150,6 +153,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -167,6 +171,13 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1,  # no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -193,6 +204,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,  # no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -364,6 +376,102 @@ class cryptocom(Exchange, ImplicitAPI):
                 },
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        # todo: implementation fix
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': True,  # todo: implement
+                        'trailing': False,
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': 1,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 1,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             # https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
@@ -373,6 +481,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'exact': {
                     '219': InvalidOrder,
                     '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
+                    '325': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
+                    '415': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -416,12 +526,137 @@ class cryptocom(Exchange, ImplicitAPI):
                     '40801': RequestTimeout,
                     '42901': RateLimitExceeded,
                     '43005': InvalidOrder,  # Rejected POST_ONLY create-order request(normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': InvalidOrder,  # FOK order has not been filled and cancelled
+                    '43004': InvalidOrder,  # IOC order has not been filled and cancelled
+                    '43012': BadRequest,  # Canceled due to Self Trade Prevention
                     '50001': ExchangeError,
                     '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
                 'broad': {},
             },
         })
+
+    def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        # self endpoint requires authentication
+        if not self.check_required_credentials(False):
+            return None
+        skipFetchCurrencies = False
+        skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
+        if skipFetchCurrencies:
+            # sub-accounts can't access self endpoint
+            return None
+        response = {}
+        try:
+            response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
+        except Exception as e:
+            if isinstance(e, ExchangeError):
+                # sub-accounts can't access self endpoint
+                # {"code":"10001","msg":"SYS_ERROR"}
+                return None
+            raise e
+            # do nothing
+            # sub-accounts can't access self endpoint
+        #
+        #    {
+        #        "id": "1747502328559",
+        #        "method": "private/get-currency-networks",
+        #        "code": "0",
+        #        "result": {
+        #            "update_time": "1747502281000",
+        #            "currency_map": {
+        #                "USDT": {
+        #                    "full_name": "Tether USD",
+        #                    "default_network": "ETH",
+        #                    "network_list": [
+        #                        {
+        #                            "network_id": "ETH",
+        #                            "withdrawal_fee": "10.00000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "20.0",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "32"
+        #                        },
+        #                        {
+        #                            "network_id": "CRONOS",
+        #                            "withdrawal_fee": "0.18000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "0.35",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "15"
+        #                        },
+        #                        {
+        #                            "network_id": "SOL",
+        #                            "withdrawal_fee": "5.31000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "10.62",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "1"
+        #                        }
+        #                    ]
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        resultData = self.safe_dict(response, 'result', {})
+        currencyMap = self.safe_dict(resultData, 'currency_map', {})
+        keys = list(currencyMap.keys())
+        result: dict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currency = currencyMap[key]
+            id = key
+            code = self.safe_currency_code(id)
+            networks: dict = {}
+            chains = self.safe_list(currency, 'network_list', [])
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network_id')
+                network = self.network_id_to_code(networkId)
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                    'fee': self.safe_number(chain, 'withdrawal_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': self.safe_string(currency, 'full_name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'type': 'crypto',  # only crypto now
+                'networks': networks,
+            })
+        return result
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -520,8 +755,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', [])
+        resultResponse = self.safe_dict(response, 'result', {})
+        data = self.safe_list(resultResponse, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -538,8 +773,8 @@ class cryptocom(Exchange, ImplicitAPI):
             settle = None if spot else self.safe_currency_code(settleId)
             optionType = self.safe_string_lower(market, 'put_call')
             strike = self.safe_string(market, 'strike')
-            marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
-            marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
+            marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
+            marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
             expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
             expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
@@ -576,7 +811,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'swap': swap,
                 'future': future,
                 'option': option,
-                'active': self.safe_value(market, 'tradable'),
+                'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
                 'linear': True if (contract) else None,
                 'inverse': False if (contract) else None,
@@ -662,7 +897,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
@@ -753,7 +988,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -809,7 +1044,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -876,7 +1111,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
@@ -917,15 +1152,15 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         orderBook = self.safe_value(data, 0)
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
     def parse_balance(self, response) -> Balances:
-        responseResult = self.safe_value(response, 'result', {})
-        data = self.safe_value(responseResult, 'data', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        data = self.safe_list(responseResult, 'data', [])
         positionBalances = self.safe_value(data[0], 'position_balances', [])
         result: dict = {'info': response}
         for i in range(0, len(positionBalances)):
@@ -1145,7 +1380,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-        :param float [params.stopPrice]: price to trigger a stop order
+        :param float [params.triggerPrice]: price to trigger a trigger order
         :param float [params.stopLossPrice]: price to trigger a stop-loss trigger order
         :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1188,7 +1423,7 @@ class cryptocom(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         contigency = self.safe_string(params, 'contingency_type', 'LIST')
@@ -1339,6 +1574,45 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, params)
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+        :param str id: order id
+        :param str symbol: unified market symbol of the order to edit
+        :param str [type]: not used by cryptocom editOrder
+        :param str [side]: not used by cryptocom editOrder
+        :param float amount:(mandatory) how much of the currency you want to trade in units of the base currency
+        :param float price:(mandatory) the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request = self.edit_order_request(id, symbol, amount, price, params)
+        response = self.v1PrivatePostPrivateAmendOrder(request)
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result)
+
+    def edit_order_request(self, id: str, symbol: str, amount: float, price: Num = None, params={}):
+        request: dict = {}
+        if id is not None:
+            request['order_id'] = id
+        else:
+            originalClientOrderId = self.safe_string_2(params, 'orig_client_oid', 'clientOrderId')
+            if originalClientOrderId is None:
+                raise ArgumentsRequired(self.id + ' editOrder() requires an id argument or orig_client_oid parameter')
+            else:
+                request['orig_client_oid'] = originalClientOrderId
+                params = self.omit(params, ['orig_client_oid', 'clientOrderId'])
+        if (amount is None) or (price is None):
+            raise ArgumentsRequired(self.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values')
+        request['new_quantity'] = self.amount_to_precision(symbol, amount)
+        request['new_price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -1510,7 +1784,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -1576,7 +1850,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -1675,14 +1949,14 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        addresses = self.safe_value(data, 'deposit_address_list', [])
+        data = self.safe_dict(response, 'result', {})
+        addresses = self.safe_list(data, 'deposit_address_list', [])
         addressesLength = len(addresses)
         if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result: dict = {}
         for i in range(0, addressesLength):
-            value = self.safe_value(addresses, i)
+            value = self.safe_dict(addresses, i)
             addressString = self.safe_string(value, 'address')
             currencyId = self.safe_string(value, 'currency')
             responseCode = self.safe_currency_code(currencyId)
@@ -1769,7 +2043,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         depositList = self.safe_list(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
@@ -1826,7 +2100,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         withdrawalList = self.safe_list(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
@@ -2225,7 +2499,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'network_list')
+        networkList = self.safe_list(fee, 'network_list', [])
         networkListLength = len(networkList)
         result: dict = {
             'info': fee,
@@ -2281,7 +2555,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {}
@@ -2326,8 +2600,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        ledger = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        ledger = self.safe_list(result, 'data', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2451,9 +2725,9 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        masterAccount = self.safe_value(result, 'master_account', {})
-        accounts = self.safe_value(result, 'sub_account_list', [])
+        result = self.safe_dict(response, 'result', {})
+        masterAccount = self.safe_dict(result, 'master_account', {})
+        accounts = self.safe_list(result, 'sub_account_list', [])
         accounts.append(masterAccount)
         return self.parse_accounts(accounts, params)
 
@@ -2533,8 +2807,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -2627,8 +2901,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         marketId = self.safe_string(result, 'instrument_name')
         rates = []
         for i in range(0, len(data)):
@@ -2686,7 +2960,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_position(self.safe_dict(data, 0), market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2734,8 +3008,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseResult = self.safe_value(response, 'result', {})
-        positions = self.safe_value(responseResult, 'data', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        positions = self.safe_list(responseResult, 'data', [])
         result = []
         for i in range(0, len(positions)):
             entry = positions[i]

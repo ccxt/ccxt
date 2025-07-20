@@ -235,6 +235,12 @@ public partial class blofin
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
@@ -318,6 +324,12 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : the trigger price for a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.reduceOnly</term>
     /// <description>
     /// bool : a mark to reduce the position size for margin, swap and future orders
@@ -351,6 +363,12 @@ public partial class blofin
     /// <term>params.positionSide</term>
     /// <description>
     /// string : *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// boolean : if true, the positionSide will be set to long/short instead of net, default is false
     /// </description>
     /// </item>
     /// <item>
@@ -403,7 +421,13 @@ public partial class blofin
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : True if cancelling a trigger/conditional order/tp sl orders
+    /// boolean : True if cancelling a trigger/conditional
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tpsl</term>
+    /// <description>
+    /// boolean : True if cancelling a tpsl order
     /// </description>
     /// </item>
     /// </list>
@@ -440,6 +464,7 @@ public partial class blofin
     /// <remarks>
     /// See <see href="https://blofin.com/docs#get-active-orders"/>  <br/>
     /// See <see href="https://blofin.com/docs#get-active-tpsl-orders"/>  <br/>
+    /// See <see href="https://docs.blofin.com/index.html#get-active-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -460,7 +485,7 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -669,7 +694,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -749,6 +774,27 @@ public partial class blofin
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://blofin.com/docs#get-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instType</term>
+    /// <description>
+    /// string : MARGIN, SWAP, FUTURES, OPTION
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -824,6 +870,12 @@ public partial class blofin
     /// string : 'cross' or 'isolated'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : 'long' or 'short' - required for hedged mode in isolated margin
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
@@ -858,7 +910,7 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -898,5 +950,83 @@ public partial class blofin
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-margin-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol (not used in blofin setMarginMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<MarginMode> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return new MarginMode(res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#set-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : not used by blofin setPositionMode ()
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

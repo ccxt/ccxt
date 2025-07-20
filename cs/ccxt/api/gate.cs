@@ -161,6 +161,11 @@ public partial class gate : Exchange
         return await this.callAsync ("publicFuturesGetSettleLiqOrders",parameters);
     }
 
+    public async Task<object> publicFuturesGetSettleRiskLimitTiers (object parameters = null)
+    {
+        return await this.callAsync ("publicFuturesGetSettleRiskLimitTiers",parameters);
+    }
+
     public async Task<object> publicDeliveryGetSettleContracts (object parameters = null)
     {
         return await this.callAsync ("publicDeliveryGetSettleContracts",parameters);
@@ -271,6 +276,11 @@ public partial class gate : Exchange
         return await this.callAsync ("privateWithdrawalsPostWithdrawals",parameters);
     }
 
+    public async Task<object> privateWithdrawalsPostPush (object parameters = null)
+    {
+        return await this.callAsync ("privateWithdrawalsPostPush",parameters);
+    }
+
     public async Task<object> privateWithdrawalsDeleteWithdrawalsWithdrawalId (object parameters = null)
     {
         return await this.callAsync ("privateWithdrawalsDeleteWithdrawalsWithdrawalId",parameters);
@@ -294,6 +304,11 @@ public partial class gate : Exchange
     public async Task<object> privateWalletGetSubAccountTransfers (object parameters = null)
     {
         return await this.callAsync ("privateWalletGetSubAccountTransfers",parameters);
+    }
+
+    public async Task<object> privateWalletGetOrderStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetOrderStatus",parameters);
     }
 
     public async Task<object> privateWalletGetWithdrawStatus (object parameters = null)
@@ -344,6 +359,11 @@ public partial class gate : Exchange
     public async Task<object> privateWalletGetSmallBalanceHistory (object parameters = null)
     {
         return await this.callAsync ("privateWalletGetSmallBalanceHistory",parameters);
+    }
+
+    public async Task<object> privateWalletGetPush (object parameters = null)
+    {
+        return await this.callAsync ("privateWalletGetPush",parameters);
     }
 
     public async Task<object> privateWalletPostTransfers (object parameters = null)
@@ -476,6 +496,16 @@ public partial class gate : Exchange
         return await this.callAsync ("privateUnifiedGetLoanMarginTiers",parameters);
     }
 
+    public async Task<object> privateUnifiedGetLeverageUserCurrencyConfig (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetLeverageUserCurrencyConfig",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetLeverageUserCurrencySetting (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetLeverageUserCurrencySetting",parameters);
+    }
+
     public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostAccountMode",parameters);
@@ -489,6 +519,11 @@ public partial class gate : Exchange
     public async Task<object> privateUnifiedPostPortfolioCalculator (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostPortfolioCalculator",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostLeverageUserCurrencySetting (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostLeverageUserCurrencySetting",parameters);
     }
 
     public async Task<object> privateUnifiedPutUnifiedMode (object parameters = null)
@@ -1131,9 +1166,29 @@ public partial class gate : Exchange
         return await this.callAsync ("privateOptionsGetMyTrades",parameters);
     }
 
+    public async Task<object> privateOptionsGetMmp (object parameters = null)
+    {
+        return await this.callAsync ("privateOptionsGetMmp",parameters);
+    }
+
     public async Task<object> privateOptionsPostOrders (object parameters = null)
     {
         return await this.callAsync ("privateOptionsPostOrders",parameters);
+    }
+
+    public async Task<object> privateOptionsPostCountdownCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("privateOptionsPostCountdownCancelAll",parameters);
+    }
+
+    public async Task<object> privateOptionsPostMmp (object parameters = null)
+    {
+        return await this.callAsync ("privateOptionsPostMmp",parameters);
+    }
+
+    public async Task<object> privateOptionsPostMmpReset (object parameters = null)
+    {
+        return await this.callAsync ("privateOptionsPostMmpReset",parameters);
     }
 
     public async Task<object> privateOptionsDeleteOrders (object parameters = null)
@@ -1271,6 +1326,11 @@ public partial class gate : Exchange
         return await this.callAsync ("privateLoanGetMultiCollateralFixedRate",parameters);
     }
 
+    public async Task<object> privateLoanGetMultiCollateralCurrentRate (object parameters = null)
+    {
+        return await this.callAsync ("privateLoanGetMultiCollateralCurrentRate",parameters);
+    }
+
     public async Task<object> privateLoanPostCollateralOrders (object parameters = null)
     {
         return await this.callAsync ("privateLoanPostCollateralOrders",parameters);
@@ -1306,6 +1366,11 @@ public partial class gate : Exchange
         return await this.callAsync ("privateAccountGetDetail",parameters);
     }
 
+    public async Task<object> privateAccountGetRateLimit (object parameters = null)
+    {
+        return await this.callAsync ("privateAccountGetRateLimit",parameters);
+    }
+
     public async Task<object> privateAccountGetStpGroups (object parameters = null)
     {
         return await this.callAsync ("privateAccountGetStpGroups",parameters);
@@ -1314,6 +1379,11 @@ public partial class gate : Exchange
     public async Task<object> privateAccountGetStpGroupsStpIdUsers (object parameters = null)
     {
         return await this.callAsync ("privateAccountGetStpGroupsStpIdUsers",parameters);
+    }
+
+    public async Task<object> privateAccountGetStpGroupsDebitFee (object parameters = null)
+    {
+        return await this.callAsync ("privateAccountGetStpGroupsDebitFee",parameters);
     }
 
     public async Task<object> privateAccountPostStpGroups (object parameters = null)

@@ -15,7 +15,7 @@ import type { Balances, Bool, Currency, Currencies, DepositAddress, Dict, Fundin
  * @augments Exchange
  */
 export default class coincatch extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coincatch',
             'name': 'CoinCatch',
@@ -75,6 +75,7 @@ export default class coincatch extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -359,57 +360,107 @@ export default class coincatch extends Exchange {
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB', // todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE', // todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP', // todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX', // todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20', // todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX', // todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT', // todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain', // todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM', // todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO', // todo check
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo check
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': false,
+                        },
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {},
@@ -494,7 +545,7 @@ export default class coincatch extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetApiSpotV1PublicTime (params);
         //
         //     {
@@ -556,75 +607,129 @@ export default class coincatch extends Exchange {
             const currencyId = this.safeString (currecy, 'coinName');
             currenciesIds.push (currencyId);
             const code = this.safeCurrencyCode (currencyId);
-            let allowDeposit = false;
-            let allowWithdraw = false;
-            let minDeposit: Str = undefined;
-            let minWithdraw: Str = undefined;
             const networks = this.safeList (currecy, 'chains');
-            const networksById = this.safeDict (this.options, 'networksById');
             const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chain');
-                const networkName = this.safeString (networksById, networkId, networkId);
-                const networkDepositString = this.safeString (network, 'rechargeable');
-                const networkDeposit = networkDepositString === 'true';
-                const networkWithdrawString = this.safeString (network, 'withdrawable');
-                const networkWithdraw = networkWithdrawString === 'true';
-                const networkMinDeposit = this.safeString (network, 'minDepositAmount');
-                const networkMinWithdraw = this.safeString (network, 'minWithdrawAmount');
+                const networkCode = this.networkCodeToId (networkId);
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': this.parseNumber (networkMinDeposit),
+                            'min': this.safeNumber (network, 'minDepositAmount'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber (networkMinWithdraw),
+                            'min': this.safeNumber (network, 'minWithdrawAmount'),
                             'max': undefined,
                         },
                     },
-                    'active': networkDeposit && networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': undefined,
+                    'deposit': this.safeString (network, 'rechargeable') === 'true',
+                    'withdraw': this.safeString (network, 'withdrawable') === 'true',
                     'fee': this.safeNumber (network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
-                allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
-                allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
-                minDeposit = minDeposit ? Precise.stringMin (networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = minWithdraw ? Precise.stringMin (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'numericId': this.safeInteger (currecy, 'coinId'),
                 'code': code,
                 'precision': undefined,
                 'type': undefined,
                 'name': undefined,
-                'active': allowWithdraw && allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'limits': {
                     'deposit': {
-                        'min': this.parseNumber (minDeposit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber (minWithdraw),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            };
+            });
         }
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetApiSpotV1PublicCurrencies (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseDepositWithdrawFees (data, codes, 'coinName');
+    }
+
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        const chains = this.safeList (fee, 'chains', []);
+        const chainsLength = chains.length;
+        const result: Dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        for (let i = 0; i < chainsLength; i++) {
+            const chain = chains[i];
+            const networkId = this.safeString (chain, 'chain');
+            const currencyCode = this.safeString (currency, 'code');
+            const networkCode = this.networkIdToCode (networkId, currencyCode);
+            result['networks'][networkCode] = {
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+                'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
+            };
+            if (chainsLength === 1) {
+                result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
+                result['withdraw']['percentage'] = false;
+            }
         }
         return result;
     }
@@ -845,8 +950,8 @@ export default class coincatch extends Exchange {
             settleId = this.safeString (supportMarginCoins, 0);
             settle = this.safeCurrencyCode (settleId);
             suffix = ':' + settle;
-            isLinear = baseId === settleId; // todo check
-            isInverse = quoteId === settleId; // todo check
+            isLinear = quoteId === settleId; // todo check
+            isInverse = baseId === settleId; // todo check
             if (isLinear) {
                 subType = 'linear';
             } else if (isInverse) {
@@ -2657,8 +2762,7 @@ export default class coincatch extends Exchange {
      * @method
      * @name coincatch#createOrders
      * @description create a list of trade orders (all orders should be of the same symbol)
-     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-     * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+     * @see https://coincatch.github.io/github.io/en/spot/#batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4127,7 +4231,6 @@ export default class coincatch extends Exchange {
             'amount': amount,
             'filled': this.safeString2 (order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
-            'stopPrice': undefined,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -5068,7 +5171,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = 'fetchLedger';

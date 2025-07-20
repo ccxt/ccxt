@@ -10,7 +10,7 @@ use ccxt\abstract\binancecoinm as binance;
 
 class binancecoinm extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binancecoinm',
             'name' => 'Binance COIN-M',

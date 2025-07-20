@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -36,18 +36,28 @@ class coinone(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -56,20 +66,38 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -80,11 +108,17 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchVolatilityHistory': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'ws': True,
@@ -197,6 +231,65 @@ class coinone(Exchange, ImplicitAPI):
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo implement
+                        'daysBack': 100000,  # todo implement
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': None,  # todo implement
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': OrderNotFound,
@@ -240,22 +333,20 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        currencies = self.safe_value(response, 'currencies', [])
+        currencies = self.safe_list(response, 'currencies', [])
         for i in range(0, len(currencies)):
             entry = currencies[i]
             id = self.safe_string(entry, 'symbol')
-            name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
-            withdrawStatus = self.safe_string(entry, 'withdraw_status', '')
-            depositStatus = self.safe_string(entry, 'deposit_status', '')
-            isWithdrawEnabled = withdrawStatus == 'normal'
-            isDepositEnabled = depositStatus == 'normal'
-            result[code] = {
+            isWithdrawEnabled = self.safe_string(entry, 'withdraw_status', '') == 'normal'
+            isDepositEnabled = self.safe_string(entry, 'deposit_status', '') == 'normal'
+            type = 'crypto' if (code != 'KRW') else 'fiat'
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled and isDepositEnabled,
+                'name': self.safe_string(entry, 'name'),
+                'active': None,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': self.safe_number(entry, 'withdrawal_fee'),
@@ -271,7 +362,8 @@ class coinone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+                'type': type,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -320,7 +412,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'tickers', [])
+        tickers = self.safe_list(response, 'tickers', [])
         result = []
         for i in range(0, len(tickers)):
             entry = self.safe_value(tickers, i)
@@ -570,7 +662,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
@@ -603,8 +695,8 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        asks = self.safe_value(ticker, 'best_asks')
-        bids = self.safe_value(ticker, 'best_bids')
+        asks = self.safe_list(ticker, 'best_asks', [])
+        bids = self.safe_list(ticker, 'best_bids', [])
         baseId = self.safe_string(ticker, 'target_currency')
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -658,7 +750,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
-        isSellerMaker = self.safe_value(trade, 'is_seller_maker')
+        isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
@@ -915,7 +1007,6 @@ class coinone(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'average': self.safe_string(order, 'averageExecutedPrice'),
@@ -1063,7 +1154,7 @@ class coinone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        walletAddress = self.safe_value(response, 'walletAddress', {})
+        walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
         result: dict = {}
         for i in range(0, len(keys)):

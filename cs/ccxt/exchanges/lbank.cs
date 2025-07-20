@@ -38,6 +38,7 @@ public partial class lbank : Exchange
                 { "fetchClosedOrders", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -112,7 +113,8 @@ public partial class lbank : Exchange
                             { "currencyPairs", 2.5 },
                             { "accuracy", 2.5 },
                             { "usdToCny", 2.5 },
-                            { "withdrawConfigs", 2.5 },
+                            { "assetConfigs", 2.5 },
+                            { "withdrawConfigs", multiply(2.5, 1.5) },
                             { "timestamp", 2.5 },
                             { "ticker/24hr", 2.5 },
                             { "ticker", 2.5 },
@@ -192,6 +194,7 @@ public partial class lbank : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "XBT" },
                 { "HIT", "Hiver" },
                 { "VET_ERC20", "VEN" },
                 { "PNT", "Penta" },
@@ -240,24 +243,89 @@ public partial class lbank : Exchange
                     { "BTCTRON", "btctron" },
                     { "XRP", "xrp" },
                 } },
-                { "inverse-networks", new Dictionary<string, object>() {
+                { "networksById", new Dictionary<string, object>() {
                     { "erc20", "ERC20" },
                     { "trc20", "TRC20" },
-                    { "omni", "OMNI" },
-                    { "asa", "ASA" },
-                    { "bep20(bsc)", "BSC" },
-                    { "bep20", "BSC" },
-                    { "heco", "HT" },
-                    { "bep2", "BNB" },
-                    { "btc", "BTC" },
-                    { "dogecoin", "DOGE" },
-                    { "matic", "MATIC" },
-                    { "oec", "OEC" },
-                    { "btctron", "BTCTRON" },
-                    { "xrp", "XRP" },
+                    { "TRX", "TRC20" },
+                    { "bep20(bsc)", "BEP20" },
+                    { "bep20", "BEP20" },
                 } },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "USDT", "TRC20" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 2 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 2000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -308,6 +376,113 @@ public partial class lbank : Exchange
         //     }
         //
         return this.safeInteger(response, "data");
+    }
+
+    /**
+     * @method
+     * @name lbank#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.spotPublicGetWithdrawConfigs(parameters);
+        //
+        //    {
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
+        //    }
+        //
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object grouped = this.groupBy(currenciesData, "assetCode");
+        object groupedKeys = new List<object>(((IDictionary<string,object>)grouped).Keys);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(groupedKeys)); postFixIncrement(ref i))
+        {
+            object id = ((object)(getValue(groupedKeys, i))).ToString(); // some currencies are numeric
+            object code = this.safeCurrencyCode(id);
+            object networksRaw = getValue(grouped, id);
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
+            {
+                object networkEntry = getValue(networksRaw, j);
+                object networkId = this.safeString(networkEntry, "chain");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "min") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "minTransfer") },
+                            { "max", null },
+                        } },
+                    } },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", this.safeBool(networkEntry, "canWithDraw") },
+                    { "fee", this.safeNumber(networkEntry, "fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))) },
+                    { "info", networkEntry },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "precision", null },
+                { "type", null },
+                { "name", null },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", networks },
+                { "info", networksRaw },
+            });
+        }
+        return result;
     }
 
     /**
@@ -477,7 +652,7 @@ public partial class lbank : Exchange
                 { "active", true },
                 { "contract", true },
                 { "linear", true },
-                { "inverse", null },
+                { "inverse", false },
                 { "contractSize", this.safeNumber(market, "volumeMultiple") },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -802,7 +977,7 @@ public partial class lbank : Exchange
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp);
+        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 1, 0);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1309,8 +1484,7 @@ public partial class lbank : Exchange
         //     "success": True,
         // }
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -1737,7 +1911,6 @@ public partial class lbank : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", costString },
             { "amount", amountString },
@@ -2208,13 +2381,10 @@ public partial class lbank : Exchange
         object result = this.safeValue(response, "data");
         object address = this.safeString(result, "address");
         object tag = this.safeString(result, "memo");
-        object networkId = this.safeString(result, "netWork");
-        object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", networkCode },
+            { "network", this.networkIdToCode(this.safeString(result, "netWork")) },
             { "address", address },
             { "tag", tag },
         };
@@ -2253,12 +2423,10 @@ public partial class lbank : Exchange
         object result = this.safeValue(response, "data");
         object address = this.safeString(result, "address");
         object tag = this.safeString(result, "memo");
-        object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", networkCode },
+            { "network", null },
             { "address", address },
             { "tag", tag },
         };
@@ -2388,9 +2556,6 @@ public partial class lbank : Exchange
         }
         object txid = this.safeString(transaction, "txId");
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        object networks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
-        object networkId = this.safeString(transaction, "networkName");
-        object network = this.safeString(networks, networkId, networkId);
         object address = this.safeString(transaction, "address");
         object addressFrom = null;
         object addressTo = null;
@@ -2420,7 +2585,7 @@ public partial class lbank : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", network },
+            { "network", this.networkIdToCode(this.safeString(transaction, "networkName")) },
             { "address", address },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -2636,11 +2801,10 @@ public partial class lbank : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkList, j);
-                object networkId = this.safeString(networkEntry, "name");
-                object networkCode = this.safeString(getValue(this.options, "inverse-networks"), networkId, networkId);
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (isTrue(!isEqual(fee, null)))
                 {
+                    object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
                     ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
                 }
             }
@@ -2698,8 +2862,7 @@ public partial class lbank : Exchange
             {
                 object currencyId = this.safeString(item, "assetCode");
                 object codeInner = this.safeCurrencyCode(currencyId);
-                object chain = this.safeString(item, "chain");
-                object network = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);
+                object network = this.networkIdToCode(this.safeString(item, "chain"));
                 if (isTrue(isEqual(network, null)))
                 {
                     network = codeInner;
@@ -2867,10 +3030,10 @@ public partial class lbank : Exchange
                             ((IDictionary<string,object>)result)[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            ((IList<object>)getValue(getValue(result, code), "info")).Add(fee);
+                            object resultCodeInfo = getValue(getValue(result, code), "info");
+                            ((IList<object>)resultCodeInfo).Add(fee);
                         }
-                        object chain = this.safeString(fee, "chain");
-                        object networkCode = this.safeString(getValue(this.options, "inverse-networks"), chain, chain);
+                        object networkCode = this.networkIdToCode(this.safeString(fee, "chain"));
                         if (isTrue(!isEqual(networkCode, null)))
                         {
                             ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
@@ -2930,8 +3093,7 @@ public partial class lbank : Exchange
         for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
-            object networkId = this.safeString(networkEntry, "name");
-            object networkCode = this.safeStringUpper(getValue(this.options, "inverse-networks"), networkId, networkId);
+            object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"));
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");
             if (isTrue(!isEqual(withdrawFee, null)))

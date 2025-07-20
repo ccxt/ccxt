@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -16,7 +16,7 @@ from ccxt.base.errors import BadSymbol
 
 class hollaex(ccxt.async_support.hollaex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hollaex, self).describe(), {
             'has': {
                 'ws': True,
@@ -572,8 +572,8 @@ class hollaex(ccxt.async_support.hollaex):
 
     def on_error(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_error(client, error)
+        super(hollaex, self).on_error(client, error)
 
     def on_close(self, client: Client, error):
         self.options['ws-expires'] = None
-        self.on_close(client, error)
+        super(hollaex, self).on_close(client, error)

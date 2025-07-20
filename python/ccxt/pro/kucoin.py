@@ -5,17 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
 class kucoin(ccxt.async_support.kucoin):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(kucoin, self).describe(), {
             'has': {
                 'ws': True,
@@ -898,14 +897,14 @@ class kucoin(ccxt.async_support.kucoin):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: trigger orders are watched if True
+        :param boolean [params.trigger]: trigger orders are watched if True
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         url = await self.negotiate(True)
-        topic = '/spotMarket/advancedOrders' if stop else '/spotMarket/tradeOrders'
+        topic = '/spotMarket/advancedOrders' if trigger else '/spotMarket/tradeOrders'
         request: dict = {
             'privateChannel': True,
         }

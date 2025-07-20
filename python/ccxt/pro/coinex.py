@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -20,7 +20,7 @@ from ccxt.base.errors import RequestTimeout
 
 class coinex(ccxt.async_support.coinex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinex, self).describe(), {
             'has': {
                 'ws': True,
@@ -263,7 +263,10 @@ class coinex(ccxt.async_support.coinex):
         type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
         await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        currencies = list(self.currencies_by_id.keys())
+        # coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        activeCurrencies = self.filter_by(self.currencies_by_id, 'active', True)
+        activeCurrenciesById = self.index_by(activeCurrencies, 'id')
+        currencies = list(activeCurrenciesById.keys())
         if currencies is None:
             currencies = []
         messageHash = 'balances'
@@ -859,7 +862,7 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'trigger', 'stop')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
         market = None
@@ -880,7 +883,7 @@ class coinex(ccxt.async_support.coinex):
             else:
                 messageHash += ':swap'
         method = None
-        if stop:
+        if trigger:
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'
@@ -1238,7 +1241,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = self.safe_string(self.options, 'defaultType')
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
-        timestamp = self.safe_timestamp(ticker, 'updated_at')
+        timestamp = self.safe_integer(ticker, 'updated_at')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, defaultType),
             'timestamp': timestamp,

@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class p2b extends p2bRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -511,12 +511,12 @@ export default class p2b extends p2bRest {
 
     onError (client: Client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
-        this.onError (client, error);
+        super.onError (client, error);
     }
 
     onClose (client: Client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
-        this.onClose (client, error);
+        super.onClose (client, error);
     }
 }
 

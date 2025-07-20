@@ -232,7 +232,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -386,7 +386,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// object : When true, all the trigger orders will be cancelled
     /// </description>
@@ -580,7 +580,7 @@ public partial class poloniexfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id = null, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);

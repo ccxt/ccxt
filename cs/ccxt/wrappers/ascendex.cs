@@ -25,6 +25,16 @@ public partial class ascendex
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the ascendex server
     /// </summary>
@@ -186,6 +196,12 @@ public partial class ascendex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -279,7 +295,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -325,7 +341,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -377,7 +393,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>

@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, OrderBooks, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class exmo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(exmo, self).describe(), {
             'id': 'exmo',
             'name': 'EXMO',
@@ -43,6 +44,9 @@ class exmo(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -215,6 +219,67 @@ class exmo(Exchange, ImplicitAPI):
                 },
                 'margin': {
                     'fillResponseFromRequest': True,
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,  # todo revise
+                        'triggerPrice': True,  # todo: endpoint lacks other features
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': True,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,  # todo, not in request
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'commonCurrencies': {
@@ -602,8 +667,9 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
+        promises = []
         #
-        currencyList = await self.publicGetCurrencyListExtended(params)
+        promises.append(self.publicGetCurrencyListExtended(params))
         #
         #     [
         #         {"name":"VLX","description":"Velas"},
@@ -612,7 +678,7 @@ class exmo(Exchange, ImplicitAPI):
         #         {"name":"USD","description":"US Dollar"}
         #     ]
         #
-        cryptoList = await self.publicGetPaymentsProvidersCryptoList(params)
+        promises.append(self.publicGetPaymentsProvidersCryptoList(params))
         #
         #     {
         #         "BTC":[
@@ -637,73 +703,92 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        responses = await asyncio.gather(*promises)
+        currencyList = responses[0]
+        cryptoList = responses[1]
         result: dict = {}
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
-            name = self.safe_string(currency, 'description')
-            providers = self.safe_value(cryptoList, currencyId)
-            active = False
+            code = self.safe_currency_code(currencyId)
             type = 'crypto'
-            limits: dict = {
-                'deposit': {
-                    'min': None,
-                    'max': None,
-                },
-                'withdraw': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            fee = None
-            depositEnabled = None
-            withdrawEnabled = None
+            networks = {}
+            providers = self.safe_list(cryptoList, currencyId)
             if providers is None:
-                active = True
                 type = 'fiat'
             else:
                 for j in range(0, len(providers)):
                     provider = providers[j]
+                    name = self.safe_string(provider, 'name')
+                    # get network-id by removing extra things
+                    networkId = name.replace(currencyId + ' ', '')
+                    networkId = networkId.replace('(', '')
+                    replaceChar = ')'  # transpiler trick
+                    networkId = networkId.replace(replaceChar, '')
+                    networkCode = self.network_id_to_code(networkId)
+                    if not (networkCode in networks):
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': None,
+                            'deposit': None,
+                            'withdraw': None,
+                            'fee': None,
+                            'limits': {
+                                'withdraw': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                                'deposit': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                            },
+                            'info': [],  # set, because of multiple network sub-entries
+                        }
                     typeInner = self.safe_string(provider, 'type')
                     minValue = self.safe_string(provider, 'min')
                     maxValue = self.safe_string(provider, 'max')
-                    if Precise.string_eq(maxValue, '0.0'):
-                        maxValue = None
-                    activeProvider = self.safe_value(provider, 'enabled')
+                    activeProvider = self.safe_bool(provider, 'enabled')
+                    networkEntry = networks[networkCode]
                     if typeInner == 'deposit':
-                        if activeProvider and not depositEnabled:
-                            depositEnabled = True
-                        elif not activeProvider:
-                            depositEnabled = False
+                        networkEntry['deposit'] = activeProvider
+                        networkEntry['limits']['deposit']['min'] = minValue
+                        networkEntry['limits']['deposit']['max'] = maxValue
                     elif typeInner == 'withdraw':
-                        if activeProvider and not withdrawEnabled:
-                            withdrawEnabled = True
-                        elif not activeProvider:
-                            withdrawEnabled = False
-                    if activeProvider:
-                        active = True
-                        limitMin = self.number_to_string(limits[typeInner]['min'])
-                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
-                            limits[typeInner]['min'] = minValue
-                            limits[typeInner]['max'] = maxValue
-                            if typeInner == 'withdraw':
-                                commissionDesc = self.safe_string(provider, 'commission_desc')
-                                fee = self.parse_fixed_float_value(commissionDesc)
-            code = self.safe_currency_code(currencyId)
-            result[code] = {
+                        networkEntry['withdraw'] = activeProvider
+                        networkEntry['limits']['withdraw']['min'] = minValue
+                        networkEntry['limits']['withdraw']['max'] = maxValue
+                    info = self.safe_list(networkEntry, 'info')
+                    info.append(provider)
+                    networkEntry['info'] = info
+                    networks[networkCode] = networkEntry
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,
-                'name': name,
+                'name': self.safe_string(currency, 'description'),
                 'type': type,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': self.parse_number('1e-8'),
-                'limits': limits,
-                'info': providers,
-                'networks': {},
-            }
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': {
+                    'currency': currency,
+                    'providers': providers,
+                },
+                'networks': networks,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -715,7 +800,8 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetPairSettings(params)
+        promises = []
+        promises.append(self.publicGetPairSettings(params))
         #
         #     {
         #         "BTC_USD":{
@@ -732,8 +818,9 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         marginPairsDict: dict = {}
-        if self.check_required_credentials(False):
-            marginPairs = await self.privatePostMarginPairList(params)
+        fetchMargin = self.check_required_credentials(False)
+        if fetchMargin:
+            promises.append(self.privatePostMarginPairList(params))
             #
             #    {
             #        "pairs": [
@@ -763,14 +850,18 @@ class exmo(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            pairs = self.safe_value(marginPairs, 'pairs')
+        responses = await asyncio.gather(*promises)
+        spotResponse = responses[0]
+        if fetchMargin:
+            marginPairs = responses[1]
+            pairs = self.safe_list(marginPairs, 'pairs')
             marginPairsDict = self.index_by(pairs, 'name')
-        keys = list(response.keys())
+        keys = list(spotResponse.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response[id]
-            marginMarket = self.safe_value(marginPairsDict, id)
+            market = spotResponse[id]
+            marginMarket = self.safe_dict(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
@@ -843,32 +934,40 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
         request: dict = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
-        now = self.milliseconds()
+        now = self.parse_to_int(self.milliseconds() / 1000)
         if since is None:
+            to = min(until, now) if untilIsDefined else now
             if limit is None:
                 limit = 1000  # cap default at generous amount
             else:
                 limit = min(limit, maxLimit)
-            request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
-            request['to'] = self.parse_to_int(now / 1000)
+            request['from'] = to - (limit * duration) - 1
+            request['to'] = to
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
-            if limit is None:
-                limit = maxLimit
+            if untilIsDefined:
+                request['to'] = min(until, now)
             else:
-                limit = min(limit, maxLimit)
-            to = self.sum(since, limit * duration * 1000)
-            request['to'] = self.parse_to_int(to / 1000)
+                if limit is None:
+                    limit = maxLimit
+                else:
+                    limit = min(limit, maxLimit)
+                to = self.sum(since, limit * duration)
+                request['to'] = min(to, now)
+        params = self.omit(params, 'until')
         response = await self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -999,7 +1098,7 @@ class exmo(Exchange, ImplicitAPI):
         result = self.safe_dict(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
 
@@ -1279,7 +1378,7 @@ class exmo(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
         if marginMode == 'cross':
-            raise BadRequest(self.id + 'only isolated margin is supported')
+            raise BadRequest(self.id + ' only isolated margin is supported')
         await self.load_markets()
         market = self.market(symbol)
         pair = market['id']
@@ -1352,6 +1451,52 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
+    async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return await self.create_order(symbol, 'market', side, cost, None, params)
+
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return await self.create_order(symbol, 'market', 'sell', cost, None, params)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -1366,9 +1511,10 @@ class exmo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
         :param boolean [params.postOnly]: *spot only* True for post only orders
+        :param float [params.cost]: *spot only* *market orders only* the cost of the order in the quote currency for market orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1379,11 +1525,12 @@ class exmo(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
         isSpot = (marginMode != 'isolated')
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        cost = self.safe_string(params, 'cost')
         request: dict = {
             'pair': market['id'],
             # 'leverage': 2,
-            'quantity': self.amount_to_precision(market['symbol'], amount),
+            # 'quantity': self.amount_to_precision(market['symbol'], amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
@@ -1392,6 +1539,10 @@ class exmo(Exchange, ImplicitAPI):
             # 'client_id': 123,  # optional, must be a positive integer
             # 'comment': '',  # up to 50 latin symbols, whitespaces, underscores
         }
+        if cost is None:
+            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+        else:
+            request['quantity'] = self.cost_to_precision(market['symbol'], cost)
         clientOrderId = self.safe_value_2(params, 'client_id', 'clientOrderId')
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
@@ -1402,7 +1553,7 @@ class exmo(Exchange, ImplicitAPI):
         leverage = self.safe_number(params, 'leverage')
         if not isSpot and (leverage is None):
             raise ArgumentsRequired(self.id + ' createOrder requires an extra param params["leverage"] for margin orders')
-        params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost'])
         if price is not None:
             request['price'] = self.price_to_precision(market['symbol'], price)
         response = None
@@ -1423,7 +1574,8 @@ class exmo(Exchange, ImplicitAPI):
                 if type == 'limit':
                     request['type'] = side
                 elif type == 'market':
-                    request['type'] = 'market_' + side
+                    marketSuffix = '_total' if (cost is not None) else ''
+                    request['type'] = 'market_' + side + marketSuffix
                 if isPostOnly:
                     request['exec_type'] = 'post_only'
                 elif timeInForce is not None:
@@ -1463,7 +1615,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        stop = self.safe_value_2(params, 'trigger', 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -1477,7 +1629,7 @@ class exmo(Exchange, ImplicitAPI):
             #    {}
             #
         else:
-            if stop:
+            if trigger:
                 request['parent_order_id'] = id
                 response = await self.privatePostStopMarketOrderCancel(self.extend(request, params))
                 #
@@ -1848,7 +2000,6 @@ class exmo(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
@@ -2356,7 +2507,7 @@ class exmo(Exchange, ImplicitAPI):
         first = self.safe_dict(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    async def fetch_deposit(self, id=None, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
 

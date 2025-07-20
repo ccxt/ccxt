@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,7 +14,7 @@ from ccxt.base.errors import ExchangeError
 
 class lbank(ccxt.async_support.lbank):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(lbank, self).describe(), {
             'has': {
                 'ws': True,
@@ -429,7 +429,7 @@ class lbank(ccxt.async_support.lbank):
         #             "volume":6.3607,
         #             "amount":77148.9303,
         #             "price":12129,
-        #             "direction":"sell",  # or "sell_market"
+        #             "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #             "TS":"2019-06-28T19:55:49.460"
         #         },
         #         "type":"trade",
@@ -467,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         #        "volume":6.3607,
         #        "amount":77148.9303,
         #        "price":12129,
-        #        "direction":"sell",  # or "sell_market"
+        #        "direction":"sell",  # buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         #        "TS":"2019-06-28T19:55:49.460"
         #    }
         #
@@ -475,8 +475,14 @@ class lbank(ccxt.async_support.lbank):
         datetime = (self.iso8601(timestamp)) if (timestamp is not None) else (self.safe_string(trade, 'TS'))
         if timestamp is None:
             timestamp = self.parse8601(datetime)
-        side = self.safe_string_2(trade, 'direction', 3)
-        side = side.replace('_market', '')
+        rawSide = self.safe_string_2(trade, 'direction', 3)
+        parts = rawSide.split('_')
+        firstPart = self.safe_string(parts, 0)
+        secondPart = self.safe_string(parts, 1)
+        side = firstPart
+        # reverse if it was 'maker'
+        if secondPart is not None and secondPart == 'maker':
+            side = 'sell' if (side == 'buy') else 'buy'
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': datetime,

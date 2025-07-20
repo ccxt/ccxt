@@ -10,18 +10,13 @@ public partial class bitmart
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-balance-change"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -280,6 +275,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.speed</term>
+    /// <description>
+    /// string : *futures only* '100ms' or '200ms'
     /// </description>
     /// </item>
     /// </list>

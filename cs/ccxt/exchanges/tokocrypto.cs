@@ -597,6 +597,84 @@ public partial class tokocrypto : Exchange
                     { "MAX_POSITION", typeof(InvalidOrder) },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
         });
     }
 
@@ -618,9 +696,14 @@ public partial class tokocrypto : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenV1CommonTime(parameters);
         //
+        // {
+        //     "code": 0,
+        //     "msg": "Success",
+        //     "data": null,
+        //     "timestamp": 1737378074159
+        // }
         //
-        //
-        return this.safeInteger(response, "serverTime");
+        return this.safeInteger(response, "timestamp");
     }
 
     /**
@@ -1613,8 +1696,6 @@ public partial class tokocrypto : Exchange
             timeInForce = "PO";
         }
         object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
-        object stopPriceString = this.safeString(order, "stopPrice");
-        object stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1629,8 +1710,7 @@ public partial class tokocrypto : Exchange
             { "reduceOnly", this.safeValue(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))) },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -1658,7 +1738,6 @@ public partial class tokocrypto : Exchange
      * @name tokocrypto#createOrder
      * @description create a trade order
      * @see https://www.tokocrypto.com/apidocs/#new-order--signed
-     * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1684,8 +1763,8 @@ public partial class tokocrypto : Exchange
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
         object initialUppercaseType = ((string)type).ToUpper();
         object uppercaseType = initialUppercaseType;
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
             if (isTrue(isEqual(uppercaseType, "MARKET")))
@@ -1701,7 +1780,7 @@ public partial class tokocrypto : Exchange
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
             {
-                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
             } else
             {
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
@@ -1744,7 +1823,7 @@ public partial class tokocrypto : Exchange
         }
         // additional required fields depending on the order type
         object priceIsRequired = false;
-        object stopPriceIsRequired = false;
+        object triggerPriceIsRequired = false;
         object quantityIsRequired = false;
         //
         // spot/margin
@@ -1798,7 +1877,7 @@ public partial class tokocrypto : Exchange
             quantityIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (isTrue(isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse"))))
             {
@@ -1807,7 +1886,7 @@ public partial class tokocrypto : Exchange
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
         {
@@ -1826,14 +1905,14 @@ public partial class tokocrypto : Exchange
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(stopPriceIsRequired))
+        if (isTrue(triggerPriceIsRequired))
         {
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         object response = await this.privatePostOpenV1Orders(this.extend(request, parameters));
@@ -1872,7 +1951,7 @@ public partial class tokocrypto : Exchange
     /**
      * @method
      * @name tokocrypto#fetchOrder
-     * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
+     * @see https://www.tokocrypto.com/apidocs/#query-order-signed
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2488,7 +2567,7 @@ public partial class tokocrypto : Exchange
 
     /**
      * @method
-     * @name bybit#withdraw
+     * @name tokocrypto#withdraw
      * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
      * @description make a withdrawal
      * @param {string} code unified currency code

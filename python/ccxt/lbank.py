@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class lbank(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(lbank, self).describe(), {
             'id': 'lbank',
             'name': 'LBank',
@@ -61,6 +61,7 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -135,7 +136,8 @@ class lbank(Exchange, ImplicitAPI):
                             'currencyPairs': 2.5,
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
-                            'withdrawConfigs': 2.5,
+                            'assetConfigs': 2.5,
+                            'withdrawConfigs': 2.5 * 1.5,  # frequently rate-limits, so increase self endpoint RL
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
@@ -221,6 +223,7 @@ class lbank(Exchange, ImplicitAPI):
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT',  # not BTC!
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
@@ -288,29 +291,94 @@ class lbank(Exchange, ImplicitAPI):
                     #     ptx: 1
                     # }
                 },
-                'inverse-networks': {
+                'networksById': {
                     'erc20': 'ERC20',
                     'trc20': 'TRC20',
-                    'omni': 'OMNI',
-                    'asa': 'ASA',
-                    'bep20(bsc)': 'BSC',
-                    'bep20': 'BSC',
-                    'heco': 'HT',
-                    'bep2': 'BNB',
-                    'btc': 'BTC',
-                    'dogecoin': 'DOGE',
-                    'matic': 'MATIC',
-                    'oec': 'OEC',
-                    'btctron': 'BTCTRON',
-                    'xrp': 'XRP',
+                    'TRX': 'TRC20',
+                    'bep20(bsc)': 'BEP20',
+                    'bep20': 'BEP20',
                 },
                 'defaultNetworks': {
                     'USDT': 'TRC20',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 2,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,  # todo: through fetchOrders "status" -1: Cancelled 0: Unfilled 1: Partially filled 2: Completely filled 3: Partially filled has been cancelled 4: Cancellation is being processed
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -348,6 +416,104 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         return self.safe_integer(response, 'data')
+
+    def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        response = self.spotPublicGetWithdrawConfigs(params)
+        #
+        #    {
+        #        "msg": "Success",
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "amountScale": "4",
+        #                "chain": "bep20(bsc)",
+        #                "assetCode": "usdt",
+        #                "min": "10",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "0.0000",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
+        #            },
+        #            {
+        #                "amountScale": "4",
+        #                "chain": "trc20",
+        #                "assetCode": "usdt",
+        #                "min": "1",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "1.0000",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "error_code": "0",
+        #        "ts": "1747973911431"
+        #    }
+        #
+        currenciesData = self.safe_list(response, 'data', [])
+        grouped = self.group_by(currenciesData, 'assetCode')
+        groupedKeys = list(grouped.keys())
+        result: dict = {}
+        for i in range(0, len(groupedKeys)):
+            id = str((groupedKeys[i]))  # some currencies are numeric
+            code = self.safe_currency_code(id)
+            networksRaw = grouped[id]
+            networks = {}
+            for j in range(0, len(networksRaw)):
+                networkEntry = networksRaw[j]
+                networkId = self.safe_string(networkEntry, 'chain')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkEntry, 'min'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(networkEntry, 'minTransfer'),
+                            'max': None,
+                        },
+                    },
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': self.safe_bool(networkEntry, 'canWithDraw'),
+                    'fee': self.safe_number(networkEntry, 'fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'transferAmtScale'))),
+                    'info': networkEntry,
+                }
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'code': code,
+                'precision': None,
+                'type': None,
+                'name': None,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+                'info': networksRaw,
+            })
+        return result
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -508,7 +674,7 @@ class lbank(Exchange, ImplicitAPI):
                 'active': True,
                 'contract': True,
                 'linear': True,
-                'inverse': None,
+                'inverse': False,
                 'contractSize': self.safe_number(market, 'volumeMultiple'),
                 'expiry': None,
                 'expiryDatetime': None,
@@ -801,7 +967,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1248,8 +1414,7 @@ class lbank(Exchange, ImplicitAPI):
         #     "success": True,
         # }
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def fetch_balance(self, params={}) -> Balances:
         """
@@ -1609,7 +1774,6 @@ class lbank(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': costString,
             'amount': amountString,
@@ -2025,13 +2189,10 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data')
         address = self.safe_string(result, 'address')
         tag = self.safe_string(result, 'memo')
-        networkId = self.safe_string(result, 'netWork')
-        inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
-        networkCode = self.safe_string_upper(inverseNetworks, networkId, networkId)
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,
+            'network': self.network_id_to_code(self.safe_string(result, 'netWork')),
             'address': address,
             'tag': tag,
         }
@@ -2065,12 +2226,10 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data')
         address = self.safe_string(result, 'address')
         tag = self.safe_string(result, 'memo')
-        inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
-        networkCode = self.safe_string_upper(inverseNetworks, network, network)
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,  # will be None if not specified in request
+            'network': None,
             'address': address,
             'tag': tag,
         }
@@ -2190,9 +2349,6 @@ class lbank(Exchange, ImplicitAPI):
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        networks = self.safe_value(self.options, 'inverse-networks', {})
-        networkId = self.safe_string(transaction, 'networkName')
-        network = self.safe_string(networks, networkId, networkId)
         address = self.safe_string(transaction, 'address')
         addressFrom = None
         addressTo = None
@@ -2217,7 +2373,7 @@ class lbank(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'networkName')),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2410,10 +2566,9 @@ class lbank(Exchange, ImplicitAPI):
             withdrawFees[code] = {}
             for j in range(0, len(networkList)):
                 networkEntry = networkList[j]
-                networkId = self.safe_string(networkEntry, 'name')
-                networkCode = self.safe_string(self.options['inverse-networks'], networkId, networkId)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if fee is not None:
+                    networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'))
                     withdrawFees[code][networkCode] = fee
         return {
             'withdraw': withdrawFees,
@@ -2461,8 +2616,7 @@ class lbank(Exchange, ImplicitAPI):
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
                 codeInner = self.safe_currency_code(currencyId)
-                chain = self.safe_string(item, 'chain')
-                network = self.safe_string(self.options['inverse-networks'], chain, chain)
+                network = self.network_id_to_code(self.safe_string(item, 'chain'))
                 if network is None:
                     network = codeInner
                 fee = self.safe_string(item, 'fee')
@@ -2601,9 +2755,9 @@ class lbank(Exchange, ImplicitAPI):
                         if resultValue is None:
                             result[code] = self.deposit_withdraw_fee([fee])
                         else:
-                            result[code]['info'].append(fee)
-                        chain = self.safe_string(fee, 'chain')
-                        networkCode = self.safe_string(self.options['inverse-networks'], chain, chain)
+                            resultCodeInfo = result[code]['info']
+                            resultCodeInfo.append(fee)
+                        networkCode = self.network_id_to_code(self.safe_string(fee, 'chain'))
                         if networkCode is not None:
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2653,8 +2807,7 @@ class lbank(Exchange, ImplicitAPI):
         networkList = self.safe_value(fee, 'networkList', [])
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
-            networkId = self.safe_string(networkEntry, 'name')
-            networkCode = self.safe_string_upper(self.options['inverse-networks'], networkId, networkId)
+            networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'))
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_value(networkEntry, 'isDefault')
             if withdrawFee is not None:

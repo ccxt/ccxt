@@ -3,14 +3,14 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 /**
  * @class coinsph
  * @augments Exchange
  */
 export default class coinsph extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -27,6 +27,9 @@ export default class coinsph extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -37,6 +40,8 @@ export default class coinsph extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -48,14 +53,17 @@ export default class coinsph extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -64,24 +72,42 @@ export default class coinsph extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -95,6 +121,7 @@ export default class coinsph extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -107,12 +134,14 @@ export default class coinsph extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -293,6 +322,76 @@ export default class coinsph extends Exchange {
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -412,6 +511,132 @@ export default class coinsph extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetOpenapiWalletV1ConfigGetall (params);
+        //
+        //    [
+        //        {
+        //            "coin": "PHP",
+        //            "name": "PHP",
+        //            "depositAllEnable": false,
+        //            "withdrawAllEnable": false,
+        //            "free": "0",
+        //            "locked": "0",
+        //            "transferPrecision": "2",
+        //            "transferMinQuantity": "0",
+        //            "networkList": [],
+        //            "legalMoney": true
+        //        },
+        //        {
+        //            "coin": "USDT",
+        //            "name": "USDT",
+        //            "depositAllEnable": true,
+        //            "withdrawAllEnable": true,
+        //            "free": "0",
+        //            "locked": "0",
+        //            "transferPrecision": "8",
+        //            "transferMinQuantity": "0",
+        //            "networkList": [
+        //                {
+        //                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+        //                    "memoRegex": " ",
+        //                    "network": "ETH",
+        //                    "name": "Ethereum (ERC20)",
+        //                    "depositEnable": true,
+        //                    "minConfirm": "12",
+        //                    "unLockConfirm": "-1",
+        //                    "withdrawDesc": "",
+        //                    "withdrawEnable": true,
+        //                    "withdrawFee": "6",
+        //                    "withdrawIntegerMultiple": "0.000001",
+        //                    "withdrawMax": "500000",
+        //                    "withdrawMin": "10",
+        //                    "sameAddress": false
+        //                },
+        //                {
+        //                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+        //                    "memoRegex": "",
+        //                    "network": "TRX",
+        //                    "name": "TRON",
+        //                    "depositEnable": true,
+        //                    "minConfirm": "19",
+        //                    "unLockConfirm": "-1",
+        //                    "withdrawDesc": "",
+        //                    "withdrawEnable": true,
+        //                    "withdrawFee": "3",
+        //                    "withdrawIntegerMultiple": "0.000001",
+        //                    "withdrawMax": "1000000",
+        //                    "withdrawMin": "20",
+        //                    "sameAddress": false
+        //                }
+        //            ],
+        //            "legalMoney": false
+        //        }
+        //    ]
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const id = this.safeString (entry, 'coin');
+            const code = this.safeCurrencyCode (id);
+            const isFiat = this.safeBool (entry, 'isLegalMoney');
+            const networkList = this.safeList (entry, 'networkList', []);
+            const networks: Dict = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkItem = networkList[j];
+                const network = this.safeString (networkItem, 'network');
+                const networkCode = this.networkIdToCode (network);
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool (networkItem, 'depositEnable'),
+                    'withdraw': this.safeBool (networkItem, 'withdrawEnable'),
+                    'fee': this.safeNumber (networkItem, 'withdrawFee'),
+                    'precision': this.safeNumber (networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (networkItem, 'withdrawMin'),
+                            'max': this.safeNumber (networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'name': this.safeString (entry, 'name'),
+                'code': code,
+                'type': isFiat ? 'fiat' : 'crypto',
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'transferPrecision'))),
+                'info': entry,
+                'active': undefined,
+                'deposit': this.safeBool (entry, 'depositAllEnable'),
+                'withdraw': this.safeBool (entry, 'withdrawAllEnable'),
+                'networks': networks,
+                'fee': undefined,
+                'fees': undefined,
+                'limits': {},
+            });
+        }
+        return result;
+    }
+
     calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
@@ -467,7 +692,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetOpenapiV1Time (params);
         //
         //     {"serverTime":1677705408268}
@@ -544,7 +769,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'symbols');
+        const markets = this.safeList (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -553,7 +778,7 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
+            const limits = this.indexBy (this.safeList (market, 'filters', []), 'filterType');
             const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue (limits, 'NOTIONAL', {});
@@ -637,7 +862,7 @@ export default class coinsph extends Exchange {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue (this.options, 'fetchTickers', {});
+        const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
         let tickers = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -668,7 +893,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue (this.options, 'fetchTicker', {});
+        const options = this.safeDict (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
         let ticker = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -808,31 +1033,40 @@ export default class coinsph extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
+        const until = this.safeInteger (params, 'until');
         const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
         };
+        if (limit === undefined) {
+            limit = 1000;
+        }
         if (since !== undefined) {
             request['startTime'] = since;
-            request['limit'] = 1000;
             // since work properly only when it is "younger" than last "limit" candle
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe (timeframe) * 1000;
-                request['endTime'] = this.sum (since, duration * (limit - 1));
+            if (until !== undefined) {
+                request['endTime'] = until;
             } else {
-                request['endTime'] = this.milliseconds ();
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                const endTimeByLimit = this.sum (since, duration * (limit - 1));
+                const now = this.milliseconds ();
+                request['endTime'] = Math.min (endTimeByLimit, now);
             }
-        } else {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+        } else if (until !== undefined) {
+            request['endTime'] = until;
+            // since work properly only when it is "younger" than last "limit" candle
+            const duration = this.parseTimeframe (timeframe) * 1000;
+            request['startTime'] = until - (duration * (limit - 1));
         }
+        request['limit'] = limit;
+        params = this.omit (params, 'until');
         const response = await this.publicGetOpenapiQuoteV1Klines (this.extend (request, params));
         //
         //     [
@@ -1016,7 +1250,7 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const isBuyer = this.safeValue2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
@@ -1083,7 +1317,7 @@ export default class coinsph extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1173,11 +1407,11 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1245,7 +1479,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1417,9 +1651,9 @@ export default class coinsph extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const trades = this.safeValue (order, 'fills', undefined);
-        let stopPrice = this.safeString (order, 'stopPrice');
-        if (Precise.stringEq (stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString (order, 'stopPrice');
+        if (Precise.stringEq (triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder ({
             'id': id,
@@ -1433,8 +1667,7 @@ export default class coinsph extends Exchange {
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeString (order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString (order, 'origQty'),
             'cost': this.safeString (order, 'cummulativeQuoteQty'),
@@ -1535,7 +1768,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue (response, 0, {});
+        const tradingFee = this.safeDict (response, 0, {});
         return this.parseTradingFee (tradingFee, market);
     }
 

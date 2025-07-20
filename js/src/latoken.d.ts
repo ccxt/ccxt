@@ -15,7 +15,7 @@ export default class latoken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name latoken#fetchMarkets
@@ -25,7 +25,6 @@ export default class latoken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrenciesFromCache(params?: {}): Promise<any>;
     /**
      * @method
      * @name latoken#fetchCurrencies

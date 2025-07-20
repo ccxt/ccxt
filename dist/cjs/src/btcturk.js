@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class btcturk
@@ -28,35 +28,64 @@ class btcturk extends btcturk$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
@@ -67,11 +96,17 @@ class btcturk extends btcturk$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'ws': false,
@@ -130,6 +165,70 @@ class btcturk extends btcturk$1 {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'maker': this.parseNumber('0.0005'),
@@ -178,7 +277,7 @@ class btcturk extends btcturk$1 {
         //                            "minPrice": "0.0000000000001",
         //                            "maxPrice": "10000000",
         //                            "tickSize": "10",
-        //                            "minExchangeValue": "99.91",
+        //                            "minExchangeValue": "99.92",
         //                            "minAmount": null,
         //                            "maxAmount": null
         //                        }
@@ -199,8 +298,8 @@ class btcturk extends btcturk$1 {
         //        ],
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const markets = this.safeValue(data, 'symbols', []);
+        const data = this.safeDict(response, 'data', {});
+        const markets = this.safeList(data, 'symbols', []);
         return this.parseMarkets(markets);
     }
     parseMarket(entry) {
@@ -209,7 +308,7 @@ class btcturk extends btcturk$1 {
         const quoteId = this.safeString(entry, 'denominator');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const filters = this.safeValue(entry, 'filters', []);
+        const filters = this.safeList(entry, 'filters', []);
         let minPrice = undefined;
         let maxPrice = undefined;
         let minAmount = undefined;
@@ -278,7 +377,7 @@ class btcturk extends btcturk$1 {
         };
     }
     parseBalance(response) {
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -353,7 +452,7 @@ class btcturk extends btcturk$1 {
         //         ]
         //       }
         //     }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'timestamp');
         return this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -642,20 +741,20 @@ class btcturk extends btcturk$1 {
     }
     parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
-        const timestamp = this.safeValue(ohlcvs, 't');
-        const high = this.safeValue(ohlcvs, 'h');
-        const open = this.safeValue(ohlcvs, 'o');
-        const low = this.safeValue(ohlcvs, 'l');
-        const close = this.safeValue(ohlcvs, 'c');
-        const volume = this.safeValue(ohlcvs, 'v');
+        const timestamp = this.safeList(ohlcvs, 't', []);
+        const high = this.safeList(ohlcvs, 'h', []);
+        const open = this.safeList(ohlcvs, 'o', []);
+        const low = this.safeList(ohlcvs, 'l', []);
+        const close = this.safeList(ohlcvs, 'c', []);
+        const volume = this.safeList(ohlcvs, 'v', []);
         for (let i = 0; i < timestamp.length; i++) {
             const ohlcv = {
-                'timestamp': this.safeValue(timestamp, i),
-                'high': this.safeValue(high, i),
-                'open': this.safeValue(open, i),
-                'low': this.safeValue(low, i),
-                'close': this.safeValue(close, i),
-                'volume': this.safeValue(volume, i),
+                'timestamp': this.safeInteger(timestamp, i),
+                'high': this.safeNumber(high, i),
+                'open': this.safeNumber(open, i),
+                'low': this.safeNumber(low, i),
+                'close': this.safeNumber(close, i),
+                'volume': this.safeNumber(volume, i),
             };
             results.push(this.parseOHLCV(ohlcv, market));
         }
@@ -743,8 +842,8 @@ class btcturk extends btcturk$1 {
             request['pairSymbol'] = market['id'];
         }
         const response = await this.privateGetOpenOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
-        const bids = this.safeValue(data, 'bids', []);
+        const data = this.safeDict(response, 'data', {});
+        const bids = this.safeList(data, 'bids', []);
         const asks = this.safeList(data, 'asks', []);
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }

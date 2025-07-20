@@ -15,7 +15,7 @@ import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, Or
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -31,18 +31,28 @@ export default class coinone extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -51,20 +61,38 @@ export default class coinone extends Exchange {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -75,11 +103,17 @@ export default class coinone extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'ws': true,
@@ -192,6 +226,65 @@ export default class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo implement
+                        'daysBack': 100000, // todo implement
+                        'untilDays': 100000, // todo implement
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
+                    'fetchOHLCV': undefined, // todo implement
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': OrderNotFound,
@@ -236,22 +329,20 @@ export default class coinone extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const currencies = this.safeValue (response, 'currencies', []);
+        const currencies = this.safeList (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString (entry, 'symbol');
-            const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
-            const withdrawStatus = this.safeString (entry, 'withdraw_status', '');
-            const depositStatus = this.safeString (entry, 'deposit_status', '');
-            const isWithdrawEnabled = withdrawStatus === 'normal';
-            const isDepositEnabled = depositStatus === 'normal';
-            result[code] = {
+            const isWithdrawEnabled = this.safeString (entry, 'withdraw_status', '') === 'normal';
+            const isDepositEnabled = this.safeString (entry, 'deposit_status', '') === 'normal';
+            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled && isDepositEnabled,
+                'name': this.safeString (entry, 'name'),
+                'active': undefined,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': this.safeNumber (entry, 'withdrawal_fee'),
@@ -267,7 +358,8 @@ export default class coinone extends Exchange {
                     },
                 },
                 'networks': {},
-            };
+                'type': type,
+            });
         }
         return result;
     }
@@ -318,7 +410,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const tickers = this.safeValue (response, 'tickers', []);
+        const tickers = this.safeList (response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
@@ -577,7 +669,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'tickers', []);
+        const data = this.safeList (response, 'tickers', []);
         const ticker = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
@@ -611,8 +703,8 @@ export default class coinone extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
-        const asks = this.safeValue (ticker, 'best_asks');
-        const bids = this.safeValue (ticker, 'best_bids');
+        const asks = this.safeList (ticker, 'best_asks', []);
+        const bids = this.safeList (ticker, 'best_bids', []);
         const baseId = this.safeString (ticker, 'target_currency');
         const quoteId = this.safeString (ticker, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -667,7 +759,7 @@ export default class coinone extends Exchange {
         //
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
-        const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
+        const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
@@ -944,7 +1036,6 @@ export default class coinone extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'averageExecutedPrice'),
@@ -1108,7 +1199,7 @@ export default class coinone extends Exchange {
         //         }
         //     }
         //
-        const walletAddress = this.safeValue (response, 'walletAddress', {});
+        const walletAddress = this.safeDict (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {

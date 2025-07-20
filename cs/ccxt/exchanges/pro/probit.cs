@@ -35,15 +35,6 @@ public partial class probit : ccxt.probit
                     { "filter", "order_books_l2" },
                     { "interval", 100 },
                 } },
-                { "watchTrades", new Dictionary<string, object>() {
-                    { "filter", "recent_trades" },
-                } },
-                { "watchTicker", new Dictionary<string, object>() {
-                    { "filter", "ticker" },
-                } },
-                { "watchOrders", new Dictionary<string, object>() {
-                    { "channel", "open_order" },
-                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
         });
@@ -62,13 +53,7 @@ public partial class probit : ccxt.probit
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object messageHash = "balance";
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object subscribe = new Dictionary<string, object>() {
-            { "type", "subscribe" },
-            { "channel", "balance" },
-        };
-        object request = this.extend(subscribe, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.subscribePrivate(messageHash, "balance", parameters);
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)
@@ -137,11 +122,8 @@ public partial class probit : ccxt.probit
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object filter = null;
-        var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "filter", "ticker");
-        filter = ((IList<object>)filterparametersVariable)[0];
-        parameters = ((IList<object>)filterparametersVariable)[1];
-        return await this.subscribeOrderBook(symbol, "ticker", filter, parameters);
+        object channel = "ticker";
+        return await this.subscribePublic("watchTicker", symbol, "ticker", channel, parameters);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -189,11 +171,9 @@ public partial class probit : ccxt.probit
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object filter = null;
-        var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "filter", "recent_trades");
-        filter = ((IList<object>)filterparametersVariable)[0];
-        parameters = ((IList<object>)filterparametersVariable)[1];
-        object trades = await this.subscribeOrderBook(symbol, "trades", filter, parameters);
+        object channel = "recent_trades";
+        symbol = this.safeSymbol(symbol);
+        object trades = await this.subscribePublic("watchTrades", symbol, "trades", channel, parameters);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -227,10 +207,13 @@ public partial class probit : ccxt.probit
         object symbol = this.safeSymbol(marketId);
         object market = this.safeMarket(marketId);
         object trades = this.safeValue(message, "recent_trades", new List<object>() {});
-        object reset = this.safeBool(message, "reset", false);
+        if (isTrue(this.safeBool(message, "reset", false)))
+        {
+            return;  // see comment in handleMessage
+        }
         object messageHash = add("trades:", symbol);
         object stored = this.safeValue(this.trades, symbol);
-        if (isTrue(isTrue(isEqual(stored, null)) || isTrue(reset)))
+        if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
@@ -262,21 +245,13 @@ public partial class probit : ccxt.probit
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate(parameters);
-        object messageHash = "myTrades";
+        object messageHash = "trades";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object channel = "trade_history";
-        object message = new Dictionary<string, object>() {
-            { "type", "subscribe" },
-            { "channel", channel },
-        };
-        object request = this.extend(message, parameters);
-        object trades = await this.watch(url, messageHash, request, channel);
+        object trades = await this.subscribePrivate(messageHash, "trade_history", parameters);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -311,10 +286,13 @@ public partial class probit : ccxt.probit
         {
             return;
         }
-        object reset = this.safeBool(message, "reset", false);
-        object messageHash = "myTrades";
+        if (isTrue(this.safeBool(message, "reset", false)))
+        {
+            return;  // see comment in handleMessage
+        }
+        object messageHash = "trades";
         object stored = this.myTrades;
-        if (isTrue(isTrue((isEqual(stored, null))) || isTrue(reset)))
+        if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCacheBySymbolById(limit);
@@ -325,10 +303,20 @@ public partial class probit : ccxt.probit
         for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
         {
             object trade = getValue(trades, j);
+            // don't include 'executed' state, because it's just blanket state of the trade, emited before actual trade event
+            if (isTrue(isEqual(this.safeString(getValue(trade, "info"), "status"), "executed")))
+            {
+                continue;
+            }
             ((IDictionary<string,object>)tradeSymbols)[(string)getValue(trade, "symbol")] = true;
             callDynamically(stored, "append", new object[] {trade});
         }
         object unique = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
+        object uniqueLength = getArrayLength(unique);
+        if (isTrue(isEqual(uniqueLength, 0)))
+        {
+            return;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(unique)); postFixIncrement(ref i))
         {
             object symbol = getValue(unique, i);
@@ -354,24 +342,13 @@ public partial class probit : ccxt.probit
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "channel", "open_order");
-        channel = ((IList<object>)channelparametersVariable)[0];
-        parameters = ((IList<object>)channelparametersVariable)[1];
-        object subscribe = new Dictionary<string, object>() {
-            { "type", "subscribe" },
-            { "channel", channel },
-        };
-        object request = this.extend(subscribe, parameters);
-        object orders = await this.watch(url, messageHash, request, channel);
+        object orders = await this.subscribePrivate(messageHash, "open_order", parameters);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
@@ -451,15 +428,27 @@ public partial class probit : ccxt.probit
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object filter = null;
-        var filterparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
-        filter = ((IList<object>)filterparametersVariable)[0];
-        parameters = ((IList<object>)filterparametersVariable)[1];
-        object orderbook = await this.subscribeOrderBook(symbol, "orderbook", filter, parameters);
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
+        object orderbook = await this.subscribePublic("watchOrderBook", symbol, "orderbook", channel, parameters);
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> subscribeOrderBook(object symbol, object messageHash, object filter, object parameters = null)
+    public async virtual Task<object> subscribePrivate(object messageHash, object channel, object parameters)
+    {
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object subscribe = new Dictionary<string, object>() {
+            { "type", "subscribe" },
+            { "channel", channel },
+        };
+        object request = this.extend(subscribe, parameters);
+        object subscribeHash = messageHash;
+        return await this.watch(url, messageHash, request, subscribeHash);
+    }
+
+    public async virtual Task<object> subscribePublic(object methodName, object symbol, object dataType, object filter, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -467,34 +456,34 @@ public partial class probit : ccxt.probit
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object interval = null;
-        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", 100);
-        interval = ((IList<object>)intervalparametersVariable)[0];
-        parameters = ((IList<object>)intervalparametersVariable)[1];
-        object subscriptionHash = add("marketdata:", symbol);
-        messageHash = add(add(messageHash, ":"), symbol);
+        object subscribeHash = add("marketdata:", symbol);
+        object messageHash = add(add(dataType, ":"), symbol);
         object filters = new Dictionary<string, object>() {};
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
         {
             // already subscribed
-            filters = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
+            filters = getValue(((WebSocketClient)client).subscriptions, subscribeHash);
             if (!isTrue((inOp(filters, filter))))
             {
                 // resubscribe
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
             }
         }
         ((IDictionary<string,object>)filters)[(string)filter] = true;
         object keys = new List<object>(((IDictionary<string,object>)filters).Keys);
-        object message = new Dictionary<string, object>() {
-            { "channel", "marketdata" },
-            { "interval", interval },
-            { "market_id", getValue(market, "id") },
+        object interval = null;
+        var intervalparametersVariable = this.handleOptionAndParams(parameters, methodName, "interval", 100);
+        interval = ((IList<object>)intervalparametersVariable)[0];
+        parameters = ((IList<object>)intervalparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
             { "type", "subscribe" },
+            { "channel", "marketdata" },
+            { "market_id", getValue(market, "id") },
             { "filter", keys },
+            { "interval", interval },
         };
-        object request = this.extend(message, parameters);
-        return await this.watch(url, messageHash, request, messageHash, filters);
+        request = this.extend(request, parameters);
+        return await this.watch(url, messageHash, request, subscribeHash, filters);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message, object orderBook)
@@ -589,7 +578,8 @@ public partial class probit : ccxt.probit
         var future = getValue(((WebSocketClient)client).subscriptions, "authenticated");
         if (isTrue(isEqual(result, "ok")))
         {
-            (future as Future).resolve(true);
+            object messageHash = "authenticated";
+            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
         } else
         {
             ((Future)future).reject(message);
@@ -605,12 +595,14 @@ public partial class probit : ccxt.probit
             this.handleTicker(client as WebSocketClient, message);
         }
         object trades = this.safeValue(message, "recent_trades", new List<object>() {});
-        if (isTrue(getArrayLength(trades)))
+        object tradesLength = getArrayLength(trades);
+        if (isTrue(tradesLength))
         {
             this.handleTrades(client as WebSocketClient, message);
         }
         object orderBook = this.safeValueN(message, new List<object>() {"order_books", "order_books_l1", "order_books_l2", "order_books_l3", "order_books_l4"}, new List<object>() {});
-        if (isTrue(getArrayLength(orderBook)))
+        object orderBookLength = getArrayLength(orderBook);
+        if (isTrue(orderBookLength))
         {
             this.handleOrderBook(client as WebSocketClient, message, orderBook);
         }
@@ -626,6 +618,9 @@ public partial class probit : ccxt.probit
         //             "interval": "invalid"
         //         }
         //     }
+        //
+        // Note about 'reset' field
+        // 'reset': true field - it happens once after initial subscription, which just returns old items by the moment of subscription (like "fetchMyTrades" does)
         //
         object errorCode = this.safeString(message, "errorCode");
         if (isTrue(!isEqual(errorCode, null)))

@@ -267,7 +267,10 @@ public partial class coinex : ccxt.coinex
         parameters = ((IList<object>)typeparametersVariable)[1];
         await this.authenticate(type);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object currencies = new List<object>(((IDictionary<string,object>)this.currencies_by_id).Keys);
+        // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        object activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
+        object activeCurrenciesById = this.indexBy(activeCurrencies, "id");
+        object currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
         if (isTrue(isEqual(currencies, null)))
         {
             currencies = new List<object>() {};
@@ -1004,7 +1007,7 @@ public partial class coinex : ccxt.coinex
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeBool2(parameters, "trigger", "stop");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object messageHash = "orders";
         object market = null;
@@ -1035,7 +1038,7 @@ public partial class coinex : ccxt.coinex
             }
         }
         object method = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             method = "stop.subscribe";
         } else
@@ -1428,7 +1431,7 @@ public partial class coinex : ccxt.coinex
         object defaultType = this.safeString(this.options, "defaultType");
         object marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
-        object timestamp = this.safeTimestamp(ticker, "updated_at");
+        object timestamp = this.safeInteger(ticker, "updated_at");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, defaultType) },
             { "timestamp", timestamp },

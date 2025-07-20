@@ -41,6 +41,7 @@ public partial class blofin : Exchange
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "createTakeProfitOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -50,7 +51,7 @@ public partial class blofin : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
-                { "fetchClosedOrders", false },
+                { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
@@ -94,6 +95,7 @@ public partial class blofin : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", false },
                 { "fetchPositionsRisk", false },
@@ -121,8 +123,8 @@ public partial class blofin : Exchange
                 { "repayCrossMargin", false },
                 { "setLeverage", true },
                 { "setMargin", false },
-                { "setMarginMode", false },
-                { "setPositionMode", false },
+                { "setMarginMode", true },
+                { "setPositionMode", true },
                 { "signIn", false },
                 { "transfer", true },
                 { "withdraw", false },
@@ -150,8 +152,11 @@ public partial class blofin : Exchange
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://openapi.blofin.com" },
                 } },
+                { "test", new Dictionary<string, object>() {
+                    { "rest", "https://demo-trading-openapi.blofin.com" },
+                } },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://blofin.com/register?referral_code=jBd8U1" },
+                    { "url", "https://blofin.com/register?referral_code=f79EsS" },
                     { "discount", 0.05 },
                 } },
                 { "www", "https://www.blofin.com" },
@@ -182,16 +187,36 @@ public partial class blofin : Exchange
                         { "account/positions", 1 },
                         { "account/leverage-info", 1 },
                         { "account/margin-mode", 1 },
+                        { "account/position-mode", 1 },
                         { "account/batch-leverage-info", 1 },
                         { "trade/orders-tpsl-pending", 1 },
+                        { "trade/orders-algo-pending", 1 },
                         { "trade/orders-history", 1 },
                         { "trade/orders-tpsl-history", 1 },
+                        { "trade/orders-algo-history", 1 },
+                        { "trade/order/price-range", 1 },
                         { "user/query-apikey", 1 },
                         { "affiliate/basic", 1 },
+                        { "copytrading/instruments", 1 },
+                        { "copytrading/account/balance", 1 },
+                        { "copytrading/account/positions-by-order", 1 },
+                        { "copytrading/account/positions-details-by-order", 1 },
+                        { "copytrading/account/positions-by-contract", 1 },
+                        { "copytrading/account/position-mode", 1 },
+                        { "copytrading/account/leverage-info", 1 },
+                        { "copytrading/trade/orders-pending", 1 },
+                        { "copytrading/trade/pending-tpsl-by-contract", 1 },
+                        { "copytrading/trade/position-history-by-order", 1 },
+                        { "copytrading/trade/orders-history", 1 },
+                        { "copytrading/trade/pending-tpsl-by-order", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
+                        { "account/set-margin-mode", 1 },
+                        { "account/set-position-mode", 1 },
                         { "trade/order", 1 },
+                        { "trade/order-algo", 1 },
                         { "trade/cancel-order", 1 },
+                        { "trade/cancel-algo", 1 },
                         { "account/set-leverage", 1 },
                         { "trade/batch-orders", 1 },
                         { "trade/order-tpsl", 1 },
@@ -199,6 +224,16 @@ public partial class blofin : Exchange
                         { "trade/cancel-tpsl", 1 },
                         { "trade/close-position", 1 },
                         { "asset/transfer", 1 },
+                        { "copytrading/account/set-position-mode", 1 },
+                        { "copytrading/account/set-leverage", 1 },
+                        { "copytrading/trade/place-order", 1 },
+                        { "copytrading/trade/cancel-order", 1 },
+                        { "copytrading/trade/place-tpsl-by-contract", 1 },
+                        { "copytrading/trade/cancel-tpsl-by-contract", 1 },
+                        { "copytrading/trade/place-tpsl-by-order", 1 },
+                        { "copytrading/trade/cancel-tpsl-by-order", 1 },
+                        { "copytrading/trade/close-position-by-order", 1 },
+                        { "copytrading/trade/close-position-by-contract", 1 },
                     } },
                 } },
             } },
@@ -212,6 +247,96 @@ public partial class blofin : Exchange
                 { "apiKey", true },
                 { "secret", true },
                 { "password", true },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "hedged", false },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", true },
+                        } },
+                        { "hedged", true },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -271,12 +396,19 @@ public partial class blofin : Exchange
                 { "brokerId", "ec6dd3a7dd982d0b" },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "swap", "futures" },
+                    { "funding", "funding" },
                     { "future", "futures" },
+                    { "copy_trading", "copy_trading" },
+                    { "earn", "earn" },
+                    { "spot", "spot" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
+                    { "funding", "funding" },
                     { "futures", "swap" },
+                    { "copy_trading", "copy_trading" },
+                    { "earn", "earn" },
+                    { "spot", "spot" },
                 } },
-                { "sandboxMode", false },
                 { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "ETH", "ERC20" },
@@ -800,6 +932,7 @@ public partial class blofin : Exchange
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -816,7 +949,7 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -829,6 +962,12 @@ public partial class blofin : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["after"] = until;
+            parameters = this.omit(parameters, "until");
         }
         object response = await this.publicGetMarketFundingRateHistory(this.extend(request, parameters));
         object rates = new List<object>() {};
@@ -924,9 +1063,10 @@ public partial class blofin : Exchange
         return this.parseFundingRate(entry, market);
     }
 
-    public virtual object parseBalanceByType(object type, object response)
+    public virtual object parseBalanceByType(object response)
     {
-        if (isTrue(type))
+        object data = this.safeList(response, "data");
+        if (isTrue(isTrue((!isEqual(data, null))) && isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             return this.parseFundingBalance(response);
         } else
@@ -1060,11 +1200,13 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountType = this.safeString2(parameters, "accountType", "type");
-        parameters = this.omit(parameters, new List<object>() {"accountType", "type"});
+        object accountType = null;
+        var accountTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(!isEqual(accountType, null)))
+        if (isTrue(isTrue(!isEqual(accountType, null)) && isTrue(!isEqual(accountType, "swap"))))
         {
             object options = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
             object parsedAccountType = this.safeString(options, accountType, accountType);
@@ -1074,7 +1216,7 @@ public partial class blofin : Exchange
         {
             response = await this.privateGetAccountBalance(this.extend(request, parameters));
         }
-        return this.parseBalanceByType(accountType, response);
+        return this.parseBalanceByType(response);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1093,7 +1235,13 @@ public partial class blofin : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
+        object triggerPrice = this.safeString(parameters, "triggerPrice");
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
+        object isHedged = this.safeBool(parameters, "hedged", false);
+        if (isTrue(isHedged))
+        {
+            ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
+        }
         object isMarketOrder = isEqual(type, "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
         object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
@@ -1103,7 +1251,8 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["orderType"] = "market";
         } else
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            object key = ((bool) isTrue((!isEqual(triggerPrice, null)))) ? "orderPrice" : "price";
+            ((IDictionary<string,object>)request)[(string)key] = this.priceToPrecision(symbol, price);
         }
         object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(type, "post_only"), parameters);
@@ -1115,7 +1264,7 @@ public partial class blofin : Exchange
         }
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
+        parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "hedged"});
         object isStopLoss = !isEqual(stopLoss, null);
         object isTakeProfit = !isEqual(takeProfit, null);
         if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
@@ -1133,6 +1282,14 @@ public partial class blofin : Exchange
                 ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                 object tpPrice = this.safeString(takeProfit, "price", "-1");
                 ((IDictionary<string,object>)request)["tpOrderPrice"] = this.priceToPrecision(symbol, tpPrice);
+            }
+        } else if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["orderType"] = "trigger";
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            if (isTrue(isMarketOrder))
+            {
+                ((IDictionary<string,object>)request)["orderPrice"] = "-1";
             }
         }
         return this.extend(request, parameters);
@@ -1188,7 +1345,7 @@ public partial class blofin : Exchange
         //     "instType": "SWAP", // only in WS
         // }
         //
-        object id = this.safeString2(order, "tpslId", "orderId");
+        object id = this.safeStringN(order, new List<object>() {"tpslId", "orderId", "algoId"});
         object timestamp = this.safeInteger(order, "createTime");
         object lastUpdateTimestamp = this.safeInteger(order, "updateTime");
         object lastTradeTimestamp = this.safeInteger(order, "fillTime");
@@ -1292,12 +1449,14 @@ public partial class blofin : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] the trigger price for a trigger order
      * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
      * @param {bool} [params.postOnly] true to place a post only order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
      * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
      * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+     * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -1320,16 +1479,32 @@ public partial class blofin : Exchange
         parameters = ((IList<object>)methodparametersVariable)[1];
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
+        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
         object isType2Order = (isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined));
         object response = null;
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        if (isTrue(!isEqual(reduceOnly, null)))
+        {
+            ((IDictionary<string,object>)parameters)["reduceOnly"] = ((bool) isTrue(reduceOnly)) ? "true" : "false";
+        }
         if (isTrue(isTrue(isTrue(tpsl) || isTrue((isEqual(method, "privatePostTradeOrderTpsl")))) || isTrue(isType2Order)))
         {
             object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
+        } else if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        {
+            object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            response = await this.privatePostTradeOrderAlgo(triggerRequest);
         } else
         {
             object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostTradeOrder(request);
+        }
+        if (isTrue(isTrue(isTriggerOrder) || isTrue((isEqual(method, "privatePostTradeOrderAlgo")))))
+        {
+            object dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object triggerOrder = this.parseOrder(dataDict, market);
+            return triggerOrder;
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0);
@@ -1396,7 +1571,8 @@ public partial class blofin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
+     * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -1411,27 +1587,36 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger"}, false);
+        object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
         {
-            if (!isTrue(isTrigger))
+            if (isTrue(!isTrue(isTrigger) && !isTrue(isTpsl)))
             {
                 ((IDictionary<string,object>)request)["orderId"] = ((object)id).ToString();
-            } else
+            } else if (isTrue(isTpsl))
             {
                 ((IDictionary<string,object>)request)["tpslId"] = ((object)id).ToString();
+            } else if (isTrue(isTrigger))
+            {
+                ((IDictionary<string,object>)request)["algoId"] = ((object)id).ToString();
             }
         }
         object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
-        if (isTrue(isTrigger))
+        if (isTrue(isTpsl))
         {
             object tpslResponse = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             object first = this.safeDict(tpslResponse, 0);
             return first;
+        } else if (isTrue(isTrigger))
+        {
+            object triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
+            object triggerData = this.safeDict(triggerResponse, "data");
+            return this.parseOrder(triggerData, market);
         }
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         object data = this.safeList(response, "data", new List<object>() {});
@@ -1477,11 +1662,12 @@ public partial class blofin : Exchange
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
      * @see https://blofin.com/docs#get-active-tpsl-orders
+     * @see https://docs.blofin.com/index.html#get-active-algo-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1508,16 +1694,21 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger"}, false);
+        object isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
-        if (isTrue(isTrue(isStop) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
+        if (isTrue(isTrue(isTpSl) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
+        } else if (isTrue(isTrue(isTrigger) || isTrue((isEqual(method, "privateGetTradeOrdersAlgoPending")))))
+        {
+            ((IDictionary<string,object>)request)["orderType"] = "trigger";
+            response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         } else
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, query));
@@ -1678,7 +1869,7 @@ public partial class blofin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1900,8 +2091,8 @@ public partial class blofin : Exchange
         object method = this.safeString(parameters, "method", defaultMethod);
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
-        object stop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
-        if (isTrue(stop))
+        object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
+        if (isTrue(trigger))
         {
             method = "privatePostTradeCancelTpsl";
         }
@@ -1920,7 +2111,7 @@ public partial class blofin : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(ids, i) },
@@ -2033,7 +2224,7 @@ public partial class blofin : Exchange
 
     /**
      * @method
-     * @name blofin#fetchPosition
+     * @name blofin#fetchPositions
      * @description fetch data on a single open contract trade position
      * @see https://blofin.com/docs#get-positions
      * @param {string[]} [symbols] list of unified market symbols
@@ -2312,6 +2503,7 @@ public partial class blofin : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -2395,7 +2587,7 @@ public partial class blofin : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2426,14 +2618,14 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
-        if (isTrue(isTrue((isStop)) || isTrue((isEqual(method, "privateGetTradeOrdersTpslHistory")))))
+        if (isTrue(isTrue((isTrigger)) || isTrue((isEqual(method, "privateGetTradeOrdersTpslHistory")))))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else
@@ -2476,9 +2668,104 @@ public partial class blofin : Exchange
     {
         return new Dictionary<string, object>() {
             { "info", marginMode },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", this.safeString(marginMode, "marginMode") },
         };
+    }
+
+    /**
+     * @method
+     * @name blofin#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.blofin.com/index.html#set-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {
+            { "marginMode", marginMode },
+        };
+        object response = await this.privatePostAccountSetMarginMode(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "isolated"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://docs.blofin.com/index.html#get-position-mode
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.privateGetAccountPositionMode(parameters);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object positionMode = this.safeString(data, "positionMode");
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "long_short_mode"
+        //         }
+        //     }
+        //
+        return new Dictionary<string, object>() {
+            { "info", data },
+            { "hedged", isEqual(positionMode, "long_short_mode") },
+        };
+    }
+
+    /**
+     * @method
+     * @name blofin#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://docs.blofin.com/index.html#set-position-mode
+     * @param {bool} hedged set to true to use hedged mode, false for one-way mode
+     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "positionMode", ((bool) isTrue(hedged)) ? "long_short_mode" : "net_mode" },
+        };
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "net_mode"
+        //         }
+        //     }
+        //
+        return await this.privatePostAccountSetPositionMode(this.extend(request, parameters));
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

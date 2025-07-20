@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
@@ -261,7 +261,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -294,6 +294,72 @@ class gemini extends gemini$1 {
                         'base': 'PAXG',
                         'quote': 'USD',
                     },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });
@@ -355,8 +421,6 @@ class gemini extends gemini$1 {
             let networkCode = undefined;
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
                     'id': networkId,
@@ -378,7 +442,7 @@ class gemini extends gemini$1 {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -400,7 +464,7 @@ class gemini extends gemini$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -1344,7 +1408,6 @@ class gemini extends gemini$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': average,
             'cost': undefined,
@@ -1478,13 +1541,13 @@ class gemini extends gemini$1 {
         };
         type = this.safeString(params, 'type', type);
         params = this.omit(params, 'type');
-        const rawStopPrice = this.safeString2(params, 'stop_price', 'stopPrice');
-        params = this.omit(params, ['stop_price', 'stopPrice', 'type']);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type']);
         if (type === 'stopLimit') {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
         }
-        if (rawStopPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(symbol, rawStopPrice);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             request['type'] = 'exchange stop limit';
         }
         else {
@@ -1903,6 +1966,7 @@ class gemini extends gemini$1 {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }

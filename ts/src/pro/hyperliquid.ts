@@ -9,7 +9,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 //  ---------------------------------------------------------------------------
 
 export default class hyperliquid extends hyperliquidRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -79,7 +79,7 @@ export default class hyperliquid extends hyperliquidRest {
 
     /**
      * @method
-     * @name hyperliquid#createOrder
+     * @name hyperliquid#createOrderWs
      * @description create a trade order using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -99,16 +99,19 @@ export default class hyperliquid extends hyperliquidRest {
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs ([ order as any ], globalParams);
-        return orders[0];
+        const parsedOrder = orders[0];
+        const orderInfo = this.safeDict (parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors (undefined, undefined, undefined, undefined, undefined, this.json (orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
 
     /**
      * @method
-     * @name hyperliquid#editOrder
+     * @name hyperliquid#editOrderWs
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -129,7 +132,8 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
-        const postRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, amount, price, params);
+        const postRequest = this.editOrdersRequest ([ order as any ], globalParams);
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
@@ -139,7 +143,11 @@ export default class hyperliquid extends hyperliquidRest {
         const dataObject = this.safeDict (responseObject, 'data', {});
         const statuses = this.safeList (dataObject, 'statuses', []);
         const first = this.safeDict (statuses, 0, {});
-        return this.parseOrder (first, market);
+        const parsedOrder = this.parseOrder (first, market);
+        const orderInfo = this.safeDict (parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors (undefined, undefined, undefined, undefined, undefined, this.json (orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
 
     /**
@@ -162,7 +170,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -192,7 +200,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -512,7 +520,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -543,7 +551,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -641,7 +649,7 @@ export default class hyperliquid extends hyperliquidRest {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': this.safeString (trade, 'oid'),
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -673,7 +681,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -705,7 +713,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };

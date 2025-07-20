@@ -1,9 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
-        "numericId": 2,
-        "code": "BTC",
-        "name": "Bitcoin",
         "info": {
             "base_withdrawal_fee": "0.000500000000000000",
             "id": "2",
@@ -16,6 +12,19 @@
             "name": "Bitcoin",
             "networks": [
                 {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.00002",
+                    "deposit_status": "disabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "0.000100000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "0.001",
                     "deposit_status": "enabled",
                     "memo_required": false,
@@ -32,24 +41,97 @@
             "symbol": "BTC",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.0005,
+        "id": "BTC",
+        "numericId": 2,
+        "code": "BTC",
         "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.001
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00002,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "id": "BEP20(BSC)",
+                "network": "BEP20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.00002",
+                    "deposit_status": "disabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "0.000100000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": true,
+                "fee": 0.00002,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                }
+            },
+            "BTC": {
+                "id": "BTC",
+                "network": "BTC",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.001",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.000000000000000000",
+                    "min_withdrawal_amount": "0.002000000000000000",
+                    "minimum_deposit_confirmations": "2",
+                    "network": "BTC",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.001,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.002,
+                        "max": null
+                    }
+                }
             }
         },
-        "networks": {}
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0001,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            }
+        }
     },
     "USDT": {
-        "id": "USDT",
-        "numericId": 5,
-        "code": "USDT",
-        "name": "Tether",
         "info": {
             "base_withdrawal_fee": "10.000000000000000000",
             "id": "5",
@@ -62,6 +144,170 @@
             "name": "Tether",
             "networks": [
                 {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "1",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "6.000000000000000000",
+                    "minimum_deposit_confirmations": "15",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "3",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "1.000000000000000000",
+                    "min_withdrawal_amount": "10.000000000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "TRC20(TRON)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "0",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "1.000000000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "POLYGON",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "10",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "30.000000000000000000",
+                    "minimum_deposit_confirmations": "12",
+                    "network": "ERC20",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                }
+            ],
+            "precision": "8",
+            "sort_priority": "1",
+            "symbol": "USDT",
+            "variable_withdrawal_fee": "0.000000000000000000"
+        },
+        "id": "USDT",
+        "numericId": 5,
+        "code": "USDT",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Tether",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "id": "BEP20(BSC)",
+                "network": "BEP20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "1",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "6.000000000000000000",
+                    "minimum_deposit_confirmations": "15",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 6,
+                        "max": null
+                    }
+                }
+            },
+            "TRC20": {
+                "id": "TRC20(TRON)",
+                "network": "TRC20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "3",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "1.000000000000000000",
+                    "min_withdrawal_amount": "10.000000000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "TRC20(TRON)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 3,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": null
+                    }
+                }
+            },
+            "POLYGON": {
+                "id": "POLYGON",
+                "network": "POLYGON",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": "G1",
+                    "base_withdrawal_fee": "0",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "1.000000000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "POLYGON",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": "G1",
                     "base_withdrawal_fee": "10",
                     "deposit_status": "enabled",
                     "memo_required": false,
@@ -72,63 +318,38 @@
                     "variable_withdrawal_fee": "0",
                     "withdrawal_status": "enabled"
                 },
-                {
-                    "base_withdrawal_fee": "1",
-                    "deposit_status": "enabled",
-                    "memo_required": false,
-                    "min_deposit_amount": "0.500000000000000000",
-                    "min_withdrawal_amount": "30.000000000000000000",
-                    "minimum_deposit_confirmations": "15",
-                    "network": "BEP20(BSC)",
-                    "variable_withdrawal_fee": "0",
-                    "withdrawal_status": "enabled"
-                },
-                {
-                    "base_withdrawal_fee": "1",
-                    "deposit_status": "enabled",
-                    "memo_required": false,
-                    "min_deposit_amount": "1.000000000000000000",
-                    "min_withdrawal_amount": "30.000000000000000000",
-                    "minimum_deposit_confirmations": "1",
-                    "network": "TRC20(TRON)",
-                    "variable_withdrawal_fee": "0",
-                    "withdrawal_status": "enabled"
-                },
-                {
-                    "base_withdrawal_fee": "0.5",
-                    "deposit_status": "enabled",
-                    "memo_required": false,
-                    "min_deposit_amount": "0.500000000000000000",
-                    "min_withdrawal_amount": "10.000000000000000000",
-                    "minimum_deposit_confirmations": "1",
-                    "network": "POLYGON",
-                    "variable_withdrawal_fee": "0",
-                    "withdrawal_status": "enabled"
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 10,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 30,
+                        "max": null
+                    }
                 }
-            ],
-            "precision": "8",
-            "sort_priority": "1",
-            "symbol": "USDT",
-            "variable_withdrawal_fee": "0.000000000000000000"
-        },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 10,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 30
             }
         },
-        "networks": {}
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.5,
+                "max": null
+            }
+        }
     },
     "USD": {
-        "id": "USD",
-        "numericId": 3,
-        "code": "USD",
-        "name": "US Dollar",
         "info": {
             "base_withdrawal_fee": "0.000000000000000000",
             "id": "3",
@@ -145,24 +366,30 @@
             "symbol": "USD",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
+        "id": "USD",
+        "numericId": 3,
+        "code": "USD",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "US Dollar",
+        "active": null,
         "deposit": false,
         "withdraw": false,
         "fee": 0,
-        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "withdraw": {
-                "min": 0
+                "min": 0,
+                "max": null
             }
-        },
-        "networks": {}
+        }
     },
     "LTC": {
-        "id": "LTC",
-        "numericId": 11,
-        "code": "LTC",
-        "name": "Litecoin",
         "info": {
             "base_withdrawal_fee": "0.000000000000000000",
             "id": "11",
@@ -179,24 +406,30 @@
             "symbol": "LTC",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
+        "id": "LTC",
+        "numericId": 11,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": null,
         "deposit": false,
         "withdraw": false,
         "fee": 0,
-        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "withdraw": {
-                "min": 0
+                "min": 0,
+                "max": null
             }
-        },
-        "networks": {}
+        }
     },
     "ETH": {
-        "id": "ETH",
-        "numericId": 1,
-        "code": "ETH",
-        "name": "Ethereum",
         "info": {
             "base_withdrawal_fee": "0.005000000000000000",
             "id": "1",
@@ -209,6 +442,7 @@
             "name": "Ethereum",
             "networks": [
                 {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "0.0025",
                     "deposit_status": "enabled",
                     "memo_required": false,
@@ -220,11 +454,12 @@
                     "withdrawal_status": "enabled"
                 },
                 {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "0.0001",
                     "deposit_status": "enabled",
                     "memo_required": false,
                     "min_deposit_amount": "0.000050000000000000",
-                    "min_withdrawal_amount": "0.010000000000000000",
+                    "min_withdrawal_amount": "0.000300000000000000",
                     "minimum_deposit_confirmations": "15",
                     "network": "BEP20(BSC)",
                     "variable_withdrawal_fee": "0",
@@ -236,24 +471,97 @@
             "symbol": "ETH",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.005,
+        "id": "ETH",
+        "numericId": 1,
+        "code": "ETH",
         "precision": 1e-18,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.01
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.0025",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.000050000000000000",
+                    "min_withdrawal_amount": "0.010000000000000000",
+                    "minimum_deposit_confirmations": "12",
+                    "network": "ERC20",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0025,
+                "limits": {
+                    "deposit": {
+                        "min": 0.00005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BEP20(BSC)",
+                "network": "BEP20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.0001",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.000050000000000000",
+                    "min_withdrawal_amount": "0.000300000000000000",
+                    "minimum_deposit_confirmations": "15",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": 0.00005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0003,
+                        "max": null
+                    }
+                }
             }
         },
-        "networks": {}
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0003,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.00005,
+                "max": null
+            }
+        }
     },
     "ADA": {
-        "id": "ADA",
-        "numericId": 27,
-        "code": "ADA",
-        "name": "CARDANO",
         "info": {
             "base_withdrawal_fee": "0.000000000000000000",
             "id": "27",
@@ -270,24 +578,30 @@
             "symbol": "ADA",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
+        "id": "ADA",
+        "numericId": 27,
+        "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "CARDANO",
+        "active": null,
         "deposit": false,
         "withdraw": false,
         "fee": 0,
-        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "withdraw": {
-                "min": 0
+                "min": 0,
+                "max": null
             }
-        },
-        "networks": {}
+        }
     },
     "XRP": {
-        "id": "XRP",
-        "numericId": 4,
-        "code": "XRP",
-        "name": "Ripple",
         "info": {
             "base_withdrawal_fee": "0.000000000000000000",
             "id": "4",
@@ -300,11 +614,12 @@
             "name": "Ripple",
             "networks": [
                 {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "0.25",
                     "deposit_status": "enabled",
                     "memo_required": true,
                     "min_deposit_amount": "0.000000000000000000",
-                    "min_withdrawal_amount": "30.000000000000000000",
+                    "min_withdrawal_amount": "10.000000000000000000",
                     "minimum_deposit_confirmations": "1",
                     "network": "XRP",
                     "variable_withdrawal_fee": "0",
@@ -316,24 +631,66 @@
             "symbol": "XRP",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0,
+        "id": "XRP",
+        "numericId": 4,
+        "code": "XRP",
         "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 30
+        "type": "crypto",
+        "name": "Ripple",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "XRP": {
+                "id": "XRP",
+                "network": "XRP",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "0.25",
+                    "deposit_status": "enabled",
+                    "memo_required": true,
+                    "min_deposit_amount": "0.000000000000000000",
+                    "min_withdrawal_amount": "10.000000000000000000",
+                    "minimum_deposit_confirmations": "1",
+                    "network": "XRP",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.25,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": null
+                    }
+                }
             }
         },
-        "networks": {}
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            }
+        }
     },
     "USDC": {
-        "id": "USDC",
-        "numericId": 8,
-        "code": "USDC",
-        "name": "USD Circle",
         "info": {
             "base_withdrawal_fee": "0.000000000000000000",
             "id": "8",
@@ -346,17 +703,19 @@
             "name": "USD Circle",
             "networks": [
                 {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "1",
                     "deposit_status": "enabled",
                     "memo_required": false,
                     "min_deposit_amount": "0.500000000000000000",
-                    "min_withdrawal_amount": "30.000000000000000000",
+                    "min_withdrawal_amount": "5.000000000000000000",
                     "minimum_deposit_confirmations": "15",
                     "network": "BEP20(BSC)",
                     "variable_withdrawal_fee": "0",
                     "withdrawal_status": "enabled"
                 },
                 {
+                    "allowed_deposit_groups": null,
                     "base_withdrawal_fee": "10",
                     "deposit_status": "enabled",
                     "memo_required": false,
@@ -373,17 +732,94 @@
             "symbol": "USDC",
             "variable_withdrawal_fee": "0.000000000000000000"
         },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0,
+        "id": "USDC",
+        "numericId": 8,
+        "code": "USDC",
         "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 30
+        "type": "crypto",
+        "name": "USD Circle",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "id": "BEP20(BSC)",
+                "network": "BEP20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "1",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "5.000000000000000000",
+                    "minimum_deposit_confirmations": "15",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "id": "ERC20",
+                "network": "ERC20",
+                "name": null,
+                "info": {
+                    "allowed_deposit_groups": null,
+                    "base_withdrawal_fee": "10",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "30.000000000000000000",
+                    "minimum_deposit_confirmations": "12",
+                    "network": "ERC20",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 10,
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 30,
+                        "max": null
+                    }
+                }
             }
         },
-        "networks": {}
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 5,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.5,
+                "max": null
+            }
+        }
     }
 }

@@ -33,11 +33,18 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
+    /// See <see href="https://www.bitget.bike/api-doc/uta/public/Instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// string : set to true to fetch markets for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -46,6 +53,16 @@ public partial class bitget
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchDefaultMarkets(object parameters)
+    {
+        var res = await this.fetchDefaultMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchUtaMarkets(object parameters)
+    {
+        var res = await this.fetchUtaMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -485,6 +502,18 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.useHistoryEndpoint</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint (it has max limit of 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpointForPagination</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint for pagination (default true)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -820,7 +849,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for canceling trigger orders
     /// </description>
@@ -868,7 +897,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -904,7 +933,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -980,7 +1009,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
     /// </description>
@@ -1045,7 +1074,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1058,12 +1099,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1114,7 +1149,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1127,12 +1174,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1178,6 +1219,42 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.isPlan</term>
+    /// <description>
+    /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
     /// </list>
@@ -1247,7 +1324,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1420,11 +1497,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
     /// </description>
     /// </item>
     /// </list>

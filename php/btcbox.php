@@ -10,7 +10,7 @@ use ccxt\abstract\btcbox as Exchange;
 
 class btcbox extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcbox',
             'name' => 'BtcBox',
@@ -26,28 +26,57 @@ class btcbox extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -59,15 +88,21 @@ class btcbox extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
@@ -102,6 +137,79 @@ class btcbox extends Exchange {
                         'wallet',
                     ),
                 ),
+                'webApi' => array(
+                    'get' => array(
+                        'ajax/coin/coinInfo',
+                    ),
+                ),
+            ),
+            'options' => array(
+                'fetchMarkets' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 3,
+                ),
+                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -125,9 +233,12 @@ class btcbox extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetTickers ();
+        $promise1 = $this->publicGetTickers ();
+        $promise2 = $this->fetch_web_endpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
+        list($response1, $response2) = array( $promise1, $promise2 );
         //
-        $marketIds = is_array($response) ? array_keys($response) : array();
+        $result2Data = $this->safe_dict($response2, 'data', array());
+        $marketIds = is_array($response1) ? array_keys($response1) : array();
         $markets = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -136,9 +247,11 @@ class btcbox extends Exchange {
             $quote = $this->safe_string($symbolParts, 1);
             $quoteId = strtolower($quote);
             $id = strtolower($baseCurr);
-            $res = $response[$marketId];
+            $res = $response1[$marketId];
             $symbol = $baseCurr . '/' . $quote;
             $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
+            $details = $this->safe_dict($result2Data, $id, array());
+            $tradeDetails = $this->safe_dict($details, 'trade', array());
             $markets[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'uppercaseId' => null,
@@ -184,10 +297,10 @@ class btcbox extends Exchange {
                     ),
                 ),
                 'precision' => array(
-                    'price' => null,
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($tradeDetails, 'pricedecimal'))),
                     'amount' => null,
                 ),
-                'active' => null,
+                'active' => $this->safe_string($tradeDetails, 'enable') === '1',
                 'created' => null,
                 'info' => $res,
             ));
@@ -559,7 +672,6 @@ class btcbox extends Exchange {
             'status' => $status,
             'symbol' => $market['symbol'],
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'trades' => $trades,
@@ -609,9 +721,6 @@ class btcbox extends Exchange {
     public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         // a special case for btcbox – default $symbol is BTC/JPY
-        if ($symbol === null) {
-            $symbol = 'BTC/JPY';
-        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $type, // 'open' or 'all'
@@ -681,6 +790,8 @@ class btcbox extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+        } elseif ($api === 'webApi') {
+            $url = $this->urls['www'] . '/' . $path;
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

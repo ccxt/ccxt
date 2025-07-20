@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class delta(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(delta, self).describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -229,6 +229,91 @@ class delta(Exchange, ImplicitAPI):
                     'BEP20': 'BEP20(BSC)',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo implement
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': True,
+                        },
+                        # todo implementation
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,  # todo: implement
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                    },
+                    'createOrders': None,  # todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo: revise
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,  # todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': True,
@@ -272,6 +357,8 @@ class delta(Exchange, ImplicitAPI):
             base = self.safe_string(optionParts, 1)
             expiry = self.safe_string(optionParts, 3)
             optionType = self.safe_string(optionParts, 0)
+        if expiry is not None:
+            expiry = expiry[4:] + expiry[2:4] + expiry[0:2]
         settle = quote
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
@@ -328,7 +415,7 @@ class delta(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(delta, self).safe_market(marketId, market, delimiter, marketType)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -422,31 +509,49 @@ class delta(Exchange, ImplicitAPI):
         """
         response = self.publicGetAssets(params)
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "base_withdrawal_fee":"0.0005",
-        #                 "deposit_status":"enabled",
-        #                 "id":2,
-        #                 "interest_credit":true,
-        #                 "interest_slabs":[
-        #                     {"limit":"0.1","rate":"0"},
-        #                     {"limit":"1","rate":"0.05"},
-        #                     {"limit":"5","rate":"0.075"},
-        #                     {"limit":"10","rate":"0.1"},
-        #                     {"limit":"9999999999999999","rate":"0"}
-        #                 ],
-        #                 "kyc_deposit_limit":"10",
-        #                 "kyc_withdrawal_limit":"2",
-        #                 "min_withdrawal_amount":"0.001",
-        #                 "minimum_precision":4,
-        #                 "name":"Bitcoin",
-        #                 "precision":8,
-        #                 "sort_priority":1,
-        #                 "symbol":"BTC",
-        #                 "variable_withdrawal_fee":"0",
-        #                 "withdrawal_status":"enabled"
-        #             },
+        #    {
+        #        "result": [
+        #            {
+        #                "base_withdrawal_fee": "0.005000000000000000",
+        #                "id": "1",
+        #                "interest_credit": False,
+        #                "interest_slabs": null,
+        #                "kyc_deposit_limit": "0.000000000000000000",
+        #                "kyc_withdrawal_limit": "0.000000000000000000",
+        #                "min_withdrawal_amount": "0.010000000000000000",
+        #                "minimum_precision": "4",
+        #                "name": "Ethereum",
+        #                "networks": [
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0025",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.010000000000000000",
+        #                        "minimum_deposit_confirmations": "12",
+        #                        "network": "ERC20",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    },
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0001",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.000300000000000000",
+        #                        "minimum_deposit_confirmations": "15",
+        #                        "network": "BEP20(BSC)",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    }
+        #                ],
+        #                "precision": "18",
+        #                "sort_priority": "3",
+        #                "symbol": "ETH",
+        #                "variable_withdrawal_fee": "0.000000000000000000"
+        #            },
         #         ],
         #         "success":true
         #     }
@@ -458,20 +563,41 @@ class delta(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_string(currency, 'deposit_status')
-            withdrawalStatus = self.safe_string(currency, 'withdrawal_status')
-            depositsEnabled = (depositStatus == 'enabled')
-            withdrawalsEnabled = (withdrawalStatus == 'enabled')
-            active = depositsEnabled and withdrawalsEnabled
-            result[code] = {
+            chains = self.safe_list(currency, 'networks', [])
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(chain, 'name'),
+                    'info': chain,
+                    'active': self.safe_string(chain, 'status') == 'enabled',
+                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(chain, 'min_deposit_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': None,
+                'deposit': self.safe_string(currency, 'deposit_status') == 'enabled',
+                'withdraw': self.safe_string(currency, 'withdrawal_status') == 'enabled',
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
@@ -481,8 +607,9 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
-            }
+                'networks': networks,
+                'type': 'crypto',
+            })
         return result
 
     def load_markets(self, reload=False, params={}):
@@ -734,7 +861,7 @@ class delta(Exchange, ImplicitAPI):
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
-            linear = (settle == base)
+            linear = (settle == quote)
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
@@ -779,9 +906,9 @@ class delta(Exchange, ImplicitAPI):
                 'inverse': None if spot else not linear,
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': None if spot else contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': self.iso8601(expiry),  # do not use raw expiry string
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
@@ -1446,13 +1573,14 @@ class delta(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.delta.exchange/#get-ohlc-candles
+        https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1462,14 +1590,18 @@ class delta(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         limit = limit if limit else 2000  # max 2000
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
+        if untilIsDefined:
+            until = self.parse_to_int(until)
         if since is None:
-            end = self.seconds()
+            end = until if untilIsDefined else self.seconds()
             request['end'] = end
             request['start'] = end - limit * duration
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = self.sum(start, limit * duration)
+            request['end'] = until if untilIsDefined else self.sum(start, limit * duration)
         price = self.safe_string(params, 'price')
         if price == 'mark':
             request['symbol'] = 'MARK:' + market['id']
@@ -1477,7 +1609,7 @@ class delta(Exchange, ImplicitAPI):
             request['symbol'] = market['info']['spot_index']['symbol']
         else:
             request['symbol'] = market['id']
-        params = self.omit(params, 'price')
+        params = self.omit(params, ['price', 'until'])
         response = self.publicGetHistoryCandles(self.extend(request, params))
         #
         #     {
@@ -1570,7 +1702,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2152,7 +2284,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {
@@ -2458,8 +2590,7 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         rates = self.safe_list(response, 'result', [])
-        result = self.parse_funding_rates(rates)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rates, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -3416,7 +3547,7 @@ class delta(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
             }
             auth = method + timestamp + requestPath
-            if (method == 'GET') or (method == 'DELETE'):
+            if method == 'GET':
                 if query:
                     queryString = '?' + self.urlencode(query)
                     auth += queryString

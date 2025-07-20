@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -16,7 +16,7 @@ import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Marke
  * @augments Exchange
  */
 export default class coinex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -57,6 +57,7 @@ export default class coinex extends Exchange {
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -468,7 +469,7 @@ export default class coinex extends Exchange {
                     'ERC20': 'ERC20',
                     'BRC20': 'BRC20',
                     'SOL': 'SOL',
-                    'TON': 'SOL',
+                    'TON': 'TON',
                     'BSV': 'BSV',
                     'AVAXC': 'AVA_C',
                     'AVAXX': 'AVA',
@@ -499,6 +500,96 @@ export default class coinex extends Exchange {
                     'XRP': 'XRP',
                     'XMR': 'XMR',
                     // CSC, AE, BASE, AIPG, AKASH, POLKADOTASSETHUB ?, ALEO, STX, ALGO, ALPH, BLAST, AR, ARCH, ARDR, ARK, ARRR, MANTA, NTRN, LUNA, AURORA, AVAIL, ASC20, AVA, AYA, AZERO, BAN, BAND, BB, RUNES, BEAM, BELLSCOIN, BITCI, NEAR, AGORIC, BLOCX, BNC, BOBA, BRISE, KRC20, CANTO, CAPS, CCD, CELO, CFX, CHI, CKB, CLORE, CLV, CORE, CSPR, CTXC, DAG, DCR, DERO, DESO, DEFI, DGB, DNX, DOCK, DOGECHAIN, DYDX, DYMENSION, EGLD, ELA, ELF, ENJIN, EOSIO, ERG, ETN_SC, EVMOS, EWC, SGB, FACT, FB, FET, FIO, FIRO, NEO3, FLOW, FLARE, FLUX, LINEA, FREN, FSN, FB_BRC20, GLMR, GRIN, GRS, HACASH, HBAR, HERB, HIVE, MAPO, HMND, HNS, ZKSYNC, HTR, HUAHUA, MERLIN, ICP, ICX, INJ, IOST, IOTA, IOTX, IRIS, IRON, ONE, JOYSTREAM, KAI, KAR, KAS, KAVA, KCN, KDA, KLAY, KLY, KMD, KSM, KUB, KUJIRA, LAT, LBC, LUNC, LUKSO, MARS, METIS, MINA, MANTLE, MOB, MODE, MONA, MOVR, MTL, NEOX, NEXA, NIBI, NIMIQ, NMC, ONOMY, NRG, WAVES, NULS, OAS, OCTA, OLT, ONT, OORT, ORAI, OSMO, P3D, COMPOSABLE, PIVX, RON, POKT, POLYMESH, PRE_MARKET, PYI, QKC, QTUM, QUBIC, RSK, ROSE, ROUTE, RTM, THORCHAIN, RVN, RADIANT, SAGA, SALVIUM, SATOX, SC, SCP, _NULL, SCRT, SDN, RGBPP, SELF, SMH, SPACE, STARGAZE, STC, STEEM, STRATISEVM, STRD, STARKNET, SXP, SYS, TAIKO, TAO, TARA, TENET, THETA, TT, VENOM, VECHAIN, TOMO, VITE, VLX, VSYS, VTC, WAN, WAXP, WEMIX, XCH, XDC, XEC, XELIS, NEM, XHV, XLM, XNA, NANO, XPLA, XPR, XPRT, XRD, XTZ, XVG, XYM, ZANO, ZEC, ZEN, ZEPH, ZETA
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true, // todo: implement
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {
@@ -568,6 +659,7 @@ export default class coinex extends Exchange {
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         });
@@ -633,35 +725,13 @@ export default class coinex extends Exchange {
             const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
             const firstChain = this.safeDict (chains, 0, {});
             const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber (firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'info': coin,
-            };
+            const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
+                if (networkId === undefined) {
+                    continue;
+                }
                 const precisionString = this.parsePrecision (this.safeString (chain, 'withdrawal_precision'));
                 const feeString = this.safeString (chain, 'withdrawal_fee');
                 const minNetworkDepositString = this.safeString (chain, 'min_deposit_amount');
@@ -693,10 +763,35 @@ export default class coinex extends Exchange {
                     },
                     'info': chain,
                 };
-                const networks = this.safeDict (result[code], 'networks', {});
                 networks[networkId] = network;
-                result[code]['networks'] = networks;
             }
+            result[code] = this.safeCurrencyStructure ({
+                'id': currencyId,
+                'code': code,
+                'name': undefined,
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': undefined,
+                'precision': this.parseNumber (firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+                'type': 'crypto',
+                'info': coin,
+            });
         }
         return result;
     }
@@ -721,24 +816,26 @@ export default class coinex extends Exchange {
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params): Promise<Market[]> {
         const response = await this.v2PublicGetSpotMarket (params);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -764,11 +861,11 @@ export default class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': this.safeBool (market, 'is_margin_available'),
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool (market, 'is_api_trading_available'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1127,7 +1224,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v2PublicGetTime (params);
         //
         //     {
@@ -2017,7 +2114,6 @@ export default class coinex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'price'),
-            'stopPrice': this.safeString (order, 'trigger_price'),
             'triggerPrice': this.safeString (order, 'trigger_price'),
             'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
             'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
@@ -2060,7 +2156,7 @@ export default class coinex extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
@@ -2114,8 +2210,8 @@ export default class coinex extends Exchange {
                 }
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
-                if (stopPrice !== undefined) {
-                    request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                if (triggerPrice !== undefined) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
                     request['trigger_price_type'] = this.safeString (params, 'stop_type', 'latest_price');
                 }
             }
@@ -2148,8 +2244,8 @@ export default class coinex extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            if (stopPrice !== undefined) {
-                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (triggerPrice !== undefined) {
+                request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
         params = this.omit (params, [ 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -2623,20 +2719,20 @@ export default class coinex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         const requestIds = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push (parseInt (ids[i]));
         }
-        if (stop) {
+        if (trigger) {
             request['stop_ids'] = requestIds;
         } else {
             request['order_ids'] = requestIds;
         }
         if (market['spot']) {
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder (this.extend (request, params));
                 //
                 //     {
@@ -2706,7 +2802,7 @@ export default class coinex extends Exchange {
             }
         } else {
             request['market_type'] = 'FUTURES';
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder (this.extend (request, params));
                 //
                 //     {
@@ -3388,7 +3484,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
@@ -3398,7 +3494,7 @@ export default class coinex extends Exchange {
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder (this.extend (request, params));
                     //
                     //     {
@@ -3460,7 +3556,7 @@ export default class coinex extends Exchange {
                     //
                 }
             } else if (isOpen) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder (this.extend (request, params));
                     //
                     //     {
@@ -3536,7 +3632,7 @@ export default class coinex extends Exchange {
                 request['market_type'] = 'SPOT';
             }
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder (this.extend (request, params));
                     //
                     //     {
@@ -3601,7 +3697,7 @@ export default class coinex extends Exchange {
                     //
                 }
             } else if (status === 'pending') {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotPendingStopOrder (this.extend (request, params));
                     //
                     //     {
@@ -3729,7 +3825,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.network] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString2 (params, 'chain', 'network');
@@ -3816,7 +3912,7 @@ export default class coinex extends Exchange {
             'currency': this.safeCurrencyCode (undefined, currency),
             'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositAddress, 'memo', tag),
         } as DepositAddress;
     }
 
@@ -3920,7 +4016,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let defaultMethod = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
@@ -4684,8 +4780,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data, market);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     /**
@@ -4706,14 +4801,14 @@ export default class coinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag) {
-            address = address + ':' + tag;
-        }
         const request: Dict = {
             'ccy': currency['id'],
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
-            'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'amount': this.currencyToPrecision (code, amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
@@ -4760,6 +4855,7 @@ export default class coinex extends Exchange {
             'not_pass': 'failed',
             'cancel': 'canceled',
             'finish': 'ok',
+            'finished': 'ok',
             'fail': 'failed',
         };
         return this.safeString (statuses, status, status);

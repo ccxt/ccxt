@@ -7,7 +7,33 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.bybit.com/v5/asset/coin/query-info?",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
+            {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"orderFilter\":\"tpslOrder\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\",\"triggerDirection\":2,\"triggerPrice\":\"90\",\"reduceOnly\":true}"
+            },
             {
                 "description": "spot market buy order",
                 "method": "createOrder",
@@ -159,7 +185,7 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"timeInForce\":\"PostOnly\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit buy with takeProfitPrice(Type2)",
+                "description": "Swap limit sell with takeProfitPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
@@ -169,13 +195,14 @@
                     0.1,
                     100,
                     {
-                        "takeProfitPrice": 110
+                        "takeProfitPrice": 110,
+                        "method": "privatePostV5OrderCreate"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"triggerDirection\":1,\"triggerPrice\":\"110\",\"reduceOnly\":true}"
             },
             {
-                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "description": "Swap limit sell with stopLossPrice(Type2) while setting the endpoint to privatePostV5OrderCreate",  
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
@@ -185,10 +212,43 @@
                     0.16,
                     51,
                     {
-                        "stopLossPrice": 56
+                        "stopLossPrice": 56,
+                        "method": "privatePostV5OrderCreate"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"51\",\"triggerDirection\":2,\"triggerPrice\":\"56\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Swap limit sell with stopLossPrice(Type2)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  81000,
+                  {
+                    "stopLossPrice": 82000
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"stopLoss\":\"82000\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"81000\",\"slSize\":\"1\",\"category\":\"linear\"}"
+            },
+            {
+                "description": "Swap limit sell with takeProfitPrice(Type2)",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  99000,
+                  {
+                    "takeProfitPrice": 98000
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"takeProfit\":\"98000\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"99000\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",
@@ -492,6 +552,16 @@
         ],
         "createMarketBuyOrderWithCost": [
             {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"12.45\"}"
+            },
+            {
                 "description": "Spot market buy with createMarketBuyOrderWithCost",
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -537,7 +607,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+                "output": "{\"category\":\"spot\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"50\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
             },
             {
                 "description": "Swap create orders",
@@ -561,7 +631,7 @@
                         }
                     ]
                 ],
-                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+                "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
             }
         ],
         "cancelOrder": [
@@ -695,6 +765,60 @@
                 "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"orderId\":\"da3d893d-8668-4482-a2ec-c3d1414695c3\"},{\"symbol\":\"ADAUSDT\",\"orderId\":\"da03221b-f231-49c2-9b93-e1d10ed470c2\"}]}"
             }
         ],
+        "editOrders": [
+            {
+                "description": "Spot edit orders",
+                "method": "editOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/amend-batch",
+                "input": [
+                    [
+                        {
+                            "id":"2e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 50
+                        },
+                        {
+                            "id":"3e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT",
+                            "amount": 0.11,
+                            "side": "sell",
+                            "type": "limit",
+                            "price": 70
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"spot\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"50\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.11\",\"price\":\"70\"}]}"
+            },
+            {
+                "description": "Swap edit orders",
+                "method": "editOrders",
+                "url": "https://api-testnet.bybit.com/v5/order/amend-batch",
+                "input": [
+                    [
+                        {
+                            "id":"2e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60
+                        },
+                        {
+                            "id":"3e472521-031f-40f5-a8cb-bc3efb86ce0f",
+                            "symbol": "LTC/USDT:USDT",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61
+                        }
+                    ]
+                ],
+                "output": "{\"category\":\"linear\",\"request\":[{\"orderId\":\"2e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"60\"},{\"orderId\":\"3e472521-031f-40f5-a8cb-bc3efb86ce0f\",\"symbol\":\"LTCUSDT\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot fetchOpenOrders",
@@ -771,7 +895,7 @@
             {
                 "description": "Swap fetchPositions",
                 "method": "fetchPositions",
-                "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
+                "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear&limit=200",
                 "input": []
             }
         ],
@@ -842,6 +966,9 @@
             {
                 "description": "fetch inverse balance",
                 "method": "fetchBalance",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "url": "https://api.bybit.com/v5/account/wallet-balance?accountType=CONTRACT",
                 "input": [
                   {
@@ -883,6 +1010,37 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetchLedger using uta 1.0",
+                "options": {
+                    "unifiedMarginStatus": 4
+                },
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLedger (inverse) using uta 2.0",
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Default fetchLedger",
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
@@ -890,6 +1048,9 @@
             },
             {
                 "description": "Ledger from inverse wallet",
+                "options": {
+                    "unifiedMarginStatus": 3
+                },
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
                 "input": [
@@ -1010,6 +1171,72 @@
         ],
         "fetchTickers": [
             {
+                "description": "fetch options tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                    null,
+                    {
+                        "type": "option"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch option tickers with the code parameter set to BTC",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&code=BTC",
+                "input": [
+                  null,
+                  {
+                    "type": "option",
+                    "code": "BTC"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch option tickers with the code parameter set to SOL",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL&code=SOL",
+                "input": [
+                  null,
+                  {
+                    "type": "option",
+                    "code": "SOL"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch tickers for a BTC option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                  [
+                    "BTC/USDT:USDT-250530-70000-C"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers for an ETH option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=ETH",
+                "input": [
+                  [
+                    "ETH/USDT:USDT-250530-1700-P"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers for a SOL option",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL",
+                "input": [
+                  [
+                    "SOL/USDT:USDT-250530-90-P"
+                  ]
+                ]
+            },
+            {
                 "description": "Conflicting id with type in params",
                 "method": "fetchTickers",
                 "url": "https://api-testnet.bybit.com/v5/market/tickers?category=spot",
@@ -1068,7 +1295,29 @@
                     "subType": "inverse"
                   }
                 ]
-             }
+            },
+            {
+                "description": "Fetch tickers of multiple spot symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=spot",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "LTC/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch tickers of multiple linear swap symbols",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "LTC/USDT:USDT"
+                  ]
+                ]
+            }
         ],
         "fetchOHLCV": [
             {
@@ -1276,13 +1525,13 @@
         ],
         "fetchPositionsHistory": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "positionHistory no symbol",
                 "method": "fetchPositionsHistory",
                 "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear",
                 "input": []
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "positionHistory with symbol",
                 "method": "fetchPositionsHistory",
                 "url": "https://api-testnet.bybit.com/v5/position/closed-pnl?category=linear&symbol=XRPUSDT&startTime=1709589714736&limit=1&endTime=1709590068602",
                 "input": [
@@ -1389,6 +1638,39 @@
                 "input": [
                   "USDT",
                   1726652765781
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSD&intervalTime=1h&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch all greeks with a single symbol argument and baseCoin parameter",
+                "method": "fetchAllGreeks",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&symbol=BTC-30MAY25-70000-C-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT-250530-70000-C"
+                    ],
+                    {
+                        "baseCoin": "BTC"
+                    }
                 ]
             }
         ]

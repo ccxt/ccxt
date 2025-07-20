@@ -22,18 +22,28 @@ public partial class coinone : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createMarketOrder", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -42,20 +52,38 @@ public partial class coinone : Exchange
                 { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
@@ -66,11 +94,17 @@ public partial class coinone : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
+                { "fetchVolatilityHistory", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "ws", true },
@@ -113,6 +147,65 @@ public partial class coinone : Exchange
                     { "percentage", true },
                     { "taker", 0.002 },
                     { "maker", 0.002 },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", null },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -161,23 +254,21 @@ public partial class coinone : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object currencies = this.safeValue(response, "currencies", new List<object>() {});
+        object currencies = this.safeList(response, "currencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object entry = getValue(currencies, i);
             object id = this.safeString(entry, "symbol");
-            object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
-            object withdrawStatus = this.safeString(entry, "withdraw_status", "");
-            object depositStatus = this.safeString(entry, "deposit_status", "");
-            object isWithdrawEnabled = isEqual(withdrawStatus, "normal");
-            object isDepositEnabled = isEqual(depositStatus, "normal");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isWithdrawEnabled = isEqual(this.safeString(entry, "withdraw_status", ""), "normal");
+            object isDepositEnabled = isEqual(this.safeString(entry, "deposit_status", ""), "normal");
+            object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", entry },
-                { "name", name },
-                { "active", isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled) },
+                { "name", this.safeString(entry, "name") },
+                { "active", null },
                 { "deposit", isDepositEnabled },
                 { "withdraw", isWithdrawEnabled },
                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
@@ -193,7 +284,8 @@ public partial class coinone : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+                { "type", type },
+            });
         }
         return result;
     }
@@ -246,7 +338,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "tickers", new List<object>() {});
+        object tickers = this.safeList(response, "tickers", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -517,7 +609,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "tickers", new List<object>() {});
+        object data = this.safeList(response, "tickers", new List<object>() {});
         object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
@@ -552,8 +644,8 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(ticker, "timestamp");
         object last = this.safeString(ticker, "last");
-        object asks = this.safeValue(ticker, "best_asks");
-        object bids = this.safeValue(ticker, "best_bids");
+        object asks = this.safeList(ticker, "best_asks", new List<object>() {});
+        object bids = this.safeList(ticker, "best_bids", new List<object>() {});
         object baseId = this.safeString(ticker, "target_currency");
         object quoteId = this.safeString(ticker, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -609,7 +701,7 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        object isSellerMaker = this.safeValue(trade, "is_seller_maker");
+        object isSellerMaker = this.safeBool(trade, "is_seller_maker");
         object side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
@@ -908,7 +1000,6 @@ public partial class coinone : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "average", this.safeString(order, "averageExecutedPrice") },
@@ -1082,7 +1173,7 @@ public partial class coinone : Exchange
         //         }
         //     }
         //
-        object walletAddress = this.safeValue(response, "walletAddress", new Dictionary<string, object>() {});
+        object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

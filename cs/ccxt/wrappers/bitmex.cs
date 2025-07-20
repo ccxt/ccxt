@@ -279,7 +279,7 @@ public partial class bitmex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -474,7 +474,7 @@ public partial class bitmex
     /// <item>
     /// <term>params.triggerDirection</term>
     /// <description>
-    /// object : the direction whenever the trigger happens with relation to price - 'above' or 'below'
+    /// object : the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
     /// </description>
     /// </item>
     /// <item>

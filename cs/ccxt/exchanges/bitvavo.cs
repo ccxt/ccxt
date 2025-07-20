@@ -23,19 +23,29 @@ public partial class bitvavo : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -46,21 +56,39 @@ public partial class bitvavo : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -72,6 +100,7 @@ public partial class bitvavo : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -80,9 +109,14 @@ public partial class bitvavo : Exchange
                 { "fetchTradingFees", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
@@ -173,6 +207,75 @@ public partial class bitvavo : Exchange
                 { "apiKey", true },
                 { "secret", true },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", true },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "101", typeof(ExchangeError) },
@@ -252,6 +355,8 @@ public partial class bitvavo : Exchange
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
+                { "operatorId", null },
+                { "fiatCurrencies", new List<object>() {"EUR"} },
             } },
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -479,26 +584,26 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
+            object isFiat = this.inArray(code, fiatCurrencies);
             object networks = new Dictionary<string, object>() {};
-            object networksArray = this.safeValue(currency, "networks", new List<object>() {});
-            object networksLength = getArrayLength(networksArray);
-            object isOneNetwork = (isEqual(networksLength, 1));
-            object deposit = (isEqual(this.safeValue(currency, "depositStatus"), "OK"));
-            object withdrawal = (isEqual(this.safeValue(currency, "withdrawalStatus"), "OK"));
+            object networksArray = this.safeList(currency, "networks", new List<object>() {});
+            object deposit = isEqual(this.safeString(currency, "depositStatus"), "OK");
+            object withdrawal = isEqual(this.safeString(currency, "withdrawalStatus"), "OK");
             object active = isTrue(deposit) && isTrue(withdrawal);
             object withdrawFee = this.safeNumber(currency, "withdrawalFee");
             object precision = this.safeInteger(currency, "decimals", 8);
             object minWithdraw = this.safeNumber(currency, "withdrawalMinAmount");
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isTrue(isOneNetwork))
+            // btw, absolutely all of them have 1 network atm
+            for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
             {
-                object networkId = getValue(networksArray, 0);
+                object networkId = getValue(networksArray, j);
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
@@ -517,7 +622,7 @@ public partial class bitvavo : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -528,6 +633,7 @@ public partial class bitvavo : Exchange
                 { "networks", networks },
                 { "fee", withdrawFee },
                 { "precision", precision },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -542,10 +648,10 @@ public partial class bitvavo : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
 
@@ -1168,6 +1274,17 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
         return this.extend(request, parameters);
     }
 
@@ -1175,7 +1292,7 @@ public partial class bitvavo : Exchange
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1183,7 +1300,7 @@ public partial class bitvavo : Exchange
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
@@ -1279,6 +1396,17 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
     }
@@ -1322,6 +1450,17 @@ public partial class bitvavo : Exchange
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -1543,6 +1682,7 @@ public partial class bitvavo : Exchange
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1702,7 +1842,6 @@ public partial class bitvavo : Exchange
         object timeInForce = this.safeString(order, "timeInForce");
         object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
-        object stopPrice = this.safeNumber(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1716,8 +1855,7 @@ public partial class bitvavo : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "amount", amount },
             { "cost", cost },
             { "average", null },
@@ -1753,7 +1891,7 @@ public partial class bitvavo : Exchange
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for

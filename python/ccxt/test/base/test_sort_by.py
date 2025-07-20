@@ -47,9 +47,8 @@ def test_sort_by():
 }, {
     'x': 5,
 }])
-    try:
-        new_array_descending = exchange.sort_by(arr, 'x', True)
-        test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', new_array_descending, [{
+    new_array_descending = exchange.sort_by(arr, 'x', True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', new_array_descending, [{
     'x': 5,
 }, {
     'x': 4,
@@ -62,11 +61,5 @@ def test_sort_by():
 }, {
     'x': 0,
 }])
-        empty_array = exchange.sort_by([], 'x')
-        test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', empty_array, [])
-    except Exception as e:
-        # skip c# , todo
-        if 'BaseTest.assert' in (str(e)) or 'at System.' in (str(e)) or 'at ccxt.Exchange.' in (str(e)):
-            return
-        else:
-            raise e
+    empty_array = exchange.sort_by([], 'x')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', empty_array, [])

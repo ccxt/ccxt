@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.32'
+__version__ = '4.4.95'
 
 # -----------------------------------------------------------------------------
 
@@ -24,8 +24,8 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, NetworkError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded
-from ccxt.base.types import OrderType, OrderSide, OrderRequest, CancellationRequest
+from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
+from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest
 
 # -----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.fast_client import FastClient
+from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
@@ -67,24 +67,26 @@ class Exchange(BaseExchange):
     clients = {}
     timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
 
-    def __init__(self, config={}):
+    def __init__(self, config: ConstructorArgs = {}):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
         self.aiohttp_trust_env = config.get('aiohttp_trust_env', self.aiohttp_trust_env)
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
+        self.throttler = None
         super(Exchange, self).__init__(config)
-        self.throttle = None
-        self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
 
-    def init_rest_rate_limiter(self):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
-
     def get_event_loop(self):
         return self.asyncio_loop
+
+    def init_throttler(self, cost=None):
+        self.throttler = Throttler(self.tokenBucket, self.asyncio_loop)
+
+    async def throttle(self, cost=None):
+        return await self.throttler(cost)
 
     def get_session(self):
         return self.session
@@ -107,11 +109,15 @@ class Exchange(BaseExchange):
                 self.asyncio_loop = asyncio.get_running_loop()
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
-            self.throttle.loop = self.asyncio_loop
+            self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
             self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            if (self.ssl_context and self.safe_bool(self.options, 'include_OS_certificates', False)):
+                os_default_paths = ssl.get_default_verify_paths()
+                if os_default_paths.cafile and os_default_paths.cafile != self.cafile:
+                    self.ssl_context.load_verify_locations(cafile=os_default_paths.cafile)
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
@@ -152,7 +158,7 @@ class Exchange(BaseExchange):
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
-            url = proxyUrl + url
+            url = proxyUrl + self.url_encoder_for_proxy_url(url)
         # proxy agents
         final_proxy = None  # set default
         proxy_session = None
@@ -170,15 +176,7 @@ class Exchange(BaseExchange):
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
                 self.open()  # ensure `asyncio_loop` is set
-                self.aiohttp_socks_connector = ProxyConnector.from_url(
-                    socksProxy,
-                    # extra args copied from self.open()
-                    ssl=self.ssl_context,
-                    loop=self.asyncio_loop,
-                    enable_cleanup_closed=True
-                )
-                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
-            proxy_session = self.socks_proxy_sessions[socksProxy]
+                proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -233,6 +231,8 @@ class Exchange(BaseExchange):
                     self.last_json_response = json_response
                 if self.verbose:
                     self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
+                if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:
+                    json_response['responseHeaders'] = headers
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -261,6 +261,20 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
+    def get_socks_proxy_session(self, socksProxy):
+        if (self.socks_proxy_sessions is None):
+            self.socks_proxy_sessions = {}
+        if (socksProxy not in self.socks_proxy_sessions):
+            self.aiohttp_socks_connector = ProxyConnector.from_url(
+                socksProxy,
+                # extra args copied from self.open()
+                ssl=self.ssl_context,
+                loop=self.asyncio_loop,
+                enable_cleanup_closed=True
+            )
+            self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
+        return self.socks_proxy_sessions[socksProxy]
+
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -270,10 +284,34 @@ class Exchange(BaseExchange):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = await self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
+
     async def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            This method is asynchronous.
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if (reload and not self.reloading_markets) or not self.markets_loading:
             self.reloading_markets = True
             coroutine = self.load_markets_helper(reload, params)
@@ -281,6 +319,10 @@ class Exchange(BaseExchange):
             self.markets_loading = asyncio.ensure_future(coroutine)
         try:
             result = await self.markets_loading
+        except asyncio.CancelledError as e:  # CancelledError is a base exception so we need to catch it explicitly
+            self.reloading_markets = False
+            self.markets_loading = None
+            raise e
         except Exception as e:
             self.reloading_markets = False
             self.markets_loading = None
@@ -377,19 +419,14 @@ class Exchange(BaseExchange):
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
-            self.clients[url].proxy = self.get_ws_proxy()
+            # we use aiohttp instead of fastClient now because of this
+            # https://github.com/ccxt/ccxt/pull/25995
+            self.clients[url] = Client(url, on_message, on_error, on_close, on_connected, options)
+            # set http/s proxy (socks proxy should be set in other place)
+            httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+            if (httpProxy or httpsProxy):
+                self.clients[url].proxy = httpProxy if httpProxy else httpsProxy
         return self.clients[url]
-
-    def get_ws_proxy(self):
-        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
-        if httpProxy:
-            return httpProxy
-        elif httpsProxy:
-            return httpsProxy
-        elif socksProxy:
-            return socksProxy
-        return None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -453,8 +490,13 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
+        selected_session = self.session
+        # http/s proxy is being set in other places
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+        if (socksProxy):
+            selected_session = self.get_socks_proxy_session(socksProxy)
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -597,6 +639,9 @@ class Exchange(BaseExchange):
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
+
+    async def un_watch_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' unWatchOrders() is not supported yet')
 
     async def un_watch_trades(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
@@ -755,6 +800,9 @@ class Exchange(BaseExchange):
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
+
     async def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
@@ -808,14 +856,18 @@ class Exchange(BaseExchange):
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
             retry = 0
+            shouldBreak = False
             while(retry < maxRetries):
                 try:
                     response = await getattr(self, endpointMethod)({})
+                    shouldBreak = True
                     break
                 except Exception as e:
                     retry = retry + 1
                     if retry == maxRetries:
                         raise e
+                if shouldBreak:
+                    break  # self is needed because of GO
             content = response
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
@@ -859,27 +911,29 @@ class Exchange(BaseExchange):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
-                if isinstance(e, NetworkError):
+                if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
                             self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
-                        continue
-                raise e
+                    else:
+                        raise e
+                else:
+                    raise e
         return None  # self line is never reached, but exists for c# value return requirement
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
@@ -1112,6 +1166,18 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
+        raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTrade() is not supported yet')
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchConvertTradeHistory() is not supported yet')
+
+    async def fetch_position_mode(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
     async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
         """
@@ -1420,6 +1486,9 @@ class Exchange(BaseExchange):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
+    async def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
+
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
 
@@ -1505,6 +1574,9 @@ class Exchange(BaseExchange):
 
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
 
     async def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
@@ -1628,66 +1700,66 @@ class Exchange(BaseExchange):
 
     async def create_post_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
+            raise NotSupported(self.id + ' createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_post_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createPostOnlyOrderWs']:
-            raise NotSupported(self.id + 'createPostOnlyOrderWs() is not supported yet')
+            raise NotSupported(self.id + ' createPostOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.create_order_ws(symbol, type, side, amount, price, query)
 
     async def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createReduceOnlyOrder']:
-            raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
+            raise NotSupported(self.id + ' createReduceOnlyOrder() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_reduce_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         if not self.has['createReduceOnlyOrderWs']:
-            raise NotSupported(self.id + 'createReduceOnlyOrderWs() is not supported yet')
+            raise NotSupported(self.id + ' createReduceOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return await self.create_order_ws(symbol, type, side, amount, price, query)
 
-    async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, type, side, amount, price, query)
 
-    async def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    async def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrderWs']:
             raise NotSupported(self.id + ' createStopOrderWs() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createStopOrderWs() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, type, side, amount, price, query)
 
-    async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrder']:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'limit', side, amount, price, query)
 
-    async def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    async def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrderWs']:
             raise NotSupported(self.id + ' createStopLimitOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'limit', side, amount, price, query)
 
-    async def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    async def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrder']:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
-    async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrderWs']:
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'market', side, amount, None, query)
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
@@ -1809,7 +1881,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
-    async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None):
+    async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -1817,6 +1889,8 @@ class Exchange(BaseExchange):
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
+        removeRepeatedOption = removeRepeated
+        removeRepeatedOption, params = self.handle_option_and_params(params, method, 'removeRepeated', removeRepeated)
         calls = 0
         result = []
         errors = 0
@@ -1870,7 +1944,9 @@ class Exchange(BaseExchange):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        uniqueResults = self.remove_repeated_elements_from_array(result)
+        uniqueResults = result
+        if removeRepeatedOption:
+            uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 

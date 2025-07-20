@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class blofin extends blofinRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -34,6 +34,14 @@ export default class blofin extends blofinRest {
                         'swap': {
                             'public': 'wss://openapi.blofin.com/ws/public',
                             'private': 'wss://openapi.blofin.com/ws/private',
+                        },
+                    },
+                },
+                'test': {
+                    'ws': {
+                        'swap': {
+                            'public': 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private': 'wss://demo-trading-openapi.blofin.com/ws/private',
                         },
                     },
                 },
@@ -497,7 +505,7 @@ export default class blofin extends blofinRest {
 
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for

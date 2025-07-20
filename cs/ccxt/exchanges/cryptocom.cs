@@ -34,6 +34,9 @@ public partial class cryptocom : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", false },
@@ -43,7 +46,7 @@ public partial class cryptocom : Exchange
                 { "fetchClosedOrders", "emulated" },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
@@ -126,6 +129,7 @@ public partial class cryptocom : Exchange
                     { "derivatives", "https://uat-api.3ona.co/v2" },
                 } },
                 { "api", new Dictionary<string, object>() {
+                    { "base", "https://api.crypto.com" },
                     { "v1", "https://api.crypto.com/exchange/v1" },
                     { "v2", "https://api.crypto.com/v2" },
                     { "derivatives", "https://deriv-api.crypto.com/v1" },
@@ -139,6 +143,13 @@ public partial class cryptocom : Exchange
                 { "fees", "https://crypto.com/exchange/document/fees-limits" },
             } },
             { "api", new Dictionary<string, object>() {
+                { "base", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v1/public/get-announcements", 1 },
+                        } },
+                    } },
+                } },
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
@@ -165,6 +176,7 @@ public partial class cryptocom : Exchange
                             { "private/user-balance-history", divide(10, 3) },
                             { "private/get-positions", divide(10, 3) },
                             { "private/create-order", divide(2, 3) },
+                            { "private/amend-order", divide(4, 3) },
                             { "private/create-order-list", divide(10, 3) },
                             { "private/cancel-order", divide(2, 3) },
                             { "private/cancel-order-list", divide(10, 3) },
@@ -316,6 +328,101 @@ public partial class cryptocom : Exchange
                 } },
                 { "broker", "CCXT" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", true },
+                        { "trailing", false },
+                        { "iceberg", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", 1 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", 1 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 1 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 300 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "USD_STABLE_COIN", "USDC" },
             } },
@@ -324,6 +431,8 @@ public partial class cryptocom : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "219", typeof(InvalidOrder) },
                     { "314", typeof(InvalidOrder) },
+                    { "325", typeof(InvalidOrder) },
+                    { "415", typeof(InvalidOrder) },
                     { "10001", typeof(ExchangeError) },
                     { "10002", typeof(PermissionDenied) },
                     { "10003", typeof(PermissionDenied) },
@@ -367,12 +476,153 @@ public partial class cryptocom : Exchange
                     { "40801", typeof(RequestTimeout) },
                     { "42901", typeof(RateLimitExceeded) },
                     { "43005", typeof(InvalidOrder) },
+                    { "43003", typeof(InvalidOrder) },
+                    { "43004", typeof(InvalidOrder) },
+                    { "43012", typeof(BadRequest) },
                     { "50001", typeof(ExchangeError) },
                     { "9010001", typeof(OnMaintenance) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
         });
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        // this endpoint requires authentication
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(this.checkRequiredCredentials(false)))
+        {
+            return null;
+        }
+        object skipFetchCurrencies = false;
+        var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        skipFetchCurrencies = ((IList<object>)skipFetchCurrenciesparametersVariable)[0];
+        parameters = ((IList<object>)skipFetchCurrenciesparametersVariable)[1];
+        if (isTrue(skipFetchCurrencies))
+        {
+            // sub-accounts can't access this endpoint
+            return null;
+        }
+        object response = new Dictionary<string, object>() {};
+        try
+        {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        } catch(Exception e)
+        {
+            if (isTrue(e is ExchangeError))
+            {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return null;
+            }
+            throw e;
+        }
+        //
+        //    {
+        //        "id": "1747502328559",
+        //        "method": "private/get-currency-networks",
+        //        "code": "0",
+        //        "result": {
+        //            "update_time": "1747502281000",
+        //            "currency_map": {
+        //                "USDT": {
+        //                    "full_name": "Tether USD",
+        //                    "default_network": "ETH",
+        //                    "network_list": [
+        //                        {
+        //                            "network_id": "ETH",
+        //                            "withdrawal_fee": "10.00000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "20.0",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "32"
+        //                        },
+        //                        {
+        //                            "network_id": "CRONOS",
+        //                            "withdrawal_fee": "0.18000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "0.35",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "15"
+        //                        },
+        //                        {
+        //                            "network_id": "SOL",
+        //                            "withdrawal_fee": "5.31000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "10.62",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "1"
+        //                        }
+        //                    ]
+        //                }
+        //            }
+        //        }
+        //    }
+        //
+        object resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
+        object keys = new List<object>(((IDictionary<string,object>)currencyMap).Keys);
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object currency = getValue(currencyMap, key);
+            object id = key;
+            object code = this.safeCurrencyCode(id);
+            object networks = new Dictionary<string, object>() {};
+            object chains = this.safeList(currency, "network_list", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object chain = getValue(chains, j);
+                object networkId = this.safeString(chain, "network_id");
+                object network = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", network },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "deposit_enabled", false) },
+                    { "withdraw", this.safeBool(chain, "withdraw_enabled", false) },
+                    { "fee", this.safeNumber(chain, "withdrawal_fee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "info", currency },
+                { "id", id },
+                { "code", code },
+                { "name", this.safeString(currency, "full_name") },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "type", "crypto" },
+                { "networks", networks },
+            });
+        }
+        return result;
     }
 
     /**
@@ -474,8 +724,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object resultResponse = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(resultResponse, "data", new List<object>() {});
+        object resultResponse = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(resultResponse, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -493,8 +743,8 @@ public partial class cryptocom : Exchange
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
             object optionType = this.safeStringLower(market, "put_call");
             object strike = this.safeString(market, "strike");
-            object marginBuyEnabled = this.safeValue(market, "margin_buy_enabled");
-            object marginSellEnabled = this.safeValue(market, "margin_sell_enabled");
+            object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
+            object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
@@ -536,7 +786,7 @@ public partial class cryptocom : Exchange
                 { "swap", swap },
                 { "future", future },
                 { "option", option },
-                { "active", this.safeValue(market, "tradable") },
+                { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
                 { "linear", ((bool) isTrue((contract))) ? true : null },
                 { "inverse", ((bool) isTrue((contract))) ? false : null },
@@ -633,7 +883,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
@@ -742,7 +992,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -811,7 +1061,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeList(result, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -896,7 +1146,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -942,8 +1192,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object orderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(orderBook, "t");
         return this.parseOrderBook(orderBook, symbol, timestamp);
@@ -951,8 +1201,8 @@ public partial class cryptocom : Exchange
 
     public override object parseBalance(object response)
     {
-        object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(responseResult, "data", new List<object>() {});
+        object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(responseResult, "data", new List<object>() {});
         object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
@@ -1237,7 +1487,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a trigger order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1287,7 +1537,7 @@ public partial class cryptocom : Exchange
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -1506,6 +1756,59 @@ public partial class cryptocom : Exchange
 
     /**
      * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = this.editOrderRequest(id, symbol, amount, price, parameters);
+        object response = await this.v1PrivatePostPrivateAmendOrder(request);
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOrder(result);
+    }
+
+    public virtual object editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+        } else
+        {
+            object originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
+            if (isTrue(isEqual(originalClientOrderId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["orig_client_oid"] = originalClientOrderId;
+                parameters = this.omit(parameters, new List<object>() {"orig_client_oid", "clientOrderId"});
+            }
+        }
+        if (isTrue(isTrue((isEqual(amount, null))) || isTrue((isEqual(price, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
+        }
+        ((IDictionary<string,object>)request)["new_quantity"] = this.amountToPrecision(symbol, amount);
+        ((IDictionary<string,object>)request)["new_price"] = this.priceToPrecision(symbol, price);
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
@@ -1699,7 +2002,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -1780,7 +2083,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeList(result, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1900,8 +2203,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object addresses = this.safeValue(data, "deposit_address_list", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object addresses = this.safeList(data, "deposit_address_list", new List<object>() {});
         object addressesLength = getArrayLength(addresses);
         if (isTrue(isEqual(addressesLength, 0)))
         {
@@ -1910,7 +2213,7 @@ public partial class cryptocom : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
         {
-            object value = this.safeValue(addresses, i);
+            object value = this.safeDict(addresses, i);
             object addressString = this.safeString(value, "address");
             object currencyId = this.safeString(value, "currency");
             object responseCode = this.safeCurrencyCode(currencyId);
@@ -2017,7 +2320,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object depositList = this.safeList(data, "deposit_list", new List<object>() {});
         return this.parseTransactions(depositList, currency, since, limit);
     }
@@ -2085,7 +2388,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object withdrawalList = this.safeList(data, "withdrawal_list", new List<object>() {});
         return this.parseTransactions(withdrawalList, currency, since, limit);
     }
@@ -2528,7 +2831,7 @@ public partial class cryptocom : Exchange
         //        ]
         //    }
         //
-        object networkList = this.safeValue(fee, "network_list");
+        object networkList = this.safeList(fee, "network_list", new List<object>() {});
         object networkListLength = getArrayLength(networkList);
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -2599,7 +2902,7 @@ public partial class cryptocom : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2655,8 +2958,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ledger = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object ledger = this.safeList(result, "data", new List<object>() {});
         return this.parseLedger(ledger, currency, since, limit);
     }
 
@@ -2790,9 +3093,9 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object masterAccount = this.safeValue(result, "master_account", new Dictionary<string, object>() {});
-        object accounts = this.safeValue(result, "sub_account_list", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object masterAccount = this.safeDict(result, "master_account", new Dictionary<string, object>() {});
+        object accounts = this.safeList(result, "sub_account_list", new List<object>() {});
         ((IList<object>)accounts).Add(masterAccount);
         return this.parseAccounts(accounts, parameters);
     }
@@ -2883,8 +3186,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -3000,8 +3303,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object marketId = this.safeString(result, "instrument_name");
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -3122,8 +3425,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object positions = this.safeValue(responseResult, "data", new List<object>() {});
+        object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object positions = this.safeList(responseResult, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {

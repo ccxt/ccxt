@@ -55,11 +55,15 @@ interface Exchange {
     publicGetV5SpotLeverTokenInfo (params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenReference (params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotMarginTradeData (params?: {}): Promise<implicitReturnType>;
+    publicGetV5SpotMarginTradeCollateral (params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradeData (params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradePledgeToken (params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradeBorrowToken (params?: {}): Promise<implicitReturnType>;
+    publicGetV5CryptoLoanCollateralData (params?: {}): Promise<implicitReturnType>;
+    publicGetV5CryptoLoanLoanableData (params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanProductInfos (params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<implicitReturnType>;
+    publicGetV5EarnProduct (params?: {}): Promise<implicitReturnType>;
     privateGetV5MarketInstrumentsInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateWalletFundRecords (params?: {}): Promise<implicitReturnType>;
     privateGetSpotV3PrivateOrder (params?: {}): Promise<implicitReturnType>;
@@ -139,6 +143,7 @@ interface Exchange {
     privateGetV5AccountContractTransactionLog (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountSmpGroup (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountWithdrawal (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeQueryCoinList (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeConvertResultQuery (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeQueryConvertHistory (params?: {}): Promise<implicitReturnType>;
@@ -169,6 +174,7 @@ interface Exchange {
     privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserSubmembers (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AffiliateAffUserList (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
@@ -176,6 +182,12 @@ interface Exchange {
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanBorrowableCollateralisableNumber (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanRepaymentHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanMaxCollateralAmount (params?: {}): Promise<implicitReturnType>;
+    privateGetV5CryptoLoanAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanProductInfos (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLoanOrder (params?: {}): Promise<implicitReturnType>;
@@ -188,6 +200,8 @@ interface Exchange {
     privateGetV5BrokerEarningsInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAssetQuerySubMemberDepositRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetV5EarnPosition (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrders (params?: {}): Promise<implicitReturnType>;
@@ -290,6 +304,9 @@ interface Exchange {
     privatePostV5SpotCrossMarginTradeLoan (params?: {}): Promise<implicitReturnType>;
     privatePostV5SpotCrossMarginTradeRepay (params?: {}): Promise<implicitReturnType>;
     privatePostV5SpotCrossMarginTradeSwitch (params?: {}): Promise<implicitReturnType>;
+    privatePostV5CryptoLoanBorrow (params?: {}): Promise<implicitReturnType>;
+    privatePostV5CryptoLoanRepay (params?: {}): Promise<implicitReturnType>;
+    privatePostV5CryptoLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     privatePostV5InsLoanAssociationUid (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingPurchase (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem (params?: {}): Promise<implicitReturnType>;
@@ -297,6 +314,10 @@ interface Exchange {
     privatePostV5AccountSetCollateralSwitch (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetCollateralSwitchBatch (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountDemoApplyMoney (params?: {}): Promise<implicitReturnType>;
+    privatePostV5BrokerAwardInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostV5BrokerAwardDistributeAward (params?: {}): Promise<implicitReturnType>;
+    privatePostV5BrokerAwardDistributionRecord (params?: {}): Promise<implicitReturnType>;
+    privatePostV5EarnPlaceOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
