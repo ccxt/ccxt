@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict, Market, MarketType } from './base/types.js';
+import type { Currencies, Dict, Market, MarketType, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -488,6 +488,76 @@ export default class backpack extends Exchange {
             'RFQ': 'swap',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchTickers
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const response = await this.publicGetApiV1Tickers (this.extend (request, params));
+        return this.parseTickers (response);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     fetchTicker
+        //     [
+        //         {
+        //             "firstPrice": "327.38",
+        //             "high": "337.99",
+        //             "lastPrice": "317.14",
+        //             "low": "300.01",
+        //             "priceChange": "-10.24",
+        //             "priceChangePercent": "-0.031279",
+        //             "quoteVolume": "21584.32278",
+        //             "symbol": "AAVE_USDC",
+        //             "trades": "245",
+        //             "volume": "65.823"
+        //         }, ...
+        //     ]
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'lastPrice');
+        const high = this.safeString (ticker, 'high');
+        const low = this.safeString (ticker, 'low');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const percentage = this.safeString (ticker, 'priceChangePercent');
+        const change = this.safeString (ticker, 'priceChange');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
