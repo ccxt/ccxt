@@ -692,7 +692,7 @@ class woo extends woo$1 {
                     'max': undefined,
                 },
             },
-            'created': null,
+            'created': undefined,
             'info': market,
         };
     }
