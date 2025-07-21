@@ -68,7 +68,7 @@ export default class backpack extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -148,7 +148,7 @@ export default class backpack extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1,
+                        'api/v1/assets': 1, // done
                         'api/v1/collateral': 1,
                         'api/v1/borrowLend/markets': 1,
                         'api/v1/borrowLend/markets/history': 1,
@@ -310,7 +310,7 @@ export default class backpack extends Exchange {
                     },
                     'active': undefined,
                     'deposit': this.safeBool (network, 'depositEnabled'),
-                    'withdraw': this.safeBool (network, 'allowWithdraw'),
+                    'withdraw': this.safeBool (network, 'withdrawEnabled'),
                     'fee': this.safeNumber (network, 'withdrawalFee'),
                     'precision': undefined,
                     'info': network,
