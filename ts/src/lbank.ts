@@ -164,6 +164,7 @@ export default class lbank extends Exchange {
                             'orders_info_history': 2.5,
                             'order_transaction_detail': 2.5,
                             'transaction_history': 2.5,
+                            'supplement/transaction_history': 2.5,
                             'orders_info_no_deal': 2.5,
                             // withdraw
                             'withdraw': 2.5,
@@ -1994,7 +1995,7 @@ export default class lbank extends Exchange {
             request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
             request['end_date'] = this.ymd (since + 86400000, '-'); // will cover 2 days
         }
-        const response = await this.spotPrivatePostTransactionHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementTransactionHistory (this.extend (request, params));
         //
         //      {
         //          "result":true,
