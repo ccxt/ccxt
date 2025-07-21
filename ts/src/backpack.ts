@@ -105,7 +105,7 @@ export default class backpack extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -165,7 +165,7 @@ export default class backpack extends Exchange {
                         'api/v1/fundingRates': 1, // done
                         'api/v1/status': 1, // done
                         'api/v1/ping': 1,
-                        'api/v1/time': 1,
+                        'api/v1/time': 1, // done
                         'api/v1/wallets': 1,
                         'api/v1/trades': 1, // done
                         'api/v1/trades/history': 1, // done
@@ -924,6 +924,22 @@ export default class backpack extends Exchange {
             'url': undefined,
             'info': response,
         };
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetApiV1Time (params);
+        //
+        //     1753131712992
+        //
+        return this.safeInteger (response, 0, this.milliseconds ());
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
