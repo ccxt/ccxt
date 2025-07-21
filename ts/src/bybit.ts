@@ -1724,7 +1724,7 @@ export default class bybit extends Exchange {
         }
         const promisesUnresolved = [];
         let types = undefined;
-        const defaultTypes = [ 'spot', 'linear', 'inverse' ];
+        const defaultTypes = [ 'spot', 'linear', 'inverse', 'option' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOptions !== undefined) {
             types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
