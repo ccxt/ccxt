@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ export default class backpack extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -159,7 +159,7 @@ export default class backpack extends Exchange {
                         'api/v1/tickers': 1, // done
                         'api/v1/depth': 1, // done
                         'api/v1/klines': 1, // done
-                        'api/v1/markPrices': 1,
+                        'api/v1/markPrices': 1, // done
                         'api/v1/openInterest': 1,
                         'api/v1/fundingRates': 1,
                         'api/v1/status1': 1,
@@ -674,6 +674,62 @@ export default class backpack extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiV1MarkPrices (this.extend (request, params));
+        const data = this.safeDict (response, 0, {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "fundingRate": "0.0001",
+        //         "indexPrice": "118333.18643195",
+        //         "markPrice": "118343.51853741",
+        //         "nextFundingTimestamp": 1753113600000,
+        //         "symbol": "BTC_USDC_PERP"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTimestamp');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': this.safeNumber (contract, 'markPrice'),
+            'indexPrice': this.safeNumber (contract, 'indexPrice'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
