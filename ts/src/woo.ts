@@ -695,7 +695,7 @@ export default class woo extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': null,
+            'created': undefined,
             'info': market,
         };
     }
