@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { } from './base/types.js';
+import type { Currencies, Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -139,8 +139,8 @@ export default class backpack extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://docs.backpack.exchange/',
-                    'private': 'https://docs.backpack.exchange/',
+                    'public': 'https://api.backpack.exchange',
+                    'private': 'https://api.backpack.exchange',
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
@@ -223,7 +223,24 @@ export default class backpack extends Exchange {
                 'brokerId': '',
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
-                'networks': {},
+                'networks': {
+                    'Solana': 'SOL',
+                    'Sui': 'SUI',
+                    'Ethereum': 'ERC20',
+                    'Story': 'STORY',
+                    'Eclipse': 'ECLIPSE',
+                    'Arbitrum': 'ARB',
+                    'Base': 'BASE',
+                    'Optimism': 'OPTIMISM',
+                    'Polygon': 'MATIC',
+                    'XRP': 'XRP',
+                    'Cardano': 'ADA',
+                    'Hyperliquid': 'HYP',
+                    'Tron': 'TRC20',
+                    'Dogecoin': 'DOGE',
+                    'Bitcoin': 'BTC',
+                    'Berachain': 'BERA',
+                },
                 'networksById': {},
             },
             'commonCurrencies': {},
@@ -232,6 +249,98 @@ export default class backpack extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.backpack.exchange/#tag/Assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.publicGetApiV1Assets (params);
+        //
+        //     [
+        //         {
+        //             "coingeckoId": "jito-governance-token",
+        //             "displayName": "Jito",
+        //             "symbol": "JTO",
+        //             "tokens": [
+        //                 {
+        //                     "blockchain": "Solana",
+        //                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+        //                     "depositEnabled": true,
+        //                     "displayName": "Jito",
+        //                     "maximumWithdrawal": null,
+        //                     "minimumDeposit": "0.29",
+        //                     "minimumWithdrawal": "0.58",
+        //                     "withdrawEnabled": true,
+        //                     "withdrawalFee": "0.29"
+        //                 }
+        //             ]
+        //         }
+        //         ...
+        //     ]
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const currecy = response[i];
+            const currencyId = this.safeString (currecy, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const networks = this.safeList (currecy, 'tokens', []);
+            const parsedNetworks: Dict = {};
+            for (let j = 0; j < networks.length; j++) {
+                const network = networks[j];
+                const networkId = this.safeString (network, 'blockchain');
+                const networkCode = this.networkCodeToId (networkId);
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'minimumWithdrawal'),
+                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'minimumDeposit'),
+                            'max': undefined,
+                        },
+                    },
+                    'active': undefined,
+                    'deposit': this.safeBool (network, 'depositEnabled'),
+                    'withdraw': this.safeBool (network, 'allowWithdraw'),
+                    'fee': this.safeNumber (network, 'withdrawalFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
+                'id': currencyId,
+                'code': code,
+                'precision': undefined,
+                'type': undefined,
+                'name': this.safeString (currecy, 'displayName'),
+                'active': undefined,
+                'deposit': this.safeBool (networks, 'depositEnabled'),
+                'withdraw': this.safeBool (networks, 'withdrawEnabled'),
+                'fee': undefined,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': parsedNetworks,
+                'info': currecy,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
