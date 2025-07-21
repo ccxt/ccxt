@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict, Market } from './base/types.js';
+import type { Currencies, Dict, Market, MarketType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -403,6 +403,7 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});
         const maxPrice = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'maxPrice')));
@@ -410,22 +411,36 @@ export default class backpack extends Exchange {
         const quantityFilter = this.safeDict (filters, 'quantity', {});
         const maxQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'maxQuantity')));
         const minQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'minQuantity')));
+        let type: MarketType;
+        const typeOfMarket = this.parseMarketType (this.safeString (market, 'marketType'));
+        if (typeOfMarket === 'spot') {
+            type = 'spot';
+        } else if (typeOfMarket === 'swap') {
+            type = 'swap';
+        }
+        let settle = undefined;
+        let settleId = undefined;
+        if (type === 'swap') {
+            settleId = this.safeString (market, 'quoteSymbol');
+            settle = this.safeCurrencyCode (settleId);
+            symbol = base + '/' + quote + ':' + settle;
+        }
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
+            'settleId': settleId,
+            'type': type,
+            'spot': type === 'spot',
+            'margin': type === 'margin',
+            'swap': type === 'swap',
             'future': false,
             'option': false,
-            'active': false,
+            'active': true,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -446,21 +461,33 @@ export default class backpack extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': maxQuantity,
-                    'max': minQuantity,
+                    'min': minQuantity,
+                    'max': maxQuantity,
                 },
                 'price': {
-                    'min': maxPrice,
-                    'max': minPrice,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
                     'max': undefined,
                 },
             },
             'created': this.parse8601 (this.safeString (market, 'createdAt')),
             'info': market,
         };
+    }
+
+    parseMarketType (type) {
+        const types = {
+            'SPOT': 'spot',
+            'PERP': 'swap',
+            'IPERP': 'swap',
+            'DATED': 'swap',
+            'PREDICTION': 'swap',
+            'RFQ': 'swap',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
