@@ -106,7 +106,7 @@ export default class backpack extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -167,8 +167,8 @@ export default class backpack extends Exchange {
                         'api/v1/ping': 1,
                         'api/v1/time': 1,
                         'api/v1/wallets': 1,
-                        'api/v1/trades': 1,
-                        'api/v1/trades/history': 1,
+                        'api/v1/trades': 1, // done
+                        'api/v1/trades/history': 1, // done
                     },
                 },
                 'private': {
@@ -790,6 +790,7 @@ export default class backpack extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -801,7 +802,15 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
-        const response = await this.publicGetApiV1Trades (this.extend (request, params));
+        let response = undefined;
+        const offset = this.safeInteger (params, 'offset', 0);
+        params = this.omit (params, 'offset');
+        if (offset > 0) {
+            request['offset'] = offset;
+            response = await this.publicGetApiV1TradesHistory (this.extend (request, params));
+        } else {
+            response = await this.publicGetApiV1Trades (this.extend (request, params));
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
