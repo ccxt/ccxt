@@ -242,6 +242,7 @@ export default class backpack extends Exchange {
                     'Dogecoin': 'DOGE',
                     'Bitcoin': 'BTC',
                     'Berachain': 'BERA',
+                    'BSC': 'BSC',
                 },
                 'networksById': {},
             },
