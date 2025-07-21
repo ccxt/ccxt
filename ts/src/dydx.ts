@@ -26,9 +26,9 @@ export default class dydx extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -81,7 +81,7 @@ export default class dydx extends Exchange {
                 'fetchLeverage': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -341,6 +341,154 @@ export default class dydx extends Exchange {
         // }
         //
         return this.safeInteger (response, 'epoch');
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        // {
+        //     "clobPairId": "0",
+        //     "ticker": "BTC-USD",
+        //     "status": "ACTIVE",
+        //     "oraclePrice": "118976.5376",
+        //     "priceChange24H": "659.9736",
+        //     "volume24H": "1292729.3605",
+        //     "trades24H": 9387,
+        //     "nextFundingRate": "0",
+        //     "initialMarginFraction": "0.02",
+        //     "maintenanceMarginFraction": "0.012",
+        //     "openInterest": "52.0691",
+        //     "atomicResolution": -10,
+        //     "quantumConversionExponent": -9,
+        //     "tickSize": "1",
+        //     "stepSize": "0.0001",
+        //     "stepBaseQuantums": 1000000,
+        //     "subticksPerTick": 100000,
+        //     "marketType": "CROSS",
+        //     "openInterestLowerCap": "0",
+        //     "openInterestUpperCap": "0",
+        //     "baseOpenInterest": "50.3776",
+        //     "defaultFundingRate1H": "0"
+        // }
+        //
+        const quoteId = 'USDC';
+        const marketId = this.safeString (market, 'ticker');
+        const parts = marketId.split ('-');
+        const baseName = this.safeString (parts, 0);
+        const base = this.safeCurrencyCode (baseName);
+        const quote = this.safeCurrencyCode (quoteId);
+        const baseId = this.safeString (market, 'baseId');
+        const settleId = 'USDC';
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const contract = true;
+        const swap = true;
+        const amountPrecisionStr = this.safeString (market, 'stepSize');
+        const pricePrecisionStr = this.safeString (market, 'tickSize');
+        const status = this.safeString (market, 'status');
+        let active = true;
+        if (status !== 'ACTIVE') {
+            active = false;
+        }
+        return this.safeMarketStructure ({
+            'id': this.safeString (market, 'clobPairId'),
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'baseName': baseName,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': undefined,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': true,
+            'inverse': false,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchMarkets
+     * @description retrieves data on all markets for hyperliquid
+     * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const request: Dict = {
+            // 'limit': 1000,
+        };
+        const response = await this.indexerGetPerpetualMarkets (this.extend (request, params));
+        //
+        // {
+        //     "markets": {
+        //         "BTC-USD": {
+        //             "clobPairId": "0",
+        //             "ticker": "BTC-USD",
+        //             "status": "ACTIVE",
+        //             "oraclePrice": "118976.5376",
+        //             "priceChange24H": "659.9736",
+        //             "volume24H": "1292729.3605",
+        //             "trades24H": 9387,
+        //             "nextFundingRate": "0",
+        //             "initialMarginFraction": "0.02",
+        //             "maintenanceMarginFraction": "0.012",
+        //             "openInterest": "52.0691",
+        //             "atomicResolution": -10,
+        //             "quantumConversionExponent": -9,
+        //             "tickSize": "1",
+        //             "stepSize": "0.0001",
+        //             "stepBaseQuantums": 1000000,
+        //             "subticksPerTick": 100000,
+        //             "marketType": "CROSS",
+        //             "openInterestLowerCap": "0",
+        //             "openInterestUpperCap": "0",
+        //             "baseOpenInterest": "50.3776",
+        //             "defaultFundingRate1H": "0"
+        //         }
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'markets', {});
+        const markets = Object.values (data);
+        return this.parseMarkets (markets);
     }
 
     nonce () {

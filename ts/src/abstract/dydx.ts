@@ -9,7 +9,33 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    indexerGetHeight (params?: {}): Promise<implicitReturnType>;
     indexerGetTime (params?: {}): Promise<implicitReturnType>;
+    indexerGetPerpetualMarkets (params?: {}): Promise<implicitReturnType>;
+    indexerGetPerpetualMarketSparklines (params?: {}): Promise<implicitReturnType>;
+    indexerGetPerpetualMarketsTicker (params?: {}): Promise<implicitReturnType>;
+    indexerGetPerpetualMarketsTickerOrderbook (params?: {}): Promise<implicitReturnType>;
+    indexerGetTradesPerpetualMarketTicker (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalFundingTicker (params?: {}): Promise<implicitReturnType>;
+    indexerGetCandlesTickerResolution (params?: {}): Promise<implicitReturnType>;
+    indexerGetComplianceScreenAddress (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccounts (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccountNumberSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions (params?: {}): Promise<implicitReturnType>;
+    indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params?: {}): Promise<implicitReturnType>;
+    indexerGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    indexerGetFills (params?: {}): Promise<implicitReturnType>;
+    indexerGetTransfers (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalPnl (params?: {}): Promise<implicitReturnType>;
+    indexerGetAssetPositionsParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetFillsParentSubaccount (params?: {}): Promise<implicitReturnType>;
+    indexerGetTransfersParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetOrdersParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetPerpetualPositionsParentSubaccountNumber (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalPnlParentSubaccount (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalTradingRewardAggregationsAddress (params?: {}): Promise<implicitReturnType>;
+    indexerGetHistoricalBlockTradingRewardsAddress (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
