@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict, Market, MarketType, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, MarketType, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ export default class backpack extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -102,8 +102,8 @@ export default class backpack extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -152,10 +152,10 @@ export default class backpack extends Exchange {
                         'api/v1/collateral': 1, // not used
                         'api/v1/borrowLend/markets': 1,
                         'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1,
-                        'api/v1/market': 1,
-                        'api/v1/ticker': 1,
-                        'api/v1/tickers': 1,
+                        'api/v1/markets': 1, // done
+                        'api/v1/market': 1, // not used
+                        'api/v1/ticker': 1, // done
+                        'api/v1/tickers': 1, // done
                         'api/v1/depth': 1,
                         'api/v1/klines': 1,
                         'api/v1/markPrices': 1,
@@ -576,6 +576,42 @@ export default class backpack extends Exchange {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiV1Depth (this.extend (request, params));
+        //
+        //     {
+        //         "asks": [
+        //             ["118318.3","0.00633"],
+        //             ["118567.2","0.08450"]
+        //         ],
+        //         "bids": [
+        //             ["1.0","0.38647"],
+        //             ["12.9","1.00000"]
+        //         ],
+        //         "lastUpdateId":"1504999670",
+        //         "timestamp":1753102447307501
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        return orderbook;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
