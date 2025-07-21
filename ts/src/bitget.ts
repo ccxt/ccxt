@@ -6000,12 +6000,12 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let order = undefined;
-        if ((market['swap'] || market['future']) && trigger) {
+        if ((market['swap'] || market['future']) && trigger && !uta) {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
             if (uta && trigger) {
-                return response;
+                order = response;
             } else {
                 order = data;
             }
