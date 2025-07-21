@@ -4789,7 +4789,9 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
 exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+// there is also an unmaintained approach, which we no longer recommend: exchange.has['createOrderWithTakeProfitAndStopLoss'], exchange.has['createStopLossOrder'], etc..
 ```
+
 
 <!-- tabs:start -->
 #### **Javascript**
