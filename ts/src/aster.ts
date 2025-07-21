@@ -43,7 +43,7 @@ export default class aster extends Exchange {
                 'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': false,
                 'cancelOrders': false,  // contract only
                 'closeAllPositions': false,
@@ -1883,6 +1883,38 @@ export default class aster extends Exchange {
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta' ]);
         return this.extend (request, requestParams);
+    }
+
+    /**
+     * @method
+     * @name aster#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-all-open-orders-trade
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteFapiV1AllOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200",
+        //         "msg": "The operation of cancel all open order is done."
+        //     }
+        //
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     /**

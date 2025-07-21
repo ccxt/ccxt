@@ -319,6 +319,17 @@
                 ],
                 "output": "symbol=BTCUSDT&amount=1&type=2&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/allOpenOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
         ]
     }
 }
