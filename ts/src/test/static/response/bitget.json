@@ -6148,7 +6148,7 @@
                     "data": null
                 },
                 "parsedResponse": {
-                    "info": null,
+                    "info": {},
                     "id": null,
                     "clientOrderId": null,
                     "timestamp": null,
