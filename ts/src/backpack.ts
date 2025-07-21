@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict } from './base/types.js';
+import type { Currencies, Dict, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ export default class backpack extends Exchange {
                 'public': {
                     'get': {
                         'api/v1/assets': 1, // done
-                        'api/v1/collateral': 1,
+                        'api/v1/collateral': 1, // not used
                         'api/v1/borrowLend/markets': 1,
                         'api/v1/borrowLend/markets/history': 1,
                         'api/v1/markets': 1,
@@ -341,6 +341,126 @@ export default class backpack extends Exchange {
             });
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchMarkets
+     * @description retrieves data on all markets for bitbank
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetApiV1Markets (params);
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        //     [
+        //         {
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowmarketFeeMaxMultiplier": null,
+        //                     "borrowmarketFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": null,
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.15",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": null,
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
+        //                 }
+        //             },
+        //             "fundingInterval": 28800000,
+        //             "fundingRateLowerBound": null,
+        //             "fundingRateUpperBound": null,
+        //             "imfFunction": null,
+        //             "marketType": "SPOT",
+        //             "mmfFunction": null,
+        //             "openInterestLimit": "0",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC"
+        //         }, ...
+        //     ]
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseSymbol');
+        const quoteId = this.safeString (market, 'quoteSymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const filters = this.safeDict (market, 'filters', {});
+        const priceFilter = this.safeDict (filters, 'price', {});
+        const maxPrice = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'maxPrice')));
+        const minPrice = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'minPrice')));
+        const quantityFilter = this.safeDict (filters, 'quantity', {});
+        const maxQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'maxQuantity')));
+        const minQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'minQuantity')));
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': maxQuantity,
+                    'max': minQuantity,
+                },
+                'price': {
+                    'min': maxPrice,
+                    'max': minPrice,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601 (this.safeString (market, 'createdAt')),
+            'info': market,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
