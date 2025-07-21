@@ -424,6 +424,23 @@
                     }
                 ],
                 "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"sell\",\"slTriggerBy\":\"mark\",\"stopLoss\":\"114000\",\"slLimitPrice\":\"113000\",\"slOrderType\":\"limit\",\"posSide\":\"long\"}"
+            },
+            {
+                "description": "uta spot margin createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    101000,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"category\":\"MARGIN\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"buy\",\"price\":\"101000\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -930,7 +947,21 @@
                         "trigger": true
                     }
                 ]
-            }
+            },
+            {
+                    "description": "uta spot margin fetchOpenOrders",
+                    "method": "fetchOpenOrders",
+                    "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=MARGIN&symbol=BTCUSDT",
+                    "input": [
+                        "BTC/USDT",
+                        null,
+                        null,
+                        {
+                            "uta": true,
+                            "marginMode": "cross"
+                        }
+                    ]
+                }
         ],
         "fetchClosedOrders": [
             {
@@ -1571,6 +1602,19 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta spot margin cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"MARGIN\"}"
             }
         ],
         "fetchCrossBorrowRate": [
@@ -2065,6 +2109,20 @@
                     1,
                     {
                         "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta spot margin fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=3&category=MARGIN",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    3,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
                     }
                 ]
             }

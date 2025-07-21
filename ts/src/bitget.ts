@@ -1798,8 +1798,14 @@ export default class bitget extends Exchange {
         let productType = this.safeString2 (params, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
             if (market['spot']) {
-                productType = 'SPOT';
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                } else {
+                    productType = 'SPOT';
+                }
             } else if (settle === 'USDT') {
                 productType = 'USDT-FUTURES';
             } else if (settle === 'USDC') {
@@ -2512,6 +2518,11 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarketLeverageTiers', 'uta', false);
         if (uta) {
+            if (productType === 'SPOT') {
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                }
+            }
             request['symbol'] = market['id'];
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketPositionTier (this.extend (request, params));
@@ -3804,6 +3815,13 @@ export default class bitget extends Exchange {
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         if (uta) {
+            if (productType === 'SPOT') {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                }
+            }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketFills (this.extend (request, params));
         } else if (market['spot']) {
@@ -5157,6 +5175,13 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        if (productType === 'SPOT') {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            if (marginMode !== undefined) {
+                productType = 'MARGIN';
+            }
+        }
         const request: Dict = {
             'category': productType,
             'symbol': market['id'],
@@ -6124,6 +6149,8 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         const request: Dict = {
@@ -6133,10 +6160,13 @@ export default class bitget extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         let uta = undefined;
-        let productType = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'uta', false);
         if (uta) {
+            if (productType === 'SPOT') {
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                }
+            }
             request['category'] = productType;
             response = await this.privateUtaPostV3TradeCancelSymbolOrder (this.extend (request, params));
             //
@@ -6233,7 +6263,12 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data');
         const resultList = this.safeListN (data, [ 'resultList', 'successList', 'list' ]);
         const failureList = this.safeList2 (data, 'failure', 'failureList');
-        const responseList = this.arrayConcat (resultList, failureList);
+        let responseList = undefined;
+        if ((resultList !== undefined) && (failureList !== undefined)) {
+            responseList = this.arrayConcat (resultList, failureList);
+        } else {
+            responseList = resultList;
+        }
         return this.parseOrders (responseList);
     }
 
@@ -6487,6 +6522,11 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
         if (uta) {
+            if (type === 'spot') {
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                }
+            }
             request['category'] = productType;
             if (trigger) {
                 response = await this.privateUtaGetV3TradeUnfilledStrategyOrders (this.extend (request, params));
@@ -7176,6 +7216,13 @@ export default class bitget extends Exchange {
         }
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        if (productType === 'SPOT') {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
+            if (marginMode !== undefined) {
+                productType = 'MARGIN';
+            }
+        }
         let request: Dict = {
             'category': productType,
         };
@@ -8850,6 +8897,13 @@ export default class bitget extends Exchange {
         let response = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', false);
         if (uta) {
+            if (productType === 'SPOT') {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
+                if (marginMode !== undefined) {
+                    productType = 'MARGIN';
+                }
+            }
             request['coin'] = market['settleId'];
             request['category'] = productType;
             response = await this.privateUtaPostV3AccountSetLeverage (this.extend (request, params));
