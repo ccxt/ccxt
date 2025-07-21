@@ -2,8 +2,8 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/backpack.js';
-import { BadRequest } from './base/errors.js';
-import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { ArgumentsRequired, BadRequest } from './base/errors.js';
+import type { Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ export default class backpack extends Exchange {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
@@ -88,7 +88,7 @@ export default class backpack extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
-                'fetchOpenInterestHistory': false,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -162,7 +162,7 @@ export default class backpack extends Exchange {
                         'api/v1/klines': 1, // done
                         'api/v1/markPrices': 1, // done
                         'api/v1/openInterest': 1, // done
-                        'api/v1/fundingRates': 1,
+                        'api/v1/fundingRates': 1, // done
                         'api/v1/status': 1, // done
                         'api/v1/ping': 1,
                         'api/v1/time': 1,
@@ -690,7 +690,7 @@ export default class backpack extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
-            throw new BadRequest (this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
+            throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -779,6 +779,56 @@ export default class backpack extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
+        }
+        const response = await this.publicGetApiV1FundingRates (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fundingRate": "0.0001",
+        //             "intervalEndTimestamp": "2025-07-22T00:00:00",
+        //             "symbol": "BTC_USDC_PERP"
+        //         }
+        //     ]
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const rate = response[i];
+            const datetime = this.safeString (rate, 'intervalEndTimestamp');
+            const timestamp = this.parse8601 (datetime);
+            rates.push ({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber (rate, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     /**
