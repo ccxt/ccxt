@@ -6004,8 +6004,8 @@ export default class bitget extends Exchange {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
-            if (uta && trigger && (data === null)) {
-                order = {};
+            if (uta && trigger) {
+                return response;
             } else {
                 order = data;
             }
