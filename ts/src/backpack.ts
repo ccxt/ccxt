@@ -102,7 +102,7 @@ export default class backpack extends Exchange {
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -163,7 +163,7 @@ export default class backpack extends Exchange {
                         'api/v1/markPrices': 1, // done
                         'api/v1/openInterest': 1, // done
                         'api/v1/fundingRates': 1,
-                        'api/v1/status1': 1,
+                        'api/v1/status': 1, // done
                         'api/v1/ping': 1,
                         'api/v1/time': 1,
                         'api/v1/wallets': 1,
@@ -848,6 +848,32 @@ export default class backpack extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.backpack.exchange/#tag/System/operation/get_status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetApiV1Status (params);
+        //
+        //     {
+        //         "message":null,
+        //         "status":"Ok"
+        //     }
+        //
+        const status = this.safeString (response, 'status');
+        return {
+            'status': status.toLowerCase (),
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
