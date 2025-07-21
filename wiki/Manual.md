@@ -4573,7 +4573,7 @@ We have different classification of trigger orders:
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
-* To ensure exchange supports this functionality, e.g. check that `exchange.featureValue('swap', 'linear', 'createOrder', 'triggerPrice')` returns `true`.
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('swap', 'linear', 'createOrder', 'triggerPrice')`.
 * Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
 
 <!-- tabs:start -->
@@ -4615,7 +4615,7 @@ Note, you can also add `reduceOnly: true` param to the trigger order (with a pos
 
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the stop loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
 
-* To ensure exchange supports this functionality, e.g. check that `exchange.featureValue('swap', 'linear', 'createOrder', 'stopLossPrice')` returns `true`.
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('swap', 'linear', 'createOrder', 'stopLossPrice')`.
 
 Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
@@ -4785,13 +4785,12 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 * By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Note, before creating order, ensure an exchange supports this specific functionality, by checking the below values are not null, for example:
+* Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
 ```
 exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss') // if stopLoss supported
 exchange.featureValue('swap', 'linear', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
 // there is also an unmaintained approach, which we no longer recommend: exchange.has['createOrderWithTakeProfitAndStopLoss'], exchange.has['createStopLossOrder'], etc..
 ```
-
 
 <!-- tabs:start -->
 #### **Javascript**
