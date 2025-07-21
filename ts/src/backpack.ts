@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { BadRequest } from './base/errors.js';
-import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -87,8 +87,8 @@ export default class backpack extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenInterestHistory': false,
                 'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -778,6 +778,66 @@ export default class backpack extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000); // api maximum 1000
+        }
+        const response = await this.publicGetApiV1Trades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     [
+        //         {
+        //             "id": 8721564,
+        //             "isBuyerMaker": false,
+        //             "price": "117427.6",
+        //             "quantity": "0.00016",
+        //             "quoteQuantity": "18.788416",
+        //             "timestamp": 1753123916818
+        //         }, ...
+        //     ]
+        //
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const id = this.safeInteger (trade, 'id');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'quantity');
+        const isBuyer = this.safeBool (trade, 'isBuyerMaker');
+        const side = isBuyer ? 'buy' : 'sell';
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': undefined,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
