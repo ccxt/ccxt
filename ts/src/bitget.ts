@@ -3485,7 +3485,8 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
         if (uta) {
-            if ((symbols !== undefined) && (symbols.length === 1)) {
+            const symbolsLength = symbols.length;
+            if ((symbols !== undefined) && (symbolsLength === 1)) {
                 request['symbol'] = market['id'];
             }
             request['category'] = productType;
