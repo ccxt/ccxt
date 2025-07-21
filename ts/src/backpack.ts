@@ -506,23 +506,41 @@ export default class backpack extends Exchange {
         return this.parseTickers (response);
     }
 
+    /**
+     * @method
+     * @name bigone#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://open.big.one/docs/spot_tickers.html
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiV1Ticker (this.extend (request, params));
+        return this.parseTicker (response, market);
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
-        //     fetchTicker
-        //     [
-        //         {
-        //             "firstPrice": "327.38",
-        //             "high": "337.99",
-        //             "lastPrice": "317.14",
-        //             "low": "300.01",
-        //             "priceChange": "-10.24",
-        //             "priceChangePercent": "-0.031279",
-        //             "quoteVolume": "21584.32278",
-        //             "symbol": "AAVE_USDC",
-        //             "trades": "245",
-        //             "volume": "65.823"
-        //         }, ...
-        //     ]
+        // fetchTicker/fetchTickers
+        //
+        //     {
+        //         "firstPrice": "327.38",
+        //         "high": "337.99",
+        //         "lastPrice": "317.14",
+        //         "low": "300.01",
+        //         "priceChange": "-10.24",
+        //         "priceChangePercent": "-0.031279",
+        //         "quoteVolume": "21584.32278",
+        //         "symbol": "AAVE_USDC",
+        //         "trades": "245",
+        //         "volume": "65.823"
+        //     }, ...
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
