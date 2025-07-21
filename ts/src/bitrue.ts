@@ -376,11 +376,9 @@ export default class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [
-                    'spot',
-                    'linear',
-                    'inverse',
-                ],
+                'fetchMarkets': {
+                    'types': [ 'spot', 'linear', 'inverse' ],
+                },
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
