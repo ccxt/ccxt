@@ -45,7 +45,7 @@ export default class aster extends Exchange {
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': false,
-                'cancelOrders': false,  // contract only
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
                 'createConvertTrade': false,
@@ -1919,6 +1919,71 @@ export default class aster extends Exchange {
 
     /**
      * @method
+     * @name aster#cancelOrders
+     * @description cancel multiple orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-multiple-orders-trade
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+     * @param {int[]} [params.recvWindow]
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderIdList = this.safeList (params, 'origClientOrderIdList');
+        if (clientOrderIdList !== undefined) {
+            request['origClientOrderIdList'] = clientOrderIdList;
+        } else {
+            request['orderIdList'] = ids;
+        }
+        const response = await this.privateDeleteFapiV1BatchOrders (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "clientOrderId": "myOrder1",
+        //            "cumQty": "0",
+        //            "cumQuote": "0",
+        //            "executedQty": "0",
+        //            "orderId": 283194212,
+        //            "origQty": "11",
+        //            "origType": "TRAILING_STOP_MARKET",
+        //            "price": "0",
+        //            "reduceOnly": false,
+        //            "side": "BUY",
+        //            "positionSide": "SHORT",
+        //            "status": "CANCELED",
+        //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+        //            "closePosition": false,               // if Close-All
+        //            "symbol": "BTCUSDT",
+        //            "timeInForce": "GTC",
+        //            "type": "TRAILING_STOP_MARKET",
+        //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+        //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+        //            "updateTime": 1571110484038,
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,                // if conditional order trigger is protected
+        //        },
+        //        {
+        //            "code": -2011,
+        //            "msg": "Unknown order sent."
+        //        }
+        //    ]
+        //
+        return this.parseOrders (response, market);
+    }
+
+    /**
+     * @method
      * @name aster#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
@@ -2251,7 +2316,7 @@ export default class aster extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-            const extendedParams = this.extend ({
+            let extendedParams = this.extend ({
                 'timestamp': this.milliseconds (),
             }, params);
             if (defaultRecvWindow !== undefined) {
@@ -2261,7 +2326,23 @@ export default class aster extends Exchange {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            let query = this.rawencode (extendedParams);
+            let query = undefined;
+            if ((method === 'DELETE') && (path === 'fapi/v1/batchOrders')) {
+                const orderidlist = this.safeList (extendedParams, 'orderIdList', []);
+                const origclientorderidlist = this.safeList (extendedParams, 'origClientOrderIdList', []);
+                extendedParams = this.omit (extendedParams, [ 'orderIdList', 'origClientOrderIdList' ]);
+                query = this.rawencode (extendedParams);
+                const orderidlistLength = orderidlist.length;
+                const origclientorderidlistLength = origclientorderidlist.length;
+                if (orderidlistLength > 0) {
+                    query = query + '&' + 'orderidlist=%5B' + orderidlist.join ('%2C') + '%5D';
+                }
+                if (origclientorderidlistLength > 0) {
+                    query = query + '&' + 'origclientorderidlist=%5B' + origclientorderidlist.join ('%2C') + '%5D';
+                }
+            } else {
+                query = this.rawencode (extendedParams);
+            }
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
             if (method === 'GET') {
