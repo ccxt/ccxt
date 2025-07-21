@@ -1798,9 +1798,8 @@ export default class bitget extends Exchange {
         let productType = this.safeString2 (params, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
-            let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
             if (market['spot']) {
+                const marginMode = this.safeString (params, 'marginMode');
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 } else {
@@ -6149,10 +6148,10 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let productType = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
