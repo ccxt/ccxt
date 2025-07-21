@@ -1799,7 +1799,8 @@ export default class bitget extends Exchange {
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
             if (market['spot']) {
-                const marginMode = this.safeString (params, 'marginMode');
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 } else {
