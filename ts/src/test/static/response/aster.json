@@ -1832,14 +1832,99 @@
                 ]
             }
         ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    "123",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "clientOrderId": "myOrder1",
+                    "cumQty": "0",
+                    "cumQuote": "0",
+                    "executedQty": "0",
+                    "orderId": 283194212,
+                    "origQty": "11",
+                    "origType": "TRAILING_STOP_MARKET",
+                    "price": "0",
+                    "reduceOnly": false,
+                    "side": "BUY",
+                    "positionSide": "SHORT",
+                    "status": "CANCELED",
+                    "stopPrice": "9300",
+                    "closePosition": false,
+                    "symbol": "BTCUSDT",
+                    "timeInForce": "GTC",
+                    "type": "TRAILING_STOP_MARKET",
+                    "activatePrice": "9020",
+                    "priceRate": "0.3",
+                    "updateTime": 1571110484038,
+                    "workingType": "CONTRACT_PRICE",
+                    "priceProtect": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientOrderId": "myOrder1",
+                        "cumQty": "0",
+                        "cumQuote": "0",
+                        "executedQty": "0",
+                        "orderId": 283194212,
+                        "origQty": "11",
+                        "origType": "TRAILING_STOP_MARKET",
+                        "price": "0",
+                        "reduceOnly": false,
+                        "side": "BUY",
+                        "positionSide": "SHORT",
+                        "status": "CANCELED",
+                        "stopPrice": "9300",
+                        "closePosition": false,
+                        "symbol": "BTCUSDT",
+                        "timeInForce": "GTC",
+                        "type": "TRAILING_STOP_MARKET",
+                        "activatePrice": "9020",
+                        "priceRate": "0.3",
+                        "updateTime": 1571110484038,
+                        "workingType": "CONTRACT_PRICE",
+                        "priceProtect": false
+                    },
+                    "id": "283194212",
+                    "clientOrderId": "myOrder1",
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": 1571110484038,
+                    "lastUpdateTimestamp": 1571110484038,
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": 9300,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 11,
+                    "filled": 0,
+                    "remaining": 11,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": 9300,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "cancelOrders",
                 "method": "cancelOrders",
                 "input": [
                     [
-                        "123",
-                        "456"
+                        "123"
                     ],
                     "BTC/USDT:USDT"
                 ],

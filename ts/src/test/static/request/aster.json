@@ -331,6 +331,31 @@
                 "output": "symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
         ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "123",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&orderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "origClientOrderId": "123"
+                    }
+                ],
+                "output": "symbol=BTCUSDT&origClientOrderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "cancelOrders",

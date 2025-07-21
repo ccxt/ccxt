@@ -44,7 +44,7 @@ export default class aster extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
@@ -1915,6 +1915,36 @@ export default class aster extends Exchange {
                 'info': response,
             }),
         ];
+    }
+
+    /**
+     * @method
+     * @name aster#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-order-trade
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId' ]);
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId' ]);
+        const response = await this.privateDeleteFapiV1Order (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     /**
