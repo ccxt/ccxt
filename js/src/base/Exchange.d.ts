@@ -51,6 +51,7 @@ export default class Exchange {
     ws_socks_proxy: string;
     userAgents: any;
     headers: any;
+    returnResponseHeaders: boolean;
     origin: string;
     MAX_VALUE: Num;
     agent: any;
@@ -199,6 +200,7 @@ export default class Exchange {
     streaming: {};
     alias: boolean;
     deepExtend: (...xs: any) => any;
+    deepExtendSafe: (...xs: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
@@ -210,6 +212,7 @@ export default class Exchange {
     flatten: (x: any[], out?: any[]) => any[];
     unique: (x: any[]) => any[];
     indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+    indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
     roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
     sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
     sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
@@ -281,8 +284,9 @@ export default class Exchange {
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
-    rawencode: (object: object) => string;
+    rawencode: (object: object, sort?: boolean) => string;
     keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
+    sort: (array: any) => any;
     inArray: (needle: any, haystack: any[]) => boolean;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     safeStringUpper2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
@@ -359,6 +363,8 @@ export default class Exchange {
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
+    mapToSafeMap(dict: any): any;
+    safeMapToMap(dict: any): any;
     spawn(method: any, ...args: any[]): import("./ws/Future.js").FutureInterface;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
@@ -372,7 +378,7 @@ export default class Exchange {
     onConnected(client: any, message?: any): void;
     onError(client: any, error: any): void;
     onClose(client: any, error: any): void;
-    close(): Promise<void>;
+    close(): Promise<any[]>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
@@ -441,6 +447,7 @@ export default class Exchange {
     watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
@@ -758,6 +765,7 @@ export default class Exchange {
     fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
@@ -883,6 +891,7 @@ export default class Exchange {
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];
     parseGreeks(greeks: Dict, market?: Market): Greeks;
+    parseAllGreeks(greeks: any, symbols?: Strings, params?: {}): Greeks[];
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModes;
@@ -900,7 +909,7 @@ export default class Exchange {
     parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    cleanUnsubscription(client: any, subHash: string, unsubHash: string): void;
+    cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
 }
 export { Exchange, };

@@ -3,6 +3,15 @@
     "skipKeys": ["from", "till"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://plasma-relay-backend.timex.io/public/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",

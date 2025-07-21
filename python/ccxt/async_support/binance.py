@@ -88,6 +88,7 @@ class binance(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'editOrders': True,
                 'fetchAccounts': None,
+                'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': True,
@@ -3904,7 +3905,7 @@ class binance(Exchange, ImplicitAPI):
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "markPrice": "11793.63104562",  # mark price
+        #         "markPrice": "11793.63104561",  # mark price
         #         "indexPrice": "11781.80495970",  # index price
         #         "estimatedSettlePrice": "11781.16138815",  # Estimated Settle Price, only useful in the last hour before the settlement starts
         #         "lastFundingRate": "0.00038246",  # This is the lastest estimated funding rate
@@ -5024,13 +5025,13 @@ class binance(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
         if postOnly:
             uppercaseType = 'LIMIT_MAKER'
-        request['type'] = uppercaseType
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         if triggerPrice is not None:
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
                 uppercaseType = 'STOP_LOSS_LIMIT'
+        request['type'] = uppercaseType
         validOrderTypes = self.safe_list(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
@@ -9834,7 +9835,7 @@ class binance(Exchange, ImplicitAPI):
                     response = await self.dapiPrivateV2GetLeverageBracket(query)
             else:
                 raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
-            self.options['leverageBrackets'] = {}
+            self.options['leverageBrackets'] = self.create_safe_dictionary()
             for i in range(0, len(response)):
                 entry = response[i]
                 marketId = self.safe_string(entry, 'symbol')
@@ -10778,6 +10779,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             request['symbol'] = market['id']
+            symbol = market['symbol']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -10805,7 +10807,7 @@ class binance(Exchange, ImplicitAPI):
         #
         settlements = self.parse_settlements(response, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_settlement(self, settlement, market):
         #
@@ -12422,6 +12424,45 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         return self.parse_greeks(response[0], market)
+
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+        """
+        fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+        :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        request: dict = {}
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = await self.eapiPublicGetMark(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC-231229-40000-C",
+        #             "markPrice": "2012",
+        #             "bidIV": "0.60236275",
+        #             "askIV": "0.62267244",
+        #             "markIV": "0.6125176",
+        #             "delta": "0.39111646",
+        #             "theta": "-32.13948531",
+        #             "gamma": "0.00004656",
+        #             "vega": "51.70062218",
+        #             "highPriceLimit": "6474",
+        #             "lowPriceLimit": "5"
+        #         }
+        #     ]
+        #
+        return self.parse_all_greeks(response, symbols)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #

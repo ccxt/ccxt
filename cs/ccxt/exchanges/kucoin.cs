@@ -1214,38 +1214,35 @@ public partial class kucoin : Exchange
         //    }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object brokenCurrencies = this.safeList(this.options, "brokenCurrencies", new List<object>() {"00", "OPEN_ERROR", "HUF", "BDT"});
+        object otherFiats = this.safeList(this.options, "fiats", new List<object>() {"KWD", "IRR", "PKR"});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
             object entry = getValue(currenciesData, i);
             object id = this.safeString(entry, "currency");
-            object name = this.safeString(entry, "fullName");
-            object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(entry, "chains", new List<object>() {});
-            object rawPrecision = this.safeString(entry, "precision");
-            object precision = this.parseNumber(this.parsePrecision(rawPrecision));
-            object chainsLength = getArrayLength(chains);
-            if (!isTrue(chainsLength))
+            if (isTrue(this.inArray(id, brokenCurrencies)))
             {
                 continue;
             }
+            object code = this.safeCurrencyCode(id);
+            object networks = new Dictionary<string, object>() {};
+            object chains = this.safeList(entry, "chains", new List<object>() {});
+            object chainsLength = getArrayLength(chains);
             for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object chainId = this.safeString(chain, "chainId");
                 object networkCode = this.networkIdToCode(chainId, code);
-                object chainWithdrawEnabled = this.safeBool(chain, "isWithdrawEnabled", false);
-                object chainDepositEnabled = this.safeBool(chain, "isDepositEnabled", false);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", chainId },
                     { "name", this.safeString(chain, "chainName") },
                     { "code", networkCode },
-                    { "active", isTrue(chainWithdrawEnabled) && isTrue(chainDepositEnabled) },
+                    { "active", null },
                     { "fee", this.safeNumber(chain, "withdrawalMinFee") },
-                    { "deposit", chainDepositEnabled },
-                    { "withdraw", chainWithdrawEnabled },
+                    { "deposit", this.safeBool(chain, "isDepositEnabled") },
+                    { "withdraw", this.safeBool(chain, "isWithdrawEnabled") },
                     { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
@@ -1260,10 +1257,12 @@ public partial class kucoin : Exchange
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
-            object isFiat = isTrue((isEqual(rawPrecision, "2"))) && isTrue((isEqual(chainsLength, 0)));
+            object rawPrecision = this.safeString(entry, "precision");
+            object precision = this.parseNumber(this.parsePrecision(rawPrecision));
+            object isFiat = isTrue(this.inArray(id, otherFiats)) || isTrue((isTrue((isEqual(rawPrecision, "2"))) && isTrue((isEqual(chainsLength, 0)))));
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "name", name },
+                { "name", this.safeString(entry, "fullName") },
                 { "code", code },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "precision", precision },
@@ -2634,7 +2633,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool2(parameters, "trigger", "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];

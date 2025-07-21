@@ -49,6 +49,7 @@ public partial class bybit : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "editOrders", true },
+                { "fetchAllGreeks", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", "emulated" },
                 { "fetchBorrowInterest", false },
@@ -1081,6 +1082,7 @@ public partial class bybit : Exchange
                     { "4h", "4h" },
                     { "1d", "1d" },
                 } },
+                { "useMarkPriceForPositionCollateral", false },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -2372,22 +2374,11 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else
-        {
-            if (isTrue(getValue(market, "option")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "option";
-            } else if (isTrue(getValue(market, "linear")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "linear";
-            } else if (isTrue(getValue(market, "inverse")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "inverse";
-            }
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("fetchTicker", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
         //
         //     {
@@ -2494,23 +2485,12 @@ public partial class bybit : Exchange
             }
         }
         object request = new Dictionary<string, object>() {};
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
-        // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
-        // with higher priority and only default to spot, if `subType` is not set in params
-        object passedSubType = this.safeString(parameters, "subType");
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        // only if passedSubType is undefined, then use spot
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(isEqual(type, "option")))
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("fetchTickers", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
+        if (isTrue(isEqual(category, "option")))
         {
             ((IDictionary<string,object>)request)["category"] = "option";
             if (isTrue(isEqual(code, null)))
@@ -2518,9 +2498,6 @@ public partial class bybit : Exchange
                 code = "BTC";
             }
             ((IDictionary<string,object>)request)["baseCoin"] = code;
-        } else if (isTrue(isTrue(isTrue(isEqual(type, "swap")) || isTrue(isEqual(type, "future"))) || isTrue(!isEqual(subType, null))))
-        {
-            ((IDictionary<string,object>)request)["category"] = subType;
         }
         object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
         //
@@ -4012,7 +3989,10 @@ public partial class bybit : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "buy", -1, null, this.extend(req, parameters));
     }
 
     /**
@@ -4040,7 +4020,10 @@ public partial class bybit : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
-        return await this.createOrder(symbol, "market", "sell", cost, 1, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", "sell", -1, null, this.extend(req, parameters));
     }
 
     /**
@@ -4063,7 +4046,7 @@ public partial class bybit : Exchange
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -4090,7 +4073,7 @@ public partial class bybit : Exchange
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
         object defaultMethod = null;
-        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4158,7 +4141,7 @@ public partial class bybit : Exchange
         object isLimit = isEqual(lowerCaseType, "limit");
         object isBuy = isEqual(side, "buy");
         object defaultMethod = null;
-        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))
+        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4249,19 +4232,11 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["price"] = priceString;
             }
         }
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("createOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         object cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4302,7 +4277,7 @@ public partial class bybit : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    object quoteAmount = Precise.stringMul(amountString, priceString);
+                    object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     object costRequest = ((bool) isTrue((!isEqual(cost, null)))) ? cost : quoteAmount;
                     ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, costRequest);
                 }
@@ -4347,9 +4322,9 @@ public partial class bybit : Exchange
             {
                 if (isTrue(isEqual(triggerDirection, null)))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, " stop/trigger orders require a triggerDirection parameter, either \"above\" or \"below\" to determine the direction of the trigger.")) ;
+                    throw new ArgumentsRequired ((string)add(this.id, " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.")) ;
                 }
-                object isAsending = (isTrue((isEqual(triggerDirection, "above"))) || isTrue((isEqual(triggerDirection, "1"))));
+                object isAsending = (isTrue(isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above")))) || isTrue((isEqual(triggerDirection, "1"))));
                 ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isAsending)) ? 1 : 2;
             }
             ((IDictionary<string,object>)request)["triggerPrice"] = this.getPrice(symbol, triggerPrice);
@@ -4515,19 +4490,11 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "id") },
             { "orderId", id },
         };
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("editOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         if (isTrue(!isEqual(amount, null)))
         {
             ((IDictionary<string,object>)request)["qty"] = this.getAmount(symbol, amount);
@@ -4755,19 +4722,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(getValue(market, "spot")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(getValue(market, "linear")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "inverse";
-        } else if (isTrue(getValue(market, "option")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "option";
-        }
+        object category = null;
+        var categoryparametersVariable = this.getBybitType("cancelOrderRequest", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
+        ((IDictionary<string,object>)request)["category"] = category;
         return this.extend(request, parameters);
     }
 
@@ -7029,6 +6988,7 @@ public partial class bybit : Exchange
         }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
+        object markPrice = this.safeString(position, "markPrice");
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -7036,7 +6996,8 @@ public partial class bybit : Exchange
             if (isTrue(isEqual(getValue(market, "settle"), "USDC")))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                object difference = Precise.stringAbs(Precise.stringSub(entryPrice, liquidationPrice));
+                object price = ((bool) isTrue(this.safeBool(this.options, "useMarkPriceForPositionCollateral", false))) ? markPrice : entryPrice;
+                object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
             {
@@ -7095,7 +7056,7 @@ public partial class bybit : Exchange
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", this.parseNumber(marginRatio) },
             { "liquidationPrice", this.parseNumber(liquidationPrice) },
-            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
             { "marginMode", marginMode },
@@ -8154,19 +8115,9 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "id") },
         };
         object category = null;
-        if (isTrue(getValue(market, "linear")))
-        {
-            category = "linear";
-        } else if (isTrue(getValue(market, "inverse")))
-        {
-            category = "inverse";
-        } else if (isTrue(getValue(market, "spot")))
-        {
-            category = "spot";
-        } else
-        {
-            category = "option";
-        }
+        var categoryparametersVariable = this.getBybitType("fetchTradingFee", market, parameters);
+        category = ((IList<object>)categoryparametersVariable)[0];
+        parameters = ((IList<object>)categoryparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = category;
         object response = await this.privateGetV5AccountFeeRate(this.extend(request, parameters));
         //
@@ -8449,11 +8400,11 @@ public partial class bybit : Exchange
         var typeparametersVariable = this.getBybitType("fetchMySettlementHistory", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "inverse"))))
+        if (isTrue(isEqual(type, "spot")))
         {
             throw new NotSupported ((string)add(this.id, " fetchMySettlementHistory() is not supported for spot market")) ;
         }
-        ((IDictionary<string,object>)request)["category"] = "linear";
+        ((IDictionary<string,object>)request)["category"] = type;
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
@@ -8690,6 +8641,82 @@ public partial class bybit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object baseCoin = this.safeString(parameters, "baseCoin", "BTC");
+        object request = new Dictionary<string, object>() {
+            { "category", "option" },
+            { "baseCoin", baseCoin },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "SUCCESS",
+        //         "result": {
+        //             "category": "option",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTC-26JAN24-39000-C",
+        //                     "bid1Price": "3205",
+        //                     "bid1Size": "7.1",
+        //                     "bid1Iv": "0.5478",
+        //                     "ask1Price": "3315",
+        //                     "ask1Size": "1.98",
+        //                     "ask1Iv": "0.5638",
+        //                     "lastPrice": "3230",
+        //                     "highPrice24h": "3255",
+        //                     "lowPrice24h": "3200",
+        //                     "markPrice": "3273.02263032",
+        //                     "indexPrice": "36790.96",
+        //                     "markIv": "0.5577",
+        //                     "underlyingPrice": "37649.67254894",
+        //                     "openInterest": "19.67",
+        //                     "turnover24h": "170140.33875912",
+        //                     "volume24h": "4.56",
+        //                     "totalVolume": "22",
+        //                     "totalTurnover": "789305",
+        //                     "delta": "0.49640971",
+        //                     "gamma": "0.00004131",
+        //                     "vega": "69.08651675",
+        //                     "theta": "-24.9443226",
+        //                     "predictedDeliveryPrice": "0",
+        //                     "change24h": "0.18532111"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1699584008326
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "list", new List<object>() {});
+        return this.parseAllGreeks(data, symbols);
     }
 
     public override object parseGreeks(object greeks, object market = null)
@@ -9154,7 +9181,7 @@ public partial class bybit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(income, "execId") },
-            { "amount", this.safeNumber(income, "execQty") },
+            { "amount", this.safeNumber(income, "execFee") },
             { "rate", this.safeNumber(income, "feeRate") },
         };
     }
@@ -9968,7 +9995,7 @@ public partial class bybit : Exchange
                 } else
                 {
                     authFull = add(auth_base, queryEncoded);
-                    url = add(url, add("?", this.rawencode(query)));
+                    url = add(url, add("?", queryEncoded));
                 }
                 object signature = null;
                 if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
@@ -9987,7 +10014,7 @@ public partial class bybit : Exchange
                     { "timestamp", timestamp },
                 });
                 object sortedQuery = this.keysort(query);
-                object auth = this.rawencode(sortedQuery);
+                object auth = this.rawencode(sortedQuery, true);
                 object signature = null;
                 if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
                 {
@@ -10017,7 +10044,7 @@ public partial class bybit : Exchange
                     }
                 } else
                 {
-                    url = add(url, add("?", this.rawencode(sortedQuery)));
+                    url = add(url, add("?", this.rawencode(sortedQuery, true)));
                     url = add(url, add("&sign=", signature));
                 }
             }

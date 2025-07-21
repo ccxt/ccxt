@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class cryptocom extends \ccxt\async\Exchange {
+    public function base_public_get_v1_public_get_announcements($params = array()) {
+        return $this->request('v1/public/get-announcements', array('base', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -57,6 +60,9 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     }
     public function v1_private_post_private_create_order($params = array()) {
         return $this->request('private/create-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function v1_private_post_private_amend_order($params = array()) {
+        return $this->request('private/amend-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function v1_private_post_private_create_order_list($params = array()) {
         return $this->request('private/create-order-list', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
@@ -358,6 +364,9 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     public function derivatives_private_post_private_get_order_list($params = array()) {
         return $this->request('private/get-order-list', array('derivatives', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function basePublicGetV1PublicGetAnnouncements($params = array()) {
+        return $this->request('v1/public/get-announcements', array('base', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1PublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
@@ -408,6 +417,9 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     }
     public function v1PrivatePostPrivateCreateOrder($params = array()) {
         return $this->request('private/create-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function v1PrivatePostPrivateAmendOrder($params = array()) {
+        return $this->request('private/amend-order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function v1PrivatePostPrivateCreateOrderList($params = array()) {
         return $this->request('private/create-order-list', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));

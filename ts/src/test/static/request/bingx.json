@@ -8,6 +8,22 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers from spot to swap",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?fromAccount=spot&timestamp=1752388736730&toAccount=USDTMPerp&signature=e918279c2b9e18bd94ac254a159e347ed0b1ee695ac96e862cc4f5cc4053bc60",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -1192,12 +1208,28 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to swap",
+                "description": "transfer LTC from inverse swap to spot using the subType parameter",
+                "disabledGO": true,
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=FUND_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=0.05&asset=LTC&fromAccount=USDTMPerp&timestamp=1752202170056&toAccount=spot&signature=1759012ec5ebbca1ad6a823da98ce4689dbf667aa5a01ee9ea553e23f2f1e010",       
+                "input": [
+                    "LTC",
+                    0.05,
+                    "swap",
+                    "spot",
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "transfer USDT from spot to linear swap",
+                "disabledGO": true,
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=10&asset=USDT&fromAccount=spot&timestamp=1752202545401&toAccount=USDTMPerp&signature=a0da8f16bac616605f88b75f7a3200625e35df8693b7ceca4d2872790fda7314",        
                 "input": [
                     "USDT",
-                    1,
+                    10,
                     "spot",
                     "swap"
                 ]
@@ -1435,7 +1467,7 @@
             {
                 "description": "Inverse swap set the margin mode",
                 "method": "setMarginMode",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",        
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
                 "input": [
                   "cross",
                   "SOL/USD:SOL"

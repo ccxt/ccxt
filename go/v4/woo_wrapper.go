@@ -22,7 +22,7 @@ func NewWoo(userConfig map[string]interface{}) Woo {
  * @method
  * @name woo#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.woox.io/#get-system-maintenance-status-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
  */
@@ -37,7 +37,7 @@ func (this *Woo) FetchStatus(params ...interface{}) (map[string]interface{}, err
  * @method
  * @name woo#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.woox.io/#get-system-maintenance-status-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -52,7 +52,7 @@ func (this *Woo) FetchTime(params ...interface{}) ( int64, error) {
  * @method
  * @name woo#fetchMarkets
  * @description retrieves data on all markets for woo
- * @see https://docs.woox.io/#exchange-information
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -67,7 +67,7 @@ func (this *Woo) FetchMarkets(params ...interface{}) ([]MarketInterface, error) 
  * @method
  * @name woo#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.woox.io/#market-trades-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -104,9 +104,38 @@ func (this *Woo) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
 }
 /**
  * @method
+ * @name woo#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
+func (this *Woo) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+    opts := FetchTradingFeeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchTradingFee(symbol, params)
+    if IsError(res) {
+        return TradingFeeInterface{}, CreateReturnError(res)
+    }
+    return NewTradingFeeInterface(res), nil
+}
+/**
+ * @method
  * @name woo#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.woox.io/#get-account-information-new
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
  */
@@ -288,8 +317,8 @@ func (this *Woo) CreateTrailingPercentOrder(symbol string, typeVar string, side 
  * @method
  * @name woo#createOrder
  * @description create a trade order
- * @see https://docs.woox.io/#send-order
- * @see https://docs.woox.io/#send-algo-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -387,9 +416,8 @@ func (this *Woo) EditOrder(id string, symbol string, typeVar string, side string
 /**
  * @method
  * @name woo#cancelOrder
- * @see https://docs.woox.io/#cancel-algo-order
- * @see https://docs.woox.io/#cancel-order
- * @see https://docs.woox.io/#cancel-order-by-client_order_id
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -397,7 +425,7 @@ func (this *Woo) EditOrder(id string, symbol string, typeVar string, side string
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
+func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
 
@@ -416,16 +444,15 @@ func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (map[stri
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Order{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrder(res), nil
 }
 /**
  * @method
  * @name woo#cancelAllOrders
- * @see https://docs.woox.io/#cancel-all-pending-orders
- * @see https://docs.woox.io/#cancel-orders
- * @see https://docs.woox.io/#cancel-all-pending-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
  * @description cancel all open orders in a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -459,12 +486,12 @@ func (this *Woo) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]
  * @method
  * @name woo#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.woox.io/#cancel-all-after
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) ([]Order, error) {
+func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 
     opts := CancelAllOrdersAfterOptionsStruct{}
 
@@ -478,15 +505,15 @@ func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
     }
     res := <- this.Core.CancelAllOrdersAfter(timeout, params)
     if IsError(res) {
-        return nil, CreateReturnError(res)
+        return map[string]interface{}{}, CreateReturnError(res)
     }
-    return NewOrderArray(res), nil
+    return res.(map[string]interface{}), nil
 }
 /**
  * @method
  * @name woo#fetchOrder
- * @see https://docs.woox.io/#get-algo-order
- * @see https://docs.woox.io/#get-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -521,8 +548,8 @@ func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
  * @method
  * @name woo#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -530,7 +557,6 @@ func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
  * @param {string} [params.side] 'buy' or 'sell'
- * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -571,8 +597,8 @@ func (this *Woo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @method
  * @name woo#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -621,8 +647,8 @@ func (this *Woo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  * @method
  * @name woo#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -671,7 +697,7 @@ func (this *Woo) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
  * @method
  * @name woo#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.woox.io/#orderbook-snapshot-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -703,14 +729,14 @@ func (this *Woo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
 /**
  * @method
  * @name woo#fetchOHLCV
- * @see https://docs.woox.io/#kline-public
- * @see https://docs.woox.io/#kline-historical-data-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Woo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -795,7 +821,7 @@ func (this *Woo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions)
  * @method
  * @name woo#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.woox.io/#get-trade-history
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_transactions
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -840,7 +866,8 @@ func (this *Woo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
  * @method
  * @name woo#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.woox.io/#get-assets-of-subaccounts
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+ * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
  */
@@ -870,7 +897,7 @@ func (this *Woo) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name woo#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.woox.io/#get-token-deposit-address
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -897,7 +924,7 @@ func (this *Woo) FetchDepositAddress(code string, options ...FetchDepositAddress
  * @method
  * @name woo#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -941,7 +968,7 @@ func (this *Woo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @method
  * @name woo#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -985,7 +1012,7 @@ func (this *Woo) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
  * @method
  * @name woo#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1029,7 +1056,7 @@ func (this *Woo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
  * @method
  * @name woo#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1103,7 +1130,7 @@ func (this *Woo) Transfer(code string, amount float64, fromAccount string, toAcc
  * @method
  * @name woo#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://docs.woox.io/#get-transfer-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -1183,7 +1210,7 @@ func (this *Woo) Withdraw(code string, amount float64, address string, options .
  * @method
  * @name woo#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://docs.woox.io/#get-funding-fee-history
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1228,7 +1255,7 @@ func (this *Woo) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]F
  * @method
  * @name woo#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1255,7 +1282,7 @@ func (this *Woo) FetchFundingInterval(symbol string, options ...FetchFundingInte
  * @method
  * @name woo#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1282,7 +1309,7 @@ func (this *Woo) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
  * @method
  * @name woo#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
@@ -1314,7 +1341,7 @@ func (this *Woo) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
  * @method
  * @name woo#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -1360,7 +1387,7 @@ func (this *Woo) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptio
  * @method
  * @name woo#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://docs.woox.io/#update-position-mode
+ * @see https://developer.woox.io/api-reference/endpoint/futures/position_mode
  * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
  * @param {string} symbol not used by woo setPositionMode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1393,11 +1420,12 @@ func (this *Woo) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
  * @method
  * @name woo#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://docs.woox.io/#get-account-information-new
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
- * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+ * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
  */
 func (this *Woo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
@@ -1422,13 +1450,13 @@ func (this *Woo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (
  * @method
  * @name woo#setLeverage
  * @description set the level of leverage for a market
- * @see https://docs.woox.io/#update-leverage-setting
- * @see https://docs.woox.io/#update-futures-leverage-setting
+ * @see https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage
+ * @see https://developer.woox.io/api-reference/endpoint/futures/set_leverage
  * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
  * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
- * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+ * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} response from the exchange
  */
 func (this *Woo) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -1454,6 +1482,15 @@ func (this *Woo) SetLeverage(leverage int64, options ...SetLeverageOptions) (map
     }
     return res.(map[string]interface{}), nil
 }
+/**
+ * @method
+ * @name woo#fetchPosition
+ * @description fetch data on an open position
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+ * @param {string} symbol unified market symbol of the market the position is held in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
 func (this *Woo) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
     opts := FetchPositionOptionsStruct{}
@@ -1472,6 +1509,15 @@ func (this *Woo) FetchPosition(symbol string, options ...FetchPositionOptions) (
     }
     return NewPosition(res), nil
 }
+/**
+ * @method
+ * @name woo#fetchPositions
+ * @description fetch all open positions
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
 func (this *Woo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
     opts := FetchPositionsOptionsStruct{}

@@ -3,6 +3,104 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "USDT": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "ZUSD": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-8,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USD": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        },
+                        "id": "ZUSD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USD",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "order with cost",
@@ -61,6 +159,64 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "createOrder long precisions",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.000123456789,
+                    12345.123456789
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OOBROV-GTGDX-IRFMMB",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 12345.1,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.00012346,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "create order",
                 "method": "createOrder",

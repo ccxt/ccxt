@@ -444,7 +444,9 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 // insert new price Level
                 this.hasmap[stringId] = index_price;
                 var index = bisectLeft(this._index, index_price.Value);
-                while (index < this._index.Count && (this._index[index] == index_price) && (Convert.ToDecimal(((IList<object>)this[index])[2])) < Convert.ToDecimal(order_id))
+                // var index2Val = ((IList<object>)this[index])[2];
+                // index might be a stringified number like '1' or an id like '11AABB'
+                while (index < this._index.Count && (this._index[index] == index_price) && this.isOrderIsBigger(order_id, index))
                 {
                     index++;
                 }
@@ -463,6 +465,26 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 this.RemoveAt(index3);
                 this.hasmap.Remove(order_id.ToString());
             }
+        }
+    }
+
+    private bool isOrderIsBigger(object orderId, int index)
+    {
+        // index might be a stringified number like '1' or an id like '11AABB'
+        var index2Val = ((IList<object>)this[index])[2];
+        try
+        {
+            // Try converting both to decimal
+            decimal orderIdDecimal = Convert.ToDecimal(orderId);
+            decimal indexDecimal = Convert.ToDecimal(index2Val);
+            return orderIdDecimal > indexDecimal;
+        }
+        catch
+        {
+            // Fall back to string comparison if decimal conversion fails
+            string orderIdStr = orderId?.ToString() ?? "";
+            string indexStr = index2Val?.ToString() ?? "";
+            return string.Compare(orderIdStr, indexStr, StringComparison.Ordinal) > 0;
         }
     }
 

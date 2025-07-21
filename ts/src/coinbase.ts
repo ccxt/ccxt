@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/coinbase.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -42,6 +42,9 @@ export default class coinbase extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -56,6 +59,8 @@ export default class coinbase extends Exchange {
                 'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -66,8 +71,12 @@ export default class coinbase extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
@@ -85,42 +94,69 @@ export default class coinbase extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
                 'fetchMyBuys': true,
+                'fetchMyLiquidations': false,
                 'fetchMySells': true,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
                 'fetchTradingFees': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
@@ -324,12 +360,14 @@ export default class coinbase extends Exchange {
                     'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
                     'internal_server_error': ExchangeError, // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
-                    'INSUFFICIENT_FUND': BadRequest,
+                    'INSUFFICIENT_FUND': InsufficientFunds,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
                     'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
+                    'PREVIEW_INSUFFICIENT_FUND': InsufficientFunds,
                 },
                 'broad': {
+                    'Insufficient balance in source account': InsufficientFunds,
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                     'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
@@ -4629,7 +4667,7 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4640,9 +4678,6 @@ export default class coinbase extends Exchange {
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['future']) {
-            throw new NotSupported (this.id + ' closePosition() only supported for futures markets');
-        }
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         params = this.omit (params, 'clientOrderId');
         const request: Dict = {

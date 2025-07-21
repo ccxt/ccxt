@@ -4287,6 +4287,8 @@ class htx(Exchange, ImplicitAPI):
         request: dict = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params, 'linear')
         response = None
         if marketType == 'spot':
             if symbol is not None:
@@ -4308,16 +4310,16 @@ class htx(Exchange, ImplicitAPI):
             params = self.omit(params, 'account-id')
             response = await self.spotPrivateGetV1OrderOpenOrders(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+            if symbol is not None:
+                # raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+                request['contract_code'] = market['id']
             if limit is not None:
                 request['page_size'] = limit
-            request['contract_code'] = market['id']
             trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if market['linear']:
+            if subType == 'linear':
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
@@ -4339,8 +4341,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(self.extend(request, params))
-            elif market['inverse']:
-                if market['swap']:
+            elif subType == 'inverse':
+                if marketType == 'swap':
                     if trigger:
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -4349,8 +4351,8 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostSwapApiV1SwapTrackOpenorders(self.extend(request, params))
                     else:
                         response = await self.contractPrivatePostSwapApiV1SwapOpenorders(self.extend(request, params))
-                elif market['future']:
-                    request['symbol'] = market['settleId']
+                elif marketType == 'future':
+                    request['symbol'] = self.safe_string(market, 'settleId', 'usdt')
                     if trigger:
                         response = await self.contractPrivatePostApiV1ContractTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -6340,7 +6342,7 @@ class htx(Exchange, ImplicitAPI):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = await self.fetch_currencies()
-                self.currencies = self.deep_extend(self.currencies, currencies)
+                self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
                 targetNetwork = self.safe_value(currency['networks'], networkCode, {})
                 fee = self.safe_number(targetNetwork, 'fee')
                 if fee is None:
@@ -6575,12 +6577,16 @@ class htx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
             'contract_code': market['id'],
         }
+        if limit is not None:
+            request['page_size'] = limit
+        else:
+            request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = await self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))

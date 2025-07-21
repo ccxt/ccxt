@@ -164,10 +164,11 @@ public partial class Exchange
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
-        var proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        if (proxyUrl != null) {
+        var proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        if (proxyUrl != null)
+        {
             proxyUrl = proxyUrl.ToString();
-            url = proxyUrl + this.urlEncoderForProxyUrl (url).ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl(url).ToString();
         }
 
         if (this.verbose)
@@ -311,7 +312,7 @@ public partial class Exchange
 
         this.httpClient.DefaultRequestHeaders.Clear();
 
-        var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
         var httpStatusCode = (int)response?.StatusCode;
@@ -325,6 +326,11 @@ public partial class Exchange
         try
         {
             responseBody = JsonHelper.Deserialize(result);
+            if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
+            {
+                dict["headers"] = responseHeaders;
+                responseBody = dict;
+            }
         }
         catch (Exception e)
         {
@@ -460,8 +466,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
@@ -1103,6 +1111,17 @@ public partial class Exchange
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     }
+
+    public IDictionary<string, object> mapToSafeMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, object> safeMapToMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)

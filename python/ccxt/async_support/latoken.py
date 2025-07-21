@@ -247,6 +247,8 @@ class latoken(Exchange, ImplicitAPI):
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': True,  # controls the adjustment logic upon instantiation
             },
             'features': {
                 'spot': {
@@ -347,39 +349,6 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        currencies = await self.fetch_currencies_from_cache(params)
-        #
-        #     [
-        #         {
-        #             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
-        #             "status":"CURRENCY_STATUS_ACTIVE",
-        #             "type":"CURRENCY_TYPE_ALTERNATIVE",  # CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
-        #             "name":"MyCryptoBank",
-        #             "tag":"MCB",
-        #             "description":"",
-        #             "logo":"",
-        #             "decimals":18,
-        #             "created":1572912000000,
-        #             "tier":1,
-        #             "assetClass":"ASSET_CLASS_UNKNOWN",
-        #             "minTransferAmount":0
-        #         },
-        #         {
-        #             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
-        #             "status":"CURRENCY_STATUS_ACTIVE",
-        #             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
-        #             "name":"BTC USDT Futures Contract",
-        #             "tag":"BTCUSDT",
-        #             "description":"",
-        #             "logo":"",
-        #             "decimals":8,
-        #             "created":1589459984395,
-        #             "tier":1,
-        #             "assetClass":"ASSET_CLASS_UNKNOWN",
-        #             "minTransferAmount":0
-        #         },
-        #     ]
-        #
         response = await self.publicGetPair(params)
         #
         #     [
@@ -401,8 +370,9 @@ class latoken(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if self.safe_value(self.options, 'adjustForTimeDifference', True):
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
+        currencies = self.safe_dict(self.options, 'cachedCurrencies', {})
         currenciesById = self.index_by(currencies, 'id')
         result = []
         for i in range(0, len(response)):
@@ -411,11 +381,13 @@ class latoken(Exchange, ImplicitAPI):
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            baseCurrency = self.safe_value(currenciesById, baseId)
-            quoteCurrency = self.safe_value(currenciesById, quoteId)
-            if baseCurrency is not None and quoteCurrency is not None:
-                base = self.safe_currency_code(self.safe_string(baseCurrency, 'tag'))
-                quote = self.safe_currency_code(self.safe_string(quoteCurrency, 'tag'))
+            baseCurrency = self.safe_dict(currenciesById, baseId)
+            quoteCurrency = self.safe_dict(currenciesById, quoteId)
+            baseCurrencyInfo = self.safe_dict(baseCurrency, 'info')
+            quoteCurrencyInfo = self.safe_dict(quoteCurrency, 'info')
+            if baseCurrencyInfo is not None and quoteCurrencyInfo is not None:
+                base = self.safe_currency_code(self.safe_string(baseCurrencyInfo, 'tag'))
+                quote = self.safe_currency_code(self.safe_string(quoteCurrencyInfo, 'tag'))
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
                 status = self.safe_string(market, 'status')
@@ -470,28 +442,13 @@ class latoken(Exchange, ImplicitAPI):
                 })
         return result
 
-    async def fetch_currencies_from_cache(self, params={}):
-        # self method is now redundant
-        # currencies are now fetched before markets
-        options = self.safe_value(self.options, 'fetchCurrencies', {})
-        timestamp = self.safe_integer(options, 'timestamp')
-        expires = self.safe_integer(options, 'expires', 1000)
-        now = self.milliseconds()
-        if (timestamp is None) or ((now - timestamp) > expires):
-            response = await self.publicGetCurrency(params)
-            self.options['fetchCurrencies'] = self.extend(options, {
-                'response': response,
-                'timestamp': now,
-            })
-        return self.safe_value(self.options['fetchCurrencies'], 'response')
-
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.fetch_currencies_from_cache(params)
+        response = await self.publicGetCurrency(params)
         #
         #     [
         #         {
@@ -530,27 +487,18 @@ class latoken(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'id')
             tag = self.safe_string(currency, 'tag')
             code = self.safe_currency_code(tag)
-            fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
-            type = None
-            if currencyType == 'CURRENCY_TYPE_ALTERNATIVE':
-                type = 'other'
-            else:
-                # CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
-                type = 'crypto'
-            status = self.safe_string(currency, 'status')
-            active = (status == 'CURRENCY_STATUS_ACTIVE')
-            name = self.safe_string(currency, 'name')
-            result[code] = {
+            isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': name,
-                'type': type,
-                'active': active,
+                'name': self.safe_string(currency, 'name'),
+                'type': 'crypto' if isCrypto else 'other',
+                'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
                 'deposit': None,
                 'withdraw': None,
-                'fee': fee,
+                'fee': self.safe_number(currency, 'fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
                 'limits': {
                     'amount': {
@@ -563,7 +511,7 @@ class latoken(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+            })
         return result
 
     async def fetch_balance(self, params={}) -> Balances:

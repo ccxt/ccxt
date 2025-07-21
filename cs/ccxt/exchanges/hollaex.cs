@@ -245,6 +245,7 @@ public partial class hollaex : Exchange
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "broad", new Dictionary<string, object>() {
+                    { "API request is expired", typeof(InvalidNonce) },
                     { "Invalid token", typeof(AuthenticationError) },
                     { "Order not found", typeof(OrderNotFound) },
                     { "Insufficient balance", typeof(InsufficientFunds) },
@@ -273,6 +274,14 @@ public partial class hollaex : Exchange
                     { "XLM", "xlm" },
                     { "BNB", "bnb" },
                     { "MATIC", "matic" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "eth", "ERC20" },
+                    { "ETH", "ERC20" },
+                    { "ERC20", "ERC20" },
+                    { "trx", "TRC20" },
+                    { "TRX", "TRC20" },
+                    { "TRC20", "TRC20" },
                 } },
             } },
         });
@@ -808,7 +817,8 @@ public partial class hollaex : Exchange
         //      "price":0.147411,
         //      "timestamp":"2022-01-26T17:53:34.650Z",
         //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
+        //      "fee":0.01031877,
+        //      "fee_coin":"usdt"
         //  }
         //
         object marketId = this.safeString(trade, "symbol");
@@ -821,12 +831,13 @@ public partial class hollaex : Exchange
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "size");
         object feeCostString = this.safeString(trade, "fee");
+        object feeCoin = this.safeString(trade, "fee_coin");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeCurrencyCode(feeCoin) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -918,7 +929,7 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -933,21 +944,32 @@ public partial class hollaex : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
+        object paginate = false;
+        object maxLimit = 500;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
+        }
         object until = this.safeInteger(parameters, "until");
-        object end = this.seconds();
-        if (isTrue(!isEqual(until, null)))
+        object timeDelta = multiply(multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
+        object start = since;
+        object now = this.milliseconds();
+        if (isTrue(isTrue(isEqual(until, null)) && isTrue(isEqual(start, null))))
         {
-            end = this.parseToInt(divide(until, 1000));
+            until = now;
+            start = subtract(until, timeDelta);
+        } else if (isTrue(isEqual(until, null)))
+        {
+            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        } else if (isTrue(isEqual(start, null)))
+        {
+            start = subtract(until, timeDelta);
         }
-        object defaultSpan = 2592000; // 30 days
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-        } else
-        {
-            ((IDictionary<string,object>)request)["from"] = subtract(end, defaultSpan);
-        }
-        ((IDictionary<string,object>)request)["to"] = end;
+        ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
+        ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000)); // convert to seconds
         parameters = this.omit(parameters, "until");
         object response = await this.publicGetChart(this.extend(request, parameters));
         //
@@ -1326,11 +1348,10 @@ public partial class hollaex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object convertedAmount = parseFloat(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", side },
-            { "size", this.normalizeNumberIfNeeded(convertedAmount) },
+            { "size", this.amountToPrecision(symbol, amount) },
             { "type", type },
         };
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
@@ -1340,12 +1361,11 @@ public partial class hollaex : Exchange
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
         {
-            object convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
-            ((IDictionary<string,object>)request)["price"] = this.normalizeNumberIfNeeded(convertedPrice);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop"] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
+            ((IDictionary<string,object>)request)["stop"] = this.priceToPrecision(symbol, triggerPrice);
         }
         if (isTrue(postOnly))
         {
@@ -2054,15 +2074,6 @@ public partial class hollaex : Exchange
         //
         object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
         return this.parseDepositWithdrawFees(coins, codes, "symbol");
-    }
-
-    public virtual object normalizeNumberIfNeeded(object number)
-    {
-        if (isTrue(this.isRoundNumber(number)))
-        {
-            number = parseInt(number);
-        }
-        return number;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

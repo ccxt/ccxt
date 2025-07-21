@@ -537,6 +537,15 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getActiveMarkets (exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+        return exchange.arrayConcat (filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -639,4 +648,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,
+    getActiveMarkets,
 };

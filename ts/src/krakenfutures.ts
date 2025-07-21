@@ -531,7 +531,7 @@ export default class krakenfutures extends Exchange {
                 'precision': undefined,
             });
         }
-        this.currencies = this.deepExtend (currencies, this.currencies);
+        this.currencies = this.mapToSafeMap (this.deepExtend (currencies, this.currencies));
         return result;
     }
 

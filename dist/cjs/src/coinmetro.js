@@ -210,6 +210,7 @@ class coinmetro extends coinmetro$1 {
             'options': {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': ['QRDO'],
+                'skippedMarkets': ['VXVUSDT'], // broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -385,7 +386,11 @@ class coinmetro extends coinmetro$1 {
             else if (typeRaw === 'fiat') {
                 type = 'fiat';
             }
-            const precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
+            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
+            if (code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                precisionDigits = '4';
+            }
             result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
@@ -431,10 +436,13 @@ class coinmetro extends coinmetro$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetMarkets(params);
+        const promises = [];
+        promises.push(this.publicGetMarkets(params));
         if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            await this.fetchCurrencies();
+            promises.push(this.fetchCurrencies());
         }
+        const responses = await Promise.all(promises);
+        const response = responses[0];
         //
         //     [
         //         {
@@ -450,7 +458,16 @@ class coinmetro extends coinmetro$1 {
         //         ...
         //     ]
         //
-        return this.parseMarkets(response);
+        const skippedMarkets = this.safeList(this.options, 'skippedMarkets', []);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = this.parseMarket(response[i]);
+            if (this.inArray(market['id'], skippedMarkets)) {
+                continue;
+            }
+            result.push(market);
+        }
+        return result;
     }
     parseMarket(market) {
         const id = this.safeString(market, 'pair');

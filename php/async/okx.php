@@ -62,6 +62,7 @@ class okx extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowInterest' => true,
@@ -90,7 +91,7 @@ class okx extends Exchange {
                 'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
@@ -113,6 +114,7 @@ class okx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
@@ -1615,6 +1617,7 @@ class okx extends Exchange {
         //         "instType" => "OPTION",
         //         "lever" => "",
         //         "listTime" => "1631262612280",
+        //         "contTdSwTime" => "1631262812280",
         //         "lotSz" => "1",
         //         "minSz" => "1",
         //         "optType" => "P",
@@ -1701,7 +1704,7 @@ class okx extends Exchange {
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $this->parse_number($strikePrice),
             'optionType' => $optionType,
-            'created' => $this->safe_integer($market, 'listTime'),
+            'created' => $this->safe_integer_2($market, 'contTdSwTime', 'listTime'), // contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
                 'price' => $this->safe_number($market, 'tickSz'),
@@ -2641,11 +2644,11 @@ class okx extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             $eq = $this->safe_string($balance, 'eq');
             $availEq = $this->safe_string($balance, 'availEq');
-            if (($eq === null) || ($availEq === null)) {
+            $account['total'] = $eq;
+            if ($availEq === null) {
                 $account['free'] = $this->safe_string($balance, 'availBal');
                 $account['used'] = $this->safe_string($balance, 'frozenBal');
             } else {
-                $account['total'] = $eq;
                 $account['free'] = $availEq;
             }
             $result[$code] = $account;
@@ -3084,7 +3087,8 @@ class okx extends Exchange {
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
-                $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $request['slTriggerPx'] = $slTriggerPx;
                 $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type');
                 if ($stopLossOrderType !== null) {
@@ -3163,6 +3167,14 @@ class okx extends Exchange {
             // tpOrdKind is 'condition' which is the default
             if ($twoWayCondition) {
                 $request['ordType'] = 'oco';
+            }
+            if ($side === 'sell') {
+                $request = $this->omit($request, 'tgtCcy');
+            }
+            if ($this->safe_string($request, 'tdMode') === 'cash') {
+                // for some reason tdMode = cash throws
+                // array("code":"1","data":[array("algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":"")],"msg":"")
+                $request['tdMode'] = $marginMode;
             }
             if ($takeProfitPrice !== null) {
                 $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitPrice);
@@ -3826,6 +3838,84 @@ class okx extends Exchange {
         //         "tradeId" => "",
         //         "uTime" => "1621910749815"
         //     }
+        //
+        // watchOrders & fetchClosedOrders
+        //
+        //    {
+        //        "algoClOrdId" => "",
+        //        "algoId" => "",
+        //        "attachAlgoClOrdId" => "",
+        //        "attachAlgoOrds" => array(),
+        //        "cancelSource" => "",
+        //        "cancelSourceReason" => "", // not present in WS, but present in fetchClosedOrders
+        //        "category" => "normal",
+        //        "ccy" => "", // empty in WS, but eg. `USDT` in fetchClosedOrders
+        //        "clOrdId" => "",
+        //        "cTime" => "1751705801423",
+        //        "feeCcy" => "USDT",
+        //        "instId" => "LINK-USDT-SWAP",
+        //        "instType" => "SWAP",
+        //        "isTpLimit" => "false",
+        //        "lever" => "3",
+        //        "linkedAlgoOrd" => array( "algoId" => "" ),
+        //        "ordId" => "2657625147249614848",
+        //        "ordType" => "limit",
+        //        "posSide" => "net",
+        //        "px" => "13.142",
+        //        "pxType" => "",
+        //        "pxUsd" => "",
+        //        "pxVol" => "",
+        //        "quickMgnType" => "",
+        //        "rebate" => "0",
+        //        "rebateCcy" => "USDT",
+        //        "reduceOnly" => "true",
+        //        "side" => "sell",
+        //        "slOrdPx" => "",
+        //        "slTriggerPx" => "",
+        //        "slTriggerPxType" => "",
+        //        "source" => "",
+        //        "stpId" => "",
+        //        "stpMode" => "cancel_maker",
+        //        "sz" => "0.1",
+        //        "tag" => "",
+        //        "tdMode" => "isolated",
+        //        "tgtCcy" => "",
+        //        "tpOrdPx" => "",
+        //        "tpTriggerPx" => "",
+        //        "tpTriggerPxType" => "",
+        //        "uTime" => "1751705807467",
+        //        "reqId" => "",                      // field present only in WS
+        //        "msg" => "",                        // field present only in WS
+        //        "amendResult" => "",                // field present only in WS
+        //        "amendSource" => "",                // field present only in WS
+        //        "code" => "0",                      // field present only in WS
+        //        "fillFwdPx" => "",                  // field present only in WS
+        //        "fillMarkVol" => "",                // field present only in WS
+        //        "fillPxUsd" => "",                  // field present only in WS
+        //        "fillPxVol" => "",                  // field present only in WS
+        //        "lastPx" => "13.142",               // field present only in WS
+        //        "notionalUsd" => "1.314515408",     // field present only in WS
+        //
+        //     #### these below fields are empty on first omit from websocket, because of "creation" event. however, if $order is executed, it also immediately sends another update with these fields $filled  ###
+        //
+        //        "pnl" => "-0.0001",
+        //        "accFillSz" => "0.1",
+        //        "avgPx" => "13.142",
+        //        "state" => "filled",
+        //        "fee" => "-0.00026284",
+        //        "fillPx" => "13.142",
+        //        "tradeId" => "293429690",
+        //        "fillSz" => "0.1",
+        //        "fillTime" => "1751705807467",
+        //        "fillNotionalUsd" => "1.314515408", // field present only in WS
+        //        "fillPnl" => "-0.0001",             // field present only in WS
+        //        "fillFee" => "-0.00026284",         // field present only in WS
+        //        "fillFeeCcy" => "USDT",             // field present only in WS
+        //        "execType" => "M",                  // field present only in WS
+        //        "fillMarkPx" => "13.141",           // field present only in WS
+        //        "fillIdxPx" => "13.147"             // field present only in WS
+        //    }
+        //
         //
         // Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
@@ -5194,7 +5284,7 @@ class okx extends Exchange {
             $fee = $this->safe_string($params, 'fee');
             if ($fee === null) {
                 $currencies = Async\await($this->fetch_currencies());
-                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
                 $targetNetwork = $this->safe_dict($currency['networks'], $this->network_id_to_code($network), array());
                 $fee = $this->safe_string($targetNetwork, 'fee');
                 if ($fee === null) {
@@ -6379,7 +6469,7 @@ class okx extends Exchange {
         $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
         $fundingTimeString = $this->safe_string($contract, 'fundingTime');
-        $nextFundingTimeString = $this->safe_string($contract, 'nextFundingRate');
+        $nextFundingTimeString = $this->safe_string($contract, 'nextFundingTime');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
@@ -6470,6 +6560,42 @@ class okx extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $entry = $this->safe_dict($data, 0, array());
             return $this->parse_funding_rate($entry, $market);
+        }) ();
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the current funding rates for multiple $symbols
+             *
+             * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-funding-rate
+             *
+             * @param {string[]} $symbols unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, 'swap', true);
+            $request = array( 'instId' => 'ANY' );
+            $response = Async\await($this->publicGetPublicFundingRate ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "0",
+            //        "data" => array(
+            //            {
+            //                "fundingRate" => "0.00027815",
+            //                "fundingTime" => "1634256000000",
+            //                "instId" => "BTC-USD-SWAP",
+            //                "instType" => "SWAP",
+            //                "nextFundingRate" => "0.00017",
+            //                "nextFundingTime" => "1634284800000"
+            //            }
+            //        ),
+            //        "msg" => ""
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 
@@ -7289,7 +7415,7 @@ class okx extends Exchange {
     public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
-             * fetch the $interest owed by the user for borrowing $currency for margin trading
+             * fetch the $interest owed b the user for borrowing $currency for margin trading
              *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
              *
@@ -7525,6 +7651,67 @@ class okx extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_open_interest($data[0], $market);
+        }) ();
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * Retrieves the open interests of some currencies
+             *
+             * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
+             *
+             * @param {string[]} $symbols Unified CCXT $market $symbols
+             * @param {array} [$params] exchange specific parameters
+             * @param {string} $params->instType Instrument type, options => 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+             * @param {string} $params->uly Underlying, Applicable to FUTURES/SWAP/OPTION, if $instType is 'OPTION', either $uly or $instFamily is required
+             * @param {string} $params->instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if $instType is 'OPTION', either $uly or $instFamily is required
+             * @return {array} an dictionary of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $market = null;
+            if ($symbols !== null) {
+                $market = $this->market($symbols[0]);
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_sub_type_and_params('fetchOpenInterests', $market, $params, 'swap');
+            $instType = 'SWAP';
+            if ($marketType === 'future') {
+                $instType = 'FUTURES';
+            } elseif ($instType === 'option') {
+                $instType = 'OPTION';
+            }
+            $request = array( 'instType' => $instType );
+            $uly = $this->safe_string($params, 'uly');
+            if ($uly !== null) {
+                $request['uly'] = $uly;
+            }
+            $instFamily = $this->safe_string($params, 'instFamily');
+            if ($instFamily !== null) {
+                $request['instFamily'] = $instFamily;
+            }
+            if ($instType === 'OPTION' && $uly === null && $instFamily === null) {
+                throw new BadRequest($this->id . ' fetchOpenInterests() requires either $uly or $instFamily parameter for OPTION markets');
+            }
+            $response = Async\await($this->publicGetPublicOpenInterest ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "instId" => "BTC-USDT-SWAP",
+            //                 "instType" => "SWAP",
+            //                 "oi" => "2125419",
+            //                 "oiCcy" => "21254.19",
+            //                 "ts" => "1664005108969"
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_open_interests($data, $symbols);
         }) ();
     }
 
@@ -8002,6 +8189,86 @@ class okx extends Exchange {
                 }
             }
             return null;
+        }) ();
+    }
+
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
+             * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data
+             *
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->uly Underlying, either $uly or $instFamily is required
+             * @param {string} $params->instFamily Instrument family, either $uly or $instFamily is required
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $symbolsLength = null;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+            }
+            if (($symbols === null) || ($symbolsLength !== 1)) {
+                $uly = $this->safe_string($params, 'uly');
+                if ($uly !== null) {
+                    $request['uly'] = $uly;
+                }
+                $instFamily = $this->safe_string($params, 'instFamily');
+                if ($instFamily !== null) {
+                    $request['instFamily'] = $instFamily;
+                }
+                if (($uly === null) && ($instFamily === null)) {
+                    throw new BadRequest($this->id . ' fetchAllGreeks() requires either a $uly or $instFamily parameter');
+                }
+            }
+            $market = null;
+            if ($symbols !== null) {
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                    $marketId = $market['id'];
+                    $optionParts = explode('-', $marketId);
+                    $request['uly'] = $market['info']['uly'];
+                    $request['instFamily'] = $market['info']['instFamily'];
+                    $request['expTime'] = $this->safe_string($optionParts, 2);
+                }
+            }
+            $params = $this->omit($params, array( 'uly', 'instFamily' ));
+            $response = Async\await($this->publicGetPublicOptSummary ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "askVol" => "0",
+            //                 "bidVol" => "0",
+            //                 "delta" => "0.5105464486882039",
+            //                 "deltaBS" => "0.7325502184143025",
+            //                 "fwdPx" => "37675.80158694987186",
+            //                 "gamma" => "-0.13183515090501083",
+            //                 "gammaBS" => "0.000024139685826358558",
+            //                 "instId" => "BTC-USD-240329-32000-C",
+            //                 "instType" => "OPTION",
+            //                 "lever" => "4.504428015946619",
+            //                 "markVol" => "0.5916253554539876",
+            //                 "realVol" => "0",
+            //                 "theta" => "-0.0004202992014012855",
+            //                 "thetaBS" => "-18.52354631567909",
+            //                 "ts" => "1699586421976",
+            //                 "uly" => "BTC-USD",
+            //                 "vega" => "0.0020207455080045846",
+            //                 "vegaBS" => "74.44022302387287",
+            //                 "volLv" => "0.5948549730405797"
+            //             ),
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_all_greeks($data, $symbols);
         }) ();
     }
 

@@ -11,6 +11,37 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch inverse swap open orders with no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_openorders?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2025-05-30T09%3A33%3A08&Signature=bKvrfMRV5JqrtrBLGKAuK%2BYWQqVlyMQ3%2FtI3ilzJEaw%3D",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap",
+                        "subType": "inverse"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch swap open orders with no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_openorders?AccessKeyId=2544d3b4-b9b13e98-nbtycf4rw2-7b485&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2025-05-30T09%3A32%3A32&Signature=IIrzT6P%2BQfHW53%2FpLX7nlB2HSq0oCi9V5KoqnqMZ7vM%3D",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -1392,7 +1423,7 @@
             {
                 "description": "fetch Funding Rate History - swap linear",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=LTC-USDT",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_historical_funding_rate?contract_code=LTC-USDT&page_size=50",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -1400,7 +1431,7 @@
             {
                 "description": "fetch Funding Rate History - swap inverse",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.huobi.pro/swap-api/v1/swap_historical_funding_rate?contract_code=BTC-USD",
+                "url": "https://api.huobi.pro/swap-api/v1/swap_historical_funding_rate?contract_code=BTC-USD&page_size=50",
                 "input": [
                     "BTC/USD:BTC"
                 ]

@@ -137,6 +137,8 @@ jobs:
         with:
           name: go-files
           path: go/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
       - name: Build tests
         run: cd  go/ && go build ./tests/main.go
       - name: Install npm dependencies
@@ -151,9 +153,13 @@ jobs:
       #   run: go build ./go/tests/main.go
       # - name: Adjust permissions
       #   run: cd go && chmod +x main
+      - name: Build
+        run: cd go && go build ./v4 && cd ..
+      - name: Build tests
+        run: cd go && go build ./tests/main.go && cd ..
       - name: Live tests
         if: env.important_modified == 'true'
-        run: cd go/ && npm run live-tests-rest-go
+        run: node run-tests --go --useProxy
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}"

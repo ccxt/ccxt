@@ -581,6 +581,7 @@ class phemex extends phemex$1 {
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -1125,9 +1126,7 @@ class phemex extends phemex$1 {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString(currency, 'currency');
-            const name = this.safeString(currency, 'name');
             const code = this.safeCurrencyCode(id);
-            const status = this.safeString(currency, 'status');
             const valueScaleString = this.safeString(currency, 'valueScale');
             const valueScale = parseInt(valueScaleString);
             const minValueEv = this.safeString(currency, 'minValueEv');
@@ -1141,12 +1140,12 @@ class phemex extends phemex$1 {
                 minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
                 maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status === 'Listed',
+                'name': this.safeString(currency, 'name'),
+                'active': this.safeString(currency, 'status') === 'Listed',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -1164,7 +1163,7 @@ class phemex extends phemex$1 {
                 'valueScale': valueScale,
                 'networks': undefined,
                 'type': 'crypto',
-            };
+            });
         }
         return result;
     }
@@ -2761,10 +2760,10 @@ class phemex extends phemex$1 {
                 let triggerDirection = undefined;
                 [triggerDirection, params] = this.handleParamString(params, 'triggerDirection');
                 if (triggerDirection === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                    throw new errors.ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value");
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                if (triggerDirection === 'up') {
+                if (triggerDirection === 'ascending' || triggerDirection === 'up') {
                     if (side === 'sell') {
                         request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
                     }
@@ -2772,7 +2771,7 @@ class phemex extends phemex$1 {
                         request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
                     }
                 }
-                else if (triggerDirection === 'down') {
+                else if (triggerDirection === 'descending' || triggerDirection === 'down') {
                     if (side === 'sell') {
                         request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
                     }
@@ -3533,6 +3532,7 @@ class phemex extends phemex$1 {
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
@@ -3544,22 +3544,28 @@ class phemex extends phemex$1 {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, code);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork);
+        let network = this.safeStringUpper2(params, 'network', 'chainName', defaultNetwork);
         network = this.safeString(networks, network, network);
         if (network === undefined) {
-            request['chainName'] = currency['id'];
+            throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter');
         }
         else {
             request['chainName'] = network;
             params = this.omit(params, 'network');
         }
-        const response = await this.privateGetPhemexUserWalletsV2DepositAddress(this.extend(request, params));
+        const response = await this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "address": "tb1qxel5wq5gumt",
+        //             "tag": "",
+        //             "notice": false,
+        //             "accountType": 1,
+        //             "contractName": null,
+        //             "chainTokenUrl": null,
+        //             "sign": null
         //         }
         //     }
         //

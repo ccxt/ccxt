@@ -57,6 +57,7 @@ export default class paradex extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -792,7 +793,7 @@ export default class paradex extends Exchange {
         //         "ask": "69578.2",
         //         "volume_24h": "5815541.397939004",
         //         "total_volume": "584031465.525259686",
-        //         "created_at": 1718170156580,
+        //         "created_at": 1718170156581,
         //         "underlying_price": "67367.37268422",
         //         "open_interest": "162.272",
         //         "funding_rate": "0.01629574927887",
@@ -1260,7 +1261,16 @@ export default class paradex extends Exchange {
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
-        const status = this.safeString(order, 'status');
+        const cancelReason = this.safeString(order, 'cancel_reason');
+        let status = this.safeString(order, 'status');
+        if (cancelReason !== undefined) {
+            if (cancelReason === 'NOT_ENOUGH_MARGIN') {
+                status = 'rejected';
+            }
+            else {
+                status = 'canceled';
+            }
+        }
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
@@ -2403,6 +2413,59 @@ export default class paradex extends Exchange {
         const data = this.safeList(response, 'results', []);
         const greeks = this.safeDict(data, 0, {});
         return this.parseGreeks(greeks, market);
+    }
+    /**
+     * @method
+     * @name paradex#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    async fetchAllGreeks(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const request = {
+            'market': 'ALL',
+        };
+        const response = await this.publicGetMarketsSummary(this.extend(request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-114000-P",
+        //                 "mark_price": "10835.66892602",
+        //                 "mark_iv": "0.71781855",
+        //                 "delta": "-0.98726024",
+        //                 "greeks": {
+        //                     "delta": "-0.9872602390817709",
+        //                     "gamma": "0.000004560958862297231",
+        //                     "vega": "227.11344863639806",
+        //                     "rho": "-302.0617972461581",
+        //                     "vanna": "0.06609830491614832",
+        //                     "volga": "925.9501532805552"
+        //                 },
+        //                 "last_traded_price": "10551.5",
+        //                 "bid": "10794.9",
+        //                 "bid_iv": "0.05",
+        //                 "ask": "10887.3",
+        //                 "ask_iv": "0.8783283",
+        //                 "last_iv": "0.05",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "195240.72672261014",
+        //                 "created_at": 1747644009995,
+        //                 "underlying_price": "103164.79162649",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "0.000004464241170536191",
+        //                 "price_change_rate_24h": "0.074915",
+        //                 "future_funding_rate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        const results = this.safeList(response, 'results', []);
+        return this.parseAllGreeks(results, symbols);
     }
     parseGreeks(greeks, market = undefined) {
         //

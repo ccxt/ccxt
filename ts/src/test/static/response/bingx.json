@@ -1,7 +1,190 @@
 {
     "exchange": "bingx",
+    "skipKeys": [ "tranId", "timestamp", "id" ],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate linear",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "markPrice": "104701.1",
+                        "indexPrice": "104748.9",
+                        "lastFundingRate": "0.00004900",
+                        "nextFundingTime": "1749830400000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 104701.1,
+                    "indexPrice": 104748.9,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000049,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1749830400000,
+                    "nextFundingDatetime": "2025-06-13T16:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers from spot to swap",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "total": "2",
+                    "rows": [
+                        {
+                            "asset": "LTC",
+                            "amount": "0.05000000000000000000",
+                            "status": "CONFIRMED",
+                            "transferId": "1051461075661819338791",
+                            "timestamp": "1752202092000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
+                        },
+                        {
+                            "asset": "USDT",
+                            "amount": "10.00000000000000000000",
+                            "status": "CONFIRMED",
+                            "transferId": "1051461077440303243364",
+                            "timestamp": "1752202546000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "asset": "USDT",
+                            "amount": "10.00000000000000000000",
+                            "status": "CONFIRMED",
+                            "transferId": "1051461077440303243364",
+                            "timestamp": "1752202546000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
+                        },
+                        "id": "1051461077440303243364",
+                        "timestamp": 1752202546000,
+                        "datetime": "2025-07-11T02:55:46.000Z",
+                        "currency": "USDT",
+                        "amount": 10,
+                        "fromAccount": "spot",
+                        "toAccount": "linear",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer LTC from inverse swap to spot using the subType parameter",
+                "method": "transfer",
+                "input": [
+                    "LTC",
+                    0.05,
+                    "swap",
+                    "spot",
+                    {
+                        "subType": "inverse"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1752202170686",
+                    "data": {
+                        "tranId": "1943502883135819776",
+                        "transferId": "1051461075875997081703"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "timestamp": "1752202170686",
+                        "data": {
+                            "tranId": "1943502883135819776",
+                            "transferId": "1051461075875997081703"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "LTC",
+                    "amount": 0.05,
+                    "fromAccount": "swap",
+                    "toAccount": "spot",
+                    "status": null
+                }
+            },
+            {
+                "description": "transfer USDT from spot to linear swap",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "spot",
+                    "swap"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1752202545982",
+                    "data": {
+                        "tranId": "1943504457329414144",
+                        "transferId": "1051461077440303243364"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "timestamp": "1752202545982",
+                        "data": {
+                            "tranId": "1943504457329414144",
+                            "transferId": "1051461077440303243364"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "spot",
+                    "toAccount": "swap",
+                    "status": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

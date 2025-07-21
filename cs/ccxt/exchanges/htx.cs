@@ -4628,6 +4628,10 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -4663,20 +4667,20 @@ public partial class htx : Exchange
             response = await this.spotPrivateGetV1OrderOpenOrders(this.extend(request, parameters));
         } else
         {
-            if (isTrue(isEqual(symbol, null)))
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
-            ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             object trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(subType, "linear")))
             {
                 object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
@@ -4714,9 +4718,9 @@ public partial class htx : Exchange
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(this.extend(request, parameters));
                     }
                 }
-            } else if (isTrue(getValue(market, "inverse")))
+            } else if (isTrue(isEqual(subType, "inverse")))
             {
-                if (isTrue(getValue(market, "swap")))
+                if (isTrue(isEqual(marketType, "swap")))
                 {
                     if (isTrue(trigger))
                     {
@@ -4731,9 +4735,9 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, parameters));
                     }
-                } else if (isTrue(getValue(market, "future")))
+                } else if (isTrue(isEqual(marketType, "future")))
                 {
-                    ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
+                    ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId", "usdt");
                     if (isTrue(trigger))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, parameters));
@@ -7118,7 +7122,7 @@ public partial class htx : Exchange
             if (isTrue(isEqual(fee, null)))
             {
                 object currencies = await this.fetchCurrencies();
-                this.currencies = this.deepExtend(this.currencies, currencies);
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 object targetNetwork = this.safeValue(getValue(currency, "networks"), networkCode, new Dictionary<string, object>() {});
                 fee = this.safeNumber(targetNetwork, "fee");
                 if (isTrue(isEqual(fee, null)))
@@ -7394,13 +7398,20 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "page_index", "current_page", 1, 50);
+            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50);
         }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["page_size"] = 50; // max
+        }
         object response = null;
         if (isTrue(getValue(market, "inverse")))
         {

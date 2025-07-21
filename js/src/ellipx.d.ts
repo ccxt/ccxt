@@ -1,5 +1,5 @@
 import Exchange from './abstract/ellipx.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class ellipx
  * @augments Exchange

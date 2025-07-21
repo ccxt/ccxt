@@ -23,19 +23,29 @@ public partial class bitvavo : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -46,21 +56,39 @@ public partial class bitvavo : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -72,6 +100,7 @@ public partial class bitvavo : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -80,9 +109,14 @@ public partial class bitvavo : Exchange
                 { "fetchTradingFees", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
@@ -617,7 +651,7 @@ public partial class bitvavo : Exchange
             });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
 
@@ -1247,6 +1281,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -1366,6 +1403,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
@@ -1418,6 +1458,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }

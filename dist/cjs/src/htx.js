@@ -4540,6 +4540,8 @@ class htx extends htx$1 {
         const request = {};
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params, 'linear');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
@@ -4568,18 +4570,18 @@ class htx extends htx$1 {
             response = await this.spotPrivateGetV1OrderOpenOrders(this.extend(request, params));
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
+            if (symbol !== undefined) {
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                request['contract_code'] = market['id'];
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            request['contract_code'] = market['id'];
             const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
-            if (market['linear']) {
+            if (subType === 'linear') {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -4612,8 +4614,8 @@ class htx extends htx$1 {
                     }
                 }
             }
-            else if (market['inverse']) {
-                if (market['swap']) {
+            else if (subType === 'inverse') {
+                if (marketType === 'swap') {
                     if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, params));
                     }
@@ -4627,8 +4629,8 @@ class htx extends htx$1 {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, params));
                     }
                 }
-                else if (market['future']) {
-                    request['symbol'] = market['settleId'];
+                else if (marketType === 'future') {
+                    request['symbol'] = this.safeString(market, 'settleId', 'usdt');
                     if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, params));
                     }
@@ -6854,7 +6856,7 @@ class htx extends htx$1 {
             let fee = this.safeNumber(params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies();
-                this.currencies = this.deepExtend(this.currencies, currencies);
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 const targetNetwork = this.safeValue(currency['networks'], networkCode, {});
                 fee = this.safeNumber(targetNetwork, 'fee');
                 if (fee === undefined) {
@@ -7105,13 +7107,19 @@ class htx extends htx$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50);
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'contract_code': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        else {
+            request['page_size'] = 50; // max
+        }
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, params));

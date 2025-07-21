@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -81,6 +81,7 @@ class okx(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
+                'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowInterest': True,
@@ -109,7 +110,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
@@ -132,6 +133,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOption': True,
@@ -1606,6 +1608,7 @@ class okx(Exchange, ImplicitAPI):
         #         "instType": "OPTION",
         #         "lever": "",
         #         "listTime": "1631262612280",
+        #         "contTdSwTime": "1631262812280",
         #         "lotSz": "1",
         #         "minSz": "1",
         #         "optType": "P",
@@ -1685,7 +1688,7 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': self.parse_number(strikePrice),
             'optionType': optionType,
-            'created': self.safe_integer(market, 'listTime'),
+            'created': self.safe_integer_2(market, 'contTdSwTime', 'listTime'),  # contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
                 'price': self.safe_number(market, 'tickSz'),
@@ -2554,11 +2557,11 @@ class okx(Exchange, ImplicitAPI):
             # it may be incorrect to use total, free and used for swap accounts
             eq = self.safe_string(balance, 'eq')
             availEq = self.safe_string(balance, 'availEq')
-            if (eq is None) or (availEq is None):
+            account['total'] = eq
+            if availEq is None:
                 account['free'] = self.safe_string(balance, 'availBal')
                 account['used'] = self.safe_string(balance, 'frozenBal')
             else:
-                account['total'] = eq
                 account['free'] = availEq
             result[code] = account
         result['timestamp'] = timestamp
@@ -2956,7 +2959,8 @@ class okx(Exchange, ImplicitAPI):
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
-                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                slTriggerPx = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['slTriggerPx'] = slTriggerPx
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
                 if stopLossOrderType is not None:
@@ -3022,6 +3026,12 @@ class okx(Exchange, ImplicitAPI):
             # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
+            if side == 'sell':
+                request = self.omit(request, 'tgtCcy')
+            if self.safe_string(request, 'tdMode') == 'cash':
+                # for some reason tdMode = cash throws
+                # {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode
             if takeProfitPrice is not None:
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice)
                 tpOrdPxReq = '-1'
@@ -3611,6 +3621,84 @@ class okx(Exchange, ImplicitAPI):
         #         "tradeId": "",
         #         "uTime": "1621910749815"
         #     }
+        #
+        # watchOrders & fetchClosedOrders
+        #
+        #    {
+        #        "algoClOrdId": "",
+        #        "algoId": "",
+        #        "attachAlgoClOrdId": "",
+        #        "attachAlgoOrds": [],
+        #        "cancelSource": "",
+        #        "cancelSourceReason": "",  # not present in WS, but present in fetchClosedOrders
+        #        "category": "normal",
+        #        "ccy": "",  # empty in WS, but eg. `USDT` in fetchClosedOrders
+        #        "clOrdId": "",
+        #        "cTime": "1751705801423",
+        #        "feeCcy": "USDT",
+        #        "instId": "LINK-USDT-SWAP",
+        #        "instType": "SWAP",
+        #        "isTpLimit": "false",
+        #        "lever": "3",
+        #        "linkedAlgoOrd": {"algoId": ""},
+        #        "ordId": "2657625147249614848",
+        #        "ordType": "limit",
+        #        "posSide": "net",
+        #        "px": "13.142",
+        #        "pxType": "",
+        #        "pxUsd": "",
+        #        "pxVol": "",
+        #        "quickMgnType": "",
+        #        "rebate": "0",
+        #        "rebateCcy": "USDT",
+        #        "reduceOnly": "true",
+        #        "side": "sell",
+        #        "slOrdPx": "",
+        #        "slTriggerPx": "",
+        #        "slTriggerPxType": "",
+        #        "source": "",
+        #        "stpId": "",
+        #        "stpMode": "cancel_maker",
+        #        "sz": "0.1",
+        #        "tag": "",
+        #        "tdMode": "isolated",
+        #        "tgtCcy": "",
+        #        "tpOrdPx": "",
+        #        "tpTriggerPx": "",
+        #        "tpTriggerPxType": "",
+        #        "uTime": "1751705807467",
+        #        "reqId": "",                      # field present only in WS
+        #        "msg": "",                        # field present only in WS
+        #        "amendResult": "",                # field present only in WS
+        #        "amendSource": "",                # field present only in WS
+        #        "code": "0",                      # field present only in WS
+        #        "fillFwdPx": "",                  # field present only in WS
+        #        "fillMarkVol": "",                # field present only in WS
+        #        "fillPxUsd": "",                  # field present only in WS
+        #        "fillPxVol": "",                  # field present only in WS
+        #        "lastPx": "13.142",               # field present only in WS
+        #        "notionalUsd": "1.314515408",     # field present only in WS
+        #
+        #     #### these below fields are empty on first omit from websocket, because of "creation" event. however, if order is executed, it also immediately sends another update with these fields filled  ###
+        #
+        #        "pnl": "-0.0001",
+        #        "accFillSz": "0.1",
+        #        "avgPx": "13.142",
+        #        "state": "filled",
+        #        "fee": "-0.00026284",
+        #        "fillPx": "13.142",
+        #        "tradeId": "293429690",
+        #        "fillSz": "0.1",
+        #        "fillTime": "1751705807467",
+        #        "fillNotionalUsd": "1.314515408",  # field present only in WS
+        #        "fillPnl": "-0.0001",             # field present only in WS
+        #        "fillFee": "-0.00026284",         # field present only in WS
+        #        "fillFeeCcy": "USDT",             # field present only in WS
+        #        "execType": "M",                  # field present only in WS
+        #        "fillMarkPx": "13.141",           # field present only in WS
+        #        "fillIdxPx": "13.147"             # field present only in WS
+        #    }
+        #
         #
         # Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         #
@@ -4892,7 +4980,7 @@ class okx(Exchange, ImplicitAPI):
         fee = self.safe_string(params, 'fee')
         if fee is None:
             currencies = await self.fetch_currencies()
-            self.currencies = self.deep_extend(self.currencies, currencies)
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
             targetNetwork = self.safe_dict(currency['networks'], self.network_id_to_code(network), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
@@ -5985,7 +6073,7 @@ class okx(Exchange, ImplicitAPI):
         nextFundingRate = self.safe_number(contract, 'nextFundingRate')
         fundingTime = self.safe_integer(contract, 'fundingTime')
         fundingTimeString = self.safe_string(contract, 'fundingTime')
-        nextFundingTimeString = self.safe_string(contract, 'nextFundingRate')
+        nextFundingTimeString = self.safe_string(contract, 'nextFundingTime')
         millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         # https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
@@ -6069,6 +6157,39 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
+
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetches the current funding rates for multiple symbols
+
+        https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `funding rates structure <https://docs.ccxt.com/#/?id=funding-rates-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True)
+        request: dict = {'instId': 'ANY'}
+        response = await self.publicGetPublicFundingRate(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "fundingRate": "0.00027815",
+        #                "fundingTime": "1634256000000",
+        #                "instId": "BTC-USD-SWAP",
+        #                "instType": "SWAP",
+        #                "nextFundingRate": "0.00017",
+        #                "nextFundingTime": "1634284800000"
+        #            }
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rates(data, symbols)
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6809,7 +6930,7 @@ class okx(Exchange, ImplicitAPI):
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
-        fetch the interest owed by the user for borrowing currency for margin trading
+        fetch the interest owed b the user for borrowing currency for margin trading
 
         https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
 
@@ -7026,6 +7147,59 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interest(data[0], market)
+
+    async def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+        """
+        Retrieves the open interests of some currencies
+
+        https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+        :param str[] symbols: Unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :param str params['instType']: Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+        :param str params['uly']: Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+        :param str params['instFamily']: Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+        :returns dict: an dictionary of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        market = None
+        if symbols is not None:
+            market = self.market(symbols[0])
+        marketType = None
+        marketType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'swap')
+        instType = 'SWAP'
+        if marketType == 'future':
+            instType = 'FUTURES'
+        elif instType == 'option':
+            instType = 'OPTION'
+        request: dict = {'instType': instType}
+        uly = self.safe_string(params, 'uly')
+        if uly is not None:
+            request['uly'] = uly
+        instFamily = self.safe_string(params, 'instFamily')
+        if instFamily is not None:
+            request['instFamily'] = instFamily
+        if instType == 'OPTION' and uly is None and instFamily is None:
+            raise BadRequest(self.id + ' fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets')
+        response = await self.publicGetPublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "oi": "2125419",
+        #                 "oiCcy": "21254.19",
+        #                 "ts": "1664005108969"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Int = None, limit: Int = None, params={}):
         """
@@ -7459,6 +7633,76 @@ class okx(Exchange, ImplicitAPI):
             if entryMarketId == marketId:
                 return self.parse_greeks(entry, market)
         return None
+
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+        """
+        fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+
+        :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['uly']: Underlying, either uly or instFamily is required
+        :param str params['instFamily']: Instrument family, either uly or instFamily is required
+        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        symbolsLength = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        if (symbols is None) or (symbolsLength != 1):
+            uly = self.safe_string(params, 'uly')
+            if uly is not None:
+                request['uly'] = uly
+            instFamily = self.safe_string(params, 'instFamily')
+            if instFamily is not None:
+                request['instFamily'] = instFamily
+            if (uly is None) and (instFamily is None):
+                raise BadRequest(self.id + ' fetchAllGreeks() requires either a uly or instFamily parameter')
+        market = None
+        if symbols is not None:
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                marketId = market['id']
+                optionParts = marketId.split('-')
+                request['uly'] = market['info']['uly']
+                request['instFamily'] = market['info']['instFamily']
+                request['expTime'] = self.safe_string(optionParts, 2)
+        params = self.omit(params, ['uly', 'instFamily'])
+        response = await self.publicGetPublicOptSummary(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "askVol": "0",
+        #                 "bidVol": "0",
+        #                 "delta": "0.5105464486882039",
+        #                 "deltaBS": "0.7325502184143025",
+        #                 "fwdPx": "37675.80158694987186",
+        #                 "gamma": "-0.13183515090501083",
+        #                 "gammaBS": "0.000024139685826358558",
+        #                 "instId": "BTC-USD-240329-32000-C",
+        #                 "instType": "OPTION",
+        #                 "lever": "4.504428015946619",
+        #                 "markVol": "0.5916253554539876",
+        #                 "realVol": "0",
+        #                 "theta": "-0.0004202992014012855",
+        #                 "thetaBS": "-18.52354631567909",
+        #                 "ts": "1699586421976",
+        #                 "uly": "BTC-USD",
+        #                 "vega": "0.0020207455080045846",
+        #                 "vegaBS": "74.44022302387287",
+        #                 "volLv": "0.5948549730405797"
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_all_greeks(data, symbols)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #

@@ -368,6 +368,16 @@ export default class paradex extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
      */
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    /**
+     * @method
+     * @name paradex#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

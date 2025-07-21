@@ -201,6 +201,7 @@ public partial class coinmetro : Exchange
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
                 { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
+                { "skippedMarkets", new List<object>() {"VXVUSDT"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -381,6 +382,11 @@ public partial class coinmetro : Exchange
                 type = "fiat";
             }
             object precisionDigits = this.safeString2(currency, "digits", "notabeneDecimals");
+            if (isTrue(isEqual(code, "RENDER")))
+            {
+                // RENDER is an exception (with broken info)
+                precisionDigits = "4";
+            }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
@@ -431,11 +437,14 @@ public partial class coinmetro : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetMarkets(parameters);
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetMarkets(parameters));
         if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
         {
-            await this.fetchCurrencies();
+            ((IList<object>)promises).Add(this.fetchCurrencies());
         }
+        object responses = await promiseAll(promises);
+        object response = getValue(responses, 0);
         //
         //     [
         //         {
@@ -451,7 +460,18 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
-        return this.parseMarkets(response);
+        object skippedMarkets = this.safeList(this.options, "skippedMarkets", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object market = this.parseMarket(getValue(response, i));
+            if (isTrue(this.inArray(getValue(market, "id"), skippedMarkets)))
+            {
+                continue;
+            }
+            ((IList<object>)result).Add(market);
+        }
+        return result;
     }
 
     public override object parseMarket(object market)

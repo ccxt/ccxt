@@ -114,6 +114,7 @@ export default class bingx extends Exchange {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -443,11 +444,26 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'asset/transfer': 1,
+                                'asset/transferRecord': 5,
                                 'capital/deposit/hisrec': 1,
                                 'capital/withdraw/history': 1,
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
+                            },
+                            'public': {
+                                'get': {
+                                    'transfer/supportCoins': 5,
+                                },
                             },
                         },
                     },
@@ -500,6 +516,8 @@ export default class bingx extends Exchange {
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                     '110425': InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    'Insufficient assets': InsufficientFunds, // {"transferErrorMsg":"Insufficient assets"}
+                    'illegal transferType': BadRequest, // {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
@@ -513,14 +531,19 @@ export default class bingx extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
-                    'swap': 'PFUTURES',
-                    'future': 'SFUTURES',
+                    'funding': 'fund',
+                    'spot': 'spot',
+                    'future': 'stdFutures',
+                    'swap': 'USDTMPerp',
+                    'linear': 'USDTMPerp',
+                    'inverse': 'coinMPerp',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
-                    'PFUTURES': 'swap',
-                    'SFUTURES': 'future',
+                    'fund': 'funding',
+                    'spot': 'spot',
+                    'stdFutures': 'future',
+                    'USDTMPerp': 'linear',
+                    'coinMPerp': 'inverse',
                 },
                 'recvWindow': 5 * 1000, // 5 sec
                 'broker': 'CCXT',
@@ -766,6 +789,10 @@ export default class bingx extends Exchange {
                         'min': this.safeNumber (rawNetwork, 'withdrawMin'),
                         'max': this.safeNumber (rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber (rawNetwork, 'depositMin'),
+                        'max': undefined,
+                    },
                 };
                 const precision = this.parseNumber (this.parsePrecision (this.safeString (rawNetwork, 'withdrawPrecision')));
                 networks[networkCode] = {
@@ -780,20 +807,39 @@ export default class bingx extends Exchange {
                     'limits': limits,
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': undefined,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'limits': undefined,
-                'type': 'crypto', // only cryptos now
-            });
+            if (!(code in result)) { // the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': undefined,
+                    'name': name,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'networks': networks,
+                    'fee': undefined,
+                    'limits': undefined,
+                    'type': 'crypto', // only cryptos now
+                };
+            } else {
+                const existing = result[code];
+                const existingNetworks = this.safeDict (existing, 'networks', {});
+                const newNetworkCodes = Object.keys (networks);
+                for (let j = 0; j < newNetworkCodes.length; j++) {
+                    const newNetworkCode = newNetworkCodes[j];
+                    if (!(newNetworkCode in existingNetworks)) {
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode];
+                    }
+                }
+                result[code]['networks'] = existingNetworks;
+            }
+        }
+        const codes = Object.keys (result);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = result[code];
+            result[code] = this.safeCurrencyStructure (currency);
         }
         return result;
     }
@@ -1564,7 +1610,7 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data');
         return this.parseFundingRate (data, market);
     }
 
@@ -4836,11 +4882,11 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -4848,22 +4894,40 @@ export default class bingx extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        let fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        let toId = this.safeString (accountsByType, toAccount, toAccount);
+        if (fromId === 'swap') {
+            if (subType === 'inverse') {
+                fromId = 'coinMPerp';
+            } else {
+                fromId = 'USDTMPerp';
+            }
+        }
+        if (toId === 'swap') {
+            if (subType === 'inverse') {
+                toId = 'coinMPerp';
+            } else {
+                toId = 'USDTMPerp';
+            }
+        }
         const request: Dict = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': fromId + '_' + toId,
         };
-        const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));
+        const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId": 1933130865269936128,
+        //         "transferId": "1051450703949464903736"
+        //     }
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'tranId'),
+            'id': this.safeString (response, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
@@ -4878,15 +4942,19 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
+        let request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -4897,30 +4965,42 @@ export default class bingx extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId === undefined || toId === undefined) {
-            throw new ExchangeError (this.id + ' fromAccount & toAccount parameter are required');
+            throw new ExchangeError (this.id + ' fromAccount & toAccount parameters are required');
         }
-        const request: Dict = {
-            'type': fromId + '_' + toId,
-        };
+        if (fromAccount !== undefined) {
+            request['fromAccount'] = fromId;
+        }
+        if (toAccount !== undefined) {
+            request['toAccount'] = toId;
+        }
+        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['pageSize'] = limit;
         }
-        const response = await this.spotV3PrivateGetAssetTransfer (this.extend (request, params));
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.apiV3PrivateGetAssetTransferRecord (this.extend (request, params));
         //
         //     {
-        //         "total": 3,
+        //         "total": 2,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
-        //             },
+        //                 "asset": "LTC",
+        //                 "amount": "0.05000000000000000000",
+        //                 "status": "CONFIRMED",
+        //                 "transferId": "1051461075661819338791",
+        //                 "timestamp": 1752202092000,
+        //                 "fromAccount": "spot",
+        //                 "toAccount": "USDTMPerp"
+        //             }
         //         ]
         //     }
         //
@@ -4929,15 +5009,14 @@ export default class bingx extends Exchange {
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        const tranId = this.safeString (transfer, 'tranId');
+        const tranId = this.safeString (transfer, 'transferId');
         const timestamp = this.safeInteger (transfer, 'timestamp');
-        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        const currencyId = this.safeString (transfer, 'asset');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         const status = this.safeString (transfer, 'status');
         const accountsById = this.safeDict (this.options, 'accountsById', {});
-        const typeId = this.safeString (transfer, 'type');
-        const typeIdSplit = typeId.split ('_');
-        const fromId = this.safeString (typeIdSplit, 0);
-        const toId = this.safeString (typeId, 1);
+        const fromId = this.safeString (transfer, 'fromAccount');
+        const toId = this.safeString (transfer, 'toAccount');
         const fromAccount = this.safeString (accountsById, fromId, fromId);
         const toAccount = this.safeString (accountsById, toId, toId);
         return {
@@ -4949,8 +5028,15 @@ export default class bingx extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': this.parseTransferStatus (status),
         };
+    }
+
+    parseTransferStatus (status: Str): string {
+        const statuses: Dict = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -5687,37 +5773,13 @@ export default class bingx extends Exchange {
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
-        //    {
-        //        "coin": "BTC",
-        //        "name": "BTC",
-        //        "networkList": [
-        //          {
-        //            "name": "BTC",
-        //            "network": "BTC",
-        //            "isDefault": true,
-        //            "minConfirm": "2",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00035",
-        //            "withdrawMax": "1.62842",
-        //            "withdrawMin": "0.0005"
-        //          },
-        //          {
-        //            "name": "BTC",
-        //            "network": "BEP20",
-        //            "isDefault": false,
-        //            "minConfirm": "15",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00001",
-        //            "withdrawMax": "1.62734",
-        //            "withdrawMin": "0.0001"
-        //          }
-        //        ]
-        //    }
+        // currencie structure
         //
-        const networkList = this.safeList (fee, 'networkList', []);
-        const networkListLength = networkList.length;
+        const networks = this.safeDict (fee, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        const networksLength = networkCodes.length;
         const result: Dict = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': undefined,
                 'percentage': undefined,
@@ -5728,18 +5790,15 @@ export default class bingx extends Exchange {
             },
             'networks': {},
         };
-        if (networkListLength !== 0) {
-            for (let i = 0; i < networkListLength; i++) {
-                const network = networkList[i];
-                const networkId = this.safeString (network, 'network');
-                const isDefault = this.safeBool (network, 'isDefault');
-                const currencyCode = this.safeString (currency, 'code');
-                const networkCode = this.networkIdToCode (networkId, currencyCode);
+        if (networksLength !== 0) {
+            for (let i = 0; i < networksLength; i++) {
+                const networkCode = networkCodes[i];
+                const network = networks[networkCode];
                 result['networks'][networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (network, 'withdrawFee'), 'percentage': false },
+                    'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
                 };
-                if (isDefault) {
+                if (networksLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (network, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
                 }
@@ -5759,9 +5818,17 @@ export default class bingx extends Exchange {
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
-        const coins = this.safeList (response, 'data');
-        return this.parseDepositWithdrawFees (coins, codes, 'coin');
+        const response = await this.fetchCurrencies (params);
+        const depositWithdrawFees: Dict = {};
+        const responseCodes = Object.keys (response);
+        for (let i = 0; i < responseCodes.length; i++) {
+            const code = responseCodes[i];
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const entry = response[code];
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (entry);
+            }
+        }
+        return depositWithdrawFees;
     }
 
     /**
@@ -5810,11 +5877,12 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5825,10 +5893,10 @@ export default class bingx extends Exchange {
                     arrStr += arrayElement.toString ();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
 
     /**
@@ -6454,13 +6522,14 @@ export default class bingx extends Exchange {
     }
 
     customEncode (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -6502,8 +6571,14 @@ export default class bingx extends Exchange {
         }
         let url = this.implodeHostname (this.urls['api'][type]);
         path = this.implodeParams (path, params);
-        if (version === 'transfer') {
-            type = 'account/transfer';
+        const versionIsTransfer = (version === 'transfer');
+        const versionIsAsset = (version === 'asset');
+        if (versionIsTransfer || versionIsAsset) {
+            if (versionIsTransfer) {
+                type = 'account/transfer';
+            } else {
+                type = 'api/asset';
+            }
             version = section[2];
             access = section[3];
         }
@@ -6531,7 +6606,7 @@ export default class bingx extends Exchange {
                 encodeRequest = this.customEncode (params);
             } else {
                 parsedParams = this.parseParams (params);
-                encodeRequest = this.rawencode (parsedParams);
+                encodeRequest = this.rawencode (parsedParams, true);
             }
             const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
             headers = {
@@ -6543,7 +6618,7 @@ export default class bingx extends Exchange {
                 params['signature'] = signature;
                 body = this.json (params);
             } else {
-                const query = this.urlencode (parsedParams);
+                const query = this.urlencode (parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
@@ -6572,8 +6647,12 @@ export default class bingx extends Exchange {
         //    }
         //
         const code = this.safeString (response, 'code');
-        const message = this.safeString (response, 'msg');
-        if (code !== undefined && code !== '0') {
+        let message = this.safeString (response, 'msg');
+        const transferErrorMsg = this.safeString (response, 'transferErrorMsg'); // handling with errors from transfer endpoint
+        if ((transferErrorMsg !== undefined) || (code !== undefined && code !== '0')) {
+            if (transferErrorMsg !== undefined) {
+                message = transferErrorMsg;
+            }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

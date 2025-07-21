@@ -829,6 +829,9 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
         $limit = $this->safe_integer($subscription, 'limit');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
+        }
         $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
@@ -1147,7 +1150,6 @@ class mexc extends \ccxt\async\mexc {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $params = $this->omit($params, 'type');
             $messageHash = 'orders';
             $market = null;
             if ($symbol !== null) {
@@ -1488,14 +1490,14 @@ class mexc extends \ccxt\async\mexc {
                 }
                 $url = $this->urls['api']['ws']['spot'];
                 $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
+                Async\await($this->watch_spot_public($channel, $messageHash, $params));
             } else {
                 $channel = 'unsub.ticker';
                 $requestParams = array(
                     'symbol' => $market['id'],
                 );
                 $url = $this->urls['api']['ws']['swap'];
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+                Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
             $client = $this->client($url);
             $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -1557,7 +1559,7 @@ class mexc extends \ccxt\async\mexc {
                 $messageHashes[] = 'unsubscribe:ticker';
             }
             $client = $this->client($url);
-            $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
+            Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             $this->handle_unsubscriptions($client, $messageHashes);
             return null;
         }) ();
@@ -1598,7 +1600,7 @@ class mexc extends \ccxt\async\mexc {
                 'params' => $topics,
             );
             $client = $this->client($url);
-            $this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes);
+            Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
             $this->handle_unsubscriptions($client, $messageHashes);
             return null;
         }) ();
@@ -1625,7 +1627,7 @@ class mexc extends \ccxt\async\mexc {
                 $url = $this->urls['api']['ws']['spot'];
                 $channel = 'spot@public.kline.v3.api@' . $market['id'] . '@' . $timeframeId;
                 $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
+                Async\await($this->watch_spot_public($channel, $messageHash, $params));
             } else {
                 $url = $this->urls['api']['ws']['swap'];
                 $channel = 'unsub.kline';
@@ -1633,7 +1635,7 @@ class mexc extends \ccxt\async\mexc {
                     'symbol' => $market['id'],
                     'interval' => $timeframeId,
                 );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+                Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
             $client = $this->client($url);
             $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -1658,14 +1660,14 @@ class mexc extends \ccxt\async\mexc {
                 $url = $this->urls['api']['ws']['spot'];
                 $channel = 'spot@public.increase.depth.v3.api@' . $market['id'];
                 $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
+                Async\await($this->watch_spot_public($channel, $messageHash, $params));
             } else {
                 $url = $this->urls['api']['ws']['swap'];
                 $channel = 'unsub.depth';
                 $requestParams = array(
                     'symbol' => $market['id'],
                 );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+                Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
             $client = $this->client($url);
             $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -1691,14 +1693,14 @@ class mexc extends \ccxt\async\mexc {
                 $url = $this->urls['api']['ws']['spot'];
                 $channel = 'spot@public.deals.v3.api@' . $market['id'];
                 $params['unsubscribed'] = true;
-                $this->watch_spot_public($channel, $messageHash, $params);
+                Async\await($this->watch_spot_public($channel, $messageHash, $params));
             } else {
                 $url = $this->urls['api']['ws']['swap'];
                 $channel = 'unsub.deal';
                 $requestParams = array(
                     'symbol' => $market['id'],
                 );
-                $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+                Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
             }
             $client = $this->client($url);
             $this->handle_unsubscriptions($client, array( $messageHash ));
