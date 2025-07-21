@@ -5989,13 +5989,26 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1753058267399",
+        //         "data": null
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
         let order = undefined;
         if ((market['swap'] || market['future']) && trigger) {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
-            order = data;
+            if (uta && trigger) {
+                order = response;
+            } else {
+                order = data;
+            }
         }
         return this.parseOrder (order, market);
     }
