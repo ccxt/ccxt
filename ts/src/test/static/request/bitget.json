@@ -387,6 +387,43 @@
                     }
                 ],
                 "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}"
+            },
+            {
+                "description": "uta one way mode market order with a stopLoss attached",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "uta": true,
+                        "stopLoss": {
+                            "triggerPrice": 95000
+                        }
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"buy\",\"stopLoss\":\"95000\",\"slOrderType\":\"market\",\"orderType\":\"market\",\"timeInForce\":\"gtc\"}"
+            },
+            {
+                "description": "uta strategy order using stopLossPrice and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-strategy-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    113000,
+                    {
+                        "uta": true,
+                        "stopLossPrice": 114000,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"sell\",\"slTriggerBy\":\"mark\",\"stopLoss\":\"114000\",\"slLimitPrice\":\"113000\",\"slOrderType\":\"limit\",\"posSide\":\"long\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -667,6 +704,24 @@
                     }
                 ],
                 "output": "{\"orderId\":\"1320240021595639809\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
+            },
+            {
+                "description": "uta strategy stopLossPrice editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-strategy-order",
+                "input": [
+                    "1330984742276198400",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    111000,
+                    {
+                        "uta": true,
+                        "stopLossPrice": 112000
+                    }
+                ],
+                "output": "{\"orderId\":\"1330984742276198400\",\"qty\":\"0.001\",\"slTriggerBy\":\"mark\",\"stopLoss\":\"112000\",\"slLimitPrice\":\"111000\",\"slOrderType\":\"limit\"}"
             }
         ],
         "fetchMyTrades": [
@@ -861,6 +916,20 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "uta trigger stopLossPrice open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-strategy-orders?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -985,6 +1054,20 @@
                     null,
                     {
                         "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta trigger fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-strategy-orders?category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "trigger": true
                     }
                 ]
             }
@@ -1318,6 +1401,20 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320244799629316096\"}"
+            },
+            {
+                "description": "uta trigger cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-strategy-order",
+                "input": [
+                    "1330984742276198400",
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1330984742276198400\"}"
             }
         ],
         "cancelOrders": [

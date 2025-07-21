@@ -826,7 +826,9 @@ export default class bitget extends Exchange {
                             'v3/position/history-position': 1,
                             'v3/trade/order-info': 1,
                             'v3/trade/unfilled-orders': 1,
+                            'v3/trade/unfilled-strategy-orders': 1,
                             'v3/trade/history-orders': 1,
+                            'v3/trade/history-strategy-orders': 1,
                             'v3/trade/fills': 1,
                             'v3/user/sub-list': 2,
                             'v3/user/sub-api-list': 2,
@@ -840,8 +842,11 @@ export default class bitget extends Exchange {
                             'v3/account/max-open-available': 4,
                             'v3/ins-loan/bind-uid': 6.6667,
                             'v3/trade/place-order': 2,
+                            'v3/trade/place-strategy-order': 2,
                             'v3/trade/modify-order': 2,
+                            'v3/trade/modify-strategy-order': 2,
                             'v3/trade/cancel-order': 2,
+                            'v3/trade/cancel-strategy-order': 2,
                             'v3/trade/place-batch': 4,
                             'v3/trade/batch-modify-order': 2,
                             'v3/trade/cancel-batch': 4,
@@ -4872,6 +4877,27 @@ export default class bitget extends Exchange {
         //         "slLimitPrice": null
         //     }
         //
+        // uta trigger: fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "orderId": "1330984742276198400",
+        //         "clientOid": "1330984742276198400",
+        //         "symbol": "BTCUSDT",
+        //         "category": "USDT-FUTURES",
+        //         "qty": "0.001",
+        //         "posSide": "long",
+        //         "tpTriggerBy": "market",
+        //         "slTriggerBy": "mark",
+        //         "takeProfit": "",
+        //         "stopLoss": "112000",
+        //         "tpOrderType": "market",
+        //         "slOrderType": "limit",
+        //         "tpLimitPrice": "",
+        //         "slLimitPrice": "111000",
+        //         "createdTime": "1753057411736",
+        //         "updatedTime": "1753058267412"
+        //     }
+        //
         const errorMessage = this.safeString (order, 'errorMsg');
         if (errorMessage !== undefined) {
             return this.safeOrder ({
@@ -4891,8 +4917,7 @@ export default class bitget extends Exchange {
         market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeIntegerN (order, [ 'cTime', 'ctime', 'createdTime' ]);
         const updateTimestamp = this.safeInteger2 (order, 'uTime', 'updatedTime');
-        let rawStatus = this.safeStringN (order, [ 'status', 'state', 'orderStatus' ]);
-        rawStatus = this.safeString (order, 'planStatus', rawStatus);
+        const rawStatus = this.safeStringN (order, [ 'status', 'state', 'orderStatus', 'planStatus' ]);
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
@@ -4948,7 +4973,7 @@ export default class bitget extends Exchange {
             price = this.safeString (order, 'priceAvg');
             average = this.safeString (order, 'basePrice');
         } else {
-            price = this.safeString2 (order, 'price', 'executePrice');
+            price = this.safeStringN (order, [ 'price', 'executePrice', 'slLimitPrice', 'tpLimitPrice' ]);
             average = this.safeString (order, 'priceAvg');
         }
         let size = undefined;
@@ -5034,6 +5059,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -5085,7 +5111,11 @@ export default class bitget extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', false);
         if (uta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.privateUtaPostV3TradePlaceOrder (this.extend (request, params));
+            if (isStopLossOrTakeProfitTrigger) {
+                response = await this.privateUtaPostV3TradePlaceStrategyOrder (request);
+            } else {
+                response = await this.privateUtaPostV3TradePlaceOrder (request);
+            }
         } else {
             const request = this.createOrderRequest (symbol, type, side, amount, price, params);
             if (market['spot']) {
@@ -5130,49 +5160,106 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'category': productType,
             'symbol': market['id'],
-            'orderType': type,
             'qty': this.amountToPrecision (symbol, amount),
+            'side': side,
         };
-        const isMarketOrder = type === 'market';
-        if (!isMarketOrder) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const exchangeSpecificTifParam = this.safeString (params, 'timeInForce');
-        let postOnly = undefined;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-        const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
-        if (postOnly) {
-            request['timeInForce'] = 'post_only';
-        } else if (timeInForce === 'GTC') {
-            request['timeInForce'] = 'gtc';
-        } else if (timeInForce === 'FOK') {
-            request['timeInForce'] = 'fok';
-        } else if (timeInForce === 'IOC') {
-            request['timeInForce'] = 'ioc';
-        }
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
-        let hedged = undefined;
-        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
-        let requestSide = side;
-        if (reduceOnly) {
-            if (!hedged) {
-                request['reduceOnly'] = 'yes';
-            } else {
-                // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-                requestSide = (side === 'buy') ? 'sell' : 'buy';
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        const isStopLossTrigger = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTrigger = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTrigger || isTakeProfitTrigger;
+        if (isStopLossOrTakeProfitTrigger) {
+            if (isStopLossTrigger) {
+                const slType = this.safeString (params, 'slTriggerBy', 'mark');
+                request['slTriggerBy'] = slType;
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                if (price !== undefined) {
+                    request['slLimitPrice'] = this.priceToPrecision (symbol, price);
+                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                } else {
+                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                }
+            } else if (isTakeProfitTrigger) {
+                const tpType = this.safeString (params, 'tpTriggerBy', 'mark');
+                request['tpTriggerBy'] = tpType;
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                if (price !== undefined) {
+                    request['tpLimitPrice'] = this.priceToPrecision (symbol, price);
+                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                } else {
+                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                }
+            }
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        } else {
+            if (isStopLoss) {
+                const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
+                const slLimitPrice = this.safeNumber (stopLoss, 'price');
+                request['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
+                if (slLimitPrice !== undefined) {
+                    request['slLimitPrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                } else {
+                    request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                }
+            }
+            if (isTakeProfit) {
+                const tpTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
+                const tpLimitPrice = this.safeNumber (takeProfit, 'price');
+                request['takeProfit'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                if (tpLimitPrice !== undefined) {
+                    request['tpLimitPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                } else {
+                    request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                }
+            }
+            const isMarketOrder = type === 'market';
+            if (!isMarketOrder) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['orderType'] = type;
+            const exchangeSpecificTifParam = this.safeString (params, 'timeInForce');
+            let postOnly = undefined;
+            [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+            const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
+            const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
+            if (postOnly) {
+                request['timeInForce'] = 'post_only';
+            } else if (timeInForce === 'GTC') {
+                request['timeInForce'] = 'gtc';
+            } else if (timeInForce === 'FOK') {
+                request['timeInForce'] = 'fok';
+            } else if (timeInForce === 'IOC') {
+                request['timeInForce'] = 'ioc';
             }
         }
-        if (hedged) {
-            const posSide = (requestSide === 'buy') ? 'long' : 'short';
-            request['posSide'] = posSide;
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        let hedged = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        if (reduceOnly) {
+            if (hedged || isStopLossOrTakeProfitTrigger) {
+                const reduceOnlyPosSide = (side === 'sell') ? 'long' : 'short';
+                request['posSide'] = reduceOnlyPosSide;
+            } else if (!isStopLossOrTakeProfitTrigger) {
+                request['reduceOnly'] = 'yes';
+            }
+        } else {
+            if (hedged) {
+                const posSide = (side === 'buy') ? 'long' : 'short';
+                request['posSide'] = posSide;
+            }
         }
-        request['side'] = requestSide;
-        params = this.omit (params, [ 'postOnly', 'reduceOnly', 'clientOrderId', 'hedged' ]);
+        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'hedged' ]);
         return this.extend (request, params);
     }
 
@@ -5550,6 +5637,8 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Modify-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -5611,10 +5700,36 @@ export default class bitget extends Exchange {
             if (amount !== undefined) {
                 request['qty'] = this.amountToPrecision (symbol, amount);
             }
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+            if (isStopLossOrder || isTakeProfitOrder) {
+                if (isStopLossOrder) {
+                    const slType = this.safeString (params, 'slTriggerBy', 'mark');
+                    request['slTriggerBy'] = slType;
+                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
+                    if (price !== undefined) {
+                        request['slLimitPrice'] = this.priceToPrecision (symbol, price);
+                        request['slOrderType'] = this.safeString (params, 'slOrderType', 'limit');
+                    } else {
+                        request['slOrderType'] = this.safeString (params, 'slOrderType', 'market');
+                    }
+                } else if (isTakeProfitOrder) {
+                    const tpType = this.safeString (params, 'tpTriggerBy', 'mark');
+                    request['tpTriggerBy'] = tpType;
+                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    if (price !== undefined) {
+                        request['tpLimitPrice'] = this.priceToPrecision (symbol, price);
+                        request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'limit');
+                    } else {
+                        request['tpOrderType'] = this.safeString (params, 'tpOrderType', 'market');
+                    }
+                }
+                params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+                response = await this.privateUtaPostV3TradeModifyStrategyOrder (this.extend (request, params));
+            } else {
+                if (price !== undefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
+                response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, params));
             }
-            response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, params));
         } else if (market['spot']) {
             if (triggerPrice === undefined) {
                 throw new NotSupported (this.id + ' editOrder() only supports plan/trigger spot orders');
@@ -5730,6 +5845,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5763,7 +5879,11 @@ export default class bitget extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', false);
         if (uta) {
             request['orderId'] = id;
-            response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
+            if (trigger) {
+                response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
+            } else {
+                response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
+            }
         } else if ((market['swap']) || (market['future'])) {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
@@ -6292,7 +6412,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
-     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Pending
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -6368,7 +6488,11 @@ export default class bitget extends Exchange {
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
         if (uta) {
             request['category'] = productType;
-            response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, params));
+            if (trigger) {
+                response = await this.privateUtaGetV3TradeUnfilledStrategyOrders (this.extend (request, params));
+            } else {
+                response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, params));
+            }
         } else if (type === 'spot') {
             if (marginMode !== undefined) {
                 if (since === undefined) {
@@ -6625,9 +6749,42 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1753057527060,
+        //         "data": [
+        //             {
+        //                 "orderId": "1330984742276198400",
+        //                 "clientOid": "1330984742276198400",
+        //                 "symbol": "BTCUSDT",
+        //                 "category": "USDT-FUTURES",
+        //                 "qty": "0.001",
+        //                 "posSide": "long",
+        //                 "tpTriggerBy": "market",
+        //                 "slTriggerBy": "mark",
+        //                 "takeProfit": "",
+        //                 "stopLoss":"114000",
+        //                 "tpOrderType": "market",
+        //                 "slOrderType": "limit",
+        //                 "tpLimitPrice": "",
+        //                 "slLimitPrice": "113000",
+        //                 "createdTime": "1753057411736",
+        //                 "updatedTime": "1753057411747"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         if (uta) {
-            const result = this.safeList (data, 'list', []);
+            let result = undefined;
+            if (trigger) {
+                result = this.safeList (response, 'data', []);
+            } else {
+                result = this.safeList (data, 'list', []);
+            }
             return this.parseOrders (result, market, since, limit);
         } else if (type === 'spot') {
             if ((marginMode !== undefined) || trigger) {
@@ -6709,6 +6866,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
      * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
      * @description fetches information on multiple canceled and closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -7033,7 +7191,16 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateUtaGetV3TradeHistoryOrders (this.extend (request, params));
+        let response = undefined;
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (trigger) {
+            response = await this.privateUtaGetV3TradeHistoryStrategyOrders (this.extend (request, params));
+        } else {
+            response = await this.privateUtaGetV3TradeHistoryOrders (this.extend (request, params));
+        }
+        //
+        // uta
         //
         //     {
         //         "code": "00000",
@@ -7081,6 +7248,37 @@ export default class bitget extends Exchange {
         //                 },
         //             ],
         //             "cursor": "1322441328637100035"
+        //         }
+        //     }
+        //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1753058447920,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "1330984742276198400",
+        //                     "clientOid": "1330984742276198400",
+        //                     "symbol": "BTCUSDT",
+        //                     "category": "USDT-FUTURES",
+        //                     "qty": "0.001",
+        //                     "posSide": "long",
+        //                     "tpTriggerBy": "market",
+        //                     "slTriggerBy": "mark",
+        //                     "takeProfit": "",
+        //                     "stopLoss": "112000",
+        //                     "tpOrderType": "market",
+        //                     "slOrderType": "limit",
+        //                     "tpLimitPrice": "",
+        //                     "slLimitPrice": "111000",
+        //                     "createdTime": "1753057411736",
+        //                     "updatedTime": "1753058267412"
+        //                 },
+        //             ],
+        //             "cursor": 1330960754317619202
         //         }
         //     }
         //
