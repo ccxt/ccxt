@@ -6148,12 +6148,7 @@
                     "data": null
                 },
                 "parsedResponse": {
-                    "info": {
-                        "code": "00000",
-                        "msg": "success",
-                        "requestTime": "1753058267399",
-                        "data": null
-                    },
+                    "info": null,
                     "id": null,
                     "clientOrderId": null,
                     "timestamp": null,
