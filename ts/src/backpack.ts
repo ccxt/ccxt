@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { } from './base/errors.js';
-import type { Currencies, Dict, Int, Market, MarketType, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -86,12 +86,12 @@ export default class backpack extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -130,11 +130,12 @@ export default class backpack extends Exchange {
                 '2h': '2H',
                 '4h': '4H',
                 '6h': '6H',
+                '8h': '8H',
                 '12h': '12H',
                 '1d': '1D',
                 '3d': '3D',
                 '1w': '1W',
-                '1M': '1M',
+                '1month': '1M',
             },
             'urls': {
                 'logo': '',
@@ -156,8 +157,8 @@ export default class backpack extends Exchange {
                         'api/v1/market': 1, // not used
                         'api/v1/ticker': 1, // done
                         'api/v1/tickers': 1, // done
-                        'api/v1/depth': 1,
-                        'api/v1/klines': 1,
+                        'api/v1/depth': 1, // done
+                        'api/v1/klines': 1, // done
                         'api/v1/markPrices': 1,
                         'api/v1/openInterest': 1,
                         'api/v1/fundingRates': 1,
@@ -612,6 +613,67 @@ export default class backpack extends Exchange {
         const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         return orderbook;
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': interval,
+        };
+        if (since === undefined) {
+            throw new Error (this.id + ' fetchOHLCV() requires a since argument');
+        } else {
+            request['startTime'] = since;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetApiV1Klines (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         {
+        //             "close": "118294.6",
+        //             "end": "2025-07-19 13:12:00",
+        //             "high": "118297.6",
+        //             "low": "118237.5",
+        //             "open": "118238",
+        //             "quoteVolume": "4106.558156",
+        //             "start": "2025-07-19 13:09:00",
+        //             "trades": "12",
+        //             "volume": "0.03473"
+        //         },
+        //         ...
+        //     ]
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'start')),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
