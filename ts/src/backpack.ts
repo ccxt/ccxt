@@ -4,7 +4,6 @@
 import Exchange from './abstract/backpack.js';
 import { BadRequest } from './base/errors.js';
 import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -162,7 +161,7 @@ export default class backpack extends Exchange {
                         'api/v1/depth': 1, // done
                         'api/v1/klines': 1, // done
                         'api/v1/markPrices': 1, // done
-                        'api/v1/openInterest': 1,
+                        'api/v1/openInterest': 1, // done
                         'api/v1/fundingRates': 1,
                         'api/v1/status1': 1,
                         'api/v1/ping': 1,
