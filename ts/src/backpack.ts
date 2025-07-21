@@ -2,8 +2,9 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/backpack.js';
-import { } from './base/errors.js';
+import { BadRequest } from './base/errors.js';
 import type { Currencies, Dict, FundingRate, Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -88,6 +89,7 @@ export default class backpack extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterest': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -636,7 +638,7 @@ export default class backpack extends Exchange {
             'interval': interval,
         };
         if (since === undefined) {
-            throw new Error (this.id + ' fetchOHLCV() requires a since argument');
+            throw new BadRequest (this.id + ' fetchOHLCV() requires a since argument');
         } else {
             request['startTime'] = since;
         }
@@ -688,6 +690,9 @@ export default class backpack extends Exchange {
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -730,6 +735,51 @@ export default class backpack extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiV1OpenInterest (this.extend (request, params));
+        const interest = this.safeDict (response, 0, {});
+        return this.parseOpenInterest (interest, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     [
+        //         {
+        //             "openInterest": "1273.85214",
+        //             "symbol": "BTC_USDC_PERP",
+        //             "timestamp":1753105735301
+        //         }
+        //     ]
+        //
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const openInterest = this.safeNumber (interest, 'openInterest');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': undefined,
+            'openInterestValue': openInterest,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
