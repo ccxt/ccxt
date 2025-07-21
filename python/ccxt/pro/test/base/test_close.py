@@ -71,6 +71,8 @@ async def test_ws_close():
     await exchange.close()
     # --------------------------------------------
     await test_cancelled_task_no_invalid_state(exchange)
+    # --------------------------------------------
+    await test_unwatch_tickers_after_cancellation(exchange)
 
 async def test_cancelled_task_no_invalid_state(exchange):
     """
@@ -120,5 +122,63 @@ async def test_cancelled_task_no_invalid_state(exchange):
     # Cleanup
     task_btc.cancel()
     await exchange.close()
+
+async def test_unwatch_tickers_after_cancellation(exchange):
+    """
+    Tests the specific case where un_watch_tickers() is called after cancelling tasks,
+    which was causing InvalidStateError. This reproduces the user's reported issue, but for tickers.
+    """
+    print('---- Testing un_watch_tickers() after task cancellation does not raise InvalidStateError')
+    
+    async def watch_tickers_task(symbols):
+        try:
+            while True:
+                tickers = await exchange.watch_tickers(symbols)
+                print(f"[TICKERS] {symbols} received: {list(tickers.keys()) if hasattr(tickers, 'keys') else tickers}")
+        except asyncio.CancelledError:
+            print(f"[CANCELLED] {symbols} tickers task cancelled")
+        except Exception as e:
+            assert False,   (f"[ERROR] {symbols} tickers: {e}")
+    
+    # Start both tasks for different symbols
+    print("Starting BTC/USDT tickers watch...")
+    task_btc = asyncio.create_task(watch_tickers_task(['BTC/USDT']))
+    print("Starting ETH/USDT tickers watch...")
+    task_eth = asyncio.create_task(watch_tickers_task(['ETH/USDT']))
+    
+    # Let both run for a bit
+    print("Letting tasks run for 5 seconds...")
+    await asyncio.sleep(5)
+    
+    # Cancel ETH/USDT task
+    print("Cancelling ETH/USDT task...")
+    task_eth.cancel()
+    try:
+        await task_eth
+    except asyncio.CancelledError:
+        print("ETH/USDT task cancelled and awaited")
+    
+    # Let BTC/USDT keep running
+    print("Letting BTC/USDT task continue for 5 seconds...")
+    await asyncio.sleep(5)
+    
+    # This is the critical part - calling un_watch_tickers() after cancellation
+    print("Calling un_watch_tickers() after task cancellation...")
+    try:
+        await exchange.un_watch_tickers()
+        print("un_watch_tickers() completed successfully")
+    except asyncio.InvalidStateError as e:
+        assert False, f"InvalidStateError occurred: {e}"
+    except Exception as e:
+        print (f"Unexpected exception during un_watch_tickers(): {e}")
+    
+    # Let it run a bit more to see if any errors occur
+    print("Letting it run for 5 more seconds...")
+    await asyncio.sleep(5)
+    
+    # Cleanup
+    task_btc.cancel()
+    await exchange.close()
+    print("PASSED - un_watch_tickers() after cancellation test completed successfully")
 
 asyncio.run(test_ws_close())
