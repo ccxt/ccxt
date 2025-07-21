@@ -222,6 +222,7 @@ export default class Exchange {
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     };
     headers: any = {};
+    returnResponseHeaders: boolean = false;
     origin = '*' // CORS origin
     MAX_VALUE: Num = Number.MAX_VALUE;
     //
@@ -993,6 +994,9 @@ export default class Exchange {
             const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             if (!skipFurtherErrorHandling) {
                 this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            }
+            if (json && !Array.isArray(json) && this.returnResponseHeaders) {
+                json['responseHeaders'] = responseHeaders;
             }
             return json || responseBody
         })

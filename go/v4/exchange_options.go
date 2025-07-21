@@ -398,6 +398,8 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
 	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
+
+	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
 }
 
 func (this *Exchange) MapToSafeMap(input map[string]interface{}) *sync.Map {

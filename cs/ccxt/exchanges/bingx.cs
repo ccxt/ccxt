@@ -4618,7 +4618,7 @@ public partial class bingx : Exchange
             { "asset", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await ((Task<object>)callDynamically(this, "apiAssetV1PrivatePostTransfer", new object[] { this.extend(request, parameters) }));
+        object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
         //
         //     {
         //         "tranId": 1933130865269936128,
@@ -4700,7 +4700,7 @@ public partial class bingx : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await ((Task<object>)callDynamically(this, "apiV3PrivateGetAssetTransferRecord", new object[] { this.extend(request, parameters) }));
+        object response = await this.apiV3PrivateGetAssetTransferRecord(this.extend(request, parameters));
         //
         //     {
         //         "total": 2,

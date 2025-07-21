@@ -626,11 +626,26 @@ class testMainClass:
             assert exchange.hostname == 'binance.us', 'binance.us hostname does not match ' + exchange.hostname
             assert exchange.urls['api']['public'] == 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' + exchange.urls['api']['public']
 
+    def test_return_response_headers(self, exchange):
+        if exchange.id != 'binance':
+            return False   # this test is only for binance exchange for now
+        exchange.return_response_headers = True
+        ticker = exchange.fetch_ticker('BTC/USDT')
+        info = ticker['info']
+        headers = info['responseHeaders']
+        headers_keys = list(headers.keys())
+        assert len(headers_keys) > 0, 'Response headers should not be empty'
+        header_values = list(headers.values())
+        assert len(header_values) > 0, 'Response headers values should not be empty'
+        exchange.return_response_headers = False
+        return True
+
     def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
             return True
         self.check_constructor(exchange)
+        # this.testReturnResponseHeaders (exchange);
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         try:

@@ -599,6 +599,8 @@ Below is a detailed description of each of the base exchange properties:
   import logging
   logging.basicConfig(level=logging.DEBUG)
   ```
+- `returnResponseHeaders`: If set to `true`, the HTTP response headers from the exchange will be included in the `responseHeaders` property inside the `info` field of the returned result for REST API calls. This can be useful for accessing metadata such as rate limit information or exchange-specific headers. By default, this is `false` and headers are not included in the response. Note: it's only supported when response is an object and not a list or string
+
 
 - `markets`: An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the `loadMarkets() / load_markets()` method on exchange instance.
 

@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.94';
+$version = '4.4.95';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.94';
+    const VERSION = '4.4.95';
 
     public $browser;
     public $marketsLoading = null;
@@ -219,6 +219,9 @@ class Exchange extends \ccxt\Exchange {
                 $json_response = $this->parse_json($response_body);
                 if ($this->enableLastJsonResponse) {
                     $this->last_json_response = $json_response;
+                }
+                if ($this->returnResponseHeaders) {
+                    $json_response['responseHeaders'] = $response_headers;
                 }
             }
 

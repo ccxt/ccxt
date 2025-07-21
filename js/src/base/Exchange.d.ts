@@ -51,6 +51,7 @@ export default class Exchange {
     ws_socks_proxy: string;
     userAgents: any;
     headers: any;
+    returnResponseHeaders: boolean;
     origin: string;
     MAX_VALUE: Num;
     agent: any;

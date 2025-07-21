@@ -312,7 +312,7 @@ public partial class Exchange
 
         this.httpClient.DefaultRequestHeaders.Clear();
 
-        var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
         var httpStatusCode = (int)response?.StatusCode;
@@ -326,6 +326,11 @@ public partial class Exchange
         try
         {
             responseBody = JsonHelper.Deserialize(result);
+            if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
+            {
+                dict["headers"] = responseHeaders;
+                responseBody = dict;
+            }
         }
         catch (Exception e)
         {

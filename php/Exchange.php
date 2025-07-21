@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.94';
+$version = '4.4.95';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.94';
+    const VERSION = '4.4.95';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -117,6 +117,7 @@ class Exchange {
     );
     public $headers = array();
     public $origin = '*'; // CORS origin
+    public $returnResponseHeaders = false;
     public $MAX_VALUE = PHP_INT_MAX;
     //
 
@@ -1610,6 +1611,9 @@ class Exchange {
             $json_response = $this->parse_json($result);
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
+            }
+            if ($json_response && !array_is_list($json_response) && $this->returnResponseHeaders) {
+                $json_response['responseHeaders'] = $response_headers;
             }
         }
 
