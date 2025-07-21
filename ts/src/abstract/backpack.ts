@@ -22,7 +22,7 @@ interface Exchange {
     publicGetApiV1MarkPrices (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1OpenInterest (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1FundingRates (params?: {}): Promise<implicitReturnType>;
-    publicGetApiV1Status1 (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1Status (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1Ping (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1Time (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1Wallets (params?: {}): Promise<implicitReturnType>;
