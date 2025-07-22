@@ -1950,5 +1950,23 @@
                 "activeMajorCurrencies": "todo"
             }
         }
+    },
+    "coindcx": {
+        "skipMethods": {
+	    "fetchMarkets": {
+	    	"contractSize": "some markets return null"
+	    },
+            "fetchTrades": {
+                "takerOrMaker": "handle error in tests with maker"
+            },
+            "fetchOHLCV": "index 1 (open price) could be higher than index 2 (high) or lower than index 3 (low)",
+            "watchTrades": {
+                "side": "not provided",
+                "timestamp": "messed order coming from exchange"
+            },
+            "watchMyTrades": {
+                "side": "not provided"
+            }
+        }
     }
 }
