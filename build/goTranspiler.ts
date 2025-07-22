@@ -208,7 +208,7 @@ const INTERFACE_METHODS = [
     'fetchDepositAddressesByNetwork',
     'fetchDeposits',
     'fetchDepositsWithdrawals',
-    // 'fetchDepositWithdrawFee',
+    'fetchDepositWithdrawFee',
     'fetchDepositWithdrawFees',
     'fetchFreeBalance',
     'fetchFundingHistory',
@@ -564,6 +564,10 @@ class NewTranspiler {
             return ` <- chan int64`; // custom handling for now
         }
 
+        if (name.startsWith('fetchDepositWithdrawFee')) { // tmp fix later with proper types
+            return `map[string]interface{}`
+        }
+
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -744,7 +748,6 @@ class NewTranspiler {
             'createSwapOrder',
             'fetchPortfolioDetails',
             'createVault',
-            'fetchDepositWithdrawFees', // tmp remove this later
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -773,6 +776,10 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `(res).(int64)`;
+        }
+
+        if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
+            return `(res).(map[string]interface{})`;
         }
 
         // handle the typescript type Dict
@@ -896,6 +903,9 @@ class NewTranspiler {
 
 
     createMissingMethodWrapper(exchangeName: string, name: string, methodInfo: any) {
+        if (!methodInfo) {
+            return '';
+        }
         const itf = methodInfo.interface
         // const params = methodInfo.params;
         const exCap = this.capitalize(exchangeName);

@@ -625,7 +625,8 @@ type Balances struct {
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData map[string]interface{}) Balance {
+func NewBalance(balanceData2 interface{}) Balance {
+	balanceData := balanceData2.(map[string]interface{})
 	return Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
