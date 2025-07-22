@@ -1520,8 +1520,15 @@ export default class kraken extends Exchange {
         };
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
+        let useNanoseconds = undefined;
+        [ useNanoseconds, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'useNanoseconds', true);
         if (since !== undefined) {
-            request['since'] = this.numberToString (this.parseToInt (since / 1000)); // expected to be in seconds
+            // since is expected to be in seconds or nanoseconds
+            if (useNanoseconds) {
+                request['since'] = this.numberToString (since) + '000000';
+            } else {
+                request['since'] = this.numberToString (this.parseToInt (since / 1000));
+            }
         }
         if (limit !== undefined) {
             request['count'] = limit;
@@ -1540,15 +1547,6 @@ export default class kraken extends Exchange {
         //
         const result = response['result'];
         const trades = result[id];
-        // trades is a sorted array: last (most recent trade) goes last
-        const length = trades.length;
-        if (length <= 0) {
-            return [];
-        }
-        const lastTrade = trades[length - 1];
-        const lastTradeId = this.safeString (result, 'last');
-        lastTrade.push (lastTradeId);
-        trades[length - 1] = lastTrade;
         return this.parseTrades (trades, market, since, limit);
     }
 
