@@ -1825,9 +1825,9 @@ export default class modetrade extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder ({
                 'info': response,
-            },
+            }),
         ];
     }
 

@@ -5957,7 +5957,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
@@ -5969,7 +5969,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
