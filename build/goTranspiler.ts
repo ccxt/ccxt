@@ -16,7 +16,6 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { wrap } from "module";
 
 type dict = { [key: string]: string }
 
