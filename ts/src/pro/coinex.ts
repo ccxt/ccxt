@@ -1321,9 +1321,9 @@ export default class coinex extends coinexRest {
 
     handleMessage (client: Client, message) {
         const method = this.safeString (message, 'method');
-        const err = this.safeString (message, 'message');
-        if (err !== undefined) {
-            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (err), message, undefined, undefined);
+        const error = this.safeString (message, 'message');
+        if (error !== undefined) {
+            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (error), message, undefined, undefined);
         }
         const handlers: Dict = {
             'state.update': this.handleTicker,
@@ -1390,8 +1390,8 @@ export default class coinex extends coinexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

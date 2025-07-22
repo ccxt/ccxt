@@ -1810,11 +1810,11 @@ export default class cex extends Exchange {
                 throw new NullResponse (this.id + ' returned unparsed response: ' + body);
             }
         }
-        const err = this.safeString (response, 'error');
-        if (err !== undefined) {
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback);
         }
         // check errors in order-engine (the responses are not standard, so we parse here)

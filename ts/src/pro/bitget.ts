@@ -738,8 +738,8 @@ export default class bitget extends bitgetRest {
 
     async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
-        const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-        client.reject (err, messageHash);
+        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (error, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -2087,8 +2087,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const err = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (err, subMessageHash);
+        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
+        client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -2113,8 +2113,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const err = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (err, subMessageHash);
+        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
+        client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -2139,8 +2139,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const err = new UnsubscribeError (this.id + ' ticker ' + symbol);
-        client.reject (err, subMessageHash);
+        const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
+        client.reject (error, subMessageHash);
         client.resolve (true, messageHash);
     }
 

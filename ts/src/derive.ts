@@ -2659,9 +2659,9 @@ export default class derive extends Exchange {
         if (!response) {
             return undefined; // fallback to default error handler
         }
-        const err = this.safeDict (response, 'error');
-        if (err !== undefined) {
-            const errorCode = this.safeString (err, 'code');
+        const error = this.safeDict (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

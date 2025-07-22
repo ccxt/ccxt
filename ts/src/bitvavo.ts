@@ -2224,10 +2224,10 @@ export default class bitvavo extends Exchange {
         //     {"errorCode":205,"error":"symbol parameter is invalid."}
         //
         const errorCode = this.safeString (response, 'errorCode');
-        const err = this.safeString (response, 'error');
+        const error = this.safeString (response, 'error');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

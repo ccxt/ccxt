@@ -1005,10 +1005,10 @@ export default class kraken extends krakenRest {
             const payload = payloadArray.join ('');
             const localChecksum = this.crc32 (payload, false);
             if (localChecksum !== c) {
-                const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                client.reject (err, messageHash);
+                client.reject (error, messageHash);
                 return;
             }
         }

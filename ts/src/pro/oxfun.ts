@@ -1079,8 +1079,8 @@ export default class oxfun extends oxfunRest {
             const future = this.safeDict (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

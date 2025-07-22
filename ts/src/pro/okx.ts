@@ -1333,17 +1333,17 @@ export default class okx extends okxRest {
             const payload = payloadArray.join (':');
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
-            let err = undefined;
+            let error = undefined;
             if (prevSeqId !== -1 && nonce !== prevSeqId) {
-                err = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+                error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
             }
             if (responseChecksum !== localChecksum) {
-                err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
-            if (err !== undefined) {
+            if (error !== undefined) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                client.reject (err, messageHash);
+                client.reject (error, messageHash);
             }
         }
         const timestamp = this.safeInteger (message, 'ts');

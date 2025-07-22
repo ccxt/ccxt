@@ -1217,7 +1217,7 @@ export default class bingx extends bingxRest {
         }
         try {
             await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
-        } catch (e) {
+        } catch (error) {
             const types = [ 'spot', 'linear', 'inverse' ];
             for (let i = 0; i < types.length; i++) {
                 const type = types[i];
@@ -1226,7 +1226,7 @@ export default class bingx extends bingxRest {
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const messageHash = messageHashes[j];
-                    client.reject (e, messageHash);
+                    client.reject (error, messageHash);
                 }
             }
             this.options['listenKey'] = undefined;
@@ -1272,8 +1272,8 @@ export default class bingx extends bingxRest {
                 });
             }
         } catch (e) {
-            const err = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
-            client.reset (err);
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (error);
         }
     }
 

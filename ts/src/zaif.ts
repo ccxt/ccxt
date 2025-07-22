@@ -822,10 +822,10 @@ export default class zaif extends Exchange {
         //     {"error": "unsupported currency_pair"}
         //
         const feedback = this.id + ' ' + body;
-        const err = this.safeString (response, 'error');
-        if (err !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeBool (response, 'success', true);

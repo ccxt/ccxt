@@ -1237,8 +1237,8 @@ export default class onetrading extends onetradingRest {
     }
 
     handleMessage (client: Client, message) {
-        const err = this.safeValue (message, 'error');
-        if (err !== undefined) {
+        const error = this.safeValue (message, 'error');
+        if (error !== undefined) {
             this.handleErrorMessage (client, message);
             return;
         }

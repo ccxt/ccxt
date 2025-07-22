@@ -1762,12 +1762,12 @@ export default class timex extends Exchange {
             //     {"error":{"timestamp":"05.12.2019T04:03:25.419+0000","status":"FORBIDDEN","message":"Access denied","code":4300}}
             //
             const feedback = this.id + ' ' + responseBody;
-            let err = this.safeValue (response, 'error');
-            if (err === undefined) {
-                err = response;
+            let error = this.safeValue (response, 'error');
+            if (error === undefined) {
+                error = response;
             }
-            const code = this.safeString2 (err, 'code', 'status');
-            const message = this.safeString2 (err, 'message', 'debugMessage');
+            const code = this.safeString2 (error, 'code', 'status');
+            const message = this.safeString2 (error, 'message', 'debugMessage');
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

@@ -1753,11 +1753,11 @@ export default class mexc extends mexcRest {
             await this.spotPrivatePutUserDataStream (this.extend (request, params));
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
-        } catch (e) {
+        } catch (error) {
             const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
-            client.reject (e);
+            client.reject (error);
             delete this.clients[url];
         }
     }
@@ -1794,8 +1794,8 @@ export default class mexc extends mexcRest {
     handleMessage (client: Client, message) {
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
-                const err = new AuthenticationError (this.id + ' invalid listen key');
-                client.reject (err);
+                const error = new AuthenticationError (this.id + ' invalid listen key');
+                client.reject (error);
             }
             return;
         }

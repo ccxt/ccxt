@@ -478,9 +478,9 @@ export default class p2b extends p2bRest {
     }
 
     handleErrorMessage (client: Client, message): Bool {
-        const err = this.safeString (message, 'error');
-        if (err !== undefined) {
-            throw new ExchangeError (this.id + ' error: ' + this.json (err));
+        const error = this.safeString (message, 'error');
+        if (error !== undefined) {
+            throw new ExchangeError (this.id + ' error: ' + this.json (error));
         }
         return false;
     }

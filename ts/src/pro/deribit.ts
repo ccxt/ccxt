@@ -1000,9 +1000,9 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const err = this.safeValue (message, 'error');
-        if (err !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (err));
+        const error = this.safeValue (message, 'error');
+        if (error !== undefined) {
+            throw new ExchangeError (this.id + ' ' + this.json (error));
         }
         const params = this.safeValue (message, 'params');
         const channel = this.safeString (params, 'channel');
