@@ -1327,18 +1327,17 @@ ${caseStatements.join('\n')}
             const args = exchange === 'exchange' ? 'nil' : 'options';
             return`    case "${exchange}":
         itf := New${struct}(${args})
-        return &itf, true`;
+        return &itf`;
         })
 
         const functionDecl = `
-func CreateExchange(exchangeId string, options map[string]interface{}) (IExchange, bool) {
+func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements.join('\n')}
         default:
-            return nil, false
+            return nil
     }
-    return nil, false
 }
 `
         const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
