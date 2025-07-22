@@ -731,7 +731,7 @@ export default class cryptomus extends Exchange {
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder ({ 'info': response });
     }
 
     /**

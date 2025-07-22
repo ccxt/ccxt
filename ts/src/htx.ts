@@ -6275,7 +6275,7 @@ export default class htx extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data');
-            return this.parseCancelOrders (data);
+            return this.parseCancelOrders (data) as Order[];
         }
     }
 

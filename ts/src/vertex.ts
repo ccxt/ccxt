@@ -2461,7 +2461,7 @@ export default class vertex extends Exchange {
             // }
             //
         }
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

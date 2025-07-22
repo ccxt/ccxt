@@ -1875,7 +1875,8 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
+        return [ this.safeOrder ({ 'info': data }) ];
     }
 
     /**
