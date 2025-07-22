@@ -55,7 +55,7 @@ const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4/';
-const EXCHANGES_WS_FOLDER = './go/v4/';
+const EXCHANGES_WS_FOLDER = './go/v4/ws/';
 const BASE_TESTS_FOLDER = './go/tests/base/';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
@@ -67,6 +67,10 @@ const goComments: any = {};
 const goTypeOptions: any = {};
 
 let goTests: string[] = [];
+
+const imports = [
+    'import ccxt "github.com/ccxt/ccxt/go/v4"'
+]
 
 const VIRTUAL_BASE_METHODS: any = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
@@ -157,7 +161,7 @@ class NewTranspiler {
 
     constructor(isWs: boolean = false) {
 
-        this.setupTranspiler(isWs)
+        this.setupTranspiler()
         // this.transpiler.goTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
 
@@ -199,7 +203,7 @@ class NewTranspiler {
             [/(\w+)\.storeArray\(/g, '$1.StoreArray('],
 
             // DynamicInvoker from C# → callDynamically helper in Go
-            [/(\w+)\.call\(this,(.+)\)/g, 'callDynamically($1, $2)'],
+            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
 
             // .limit() on order book variable should be capitalised
             [/(\w+)\.limit\(\)/g, '$1.Limit()'],
@@ -214,14 +218,14 @@ class NewTranspiler {
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
 
             // callDynamically array wrapper removal
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'callDynamically($1, "$3", '],
-            [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'callDynamically(GetValue($1, $2), $3)'],
-            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'callDynamically($1, '],
+            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
+            [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
+            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
             
             [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
 
-            [/\.Append\(/g, '.(appender).Append('],
+            [/\.Append\(/g, '.(Appender).Append('],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             [/stored := NewArrayCache\(limit\)/g, 'var stored interface{} = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
@@ -260,7 +264,25 @@ class NewTranspiler {
         ]
     }
     
-    
+    aliasExchanges = {
+        // TODO: a dynamic way of getting these would be better
+        'gateio': 'gate',
+        'huobi': 'htx',
+        'coinbaseadvanced': 'coinbase',
+        'okxus': 'okx',
+        'binanceusdm': 'binance',
+        'binancecoinm': 'binance',
+        'binanceus': 'binance',
+        'fmfwio': 'hitbtc',
+        'bequant': 'hitbtc',
+        'myokx': 'okx',
+    };
+
+
+    isAliasExchange(exchangeName: string) {
+        return this.aliasExchanges[exchangeName] !== undefined;
+    }
+
     // go custom method
     customGoPropAssignment(node: any, identation: any) {
         const stringValue = node.getFullText().trim();
@@ -288,12 +310,12 @@ class NewTranspiler {
     }
     // ============================================================================
 
-    getTranspilerConfig(isWs: boolean = false) {
+    getTranspilerConfig(isWrapper: boolean = false) {
         const classNameMap = {};
-        if (isWs) {
-            allExchanges['ws'].forEach((exchangeName: string) => {
-                classNameMap[exchangeName] = exchangeName + 'Ws';
-                classNameMap[capitalize(exchangeName)] = capitalize(exchangeName) + 'Ws';
+        if (!isWrapper) {
+            allExchanges['ids'].forEach((exchangeName: string) => {
+                classNameMap[exchangeName] = capitalize(exchangeName) + 'Core';
+                classNameMap[`${exchangeName}Rest`] = capitalize(exchangeName) + 'Core';
             });
         }
         return {
@@ -412,7 +434,7 @@ class NewTranspiler {
     }
 
     setupTranspiler(isWs: boolean = false) {
-        this.transpiler = new Transpiler (this.getTranspilerConfig(isWs))
+        this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
     }
@@ -426,10 +448,11 @@ class NewTranspiler {
     }
 
     getGoImports(file: any, ws = false) {
-        const namespace = ws ? 'package ccxt' : 'package ccxt';
+        const namespace = ws ? 'package ccxtws' : 'package ccxt';
         const values = [
             // "using ccxt;",
             namespace,
+            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             // 'import "helpers"'
         ]
         return values;
@@ -547,6 +570,8 @@ class NewTranspiler {
     safeGoName(name: string): string {
         const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
+            'error': 'err',
+            'time': 'timeVar'
         }
         return goReservedWordsReplacement[name] || name;
     }
@@ -895,31 +920,37 @@ class NewTranspiler {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        const namespace = 'package ccxt';
+        const namespace = `package ${ws ? 'ccxtws' : 'ccxt'}`;
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+        const coreName = capitalize(exchange) + 'Core';
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         
         const exchangeStruct = [
             `type ${capitizedName} struct {`,
-            `   *${exchange}`,
-            `   Core *${exchange}`,
+            `   *${coreName}`,
+            `   Core *${coreName}`,
             `}`
         ].join('\n');
 
         const newMethod = [
             'func New' + capitizedName + '(userConfig map[string]interface{}) ' + capitizedName + ' {',
-            `   p := &${exchange}{}`,
+            `   p := New${coreName}()`,
             '   p.Init(userConfig)',
             `   return ${capitizedName}{`,
-            `       ${exchange}: p,`,
+            `       ${coreName}: p,`,
             `       Core:  p,`,
             `   }`,
             '}'
         ].join('\n');
 
-        const file = [
+
+        const getsImport = (
+            // TODO: would be nice if this was dynamic
+            !this.isAliasExchange(exchange) && ws
+        );
+        let file = [
             namespace,
-            '',
+            getsImport ? imports.join('\n') : '',
             exchangeStruct,
             '',
             newMethod,
@@ -929,6 +960,9 @@ class NewTranspiler {
             wrappersIndented,
             // Wrapper regex replacements
         ].join('\n')
+        if (ws) {
+            file = this.addPackagePrefix(file, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+        }
         log.magenta ('→', (path as any).yellow)
 
         overwriteFileAndFolder (path, file);
@@ -999,7 +1033,7 @@ ${caseStatements.join('\n')}
 ${constStatements.join('\n')}
 )`
 
-        const goBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n' + constDecl + '\n';
+        const goBodyIntellisense = '\npackage ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n' + constDecl + '\n';
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense)
@@ -1048,7 +1082,8 @@ ${constStatements.join('\n')}
         // custom transformations needed for go
         baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
         // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
-        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
+        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.CallDynamically(') //fix this on the transpiler
+        baseClass = baseClass.replaceAll(/throwDynamicException\(/gm, 'ThrowDynamicException(') //fix this on the transpiler
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client *Client,");
@@ -1071,9 +1106,9 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= NewList<Task<List<object?>>> {");
 
         // 4) Translate the C# `throw new …` syntax into the helper used by Go.
-        baseClass = baseClass.replace("throw NewGetValue(broad, broadKey)(((string)message));", "throwDynamicException(getValue(broad, broadKey), message);");
-        baseClass = baseClass.replace("throw NewGetValue(exact, str)(((string)message));", "throwDynamicException(getValue(exact, str), message);");
-        baseClass = baseClass.replace("throw NewGetValue(exact, str)(message);", "throwDynamicException(getValue(exact, str), message);");
+        baseClass = baseClass.replace("throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message);");
+        baseClass = baseClass.replace("throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message);");
+        baseClass = baseClass.replace("throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message);");
 
         // 5) Fix error constructors - remove "New" prefix
         baseClass = baseClass.replace(/NewUnsubscribeError/g, 'UnsubscribeError');
@@ -1102,10 +1137,11 @@ ${constStatements.join('\n')}
     createDynamicInstanceFile(){
         const dynamicInstanceFile = DYNAMIC_INSTANCE_FILE;
         const exchanges = ['Exchange'].concat(exchangeIds);
-
+        
         const caseStatements = exchanges.map(exchange => {
-            return`    case "${exchange}":
-        ${exchange}Itf := &${exchange}{}
+            const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
+            return`    case "${coreName}":
+        ${exchange}Itf := &${coreName}{}
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
         })
@@ -1332,10 +1368,8 @@ ${caseStatements.join('\n')}
 
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
-            const baseExchangeName = exchanges[i].replace('.ts','');
-            const extension = ws ? '_ws_wrapper.go' : '_wrapper.go';
-            const path = EXCHANGE_WRAPPER_FOLDER + baseExchangeName + extension;
-            const exchangeName = `${baseExchangeName}${ws ? 'Ws' : ''}`;
+            const exchangeName = exchanges[i].replace('.ts','');
+            const path = `${ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER}/${exchangeName}_wrapper.go`;
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws)
         }
@@ -1348,24 +1382,95 @@ ${caseStatements.join('\n')}
         return classes
     }
 
+    /**
+     * Extracts type names and global function names from all files in a directory
+     * @param dirPath - The path to the directory to extract type and function names from.
+     * @returns A set of type and function names with braces.
+     */
+    extractTypeAndFuncNames(dirPath: string): Set<string> {
+        const results = new Set<string>(['Precise', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO', 'TRUNCATE', 'ROUND']);
+      
+        const files = fs.readdirSync(dirPath);
+        for (const file of files) {
+            if (file.startsWith('exchange')) {
+                const fullPath = path.join(dirPath, file);
+            
+                // Skip directories or non-files
+                const stat = fs.statSync(fullPath);
+                if (!stat.isFile()) continue;
+            
+                const content = fs.readFileSync(fullPath, "utf-8");
+                const lines = content.split("\n");
+            
+                for (const line of lines) {
+                    // Only match lines that start with type or func
+                    if (!(
+                        /^\s*func\s+/.test(line) ||
+                        /^\s*type\s+\w+\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
+                    )) continue;
+            
+                    const trimmed = line.trim();
+            
+                    // Exclude lines that are just "type" or "func"
+                    if (/^(type|func)$/.test(trimmed)) continue;
+            
+                    const parts = trimmed.split(/\s+/);
+                    if (parts.length < 2) continue;
+            
+                    let name = parts[1].split("(")[0]; // keep only before `(`
+                    if (name.trim() !== "") results.add(name);
+                }
+            }
+        }
+        results.delete("Exception")
+        return results;
+    }
+
+    /**
+     * Adds the package to prefix all methods and types, e.g. MarketInterface -> ccxt.MarketInterface
+     * @param content The exchange file as a string
+     * @param packageName The package name to add.
+     * @returns The content with the package prefix added.
+     */
+    addPackagePrefix(content: string, methodsAndTypes: Set<string>, packageName: string = 'ccxt') {
+        const pattern = Array.from(methodsAndTypes).join("|");
+        // any of the method or type names that are not preceded by a `.`, but `...` is allowed e.g. MarketInterface, or ...MarketInterface but not .MarketInterface
+        const regex = new RegExp(`(?<![A-Za-z0-9_\\)\\}]\\.)\\b(${pattern})\\b`, "g");
+        const variadicRegex = new RegExp(`(?<=\\.\\.\\.)(${pattern})\\b`, "g");
+        return content
+            .split("\n")
+            .map(line => {
+                if (/^\s*(func|type)\b/.test(line)) {
+                    // For func/type lines, only process the part after the declaration
+                    const declarationMatch = line.match(/^(func(?: \(\w+ \*?\w+\))? \w+)\s*(\(.*)/);
+                    if (declarationMatch) {
+                        const declaration = declarationMatch[1];
+                        return declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${match}`).replace(variadicRegex, (match) => `${packageName}.${match}`);
+                    }
+                    return line;
+                }
+                return line.replace(regex, (match) => `${packageName}.${match}`);
+            })
+            .join("\n");
+    }
+
     createGoExchange(className: string, goVersion: any, ws = false) {
         const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
         let content = goVersion.content;
         const exchangeName = className;
+        const capitalizedExchangeName = capitalize(exchangeName);
 
         // const isInheritedExchange = content.indexOf('')
 
-        if (ws) {
-            className = className + 'Ws';
-        }
+        className = capitalize(className + 'Core');
 
         const classExtends = /type\s\w+\sstruct\s{\s*(\w+)/;
         const matches = content.match(classExtends);
         const baseClass = matches ? matches[1].replace('Rest', '') : '';
+        let isAlias = this.isAliasExchange(exchangeName);
+        const coreName = isAlias ? capitalize(baseClass) : 'ccxt.' + capitalize(baseClass);
 
-        let isAlias = (baseClass !== 'Exchange') && (baseClass !== exchangeName);
-
-        content = content.replace(/func\sNew(\w+)\(\)/g, 'func New$1Core()');
+        // content = content.replace(/func\sNew(\w+)\(\)/g, 'func New$1Core()');
         if (!ws) {
             // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\.(\w+)\(/gm, "this.Exchange.$1(");
@@ -1377,12 +1482,14 @@ ${caseStatements.join('\n')}
             content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
             content = content.replace(/ToString\(precise\)/gm, 'precise.ToString()')
             content = content.replace(/ToString\((precise\w*)\)/gm, '$1.ToString()')
-            content = content.replace(/<\-callDynamically/gm, '<-this.callDynamically') //fix this on the transpiler
-
+            content = content.replace(/<\-callDynamically/gm, '<-this.CallDynamically') //fix this on the transpiler
+            content = content.replace(/toFixed/gm, 'ToFixed');
         } else {
             content = content.replace(new RegExp(`this\\.${exchangeName}Rest\\.`, 'g'), `this.${exchangeName}.`);                       // Removes 'Rest' suffix
             content = content.replace(/([^a-zA-Z0-9])base\.([A-Za-z0-9]+)\(/g, `$1this.base.$2(`);                                      // changes 'base' to 'this.base'
-            content = content.replace(/type (\w+)Ws struct \{\s+(\w+)(Ws)?\s*\n\s*/g, `type $1Ws struct {\n\t$2$3\n\tbase $2${isAlias ? 'Ws' : ''}\n`);      // adds 'base exchangeName'
+            const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
+            content = content.replace(/type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n`);      // adds 'base exchangeName'
+            content = content.replace(/(p \:\= &.*$)/gm, `$1\n\tbase := &${coreName}{}\n\tp.base = base\n\tp.${baseClass} = base`);  // could go in ast-transpiler if there is always a parameter named base
         }
         // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
@@ -1390,7 +1497,27 @@ ${caseStatements.join('\n')}
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
             content = this.replaceImportedRestClasses (content, goVersion.imports);
+            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
+            // TODO: should be fixed earlier in the pipeline without a regex
+            content = content.replace(/ccxt.setDefaults/gm, 'ccxt.SetDefaults');
+            content = content.replace(/ccxt.promiseAll/gm, 'ccxt.PromiseAll');
+            content = content.replace(/ccxt.sha256/gm, 'ccxt.Sha256');
+            content = content.replace(/ccxt.sha384/gm, 'ccxt.Sha384');
+            content = content.replace(/ccxt.sha512/gm, 'ccxt.Sha512');
+            content = content.replace(/ccxt.mathMin/gm, 'ccxt.MathMin');
+            content = content.replace(/ccxt.mathMax/gm, 'ccxt.MathMax');
+            content = content.replace(/ccxt.keccak/gm, 'ccxt.Keccak');
+            content = content.replace(/ccxt.secp256k1/gm, 'ccxt.Secp256k1');
+            content = content.replace(/ccxt.throwDynamicException/gm, 'ccxt.ThrowDynamicException');
+            content = content.replace(/throwDynamicException/gm, 'ccxt.ThrowDynamicException');
+            content = content.replace(/ccxt.ed25519/gm, 'ccxt.Ed25519');
+            content = content.replace(/ccxt.toFixed/gm, 'ccxt.ToFixed');
+            content = content.replace(/toFixed/gm, 'ccxt.ToFixed');
+            content = content.replace(/ccxt.md5/gm, 'ccxt.Md5');
+        } else {
+            content = content.replace(/throwDynamicException/gm, 'ThrowDynamicException');
         }
+
 
         if (isAlias) {
             content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
@@ -1400,14 +1527,14 @@ ${caseStatements.join('\n')}
         if (!isAlias && !ws) {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
-    this.Exchange = Exchange{}
+    this.Exchange = ${ws ? `ccxt.Exchange` : `Exchange`}{}
     this.Exchange.DerivedExchange = this
     this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }\n`
         } else {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
-    this.${baseClass}.Init(this.DeepExtend(this.Describe(), userConfig))
+    this.${ws ? 'base' : `${capitalize(baseClass)}`}.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this
 }\n`
@@ -1442,11 +1569,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const tsPath = tsFolder + filename
 
-        const { goFolder } = options
+        let { goFolder } = options
 
         const extensionlessName = filename.replace ('.ts', '')
-        const replacement = ws ? '_ws.go' : '.go';
-        const goFilename = filename.replace ('.ts', replacement)
+        const goFilename = filename.replace ('.ts', '.go')
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
@@ -1660,7 +1786,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/go/v4"' : '',
+                testName.indexOf('tests.init') === -1 ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
@@ -1703,7 +1829,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const file = [
             'package base',
-            'import "github.com/ccxt/ccxt/go/v4"',
+            'import ccxt "github.com/ccxt/ccxt/go/v4"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1781,7 +1907,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
         let paths = tests.map(test => test.tsFile);
         // paths = [paths[30]];
-        const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig(isWs));
+        const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
@@ -1815,9 +1941,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
             const namespace = 'package base';
+            const imports = isWs ? 'import "github.com/ccxt/ccxt/go/v4/ws"' : 'import "github.com/ccxt/ccxt/go/v4"';
             const fileHeaders = [
                 namespace,
-                'import "github.com/ccxt/ccxt/go/v4"',
+                imports,
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',

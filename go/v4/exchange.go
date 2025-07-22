@@ -656,7 +656,7 @@ func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
 	return data
 }
 
-func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
 	return this.callInternal(name2.(string), args...)
 }
 
@@ -1796,7 +1796,7 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan inte
     future := NewFuture()
 
 	go func() {
-		response := callDynamically(method, args...)
+		response := CallDynamically(method, args...)
 		if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
@@ -1867,7 +1867,7 @@ func (this *Exchange) Close() []error {
 }
 // ---------------- Connection lifecycle helpers ----------------
 
-func callDynamically(fn interface{}, args ...interface{}) interface{} {
+func CallDynamically(fn interface{}, args ...interface{}) interface{} {
     v := reflect.ValueOf(fn)
     in := make([]reflect.Value, len(args))
     for i, a := range args {

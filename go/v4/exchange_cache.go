@@ -15,7 +15,7 @@ package ccxt
 
 import "sync"
 
-type appender interface{ Append(interface{}) }
+type Appender interface{ Append(interface{}) }
 
 type CacheType interface {
     *ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]interface{}

@@ -2274,7 +2274,7 @@ func convertNumbers(data interface{}) {
 	}
 }
 
-func throwDynamicException(exceptionType interface{}, message interface{}) {
+func ThrowDynamicException(exceptionType interface{}, message interface{}) {
 	functionError := exceptionType.(func(...interface{}) error)
 	errorMsg := functionError(message)
 	panic(errorMsg)
@@ -2337,7 +2337,7 @@ func JsonStringify(obj interface{}) string {
 	return string(jsonData)
 }
 
-func toFixed(number interface{}, decimals interface{}) float64 {
+func ToFixed(number interface{}, decimals interface{}) float64 {
 	// Assert that the number is a float64 or convert it
 	num := ToFloat64(number)
 
