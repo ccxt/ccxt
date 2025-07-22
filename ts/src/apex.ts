@@ -1591,7 +1591,7 @@ export default class apex extends Exchange {
             response = await this.privatePostV3DeleteOrder (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data', {});
-        return data;
+        return this.safeOrder (data);
     }
 
     /**
