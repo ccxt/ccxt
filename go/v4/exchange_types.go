@@ -2078,3 +2078,17 @@ func NewCancellationRequest(request map[string]interface{}) CancellationRequest 
 		Symbol: SafeStringTyped(request, "symbol"),
 	}
 }
+
+// DepositWithdrawFeeNetwork
+
+type DepositWithdrawFeeNetwork struct {
+	fee        *float64
+	percentage *float64
+}
+
+func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
+	return DepositWithdrawFeeNetwork{
+		fee:        SafeFloatTyped(data, "fee"),
+		percentage: SafeFloatTyped(data, "percentage"),
+	}
+}
