@@ -3323,7 +3323,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market);
+        return this.parseMarginMode (data, market) as any;
     }
 
     /**
