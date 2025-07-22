@@ -70,7 +70,7 @@ const goComments: any = {};
 const goTypeOptions: any = {};
 const goWithMethods = {};
 
-const wrapperMethods: {} = {};
+const WRAPPER_METHODS: {} = {};
 
 let goTests: string[] = [];
 
@@ -1001,13 +1001,13 @@ class NewTranspiler {
             // `${two}return ch`,
         ]
         const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
-        if (!wrapperMethods[exchangeName]) {
-            wrapperMethods[exchangeName] = [];
+        if (!WRAPPER_METHODS[exchangeName]) {
+            WRAPPER_METHODS[exchangeName] = [];
         }
-        if (!wrapperMethods[exchangeName][methodName]) {
-            wrapperMethods[exchangeName][methodName] = {};
+        if (!WRAPPER_METHODS[exchangeName][methodName]) {
+            WRAPPER_METHODS[exchangeName][methodName] = {};
         }
-        wrapperMethods[exchangeName][methodName] = {
+        WRAPPER_METHODS[exchangeName][methodName] = {
             wrapper: methodWrapper,
             interface: interfaceMethod,
             params: stringArgs,
@@ -1046,7 +1046,10 @@ class NewTranspiler {
 
         let missingMethodsWrappers = '';
         if (exchange !== 'Exchange') {
-            missingMethodsWrappers = missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  wrapperMethods['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
+            if (!WRAPPER_METHODS['Exchange']) {
+                throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
+            }
+            missingMethodsWrappers = missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
@@ -1312,6 +1315,56 @@ ${caseStatements.join('\n')}
         fs.writeFileSync (dynamicInstanceFile, file);
     }
 
+
+    createTypedInterfaceFile(){
+        if (!WRAPPER_METHODS['Exchange']) {
+            throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
+        }
+        const exchanges = ['Exchange'].concat(exchangeIds);
+
+        const caseStatements = exchanges.map(exchange => {
+            return`    case "${exchange}":
+        ${exchange}Itf := &${this.capitalize(exchange)}{}
+        ${exchange}Itf.Init(exchangeArgs)
+        return ${exchange}Itf, true`;
+        })
+
+        const functionDecl = `
+func CreateExchange(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+    switch exchangeId {
+${caseStatements.join('\n')}
+        default:
+            return nil, false
+    }
+    return nil, false
+}
+`
+        const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
+            const methodInfo = WRAPPER_METHODS['Exchange'][method];
+            if (!INTERFACE_METHODS.includes(method)) {
+                return '';
+            }
+            return methodInfo.interface;
+        }).filter(e => !!e)
+
+        const interfaceDecl = `
+type IExchange interface {
+    IBaseExchange
+    ${interfaceMethods.join('\n    ')}
+}`;
+
+        const file = [
+            'package ccxt',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            interfaceDecl,
+            functionDecl,
+        ].join('\n');
+
+        fs.writeFileSync (TYPED_INTERFACE_FILE, file);
+    }
+
+
     camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
           if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -1408,10 +1461,11 @@ ${caseStatements.join('\n')}
         // if (!transpilingSingleExchange && !child) {
             this.transpileBaseMethods (exchangeBase)
             this.createDynamicInstanceFile();
+            this.createTypedInterfaceFile();
         // }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
 
