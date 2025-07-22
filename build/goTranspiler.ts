@@ -154,7 +154,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "sign": false
 }
 
-const interfaceMethods = [
+const INTERFACE_METHODS = [
     'cancelAllOrders',
     'cancelAllOrdersAfter',
     'cancelOrder',
@@ -208,7 +208,7 @@ const interfaceMethods = [
     'fetchDepositAddressesByNetwork',
     'fetchDeposits',
     'fetchDepositsWithdrawals',
-    'fetchDepositWithdrawFee',
+    // 'fetchDepositWithdrawFee',
     'fetchDepositWithdrawFees',
     'fetchFreeBalance',
     'fetchFundingHistory',
@@ -743,7 +743,8 @@ class NewTranspiler {
             'createContractOrder',
             'createSwapOrder',
             'fetchPortfolioDetails',
-            'createVault'
+            'createVault',
+            'fetchDepositWithdrawFees', // tmp remove this later
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -1028,7 +1029,7 @@ class NewTranspiler {
 
     createGoWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
         const methodsList = wrappers.map(wrapper => wrapper.name);
-        const missingMethods = interfaceMethods.filter(method => !methodsList.includes(method));
+        const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.includes(method));
 
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
 
@@ -1102,6 +1103,7 @@ class NewTranspiler {
             '',
             wrappersIndented,
             '// missing typed methods from base',
+            '//nolint',
             missingMethodsWrappers,
         ].join('\n')
         log.magenta ('→', (path as any).yellow)
