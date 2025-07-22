@@ -5920,7 +5920,7 @@ export default class htx extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**

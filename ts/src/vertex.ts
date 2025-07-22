@@ -2476,7 +2476,8 @@ export default class vertex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        return await this.cancelOrders ([ id ], symbol, params);
+        const order = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeOrder ({ 'info': order });
     }
 
     /**

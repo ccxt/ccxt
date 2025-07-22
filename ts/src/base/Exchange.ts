@@ -2746,7 +2746,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' reduceMargin() is not supported yet');
     }
 
-    async setMargin (symbol: string, amount: number, params = {}): Promise<{}> {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         throw new NotSupported (this.id + ' setMargin() is not supported yet');
     }
 

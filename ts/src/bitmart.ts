@@ -3209,7 +3209,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         if (market['swap']) {
-            return response;
+            return this.safeOrder ({ 'info': response });
         }
         const data = this.safeValue (response, 'data');
         if (data === true) {
