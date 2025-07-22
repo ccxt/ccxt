@@ -277,7 +277,7 @@ const INTERFACE_METHODS = [
     'fetchTransfer',
     'fetchTransfers',
     'fetchWithdrawals',
-    'setLeverage',
+    // 'setLeverage', // tmp remove we have to unify types
     'setMargin',
     'setMarginMode',
     'setPositionMode',
@@ -1323,8 +1323,9 @@ ${caseStatements.join('\n')}
         const exchanges = ['Exchange'].concat(exchangeIds);
 
         const caseStatements = exchanges.map(exchange => {
+            const struct = exchange === 'Exchange' ? 'ExchangeTyped' : this.capitalize(exchange);
             return`    case "${exchange}":
-        ${exchange}Itf := &${this.capitalize(exchange)}{}
+        ${exchange}Itf := &${struct}{}
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
         })
@@ -1458,14 +1459,14 @@ type IExchange interface {
         }
         const options = { goFolder, exchanges }
 
-        // if (!transpilingSingleExchange && !child) {
+        if (!transpilingSingleExchange && !child) {
             this.transpileBaseMethods (exchangeBase)
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
-        // }
+        }
 
         if (!baseOnly && !examplesOnly) {
-            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
 
