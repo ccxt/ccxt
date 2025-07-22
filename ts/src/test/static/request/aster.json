@@ -410,6 +410,17 @@
                 ],
                 "output": "symbol=BTCUSDT&leverage=21&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/income",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&incomeType=FUNDING_FEE&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
         ]
     }
 }

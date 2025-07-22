@@ -2051,6 +2051,26 @@
                     "maxNotionalValue": "5000000"
                 }
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "ETHUSDT",
+                    "incomeType": "FUNDING_FEE",
+                    "income": "0.00134317",
+                    "asset": "USDT",
+                    "time": "1621584000000",
+                    "info": "FUNDING_FEE",
+                    "tranId": "4480321991774044580",
+                    "tradeId": ""
+                },
+                "parsedResponse": {}
+            }
         ]
     }
 }
