@@ -1320,10 +1320,10 @@ ${caseStatements.join('\n')}
         if (!WRAPPER_METHODS['Exchange']) {
             throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
         }
-        const exchanges = ['Exchange'].concat(exchangeIds);
+        const exchanges = ['exchange'].concat(exchangeIds);
 
         const caseStatements = exchanges.map(exchange => {
-            const struct = exchange === 'Exchange' ? 'ExchangeTyped' : this.capitalize(exchange);
+            const struct = exchange === 'exchange' ? 'ExchangeTyped' : this.capitalize(exchange);
             return`    case "${exchange}":
         ${exchange}Itf := &${struct}{}
         ${exchange}Itf.Init(exchangeArgs)
@@ -1332,6 +1332,7 @@ ${caseStatements.join('\n')}
 
         const functionDecl = `
 func CreateExchange(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+    exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements.join('\n')}
         default:
@@ -1356,6 +1357,7 @@ type IExchange interface {
 
         const file = [
             'package ccxt',
+            'import "strings"',
             this.createGeneratedHeader().join('\n'),
             '',
             interfaceDecl,
