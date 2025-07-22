@@ -609,7 +609,7 @@
             {
                 "description": "trades with since",
                 "method": "fetchTrades",
-                "url": "https://api.kraken.com/0/public/Trades?pair=XBTUSDT&since=1716550666",
+                "url": "https://api.kraken.com/0/public/Trades?pair=XBTUSDT&since=1716550666738000000",
                 "input": [
                     "BTC/USDT",
                     1716550666738
