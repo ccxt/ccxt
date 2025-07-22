@@ -3,7 +3,9 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Account, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
 
@@ -222,6 +224,7 @@ export default class backpack extends Exchange {
                 'secret': true,
             },
             'options': {
+                'recvWindow': 5000, // default is 5000, max is 60000
                 'brokerId': '',
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
@@ -943,15 +946,78 @@ export default class backpack extends Exchange {
         return this.safeInteger (response, 0, this.milliseconds ());
     }
 
+    /**
+     * @method
+     * @name backpack#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.backpack.exchange/#tag/Account/operation/get_account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1Account (params);
+        //
+        //
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //         "currency": "BTC",
+        //         "balance": "0.0000000000000000",
+        //         "available": "0",
+        //         "hold": "0.0000000000000000",
+        //         "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
+        //     }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'info': account,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
-        if (method === 'GET') {
+        let url = this.urls['api'][api];
+        if (api === 'public') {
             const query = this.urlencode (params);
             if (query.length !== 0) {
                 endpoint += '?' + query;
             }
+            url += endpoint;
+        } else if (api === 'private') {
+            const ts = this.milliseconds ().toString ();
+            const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
+            const apiKey = this.apiKey;
+            headers = {
+                'X-Timestamp': ts,
+                'X-Window': recvWindow,
+                'X-API-Key': apiKey,
+            };
+            const instruction = 'instruction=accountQuery';
+            if (method === 'GET') {
+                const query = this.urlencode (this.keysort (params));
+                const payload = instruction + query + '&timestamp=' + ts + '&window=' + recvWindow;
+                const secretBytes = this.base64ToBinary (this.secret);
+                const seed = this.arraySlice (secretBytes, 0, 32);
+                const signature = eddsa (this.encode (payload), seed, ed25519);
+                headers['X-Signature'] = signature;
+            } else if (method === 'POST') {
+                body = this.json (this.keysort (params));
+                const payload = instruction + body + '&timestamp=' + ts + '&window=' + recvWindow;
+                const secretBytes = this.base64ToBinary (this.secret);
+                const seed = this.arraySlice (secretBytes, 0, 32);
+                const signature = eddsa (this.encode (payload), seed, ed25519);
+                headers['X-Signature'] = signature;
+            }
+            url += endpoint;
         }
-        const url = this.urls['api'][api] + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
