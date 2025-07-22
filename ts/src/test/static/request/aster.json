@@ -398,6 +398,18 @@
                 ],
                 "output": "symbol=BTCUSDT&marginType=CROSSED&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "https://fapi.asterdex.com/fapi/v1/leverage",
+                "input": [
+                    21,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&leverage=21&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
         ]
     }
 }

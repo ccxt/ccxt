@@ -2031,6 +2031,26 @@
                     "type": 1
                 }
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "input": [
+                    21,
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "leverage": 21,
+                    "maxNotionalValue": "5000000"
+                },
+                "parsedResponse": {
+                    "symbol": "BTCUSDT",
+                    "leverage": 21,
+                    "maxNotionalValue": "5000000"
+                }
+            }
         ]
     }
 }

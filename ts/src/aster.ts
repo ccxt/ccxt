@@ -170,7 +170,7 @@ export default class aster extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -2049,6 +2049,40 @@ export default class aster extends Exchange {
         //    ]
         //
         return this.parseOrders (response, market);
+    }
+
+    /**
+     * @method
+     * @name aster#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-initial-leverage-trade
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        const response = await this.privatePostFapiV1Leverage (this.extend (request, params));
+        //
+        //     {
+        //         "leverage": 21,
+        //         "maxNotionalValue": "1000000",
+        //         "symbol": "BTCUSDT"
+        //     }
+        //
+        return response;
     }
 
     /**
