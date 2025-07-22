@@ -2129,7 +2129,7 @@ func WithFetchDepositsWithdrawalsParams(params map[string]interface{}) FetchDepo
 
 
 type FetchDepositsOptionsStruct struct {
-    Symbol *string
+    Code *string
     Since *int64
     Limit *int64
     Params *map[string]interface{}
@@ -2137,9 +2137,9 @@ type FetchDepositsOptionsStruct struct {
 
 type FetchDepositsOptions func(opts *FetchDepositsOptionsStruct)
 
-func WithFetchDepositsSymbol(symbol string) FetchDepositsOptions {
+func WithFetchDepositsCode(code string) FetchDepositsOptions {
     return func(opts *FetchDepositsOptionsStruct) {
-        opts.Symbol = &symbol
+        opts.Code = &code
     }
 }
 
@@ -2166,7 +2166,7 @@ func WithFetchDepositsParams(params map[string]interface{}) FetchDepositsOptions
 
 
 type FetchWithdrawalsOptionsStruct struct {
-    Symbol *string
+    Code *string
     Since *int64
     Limit *int64
     Params *map[string]interface{}
@@ -2174,9 +2174,9 @@ type FetchWithdrawalsOptionsStruct struct {
 
 type FetchWithdrawalsOptions func(opts *FetchWithdrawalsOptionsStruct)
 
-func WithFetchWithdrawalsSymbol(symbol string) FetchWithdrawalsOptions {
+func WithFetchWithdrawalsCode(code string) FetchWithdrawalsOptions {
     return func(opts *FetchWithdrawalsOptionsStruct) {
-        opts.Symbol = &symbol
+        opts.Code = &code
     }
 }
 

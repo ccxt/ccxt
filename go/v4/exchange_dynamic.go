@@ -4,7 +4,7 @@ package ccxt
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
     switch exchangeId {
     case "Exchange":
         ExchangeItf := &Exchange{}

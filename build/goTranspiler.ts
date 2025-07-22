@@ -52,6 +52,7 @@ if (platform === 'win32') {
 const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
 const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
+const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
@@ -1292,7 +1293,7 @@ ${constStatements.join('\n')}
         })
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
         default:
@@ -1866,13 +1867,13 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [/var exchange interface{} =/g,'var exchange ccxt.IExchange ='],
-            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.IExchange ='],
-            [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
-            [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+            [/var exchange interface{} =/g,'var exchange ccxt.ICoreExchange ='],
+            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.ICoreExchange ='],
+            [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
+            [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {'],
+            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
             [/GetRootException\(ex\)/g, 'GetRootException(e)'],
             [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
@@ -1966,8 +1967,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let regexes = [
                 [/exchange \:\= &ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange := ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
-                [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+                [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
+                [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
                 [/testSharedMethods\./g, ''],
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
