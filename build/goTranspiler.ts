@@ -1324,14 +1324,14 @@ ${caseStatements.join('\n')}
 
         const caseStatements = exchanges.map(exchange => {
             const struct = exchange === 'exchange' ? 'ExchangeTyped' : this.capitalize(exchange);
+            const args = exchange === 'exchange' ? 'nil' : 'options';
             return`    case "${exchange}":
-        ${exchange}Itf := &${struct}{}
-        ${exchange}Itf.Init(exchangeArgs)
-        return ${exchange}Itf, true`;
+        itf := New${struct}(${args})
+        return &itf, true`;
         })
 
         const functionDecl = `
-func CreateExchange(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+func CreateExchange(exchangeId string, options map[string]interface{}) (IExchange, bool) {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements.join('\n')}
