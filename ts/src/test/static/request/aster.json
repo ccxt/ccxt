@@ -386,6 +386,18 @@
                 ],
                 "output": "symbol=BTCUSDT&origclientorderidlist=%5B123%2C456%5D&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "setMarginMode",
+                "method": "setMarginMode",
+                "url": "https://fapi.asterdex.com/fapi/v1/marginType",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&marginType=CROSSED&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
         ]
     }
 }

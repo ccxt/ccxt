@@ -2009,6 +2009,28 @@
                     }
                 ]
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "setMarginMode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "amount": 100.0,
+                    "code": 200,
+                    "msg": "Successfully modify position margin.",
+                    "type": 1
+                },
+                "parsedResponse": {
+                    "amount": 100.0,
+                    "code": 200,
+                    "msg": "Successfully modify position margin.",
+                    "type": 1
+                }
+            }
         ]
     }
 }

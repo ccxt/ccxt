@@ -172,7 +172,7 @@ export default class aster extends Exchange {
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': false,
@@ -1325,6 +1325,45 @@ export default class aster extends Exchange {
         //     ]
         //
         return this.parseBalance (response);
+    }
+
+    /**
+     * @method
+     * @name aster#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-margin-type-trade
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toUpperCase ();
+        if (marginMode === 'CROSS') {
+            marginMode = 'CROSSED';
+        }
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSSED')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        const response = await this.privatePostFapiV1MarginType (this.extend (request, params));
+        //
+        //     {
+        //         "amount": 100.0,
+        //         "code": 200,
+        //         "msg": "Successfully modify position margin.",
+        //         "type": 1
+        //     }
+        //
+        return response;
     }
 
     /**
