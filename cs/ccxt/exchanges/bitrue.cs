@@ -318,7 +318,9 @@ public partial class bitrue : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "createMarketBuyOrderRequiresPrice", true },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                } },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
@@ -783,10 +785,20 @@ public partial class bitrue : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object fetchMarkets = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
-        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        object types = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
         {
-            object marketType = getValue(fetchMarkets, i);
+            types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            types = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        {
+            object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesRaw).Add(this.spotV1PublicGetExchangeInfo(parameters));
