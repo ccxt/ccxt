@@ -1,6 +1,8 @@
 import asyncio
 
-
+# Test by running:
+# - python python/ccxt/pro/test/base/test_close.py
+# - python python/ccxt/pro/test/base/test_future.py
 class Future(asyncio.Future):
 
     def resolve(self, result=None):
