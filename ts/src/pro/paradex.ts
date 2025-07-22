@@ -185,9 +185,11 @@ export default class paradex extends paradexRest {
             const price = this.safeString (insert, 'price');
             const size = this.safeString (insert, 'size');
             if (side === 'BUY') {
-                orderbookData['bids'].push ([ price, size ]);
+                const bids = orderbookData['bids'];
+                bids.push ([ price, size ]);
             } else {
-                orderbookData['asks'].push ([ price, size ]);
+                const asks = orderbookData['asks'];
+                asks.push ([ price, size ]);
             }
         }
         const orderbook = this.orderbooks[symbol];

@@ -531,7 +531,8 @@ export default class vertex extends vertexRest {
         const bids = this.safeList (message, 'bids', []);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
-            data['bids'].push ([
+            const dataBids = data['bids'];
+            dataBids.push ([
                 this.convertFromX18 (bid[0]),
                 this.convertFromX18 (bid[1]),
             ]);
@@ -539,7 +540,8 @@ export default class vertex extends vertexRest {
         const asks = this.safeList (message, 'asks', []);
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
-            data['asks'].push ([
+            const dataAsks = data['asks'];
+            dataAsks.push ([
                 this.convertFromX18 (ask[0]),
                 this.convertFromX18 (ask[1]),
             ]);

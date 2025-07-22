@@ -730,11 +730,11 @@ export default class krakenfutures extends krakenfuturesRest {
                 if (previousOrder['trades'] === undefined) {
                     previousOrder['trades'] = [];
                 }
-                previousOrder['trades'].push (trade);
+                const trades = previousOrder['trades'];
+                trades.push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                 let totalCost = '0';
                 let totalAmount = '0';
-                const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
                     totalCost = Precise.stringAdd (totalCost, this.numberToString (currentTrade['cost']));

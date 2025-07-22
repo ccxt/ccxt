@@ -4211,7 +4211,8 @@ export default class binance extends binanceRest {
                                 }
                             }
                             if (insertNewFeeCurrency) {
-                                order['fees'].push (tradeFee);
+                                const orderFees = order['fees'];
+                                orderFees.push (tradeFee);
                             }
                         } else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
