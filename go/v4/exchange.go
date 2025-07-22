@@ -228,7 +228,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
 }
 
-func NewExchange() IExchange {
+func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
