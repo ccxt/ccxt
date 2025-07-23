@@ -105,7 +105,7 @@ func  (this *testMainClass) Init(exchangeId interface{}, symbolArgv interface{},
                 "enableRateLimit": true,
                 "timeout": 30000,
             }
-            var exchange ccxt.IExchange = InitExchange(exchangeId, exchangeArgs, this.WsTests)
+            var exchange ccxt.ICoreExchange = InitExchange(exchangeId, exchangeArgs, this.WsTests)
             if IsTrue(exchange.GetAlias()) {
                 ExitScript(0)
             }
@@ -144,7 +144,7 @@ func  (this *testMainClass) CheckIfSpecificTestIsChosen(methodArgv interface{}) 
         }
     }
 }
-func  (this *testMainClass) ImportFiles(exchange ccxt.IExchange) <- chan interface{} {
+func  (this *testMainClass) ImportFiles(exchange ccxt.ICoreExchange) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -165,7 +165,7 @@ func  (this *testMainClass) ImportFiles(exchange ccxt.IExchange) <- chan interfa
             }()
             return ch
         }
-func  (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.IExchange)  {
+func  (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange)  {
     var exchangeId interface{} = exchange.GetId()
     var reqCreds interface{} = GetExchangeProp(exchange, Add("re", "quiredCredentials")) // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
     var objkeys interface{} = ObjectKeys(reqCreds)
@@ -183,7 +183,7 @@ func  (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.IExchange)  {
         }
     }
 }
-func  (this *testMainClass) ExpandSettings(exchange ccxt.IExchange)  {
+func  (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange)  {
     var exchangeId interface{} = exchange.GetId()
     var keysGlobal interface{} = Add(GetRootDir(), "keys.json")
     var keysLocal interface{} = Add(GetRootDir(), "keys.local.json")
@@ -250,7 +250,7 @@ func  (this *testMainClass) AddPadding(message interface{}, size interface{}) in
     }
     return Add(message, res)
 }
-func  (this *testMainClass) TestMethod(methodName interface{}, exchange ccxt.IExchange, args interface{}, isPublic interface{}) <- chan interface{} {
+func  (this *testMainClass) TestMethod(methodName interface{}, exchange ccxt.ICoreExchange, args interface{}, isPublic interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -327,7 +327,7 @@ func  (this *testMainClass) TestMethod(methodName interface{}, exchange ccxt.IEx
             }()
             return ch
         }
-func  (this *testMainClass) GetSkips(exchange ccxt.IExchange, methodName interface{}) interface{}  {
+func  (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName interface{}) interface{}  {
     var finalSkips interface{} = map[string]interface{} {}
     // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
     var methodNames interface{} = []interface{}{methodName, Add(Add(methodName, "."), this.Ext)}
@@ -379,7 +379,7 @@ func  (this *testMainClass) GetSkips(exchange ccxt.IExchange, methodName interfa
     }
     return finalSkips
 }
-func  (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.IExchange, optionalArgs ...interface{}) <- chan interface{} {
+func  (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.ICoreExchange, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -509,7 +509,7 @@ func  (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.IExch
             }()
             return ch
         }
-func  (this *testMainClass) RunPublicTests(exchange ccxt.IExchange, symbol interface{}) <- chan interface{} {
+func  (this *testMainClass) RunPublicTests(exchange ccxt.ICoreExchange, symbol interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -566,7 +566,7 @@ func  (this *testMainClass) RunPublicTests(exchange ccxt.IExchange, symbol inter
             }()
             return ch
         }
-func  (this *testMainClass) RunTests(exchange ccxt.IExchange, tests interface{}, isPublicTest interface{}) <- chan interface{} {
+func  (this *testMainClass) RunTests(exchange ccxt.ICoreExchange, tests interface{}, isPublicTest interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -607,7 +607,7 @@ func  (this *testMainClass) RunTests(exchange ccxt.IExchange, tests interface{},
             }()
             return ch
         }
-func  (this *testMainClass) LoadExchange(exchange ccxt.IExchange) <- chan interface{} {
+func  (this *testMainClass) LoadExchange(exchange ccxt.ICoreExchange) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -629,7 +629,7 @@ func  (this *testMainClass) LoadExchange(exchange ccxt.IExchange) <- chan interf
             }()
             return ch
         }
-func  (this *testMainClass) GetTestSymbol(exchange ccxt.IExchange, isSpot interface{}, symbols interface{}) interface{}  {
+func  (this *testMainClass) GetTestSymbol(exchange ccxt.ICoreExchange, isSpot interface{}, symbols interface{}) interface{}  {
     var symbol interface{} = nil
     var preferredSpotSymbol interface{} = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSpotSymbol")
     var preferredSwapSymbol interface{} = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSwapSymbol")
@@ -651,7 +651,7 @@ func  (this *testMainClass) GetTestSymbol(exchange ccxt.IExchange, isSpot interf
     }
     return symbol
 }
-func  (this *testMainClass) GetExchangeCode(exchange ccxt.IExchange, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) GetExchangeCode(exchange ccxt.ICoreExchange, optionalArgs ...interface{}) interface{}  {
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
     if IsTrue(IsEqual(codes, nil)) {
@@ -665,7 +665,7 @@ func  (this *testMainClass) GetExchangeCode(exchange ccxt.IExchange, optionalArg
     }
     return code
 }
-func  (this *testMainClass) GetMarketsFromExchange(exchange ccxt.IExchange, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) GetMarketsFromExchange(exchange ccxt.ICoreExchange, optionalArgs ...interface{}) interface{}  {
     spot := GetArg(optionalArgs, 0, true)
     _ = spot
     var res interface{} = map[string]interface{} {}
@@ -682,7 +682,7 @@ func  (this *testMainClass) GetMarketsFromExchange(exchange ccxt.IExchange, opti
     }
     return res
 }
-func  (this *testMainClass) GetValidSymbol(exchange ccxt.IExchange, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalArgs ...interface{}) interface{}  {
     spot := GetArg(optionalArgs, 0, true)
     _ = spot
     var currentTypeMarkets interface{} = this.GetMarketsFromExchange(exchange, spot)
@@ -726,7 +726,7 @@ func  (this *testMainClass) GetValidSymbol(exchange ccxt.IExchange, optionalArgs
     }
     return symbol
 }
-func  (this *testMainClass) TestExchange(exchange ccxt.IExchange, optionalArgs ...interface{}) <- chan interface{} {
+func  (this *testMainClass) TestExchange(exchange ccxt.ICoreExchange, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -798,7 +798,7 @@ func  (this *testMainClass) TestExchange(exchange ccxt.IExchange, optionalArgs .
             }()
             return ch
         }
-func  (this *testMainClass) RunPrivateTests(exchange ccxt.IExchange, symbol interface{}) <- chan interface{} {
+func  (this *testMainClass) RunPrivateTests(exchange ccxt.ICoreExchange, symbol interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -885,7 +885,7 @@ func  (this *testMainClass) RunPrivateTests(exchange ccxt.IExchange, symbol inte
             }()
             return ch
         }
-func  (this *testMainClass) TestProxies(exchange ccxt.IExchange) <- chan interface{} {
+func  (this *testMainClass) TestProxies(exchange ccxt.ICoreExchange) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -947,7 +947,7 @@ func  (this *testMainClass) TestProxies(exchange ccxt.IExchange) <- chan interfa
             }()
             return ch
         }
-func  (this *testMainClass) CheckConstructor(exchange ccxt.IExchange)  {
+func  (this *testMainClass) CheckConstructor(exchange ccxt.ICoreExchange)  {
     // todo: this might be moved in base tests later
     if IsTrue(IsEqual(exchange.GetId(), "binance")) {
         Assert(IsTrue(IsEqual(exchange.GetHostname(), nil)) || IsTrue(IsEqual(exchange.GetHostname(), "")), "binance.com hostname should be empty")
@@ -958,7 +958,7 @@ func  (this *testMainClass) CheckConstructor(exchange ccxt.IExchange)  {
         Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.us/api/v3"), Add("https://api.binance.us/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
     }
 }
-func  (this *testMainClass) TestReturnResponseHeaders(exchange ccxt.IExchange) <- chan interface{} {
+func  (this *testMainClass) TestReturnResponseHeaders(exchange ccxt.ICoreExchange) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -986,7 +986,7 @@ func  (this *testMainClass) TestReturnResponseHeaders(exchange ccxt.IExchange) <
             }()
             return ch
         }
-func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{}) <- chan interface{} {
+func  (this *testMainClass) StartTest(exchange ccxt.ICoreExchange, symbol interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -1154,7 +1154,7 @@ func  (this *testMainClass) UrlencodedToDict(url interface{}) interface{}  {
     }
     return result
 }
-func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchange, skipKeys interface{}, newOutput interface{}, storedOutput interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExchange, skipKeys interface{}, newOutput interface{}, storedOutput interface{}, optionalArgs ...interface{}) interface{}  {
     strictTypeCheck := GetArg(optionalArgs, 0, true)
     _ = strictTypeCheck
     assertingKey := GetArg(optionalArgs, 1, nil)
@@ -1270,7 +1270,7 @@ func  (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.IExchang
     }
     return true  // c# requ
 }
-func  (this *testMainClass) AssertNewAndStoredOutput(exchange ccxt.IExchange, skipKeys interface{}, newOutput interface{}, storedOutput interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) AssertNewAndStoredOutput(exchange ccxt.ICoreExchange, skipKeys interface{}, newOutput interface{}, storedOutput interface{}, optionalArgs ...interface{}) interface{}  {
     strictTypeCheck := GetArg(optionalArgs, 0, true)
     _ = strictTypeCheck
     assertingKey := GetArg(optionalArgs, 1, nil)
@@ -1317,7 +1317,7 @@ func  (this *testMainClass) VarToString(optionalArgs ...interface{}) interface{}
     }
     return newString
 }
-func  (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.IExchange, typeVar interface{}, skipKeys interface{}, storedUrl interface{}, requestUrl interface{}, storedOutput interface{}, newOutput interface{}) interface{}  {
+func  (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange, typeVar interface{}, skipKeys interface{}, storedUrl interface{}, requestUrl interface{}, storedOutput interface{}, newOutput interface{}) interface{}  {
     if IsTrue(!IsEqual(storedUrl, requestUrl)) {
         // remove the host part from the url
         var firstPath interface{} = this.RemoveHostnamefromUrl(storedUrl)
@@ -1365,7 +1365,7 @@ func  (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.IExchange, t
     this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput)
     return true
 }
-func  (this *testMainClass) AssertStaticResponseOutput(exchange ccxt.IExchange, skipKeys interface{}, computedResult interface{}, storedResult interface{})  {
+func  (this *testMainClass) AssertStaticResponseOutput(exchange ccxt.ICoreExchange, skipKeys interface{}, computedResult interface{}, storedResult interface{})  {
     this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false)
 }
 func  (this *testMainClass) SanitizeDataInput(input interface{}) interface{}  {
@@ -1384,7 +1384,7 @@ func  (this *testMainClass) SanitizeDataInput(input interface{}) interface{}  {
     }
     return newInput
 }
-func  (this *testMainClass) TestRequestStatically(exchange ccxt.IExchange, method interface{}, data interface{}, typeVar interface{}, skipKeys interface{}) <- chan interface{} {
+func  (this *testMainClass) TestRequestStatically(exchange ccxt.ICoreExchange, method interface{}, data interface{}, typeVar interface{}, skipKeys interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -1458,13 +1458,13 @@ func  (this *testMainClass) TestRequestStatically(exchange ccxt.IExchange, metho
             }()
             return ch
         }
-func  (this *testMainClass) TestResponseStatically(exchange ccxt.IExchange, method interface{}, skipKeys interface{}, data interface{}) <- chan interface{} {
+func  (this *testMainClass) TestResponseStatically(exchange ccxt.ICoreExchange, method interface{}, skipKeys interface{}, data interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
                     var expectedResult interface{} = exchange.SafeValue(data, "parsedResponse")
-            var mockedExchange ccxt.IExchange = SetFetchResponse(exchange, GetValue(data, "httpResponse"))
+            var mockedExchange ccxt.ICoreExchange = SetFetchResponse(exchange, GetValue(data, "httpResponse"))
             if IsTrue(this.Info) {
                 Dump("[INFO] STATIC RESPONSE TEST:", method, ":", GetValue(data, "description"))
             }
@@ -1508,11 +1508,11 @@ func  (this *testMainClass) TestResponseStatically(exchange ccxt.IExchange, meth
             }()
             return ch
         }
-func  (this *testMainClass) InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {
+func  (this *testMainClass) InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {
     var markets interface{} = this.LoadMarketsFromFile(exchangeName)
     var currencies interface{} = this.LoadCurrenciesFromFile(exchangeName)
     // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-    var exchange ccxt.IExchange = InitExchange(exchangeName, map[string]interface{} {
+    var exchange ccxt.ICoreExchange = InitExchange(exchangeName, map[string]interface{} {
         "markets": markets,
         "currencies": currencies,
         "enableRateLimit": false,
@@ -1555,7 +1555,7 @@ func  (this *testMainClass) TestExchangeRequestStatically(exchangeName interface
                     // instantiate the exchange and make sure that we sink the requests to avoid an actual request
             testName := GetArg(optionalArgs, 0, nil)
             _ = testName
-            var exchange ccxt.IExchange = this.InitOfflineExchange(exchangeName)
+            var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName)
             var globalOptions interface{} = exchange.SafeDict(exchangeData, "options", map[string]interface{} {})
             // read apiKey/secret from the test file
             var apiKey interface{} = exchange.SafeString(exchangeData, "apiKey")
@@ -1643,7 +1643,7 @@ func  (this *testMainClass) TestExchangeResponseStatically(exchangeName interfac
                 defer ReturnPanicError(ch)
                     testName := GetArg(optionalArgs, 0, nil)
             _ = testName
-            var exchange ccxt.IExchange = this.InitOfflineExchange(exchangeName)
+            var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName)
             // read apiKey/secret from the test file
             var apiKey interface{} = exchange.SafeString(exchangeData, "apiKey")
             if IsTrue(apiKey) {
@@ -1720,7 +1720,7 @@ func  (this *testMainClass) TestExchangeResponseStatically(exchangeName interfac
             }()
             return ch
         }
-func  (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.IExchange, exchangeData interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.ICoreExchange, exchangeData interface{}, optionalArgs ...interface{}) interface{}  {
     testName := GetArg(optionalArgs, 0, nil)
     _ = testName
     if IsTrue(!IsEqual(testName, nil)) {
@@ -1738,7 +1738,7 @@ func  (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.IExchange
     return sum
 }
 func  (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName interface{}, exchangeData interface{}) interface{}  {
-    var exchange ccxt.IExchange = InitExchange("Exchange", map[string]interface{} {})
+    var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]interface{} {})
     var isDisabledPy interface{} = exchange.SafeBool(exchangeData, "disabledPy", false)
     if IsTrue(IsTrue(isDisabledPy) && IsTrue((IsEqual(this.Lang, "PY")))) {
         Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"))
@@ -1797,7 +1797,7 @@ func  (this *testMainClass) RunStaticTests(typeVar interface{}, optionalArgs ...
                 return nil
             }
             var exchanges interface{} = ObjectKeys(staticData)
-            var exchange ccxt.IExchange = InitExchange("Exchange", map[string]interface{} {}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
+            var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]interface{} {}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
             var promises interface{} = []interface{}{}
             var sum interface{} = 0
             if IsTrue(targetExchange) {
@@ -1914,7 +1914,7 @@ func  (this *testMainClass) TestBinance() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("binance")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("binance")
         var spotId interface{} = "x-TKT5PX2F"
         var swapId interface{} = "x-cvBPrNm9"
         var inverseSwapId interface{} = "x-xcKtGhcu"
@@ -2063,7 +2063,7 @@ func  (this *testMainClass) TestOkx() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("okx")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("okx")
         var id interface{} = "e847386590ce4dBC"
         var spotOrderRequest interface{} = nil
         
@@ -2141,7 +2141,7 @@ func  (this *testMainClass) TestCryptocom() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("cryptocom")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("cryptocom")
         var id interface{} = "CCXT"
         
         retRes16898 := (<-exchange.LoadMarkets())
@@ -2190,7 +2190,7 @@ func  (this *testMainClass) TestBybit() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("bybit")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bybit")
         var reqHeaders interface{} = nil
         var id interface{} = "CCXT"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
@@ -2237,7 +2237,7 @@ func  (this *testMainClass) TestKucoin() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("kucoin")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("kucoin")
         var reqHeaders interface{} = nil
         var spotId interface{} = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "id")
         var spotKey interface{} = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "key")
@@ -2287,7 +2287,7 @@ func  (this *testMainClass) TestKucoinfutures() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("kucoinfutures")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("kucoinfutures")
         var reqHeaders interface{} = nil
         var id interface{} = "ccxtfutures"
         var futureId interface{} = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "id")
@@ -2336,7 +2336,7 @@ func  (this *testMainClass) TestBitget() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("bitget")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitget")
         var reqHeaders interface{} = nil
         var id interface{} = "p4sve"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bitget - id: ", id), " not in options"))
@@ -2382,7 +2382,7 @@ func  (this *testMainClass) TestMexc() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("mexc")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("mexc")
         var reqHeaders interface{} = nil
         var id interface{} = "CCXT"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("mexc - id: ", id), " not in options"))
@@ -2431,7 +2431,7 @@ func  (this *testMainClass) TestHtx() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("htx")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("htx")
         // spot test
         var id interface{} = "AA03022abc"
         var spotOrderRequest interface{} = nil
@@ -2534,7 +2534,7 @@ func  (this *testMainClass) TestWoo() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("woo")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("woo")
         // spot test
         var id interface{} = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
         var spotOrderRequest interface{} = nil
@@ -2612,7 +2612,7 @@ func  (this *testMainClass) TestBitmart() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("bitmart")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitmart")
         var reqHeaders interface{} = nil
         var id interface{} = "CCXTxBitmart000"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("bitmart - id: ", id), " not in options"))
@@ -2661,7 +2661,7 @@ func  (this *testMainClass) TestCoinex() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("coinex")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
         var id interface{} = "x-167673045"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("coinex - id: ", id), " not in options"))
         var spotOrderRequest interface{} = nil
@@ -2709,7 +2709,7 @@ func  (this *testMainClass) TestBingx() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("bingx")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bingx")
         var reqHeaders interface{} = nil
         var id interface{} = "CCXT"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bingx - id: ", id), " not in options"))
@@ -2756,7 +2756,7 @@ func  (this *testMainClass) TestPhemex() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("phemex")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("phemex")
         var id interface{} = "CCXT123456"
         var request interface{} = nil
         
@@ -2803,7 +2803,7 @@ func  (this *testMainClass) TestBlofin() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("blofin")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("blofin")
         var id interface{} = "ec6dd3a7dd982d0b"
         var request interface{} = nil
         
@@ -2866,7 +2866,7 @@ func  (this *testMainClass) TestCoinbaseinternational() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("coinbaseinternational")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbaseinternational")
         AddElementToObject(exchange.GetOptions(), "portfolio", "random")
         var id interface{} = "nfqkvdjp"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
@@ -2914,7 +2914,7 @@ func  (this *testMainClass) TestCoinbaseAdvanced() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("coinbase")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbase")
         var id interface{} = "ccxt"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
         var request interface{} = nil
@@ -2961,7 +2961,7 @@ func  (this *testMainClass) TestWoofiPro() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("woofipro")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("woofipro")
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
         var id interface{} = "CCXT"
         
@@ -3011,7 +3011,7 @@ func  (this *testMainClass) TestOxfun() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("oxfun")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("oxfun")
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
         var id interface{} = 1000
         
@@ -3058,7 +3058,7 @@ func  (this *testMainClass) TestXT() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("xt")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("xt")
         var id interface{} = "CCXT"
         var spotOrderRequest interface{} = nil
         
@@ -3131,7 +3131,7 @@ func  (this *testMainClass) TestVertex() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("vertex")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("vertex")
         exchange.SetWalletAddress("0xc751489d24a33172541ea451bc253d7a9e98c781")
         exchange.SetPrivateKey("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b")
         AddElementToObject(exchange.GetOptions(), "v1contracts", map[string]interface{} {
@@ -3188,7 +3188,7 @@ func  (this *testMainClass) TestParadex() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("paradex")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("paradex")
         exchange.SetWalletAddress("0xc751489d24a33172541ea451bc253d7a9e98c781")
         exchange.SetPrivateKey("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b")
         AddElementToObject(exchange.GetOptions(), "authToken", "token")
@@ -3264,7 +3264,7 @@ func  (this *testMainClass) TestHashkey() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("hashkey")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("hashkey")
         var reqHeaders interface{} = nil
         var id interface{} = "10000700011"
         
@@ -3310,7 +3310,7 @@ func  (this *testMainClass) TestCoincatch() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("coincatch")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coincatch")
         var reqHeaders interface{} = nil
         var id interface{} = "47cfy"
         
@@ -3356,7 +3356,7 @@ func  (this *testMainClass) TestDefx() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("defx")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("defx")
         var reqHeaders interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -3402,7 +3402,7 @@ func  (this *testMainClass) TestCryptomus() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("cryptomus")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("cryptomus")
         var request interface{} = nil
         
         {		ret__ := func(this *testMainClass) (ret_ interface{}) {
@@ -3447,7 +3447,7 @@ func  (this *testMainClass) TestDerive() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("derive")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("derive")
         var id interface{} = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"
         Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), Add(Add("derive - id: ", id), " not in options"))
         var request interface{} = nil
@@ -3500,7 +3500,7 @@ func  (this *testMainClass) TestModeTrade() <- chan interface{} {
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("modetrade")
+                var exchange ccxt.ICoreExchange = this.InitOfflineExchange("modetrade")
         exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
         var id interface{} = "CCXTMODE"
         

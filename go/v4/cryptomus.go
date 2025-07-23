@@ -891,7 +891,9 @@ func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{})
             //         "success": true
             //     }
             //
-        ch <- response
+        ch <- this.SafeOrder(map[string]interface{} {
+                "info": response,
+            })
             return nil
         
             }()

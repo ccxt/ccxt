@@ -1862,7 +1862,9 @@ func  (this *paradex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 //
             // if success, no response...
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

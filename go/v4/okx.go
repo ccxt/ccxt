@@ -3749,7 +3749,7 @@ func  (this *okx) CancelOrder(id interface{}, optionalArgs ...interface{}) <- ch
                 orderInner:= (<-this.CancelOrders([]interface{}{id}, symbol, params))
                 PanicOnError(orderInner)
         
-                ch <- this.SafeValue(orderInner, 0)
+                ch <- this.SafeDict(orderInner, 0)
                 return nil
             }
         

@@ -135,329 +135,328 @@ type IExchange interface {
     FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error)
 }
 
-func CreateExchange(exchangeId string, options map[string]interface{}) (IExchange, bool) {
+func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
     case "exchange":
         itf := NewExchangeTyped(nil)
-        return &itf, true
+        return &itf
     case "alpaca":
         itf := NewAlpaca(options)
-        return &itf, true
+        return &itf
     case "apex":
         itf := NewApex(options)
-        return &itf, true
+        return &itf
     case "ascendex":
         itf := NewAscendex(options)
-        return &itf, true
+        return &itf
     case "bequant":
         itf := NewBequant(options)
-        return &itf, true
+        return &itf
     case "bigone":
         itf := NewBigone(options)
-        return &itf, true
+        return &itf
     case "binance":
         itf := NewBinance(options)
-        return &itf, true
+        return &itf
     case "binancecoinm":
         itf := NewBinancecoinm(options)
-        return &itf, true
+        return &itf
     case "binanceus":
         itf := NewBinanceus(options)
-        return &itf, true
+        return &itf
     case "binanceusdm":
         itf := NewBinanceusdm(options)
-        return &itf, true
+        return &itf
     case "bingx":
         itf := NewBingx(options)
-        return &itf, true
+        return &itf
     case "bit2c":
         itf := NewBit2c(options)
-        return &itf, true
+        return &itf
     case "bitbank":
         itf := NewBitbank(options)
-        return &itf, true
+        return &itf
     case "bitbns":
         itf := NewBitbns(options)
-        return &itf, true
+        return &itf
     case "bitfinex":
         itf := NewBitfinex(options)
-        return &itf, true
+        return &itf
     case "bitflyer":
         itf := NewBitflyer(options)
-        return &itf, true
+        return &itf
     case "bitget":
         itf := NewBitget(options)
-        return &itf, true
+        return &itf
     case "bithumb":
         itf := NewBithumb(options)
-        return &itf, true
+        return &itf
     case "bitmart":
         itf := NewBitmart(options)
-        return &itf, true
+        return &itf
     case "bitmex":
         itf := NewBitmex(options)
-        return &itf, true
+        return &itf
     case "bitopro":
         itf := NewBitopro(options)
-        return &itf, true
+        return &itf
     case "bitrue":
         itf := NewBitrue(options)
-        return &itf, true
+        return &itf
     case "bitso":
         itf := NewBitso(options)
-        return &itf, true
+        return &itf
     case "bitstamp":
         itf := NewBitstamp(options)
-        return &itf, true
+        return &itf
     case "bitteam":
         itf := NewBitteam(options)
-        return &itf, true
+        return &itf
     case "bittrade":
         itf := NewBittrade(options)
-        return &itf, true
+        return &itf
     case "bitvavo":
         itf := NewBitvavo(options)
-        return &itf, true
+        return &itf
     case "blockchaincom":
         itf := NewBlockchaincom(options)
-        return &itf, true
+        return &itf
     case "blofin":
         itf := NewBlofin(options)
-        return &itf, true
+        return &itf
     case "btcalpha":
         itf := NewBtcalpha(options)
-        return &itf, true
+        return &itf
     case "btcbox":
         itf := NewBtcbox(options)
-        return &itf, true
+        return &itf
     case "btcmarkets":
         itf := NewBtcmarkets(options)
-        return &itf, true
+        return &itf
     case "btcturk":
         itf := NewBtcturk(options)
-        return &itf, true
+        return &itf
     case "bybit":
         itf := NewBybit(options)
-        return &itf, true
+        return &itf
     case "cex":
         itf := NewCex(options)
-        return &itf, true
+        return &itf
     case "coinbase":
         itf := NewCoinbase(options)
-        return &itf, true
+        return &itf
     case "coinbaseadvanced":
         itf := NewCoinbaseadvanced(options)
-        return &itf, true
+        return &itf
     case "coinbaseexchange":
         itf := NewCoinbaseexchange(options)
-        return &itf, true
+        return &itf
     case "coinbaseinternational":
         itf := NewCoinbaseinternational(options)
-        return &itf, true
+        return &itf
     case "coincatch":
         itf := NewCoincatch(options)
-        return &itf, true
+        return &itf
     case "coincheck":
         itf := NewCoincheck(options)
-        return &itf, true
+        return &itf
     case "coinex":
         itf := NewCoinex(options)
-        return &itf, true
+        return &itf
     case "coinmate":
         itf := NewCoinmate(options)
-        return &itf, true
+        return &itf
     case "coinmetro":
         itf := NewCoinmetro(options)
-        return &itf, true
+        return &itf
     case "coinone":
         itf := NewCoinone(options)
-        return &itf, true
+        return &itf
     case "coinsph":
         itf := NewCoinsph(options)
-        return &itf, true
+        return &itf
     case "coinspot":
         itf := NewCoinspot(options)
-        return &itf, true
+        return &itf
     case "cryptocom":
         itf := NewCryptocom(options)
-        return &itf, true
+        return &itf
     case "cryptomus":
         itf := NewCryptomus(options)
-        return &itf, true
+        return &itf
     case "defx":
         itf := NewDefx(options)
-        return &itf, true
+        return &itf
     case "delta":
         itf := NewDelta(options)
-        return &itf, true
+        return &itf
     case "deribit":
         itf := NewDeribit(options)
-        return &itf, true
+        return &itf
     case "derive":
         itf := NewDerive(options)
-        return &itf, true
+        return &itf
     case "digifinex":
         itf := NewDigifinex(options)
-        return &itf, true
+        return &itf
     case "ellipx":
         itf := NewEllipx(options)
-        return &itf, true
+        return &itf
     case "exmo":
         itf := NewExmo(options)
-        return &itf, true
+        return &itf
     case "fmfwio":
         itf := NewFmfwio(options)
-        return &itf, true
+        return &itf
     case "gate":
         itf := NewGate(options)
-        return &itf, true
+        return &itf
     case "gateio":
         itf := NewGateio(options)
-        return &itf, true
+        return &itf
     case "gemini":
         itf := NewGemini(options)
-        return &itf, true
+        return &itf
     case "hashkey":
         itf := NewHashkey(options)
-        return &itf, true
+        return &itf
     case "hitbtc":
         itf := NewHitbtc(options)
-        return &itf, true
+        return &itf
     case "hollaex":
         itf := NewHollaex(options)
-        return &itf, true
+        return &itf
     case "htx":
         itf := NewHtx(options)
-        return &itf, true
+        return &itf
     case "huobi":
         itf := NewHuobi(options)
-        return &itf, true
+        return &itf
     case "hyperliquid":
         itf := NewHyperliquid(options)
-        return &itf, true
+        return &itf
     case "independentreserve":
         itf := NewIndependentreserve(options)
-        return &itf, true
+        return &itf
     case "indodax":
         itf := NewIndodax(options)
-        return &itf, true
+        return &itf
     case "kraken":
         itf := NewKraken(options)
-        return &itf, true
+        return &itf
     case "krakenfutures":
         itf := NewKrakenfutures(options)
-        return &itf, true
+        return &itf
     case "kucoin":
         itf := NewKucoin(options)
-        return &itf, true
+        return &itf
     case "kucoinfutures":
         itf := NewKucoinfutures(options)
-        return &itf, true
+        return &itf
     case "latoken":
         itf := NewLatoken(options)
-        return &itf, true
+        return &itf
     case "lbank":
         itf := NewLbank(options)
-        return &itf, true
+        return &itf
     case "luno":
         itf := NewLuno(options)
-        return &itf, true
+        return &itf
     case "mercado":
         itf := NewMercado(options)
-        return &itf, true
+        return &itf
     case "mexc":
         itf := NewMexc(options)
-        return &itf, true
+        return &itf
     case "modetrade":
         itf := NewModetrade(options)
-        return &itf, true
+        return &itf
     case "myokx":
         itf := NewMyokx(options)
-        return &itf, true
+        return &itf
     case "ndax":
         itf := NewNdax(options)
-        return &itf, true
+        return &itf
     case "novadax":
         itf := NewNovadax(options)
-        return &itf, true
+        return &itf
     case "oceanex":
         itf := NewOceanex(options)
-        return &itf, true
+        return &itf
     case "okcoin":
         itf := NewOkcoin(options)
-        return &itf, true
+        return &itf
     case "okx":
         itf := NewOkx(options)
-        return &itf, true
+        return &itf
     case "okxus":
         itf := NewOkxus(options)
-        return &itf, true
+        return &itf
     case "onetrading":
         itf := NewOnetrading(options)
-        return &itf, true
+        return &itf
     case "oxfun":
         itf := NewOxfun(options)
-        return &itf, true
+        return &itf
     case "p2b":
         itf := NewP2b(options)
-        return &itf, true
+        return &itf
     case "paradex":
         itf := NewParadex(options)
-        return &itf, true
+        return &itf
     case "paymium":
         itf := NewPaymium(options)
-        return &itf, true
+        return &itf
     case "phemex":
         itf := NewPhemex(options)
-        return &itf, true
+        return &itf
     case "poloniex":
         itf := NewPoloniex(options)
-        return &itf, true
+        return &itf
     case "probit":
         itf := NewProbit(options)
-        return &itf, true
+        return &itf
     case "timex":
         itf := NewTimex(options)
-        return &itf, true
+        return &itf
     case "tokocrypto":
         itf := NewTokocrypto(options)
-        return &itf, true
+        return &itf
     case "tradeogre":
         itf := NewTradeogre(options)
-        return &itf, true
+        return &itf
     case "upbit":
         itf := NewUpbit(options)
-        return &itf, true
+        return &itf
     case "vertex":
         itf := NewVertex(options)
-        return &itf, true
+        return &itf
     case "wavesexchange":
         itf := NewWavesexchange(options)
-        return &itf, true
+        return &itf
     case "whitebit":
         itf := NewWhitebit(options)
-        return &itf, true
+        return &itf
     case "woo":
         itf := NewWoo(options)
-        return &itf, true
+        return &itf
     case "woofipro":
         itf := NewWoofipro(options)
-        return &itf, true
+        return &itf
     case "xt":
         itf := NewXt(options)
-        return &itf, true
+        return &itf
     case "yobit":
         itf := NewYobit(options)
-        return &itf, true
+        return &itf
     case "zaif":
         itf := NewZaif(options)
-        return &itf, true
+        return &itf
     case "zonda":
         itf := NewZonda(options)
-        return &itf, true
+        return &itf
         default:
-            return nil, false
+            return nil
     }
-    return nil, false
 }

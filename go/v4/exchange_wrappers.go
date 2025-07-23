@@ -432,7 +432,7 @@ func (this *ExchangeTyped) SetPositionMode(hedged bool, options ...SetPositionMo
     }
     return res.(map[string]interface{}), nil
 }
-func (this *ExchangeTyped) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 
     opts := SetMarginOptionsStruct{}
 
@@ -446,9 +446,9 @@ func (this *ExchangeTyped) SetMargin(symbol string, amount float64, options ...S
     }
     res := <- this.Exchange.SetMargin(symbol, amount, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return MarginModification{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewMarginModification(res), nil
 }
 func (this *ExchangeTyped) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
 
@@ -1850,7 +1850,7 @@ func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrde
     }
     return NewOrderArray(res), nil
 }
-func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
 
@@ -1869,11 +1869,11 @@ func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions)
     }
     res := <- this.Exchange.CancelOrder(id, symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Order{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrder(res), nil
 }
-func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
     opts := CancelAllOrdersOptionsStruct{}
 
@@ -1892,9 +1892,9 @@ func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) (m
     }
     res := <- this.Exchange.CancelAllOrders(symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return nil, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 func (this *ExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 
@@ -1914,7 +1914,7 @@ func (this *ExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...Cancel
     }
     return res.(map[string]interface{}), nil
 }
-func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 
     opts := CancelOrdersForSymbolsOptionsStruct{}
 
@@ -1928,9 +1928,9 @@ func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, 
     }
     res := <- this.Exchange.CancelOrdersForSymbols(orders, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return nil, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 func (this *ExchangeTyped) CancelUnifiedOrder(order interface{}, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
 

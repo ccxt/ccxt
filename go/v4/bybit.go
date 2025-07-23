@@ -5227,7 +5227,9 @@ func  (this *bybit) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
             var orders interface{} = this.SafeList(result, "list")
             if !IsTrue(IsArray(orders)) {
         
-                ch <- response
+                ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
                 return nil
             }
         

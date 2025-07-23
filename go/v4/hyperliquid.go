@@ -2188,7 +2188,9 @@ func  (this *hyperliquid) CancelOrdersForSymbols(orders interface{}, optionalArg
             //         }
             //     }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()
