@@ -3796,6 +3796,27 @@ export default class Exchange {
         return trade as Trade;
     }
 
+    syntheticTradeId (timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        let id = undefined;
+        if (timestamp !== undefined) {
+            id = this.numberToString (timestamp);
+            // side
+            id += '-' + ((side !== undefined) ? side : 'side');
+            // price
+            id += '-' + ((price !== undefined) ? this.numberToString (price) : 'p');
+            // amount
+            id += '-' + ((amount !== undefined) ? this.numberToString (amount) : 'a');
+            // takerOrMaker
+            if (takerOrMaker === undefined) {
+                id += '-' + 'tm';
+            } else {
+                id += '-' + ((takerOrMaker === 'taker') ? 't' : 'm');
+            }
+        }
+        return id;
+    }
+
     parsedFeeAndFees (container:any) {
         let fee = this.safeDict (container, 'fee');
         let fees = this.safeList (container, 'fees');
