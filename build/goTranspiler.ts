@@ -1459,8 +1459,8 @@ type IExchange interface {
         }
         const options = { goFolder, exchanges }
 
+        this.transpileBaseMethods (exchangeBase) // now we always need the baseMethods info
         if (!transpilingSingleExchange && !child) {
-            this.transpileBaseMethods (exchangeBase)
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
         }
@@ -1476,6 +1476,10 @@ type IExchange interface {
 
 
         if (baseOnly) {
+            return;
+        }
+
+        if (transpilingSingleExchange) {
             return;
         }
 
