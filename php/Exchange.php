@@ -394,6 +394,7 @@ class Exchange {
         'ellipx',
         'exmo',
         'fmfwio',
+        'foxbit',
         'gate',
         'gateio',
         'gemini',
