@@ -18,8 +18,10 @@
             }
         },
         "id": "brl",
+        "numericId": null,
         "code": "BRL",
         "precision": 2,
+        "type": "fiat",
         "name": "Real",
         "active": true,
         "deposit": true,
@@ -28,12 +30,17 @@
         "fees": {},
         "networks": {},
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "deposit": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "withdraw": {
-                "min": 10
+                "min": 10,
+                "max": null
             }
         }
     },
@@ -185,8 +192,10 @@
             "default_network_code": "ripple"
         },
         "id": "xrp",
+        "numericId": null,
         "code": "XRP",
         "precision": 6,
+        "type": "crypto",
         "name": "XRP",
         "active": true,
         "deposit": true,
@@ -239,23 +248,33 @@
                 "precision": 6,
                 "fee": 0.1,
                 "limits": {
-                    "amount": {},
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
                     "deposit": {
-                        "min": 0.2
+                        "min": 0.2,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 1
+                        "min": 1,
+                        "max": null
                     }
                 }
             }
         },
         "limits": {
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "deposit": {
-                "min": 0.2
+                "min": 0.2,
+                "max": null
             },
             "withdraw": {
-                "min": 1
+                "min": 1,
+                "max": null
             }
         }
     },
