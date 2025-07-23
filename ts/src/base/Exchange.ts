@@ -3802,9 +3802,11 @@ export default class Exchange {
         if (timestamp !== undefined) {
             id = this.numberToString (timestamp);
             // price
-            id += '-' + ((price !== undefined) ? this.numberToString (price) : 'p');
+            id += '-';
+            id += (price !== undefined) ? this.numberToString (price) : 'p';
             // amount
-            id += '-' + ((amount !== undefined) ? this.numberToString (amount) : 'a');
+            id += '-';
+            id += (amount !== undefined) ? this.numberToString (amount) : 'a';
             // side
             id += '-';
             if (side === undefined) {
