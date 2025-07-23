@@ -505,7 +505,7 @@ export default class Exchange {
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    setMargin(symbol: string, amount: number, params?: {}): Promise<{}>;
+    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     fetchLongShortRatio(symbol: string, timeframe?: Str, params?: {}): Promise<LongShortRatio>;
     fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: {}): Promise<LongShortRatio[]>;
     fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Num, limit?: Num, params?: {}): Promise<MarginModification[]>;
@@ -742,12 +742,12 @@ export default class Exchange {
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{}>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<{}>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<{}>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<{}>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
-    cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<{}>;
+    cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<{}>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -770,8 +770,8 @@ export default class Exchange {
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDeposits(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
     fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;

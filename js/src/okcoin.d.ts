@@ -159,7 +159,7 @@ export default class okcoin extends Exchange {
      * @param {bool} [params.advanced] True if canceling advanced orders only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseIds(ids: any): any;
     /**
      * @method

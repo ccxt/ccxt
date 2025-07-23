@@ -1867,7 +1867,7 @@ class hyperliquid extends hyperliquid$1 {
         //         }
         //     }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

@@ -1564,7 +1564,7 @@ class paradex extends paradex$1 {
         //
         // if success, no response...
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

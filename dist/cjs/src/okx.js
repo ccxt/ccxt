@@ -3486,7 +3486,7 @@ class okx extends okx$1 {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);

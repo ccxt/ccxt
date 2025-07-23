@@ -2543,9 +2543,9 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        return this.safeOrder({
-            'info': response,
-        });
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

@@ -6001,7 +6001,7 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market);
+        return this.parseLeverage(response, market); // tmp revert type
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);

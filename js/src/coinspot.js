@@ -599,7 +599,8 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        return await this[method](this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
+        return this.parseOrder(response);
     }
     /**
      * @method

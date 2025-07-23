@@ -1567,8 +1567,12 @@ export default class woo extends Exchange {
             const market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        let response = undefined;
         if (trigger) {
-            return await this.v3PrivateDeleteTradeAlgoOrders(params);
+            response = await this.v3PrivateDeleteTradeAlgoOrders(params);
+        }
+        else {
+            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
         }
         //
         //     {
@@ -1579,7 +1583,8 @@ export default class woo extends Exchange {
         //         "timestamp": 1751941988134
         //     }
         //
-        return await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        return [this.safeOrder({ 'info': data })];
     }
     /**
      * @method

@@ -1567,7 +1567,7 @@ export default class paradex extends Exchange {
         //
         // if success, no response...
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

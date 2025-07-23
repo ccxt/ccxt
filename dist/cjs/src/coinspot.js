@@ -596,7 +596,8 @@ class coinspot extends coinspot$1 {
             'amount': amount,
             'rate': price,
         };
-        return await this[method](this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
+        return this.parseOrder(response);
     }
     /**
      * @method

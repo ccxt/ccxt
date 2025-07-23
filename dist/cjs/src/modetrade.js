@@ -1809,9 +1809,9 @@ class modetrade extends modetrade$1 {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**
