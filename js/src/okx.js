@@ -1150,7 +1150,9 @@ export default class okx extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
+                },
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1547,7 +1549,14 @@ export default class okx extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const types = this.safeList(this.options, 'fetchMarkets', []);
+        let types = ['spot', 'future', 'swap', 'option'];
+        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList(fetchMarketsOption, 'types', types);
+        }
+        else {
+            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {

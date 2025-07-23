@@ -1040,7 +1040,9 @@ class bybit(Exchange, ImplicitAPI):
             'options': {
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
-                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'linear', 'inverse', 'option'],
+                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -1701,9 +1703,16 @@ class bybit(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         promisesUnresolved = []
-        fetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
-        for i in range(0, len(fetchMarkets)):
-            marketType = fetchMarkets[i]
+        types = None
+        defaultTypes = ['spot', 'linear', 'inverse', 'option']
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        if fetchMarketsOptions is not None:
+            types = self.safe_list(fetchMarketsOptions, 'types', defaultTypes)
+        else:
+            # for backward-compatibility
+            types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
+        for i in range(0, len(types)):
+            marketType = types[i]
             if marketType == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif marketType == 'linear':
