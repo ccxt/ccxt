@@ -1312,7 +1312,7 @@ class paradex extends Exchange {
         $cancelReason = $this->safe_string($order, 'cancel_reason');
         $status = $this->safe_string($order, 'status');
         if ($cancelReason !== null) {
-            if ($cancelReason === 'NOT_ENOUGH_MARGIN') {
+            if ($cancelReason === 'NOT_ENOUGH_MARGIN' || $cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
                 $status = 'rejected';
             } else {
                 $status = 'canceled';
