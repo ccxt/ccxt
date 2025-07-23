@@ -814,6 +814,7 @@ class testMainClass {
                 'watchOrders': [ symbol ],
                 'watchPosition': [ symbol ],
                 'watchPositions': [ symbol ],
+                'unwatchPositions': [ symbol ],
             };
         }
         const market = exchange.market (symbol);
