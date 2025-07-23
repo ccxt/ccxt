@@ -1547,6 +1547,15 @@ export default class kraken extends Exchange {
         //
         const result = response['result'];
         const trades = result[id];
+        // trades is a sorted array: last (most recent trade) goes last
+        const length = trades.length;
+        if (length <= 0) {
+            return [];
+        }
+        const lastTrade = trades[length - 1];
+        const lastTradeId = this.safeString (result, 'last');
+        lastTrade.push (lastTradeId);
+        trades[length - 1] = lastTrade;
         return this.parseTrades (trades, market, since, limit);
     }
 
