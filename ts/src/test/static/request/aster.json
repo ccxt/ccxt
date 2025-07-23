@@ -415,11 +415,18 @@
             {
                 "description": "fetchFundingHistory",
                 "method": "fetchFundingHistory",
-                "url": "https://fapi.asterdex.com/fapi/v1/income",
+                "url": "https://fapi.asterdex.com/fapi/v1/income?symbol=BTCUSDT&incomeType=FUNDING_FEE&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
                 "input": [
                     "BTC/USDT:USDT"
-                ],
-                "output": "symbol=BTCUSDT&incomeType=FUNDING_FEE&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://fapi.asterdex.com/fapi/v1/income?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
             }
         ]
     }

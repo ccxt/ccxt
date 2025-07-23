@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -108,7 +108,7 @@ export default class aster extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': true,
                 'fetchLeverages': true,
@@ -2436,7 +2436,7 @@ export default class aster extends Exchange {
 
     /**
      * @method
-     * @name binance#fetchFundingHistory
+     * @name aster#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-income-historyuser_data
      * @param {string} symbol unified market symbol
@@ -2467,6 +2467,112 @@ export default class aster extends Exchange {
         }
         const response = await this.privateGetFapiV1Income (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "symbol": "",
+        //         "incomeType": "TRANSFER",
+        //         "income": "10.00000000",
+        //         "asset": "USDT",
+        //         "time": 1677645250000,
+        //         "info": "TRANSFER",
+        //         "tranId": 131001573082,
+        //         "tradeId": ""
+        //     }
+        //
+        let amount = this.safeString (item, 'income');
+        let direction = undefined;
+        if (Precise.stringLe (amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringMul ('-1', amount);
+        } else {
+            direction = 'in';
+        }
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.safeInteger (item, 'time');
+        const type = this.safeString (item, 'incomeType');
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'tranId'),
+            'direction': direction,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': this.safeString (item, 'tradeId'),
+            'type': this.parseLedgerEntryType (type),
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType: Dict = {
+            'TRANSFER': 'transfer',
+            'WELCOME_BONUS': 'cashback',
+            'REALIZED_PNL': 'trade',
+            'FUNDING_FEE': 'fee',
+            'COMMISSION': 'commission',
+            'INSURANCE_CLEAR': 'settlement',
+            'MARKET_MERCHANT_RETURN_REWARD': 'cashback',
+        };
+        return this.safeString (ledgerType, type, type);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-income-historyuser_data
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {};
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000); // max 1000
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetFapiV1Income (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "",
+        //             "incomeType": "TRANSFER",
+        //             "income": "10.00000000",
+        //             "asset": "USDT",
+        //             "time": 1677645250000,
+        //             "info": "TRANSFER",
+        //             "tranId": 131001573082,
+        //             "tradeId": ""
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
