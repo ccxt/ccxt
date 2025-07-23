@@ -68,6 +68,7 @@ var digifinex = require('./src/digifinex.js');
 var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
+var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
@@ -252,6 +253,7 @@ const exchanges = {
     'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
+    'foxbit': foxbit,
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
@@ -483,6 +485,7 @@ exports.digifinex = digifinex;
 exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
+exports.foxbit = foxbit;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
