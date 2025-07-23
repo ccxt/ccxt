@@ -83,7 +83,7 @@ export default class foxbit extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://foxbit.com.br/wp-content/uploads/2024/05/Logo_Foxbit.png',
+                'logo': 'https://github.com/user-attachments/assets/63be1a3a-775d-459b-8c03-493c71c0253c',
                 'api': {
                     'public': 'https://api.foxbit.com.br',
                     'private': 'https://api.foxbit.com.br',
@@ -773,8 +773,7 @@ export default class foxbit extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const safeTimeframe = timeframe ? timeframe : '1m';
-        const interval = this.safeString (this.timeframes, timeframe, safeTimeframe);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'market': market['baseId'] + market['quoteId'],
             'interval': interval,
@@ -921,6 +920,7 @@ export default class foxbit extends Exchange {
      * @param {string} [params.timeInForce] "GTC", "FOK", "IOC", "PO"
      * @param {float} [params.triggerPrice] The time in force for the order. One of GTC, FOK, IOC, PO. See .features or foxbit's doc to see more details.
      * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -949,15 +949,12 @@ export default class foxbit extends Exchange {
             } else {
                 request['time_in_force'] = timeInForce;
             }
-            delete params['timeInForce'];
         }
         if (postOnly) {
             request['post_only'] = true;
-            delete params['postOnly'];
         }
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-            delete params['triggerPrice'];
         }
         if (type === 'INSTANT') {
             request['amount'] = this.priceToPrecision (symbol, amount);
@@ -967,6 +964,11 @@ export default class foxbit extends Exchange {
         if (type === 'LIMIT' || type === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId' ]);
         const response = await this.v3PrivatePostOrders (this.extend (request, params));
         // {
         //     "id": 1234567890,
@@ -1115,9 +1117,9 @@ export default class foxbit extends Exchange {
         //         }
         //     ]
         // }
-        return this.safeOrder ({
+        return [ this.safeOrder ({
             'info': response,
-        });
+        }) ];
     }
 
     /**
@@ -1727,11 +1729,11 @@ export default class foxbit extends Exchange {
 
     parseTrade (trade, market = undefined): Trade {
         const timestamp = this.parseDate (this.safeString (trade, 'created_at'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'volume', this.safeNumber (trade, 'quantity'));
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'volume', this.safeString (trade, 'quantity'));
         const privateSideField = this.safeStringLower (trade, 'side');
         const side = this.safeStringLower (trade, 'taker_side', privateSideField);
-        const cost = amount * price;
+        const cost = Precise.stringMul (price, amount);
         const fee = {
             'currency': this.safeSymbol (this.safeString (trade, 'fee_currency_symbol')),
             'cost': this.safeNumber (trade, 'fee'),
@@ -2013,6 +2015,7 @@ export default class foxbit extends Exchange {
             'Content-Type': 'application/json',
         };
         if (urlPath === 'private') {
+            this.checkRequiredCredentials ();
             const preHash = this.numberToString (timestamp) + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headers['X-FB-ACCESS-KEY'] = this.apiKey;
