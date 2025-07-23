@@ -1083,8 +1083,8 @@ class NewTranspiler {
         let newMethod = '';
         if (exchange === 'Exchange') {
             newMethod = [
-                'func NewExchangeTyped(exchangePointer *Exchange) ExchangeTyped {',
-                `   return ExchangeTyped{`,
+                'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
+                `   return &ExchangeTyped{`,
                 `       Exchange: exchangePointer,`,
                 `   }`,
                 '}'
@@ -1092,14 +1092,13 @@ class NewTranspiler {
 
         } else {
             newMethod = [
-                'func New' + capitizedName + '(userConfig map[string]interface{}) ' + capitizedName + ' {',
+                'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
                 `   p := &${exchange}{}`,
                 '   p.Init(userConfig)',
-                '   exchangeTypedRef := NewExchangeTyped(&p.Exchange)',
-                `   return ${capitizedName}{`,
+                `   return &${capitizedName}{`,
                 `       ${exchange}: p,`,
                 `       Core:  p,`,
-                '       exchangeTyped: &exchangeTypedRef,',
+                '       exchangeTyped: NewExchangeTyped(&p.Exchange),',
                 `   }`,
                 '}'
             ].join('\n');
@@ -1327,7 +1326,7 @@ ${caseStatements.join('\n')}
             const args = exchange === 'exchange' ? 'nil' : 'options';
             return`    case "${exchange}":
         itf := New${struct}(${args})
-        return &itf`;
+        return itf`;
         })
 
         const functionDecl = `
