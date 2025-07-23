@@ -1541,7 +1541,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.safe_order({'info': response})
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1559,7 +1560,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return await self.privateDeleteOrders(self.extend(request, params))
+        response = await self.privateDeleteOrders(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     async def fetch_payment_methods(self, params={}):
         return await self.privateGetPaymentMethods(params)
