@@ -6,14 +6,13 @@ type Mercado struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewMercado(userConfig map[string]interface{}) Mercado {
+func NewMercado(userConfig map[string]interface{}) *Mercado {
    p := &mercado{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Mercado{
+   return &Mercado{
        mercado: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

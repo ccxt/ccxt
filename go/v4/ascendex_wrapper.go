@@ -6,14 +6,13 @@ type Ascendex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewAscendex(userConfig map[string]interface{}) Ascendex {
+func NewAscendex(userConfig map[string]interface{}) *Ascendex {
    p := &ascendex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Ascendex{
+   return &Ascendex{
        ascendex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

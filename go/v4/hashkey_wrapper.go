@@ -6,14 +6,13 @@ type Hashkey struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHashkey(userConfig map[string]interface{}) Hashkey {
+func NewHashkey(userConfig map[string]interface{}) *Hashkey {
    p := &hashkey{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Hashkey{
+   return &Hashkey{
        hashkey: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Zaif struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewZaif(userConfig map[string]interface{}) Zaif {
+func NewZaif(userConfig map[string]interface{}) *Zaif {
    p := &zaif{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Zaif{
+   return &Zaif{
        zaif: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

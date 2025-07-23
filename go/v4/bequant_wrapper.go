@@ -6,14 +6,13 @@ type Bequant struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBequant(userConfig map[string]interface{}) Bequant {
+func NewBequant(userConfig map[string]interface{}) *Bequant {
    p := &bequant{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bequant{
+   return &Bequant{
        bequant: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

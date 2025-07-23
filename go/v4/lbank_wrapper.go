@@ -6,14 +6,13 @@ type Lbank struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewLbank(userConfig map[string]interface{}) Lbank {
+func NewLbank(userConfig map[string]interface{}) *Lbank {
    p := &lbank{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Lbank{
+   return &Lbank{
        lbank: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

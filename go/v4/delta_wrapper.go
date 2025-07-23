@@ -6,14 +6,13 @@ type Delta struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewDelta(userConfig map[string]interface{}) Delta {
+func NewDelta(userConfig map[string]interface{}) *Delta {
    p := &delta{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Delta{
+   return &Delta{
        delta: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

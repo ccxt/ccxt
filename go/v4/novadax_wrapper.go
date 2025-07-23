@@ -6,14 +6,13 @@ type Novadax struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewNovadax(userConfig map[string]interface{}) Novadax {
+func NewNovadax(userConfig map[string]interface{}) *Novadax {
    p := &novadax{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Novadax{
+   return &Novadax{
        novadax: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Exmo struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewExmo(userConfig map[string]interface{}) Exmo {
+func NewExmo(userConfig map[string]interface{}) *Exmo {
    p := &exmo{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Exmo{
+   return &Exmo{
        exmo: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

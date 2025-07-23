@@ -6,14 +6,13 @@ type Gateio struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewGateio(userConfig map[string]interface{}) Gateio {
+func NewGateio(userConfig map[string]interface{}) *Gateio {
    p := &gateio{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Gateio{
+   return &Gateio{
        gateio: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

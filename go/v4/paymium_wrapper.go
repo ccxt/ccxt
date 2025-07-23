@@ -6,14 +6,13 @@ type Paymium struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewPaymium(userConfig map[string]interface{}) Paymium {
+func NewPaymium(userConfig map[string]interface{}) *Paymium {
    p := &paymium{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Paymium{
+   return &Paymium{
        paymium: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Zonda struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewZonda(userConfig map[string]interface{}) Zonda {
+func NewZonda(userConfig map[string]interface{}) *Zonda {
    p := &zonda{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Zonda{
+   return &Zonda{
        zonda: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

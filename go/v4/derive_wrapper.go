@@ -6,14 +6,13 @@ type Derive struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewDerive(userConfig map[string]interface{}) Derive {
+func NewDerive(userConfig map[string]interface{}) *Derive {
    p := &derive{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Derive{
+   return &Derive{
        derive: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

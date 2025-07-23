@@ -6,14 +6,13 @@ type Blofin struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBlofin(userConfig map[string]interface{}) Blofin {
+func NewBlofin(userConfig map[string]interface{}) *Blofin {
    p := &blofin{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Blofin{
+   return &Blofin{
        blofin: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Bittrade struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBittrade(userConfig map[string]interface{}) Bittrade {
+func NewBittrade(userConfig map[string]interface{}) *Bittrade {
    p := &bittrade{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bittrade{
+   return &Bittrade{
        bittrade: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

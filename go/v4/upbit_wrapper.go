@@ -6,14 +6,13 @@ type Upbit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewUpbit(userConfig map[string]interface{}) Upbit {
+func NewUpbit(userConfig map[string]interface{}) *Upbit {
    p := &upbit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Upbit{
+   return &Upbit{
        upbit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

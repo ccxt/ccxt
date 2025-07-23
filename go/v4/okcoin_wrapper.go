@@ -6,14 +6,13 @@ type Okcoin struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewOkcoin(userConfig map[string]interface{}) Okcoin {
+func NewOkcoin(userConfig map[string]interface{}) *Okcoin {
    p := &okcoin{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Okcoin{
+   return &Okcoin{
        okcoin: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

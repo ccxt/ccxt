@@ -6,14 +6,13 @@ type Bitvavo struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitvavo(userConfig map[string]interface{}) Bitvavo {
+func NewBitvavo(userConfig map[string]interface{}) *Bitvavo {
    p := &bitvavo{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitvavo{
+   return &Bitvavo{
        bitvavo: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

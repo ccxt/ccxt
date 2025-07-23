@@ -6,14 +6,13 @@ type Btcmarkets struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBtcmarkets(userConfig map[string]interface{}) Btcmarkets {
+func NewBtcmarkets(userConfig map[string]interface{}) *Btcmarkets {
    p := &btcmarkets{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Btcmarkets{
+   return &Btcmarkets{
        btcmarkets: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

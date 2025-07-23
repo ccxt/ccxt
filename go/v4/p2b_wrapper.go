@@ -6,14 +6,13 @@ type P2b struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewP2b(userConfig map[string]interface{}) P2b {
+func NewP2b(userConfig map[string]interface{}) *P2b {
    p := &p2b{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return P2b{
+   return &P2b{
        p2b: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

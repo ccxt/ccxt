@@ -6,14 +6,13 @@ type Coincatch struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoincatch(userConfig map[string]interface{}) Coincatch {
+func NewCoincatch(userConfig map[string]interface{}) *Coincatch {
    p := &coincatch{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coincatch{
+   return &Coincatch{
        coincatch: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

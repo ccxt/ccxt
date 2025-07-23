@@ -6,14 +6,13 @@ type Woo struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewWoo(userConfig map[string]interface{}) Woo {
+func NewWoo(userConfig map[string]interface{}) *Woo {
    p := &woo{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Woo{
+   return &Woo{
        woo: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

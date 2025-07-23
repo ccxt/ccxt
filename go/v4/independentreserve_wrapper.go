@@ -6,14 +6,13 @@ type Independentreserve struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewIndependentreserve(userConfig map[string]interface{}) Independentreserve {
+func NewIndependentreserve(userConfig map[string]interface{}) *Independentreserve {
    p := &independentreserve{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Independentreserve{
+   return &Independentreserve{
        independentreserve: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

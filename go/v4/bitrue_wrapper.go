@@ -6,14 +6,13 @@ type Bitrue struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitrue(userConfig map[string]interface{}) Bitrue {
+func NewBitrue(userConfig map[string]interface{}) *Bitrue {
    p := &bitrue{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitrue{
+   return &Bitrue{
        bitrue: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

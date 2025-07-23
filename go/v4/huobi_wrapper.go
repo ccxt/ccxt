@@ -6,14 +6,13 @@ type Huobi struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHuobi(userConfig map[string]interface{}) Huobi {
+func NewHuobi(userConfig map[string]interface{}) *Huobi {
    p := &huobi{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Huobi{
+   return &Huobi{
        huobi: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

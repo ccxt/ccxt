@@ -6,14 +6,13 @@ type Wavesexchange struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewWavesexchange(userConfig map[string]interface{}) Wavesexchange {
+func NewWavesexchange(userConfig map[string]interface{}) *Wavesexchange {
    p := &wavesexchange{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Wavesexchange{
+   return &Wavesexchange{
        wavesexchange: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

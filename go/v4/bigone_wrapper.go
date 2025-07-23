@@ -6,14 +6,13 @@ type Bigone struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBigone(userConfig map[string]interface{}) Bigone {
+func NewBigone(userConfig map[string]interface{}) *Bigone {
    p := &bigone{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bigone{
+   return &Bigone{
        bigone: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

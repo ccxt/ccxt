@@ -6,14 +6,13 @@ type Blockchaincom struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBlockchaincom(userConfig map[string]interface{}) Blockchaincom {
+func NewBlockchaincom(userConfig map[string]interface{}) *Blockchaincom {
    p := &blockchaincom{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Blockchaincom{
+   return &Blockchaincom{
        blockchaincom: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

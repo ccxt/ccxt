@@ -6,14 +6,13 @@ type Hitbtc struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHitbtc(userConfig map[string]interface{}) Hitbtc {
+func NewHitbtc(userConfig map[string]interface{}) *Hitbtc {
    p := &hitbtc{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Hitbtc{
+   return &Hitbtc{
        hitbtc: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

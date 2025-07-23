@@ -6,14 +6,13 @@ type Bitso struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitso(userConfig map[string]interface{}) Bitso {
+func NewBitso(userConfig map[string]interface{}) *Bitso {
    p := &bitso{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitso{
+   return &Bitso{
        bitso: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

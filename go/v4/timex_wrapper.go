@@ -6,14 +6,13 @@ type Timex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewTimex(userConfig map[string]interface{}) Timex {
+func NewTimex(userConfig map[string]interface{}) *Timex {
    p := &timex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Timex{
+   return &Timex{
        timex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

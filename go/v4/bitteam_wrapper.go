@@ -6,14 +6,13 @@ type Bitteam struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitteam(userConfig map[string]interface{}) Bitteam {
+func NewBitteam(userConfig map[string]interface{}) *Bitteam {
    p := &bitteam{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitteam{
+   return &Bitteam{
        bitteam: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

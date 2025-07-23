@@ -6,14 +6,13 @@ type Binancecoinm struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBinancecoinm(userConfig map[string]interface{}) Binancecoinm {
+func NewBinancecoinm(userConfig map[string]interface{}) *Binancecoinm {
    p := &binancecoinm{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Binancecoinm{
+   return &Binancecoinm{
        binancecoinm: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

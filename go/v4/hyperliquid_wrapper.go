@@ -6,14 +6,13 @@ type Hyperliquid struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHyperliquid(userConfig map[string]interface{}) Hyperliquid {
+func NewHyperliquid(userConfig map[string]interface{}) *Hyperliquid {
    p := &hyperliquid{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Hyperliquid{
+   return &Hyperliquid{
        hyperliquid: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

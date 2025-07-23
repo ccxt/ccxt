@@ -6,14 +6,13 @@ type Bit2c struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBit2c(userConfig map[string]interface{}) Bit2c {
+func NewBit2c(userConfig map[string]interface{}) *Bit2c {
    p := &bit2c{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bit2c{
+   return &Bit2c{
        bit2c: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

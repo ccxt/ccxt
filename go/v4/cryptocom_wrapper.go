@@ -6,14 +6,13 @@ type Cryptocom struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCryptocom(userConfig map[string]interface{}) Cryptocom {
+func NewCryptocom(userConfig map[string]interface{}) *Cryptocom {
    p := &cryptocom{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Cryptocom{
+   return &Cryptocom{
        cryptocom: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

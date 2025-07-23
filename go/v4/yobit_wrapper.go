@@ -6,14 +6,13 @@ type Yobit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewYobit(userConfig map[string]interface{}) Yobit {
+func NewYobit(userConfig map[string]interface{}) *Yobit {
    p := &yobit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Yobit{
+   return &Yobit{
        yobit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

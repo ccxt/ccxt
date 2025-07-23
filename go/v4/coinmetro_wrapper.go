@@ -6,14 +6,13 @@ type Coinmetro struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoinmetro(userConfig map[string]interface{}) Coinmetro {
+func NewCoinmetro(userConfig map[string]interface{}) *Coinmetro {
    p := &coinmetro{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coinmetro{
+   return &Coinmetro{
        coinmetro: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

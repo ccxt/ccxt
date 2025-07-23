@@ -6,14 +6,13 @@ type Onetrading struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewOnetrading(userConfig map[string]interface{}) Onetrading {
+func NewOnetrading(userConfig map[string]interface{}) *Onetrading {
    p := &onetrading{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Onetrading{
+   return &Onetrading{
        onetrading: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

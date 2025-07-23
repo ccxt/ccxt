@@ -6,14 +6,13 @@ type Htx struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHtx(userConfig map[string]interface{}) Htx {
+func NewHtx(userConfig map[string]interface{}) *Htx {
    p := &htx{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Htx{
+   return &Htx{
        htx: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

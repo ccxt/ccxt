@@ -6,14 +6,13 @@ type Defx struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewDefx(userConfig map[string]interface{}) Defx {
+func NewDefx(userConfig map[string]interface{}) *Defx {
    p := &defx{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Defx{
+   return &Defx{
        defx: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

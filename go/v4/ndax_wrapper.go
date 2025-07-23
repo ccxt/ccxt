@@ -6,14 +6,13 @@ type Ndax struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewNdax(userConfig map[string]interface{}) Ndax {
+func NewNdax(userConfig map[string]interface{}) *Ndax {
    p := &ndax{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Ndax{
+   return &Ndax{
        ndax: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

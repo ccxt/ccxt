@@ -6,14 +6,13 @@ type Alpaca struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewAlpaca(userConfig map[string]interface{}) Alpaca {
+func NewAlpaca(userConfig map[string]interface{}) *Alpaca {
    p := &alpaca{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Alpaca{
+   return &Alpaca{
        alpaca: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

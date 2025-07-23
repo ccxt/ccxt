@@ -6,14 +6,13 @@ type Btcalpha struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBtcalpha(userConfig map[string]interface{}) Btcalpha {
+func NewBtcalpha(userConfig map[string]interface{}) *Btcalpha {
    p := &btcalpha{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Btcalpha{
+   return &Btcalpha{
        btcalpha: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -4,8 +4,8 @@ type ExchangeTyped struct {
    *Exchange
 }
 
-func NewExchangeTyped(exchangePointer *Exchange) ExchangeTyped {
-   return ExchangeTyped{
+func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {
+   return &ExchangeTyped{
        Exchange: exchangePointer,
    }
 }

@@ -6,14 +6,13 @@ type Paradex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewParadex(userConfig map[string]interface{}) Paradex {
+func NewParadex(userConfig map[string]interface{}) *Paradex {
    p := &paradex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Paradex{
+   return &Paradex{
        paradex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

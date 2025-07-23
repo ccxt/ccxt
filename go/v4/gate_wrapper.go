@@ -6,14 +6,13 @@ type Gate struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewGate(userConfig map[string]interface{}) Gate {
+func NewGate(userConfig map[string]interface{}) *Gate {
    p := &gate{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Gate{
+   return &Gate{
        gate: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

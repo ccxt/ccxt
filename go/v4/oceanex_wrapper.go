@@ -6,14 +6,13 @@ type Oceanex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewOceanex(userConfig map[string]interface{}) Oceanex {
+func NewOceanex(userConfig map[string]interface{}) *Oceanex {
    p := &oceanex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Oceanex{
+   return &Oceanex{
        oceanex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Apex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewApex(userConfig map[string]interface{}) Apex {
+func NewApex(userConfig map[string]interface{}) *Apex {
    p := &apex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Apex{
+   return &Apex{
        apex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

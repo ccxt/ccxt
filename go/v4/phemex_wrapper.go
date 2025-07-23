@@ -6,14 +6,13 @@ type Phemex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewPhemex(userConfig map[string]interface{}) Phemex {
+func NewPhemex(userConfig map[string]interface{}) *Phemex {
    p := &phemex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Phemex{
+   return &Phemex{
        phemex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

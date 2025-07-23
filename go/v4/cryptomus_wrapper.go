@@ -6,14 +6,13 @@ type Cryptomus struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCryptomus(userConfig map[string]interface{}) Cryptomus {
+func NewCryptomus(userConfig map[string]interface{}) *Cryptomus {
    p := &cryptomus{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Cryptomus{
+   return &Cryptomus{
        cryptomus: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

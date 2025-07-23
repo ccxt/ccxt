@@ -6,14 +6,13 @@ type Cex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCex(userConfig map[string]interface{}) Cex {
+func NewCex(userConfig map[string]interface{}) *Cex {
    p := &cex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Cex{
+   return &Cex{
        cex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

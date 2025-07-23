@@ -6,14 +6,13 @@ type Ellipx struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewEllipx(userConfig map[string]interface{}) Ellipx {
+func NewEllipx(userConfig map[string]interface{}) *Ellipx {
    p := &ellipx{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Ellipx{
+   return &Ellipx{
        ellipx: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

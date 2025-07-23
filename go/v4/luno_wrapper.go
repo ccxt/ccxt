@@ -6,14 +6,13 @@ type Luno struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewLuno(userConfig map[string]interface{}) Luno {
+func NewLuno(userConfig map[string]interface{}) *Luno {
    p := &luno{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Luno{
+   return &Luno{
        luno: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Coinbaseadvanced struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoinbaseadvanced(userConfig map[string]interface{}) Coinbaseadvanced {
+func NewCoinbaseadvanced(userConfig map[string]interface{}) *Coinbaseadvanced {
    p := &coinbaseadvanced{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coinbaseadvanced{
+   return &Coinbaseadvanced{
        coinbaseadvanced: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Bybit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBybit(userConfig map[string]interface{}) Bybit {
+func NewBybit(userConfig map[string]interface{}) *Bybit {
    p := &bybit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bybit{
+   return &Bybit{
        bybit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

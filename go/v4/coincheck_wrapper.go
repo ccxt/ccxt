@@ -6,14 +6,13 @@ type Coincheck struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoincheck(userConfig map[string]interface{}) Coincheck {
+func NewCoincheck(userConfig map[string]interface{}) *Coincheck {
    p := &coincheck{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coincheck{
+   return &Coincheck{
        coincheck: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

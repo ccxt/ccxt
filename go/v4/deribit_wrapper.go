@@ -6,14 +6,13 @@ type Deribit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewDeribit(userConfig map[string]interface{}) Deribit {
+func NewDeribit(userConfig map[string]interface{}) *Deribit {
    p := &deribit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Deribit{
+   return &Deribit{
        deribit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

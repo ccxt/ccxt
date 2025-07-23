@@ -6,14 +6,13 @@ type Vertex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewVertex(userConfig map[string]interface{}) Vertex {
+func NewVertex(userConfig map[string]interface{}) *Vertex {
    p := &vertex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Vertex{
+   return &Vertex{
        vertex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

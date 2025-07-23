@@ -6,14 +6,13 @@ type Digifinex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewDigifinex(userConfig map[string]interface{}) Digifinex {
+func NewDigifinex(userConfig map[string]interface{}) *Digifinex {
    p := &digifinex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Digifinex{
+   return &Digifinex{
        digifinex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

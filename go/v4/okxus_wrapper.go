@@ -6,14 +6,13 @@ type Okxus struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewOkxus(userConfig map[string]interface{}) Okxus {
+func NewOkxus(userConfig map[string]interface{}) *Okxus {
    p := &okxus{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Okxus{
+   return &Okxus{
        okxus: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

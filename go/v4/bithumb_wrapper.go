@@ -6,14 +6,13 @@ type Bithumb struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBithumb(userConfig map[string]interface{}) Bithumb {
+func NewBithumb(userConfig map[string]interface{}) *Bithumb {
    p := &bithumb{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bithumb{
+   return &Bithumb{
        bithumb: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

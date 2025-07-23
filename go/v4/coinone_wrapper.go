@@ -6,14 +6,13 @@ type Coinone struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoinone(userConfig map[string]interface{}) Coinone {
+func NewCoinone(userConfig map[string]interface{}) *Coinone {
    p := &coinone{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coinone{
+   return &Coinone{
        coinone: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

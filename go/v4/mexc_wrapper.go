@@ -6,14 +6,13 @@ type Mexc struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewMexc(userConfig map[string]interface{}) Mexc {
+func NewMexc(userConfig map[string]interface{}) *Mexc {
    p := &mexc{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Mexc{
+   return &Mexc{
        mexc: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Modetrade struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewModetrade(userConfig map[string]interface{}) Modetrade {
+func NewModetrade(userConfig map[string]interface{}) *Modetrade {
    p := &modetrade{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Modetrade{
+   return &Modetrade{
        modetrade: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

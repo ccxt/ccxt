@@ -6,14 +6,13 @@ type Myokx struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewMyokx(userConfig map[string]interface{}) Myokx {
+func NewMyokx(userConfig map[string]interface{}) *Myokx {
    p := &myokx{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Myokx{
+   return &Myokx{
        myokx: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

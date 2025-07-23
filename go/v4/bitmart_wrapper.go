@@ -6,14 +6,13 @@ type Bitmart struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitmart(userConfig map[string]interface{}) Bitmart {
+func NewBitmart(userConfig map[string]interface{}) *Bitmart {
    p := &bitmart{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitmart{
+   return &Bitmart{
        bitmart: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

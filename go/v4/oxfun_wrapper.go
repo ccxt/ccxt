@@ -6,14 +6,13 @@ type Oxfun struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewOxfun(userConfig map[string]interface{}) Oxfun {
+func NewOxfun(userConfig map[string]interface{}) *Oxfun {
    p := &oxfun{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Oxfun{
+   return &Oxfun{
        oxfun: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

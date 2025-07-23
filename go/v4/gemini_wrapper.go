@@ -6,14 +6,13 @@ type Gemini struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewGemini(userConfig map[string]interface{}) Gemini {
+func NewGemini(userConfig map[string]interface{}) *Gemini {
    p := &gemini{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Gemini{
+   return &Gemini{
        gemini: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Bitflyer struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitflyer(userConfig map[string]interface{}) Bitflyer {
+func NewBitflyer(userConfig map[string]interface{}) *Bitflyer {
    p := &bitflyer{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitflyer{
+   return &Bitflyer{
        bitflyer: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

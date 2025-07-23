@@ -6,14 +6,13 @@ type Bitget struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitget(userConfig map[string]interface{}) Bitget {
+func NewBitget(userConfig map[string]interface{}) *Bitget {
    p := &bitget{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitget{
+   return &Bitget{
        bitget: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

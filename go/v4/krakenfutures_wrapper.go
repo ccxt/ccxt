@@ -6,14 +6,13 @@ type Krakenfutures struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewKrakenfutures(userConfig map[string]interface{}) Krakenfutures {
+func NewKrakenfutures(userConfig map[string]interface{}) *Krakenfutures {
    p := &krakenfutures{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Krakenfutures{
+   return &Krakenfutures{
        krakenfutures: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

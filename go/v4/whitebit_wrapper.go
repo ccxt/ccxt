@@ -6,14 +6,13 @@ type Whitebit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewWhitebit(userConfig map[string]interface{}) Whitebit {
+func NewWhitebit(userConfig map[string]interface{}) *Whitebit {
    p := &whitebit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Whitebit{
+   return &Whitebit{
        whitebit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

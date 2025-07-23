@@ -6,14 +6,13 @@ type Bitmex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitmex(userConfig map[string]interface{}) Bitmex {
+func NewBitmex(userConfig map[string]interface{}) *Bitmex {
    p := &bitmex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitmex{
+   return &Bitmex{
        bitmex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

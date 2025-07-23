@@ -6,14 +6,13 @@ type Tradeogre struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewTradeogre(userConfig map[string]interface{}) Tradeogre {
+func NewTradeogre(userConfig map[string]interface{}) *Tradeogre {
    p := &tradeogre{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Tradeogre{
+   return &Tradeogre{
        tradeogre: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

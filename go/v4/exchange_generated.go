@@ -8042,7 +8042,7 @@ func  (this *Exchange) FetchTradingFee(symbol interface{}, optionalArgs ...inter
                 panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported yet")))
             }
         
-            fees:= (<-this.FetchTradingFees(params))
+            fees:= <-this.DerivedExchange.FetchTradingFees(params)
             PanicOnError(fees)
         
             ch <- this.SafeDict(fees, symbol)

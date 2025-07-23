@@ -6,14 +6,13 @@ type Tokocrypto struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewTokocrypto(userConfig map[string]interface{}) Tokocrypto {
+func NewTokocrypto(userConfig map[string]interface{}) *Tokocrypto {
    p := &tokocrypto{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Tokocrypto{
+   return &Tokocrypto{
        tokocrypto: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

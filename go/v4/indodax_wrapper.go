@@ -6,14 +6,13 @@ type Indodax struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewIndodax(userConfig map[string]interface{}) Indodax {
+func NewIndodax(userConfig map[string]interface{}) *Indodax {
    p := &indodax{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Indodax{
+   return &Indodax{
        indodax: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

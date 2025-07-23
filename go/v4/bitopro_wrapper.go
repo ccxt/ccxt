@@ -6,14 +6,13 @@ type Bitopro struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitopro(userConfig map[string]interface{}) Bitopro {
+func NewBitopro(userConfig map[string]interface{}) *Bitopro {
    p := &bitopro{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitopro{
+   return &Bitopro{
        bitopro: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

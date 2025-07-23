@@ -6,14 +6,13 @@ type Bingx struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBingx(userConfig map[string]interface{}) Bingx {
+func NewBingx(userConfig map[string]interface{}) *Bingx {
    p := &bingx{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bingx{
+   return &Bingx{
        bingx: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

@@ -6,14 +6,13 @@ type Bitbank struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitbank(userConfig map[string]interface{}) Bitbank {
+func NewBitbank(userConfig map[string]interface{}) *Bitbank {
    p := &bitbank{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitbank{
+   return &Bitbank{
        bitbank: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

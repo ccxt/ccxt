@@ -6,14 +6,13 @@ type Bitfinex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitfinex(userConfig map[string]interface{}) Bitfinex {
+func NewBitfinex(userConfig map[string]interface{}) *Bitfinex {
    p := &bitfinex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitfinex{
+   return &Bitfinex{
        bitfinex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

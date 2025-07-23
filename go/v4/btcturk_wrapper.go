@@ -6,14 +6,13 @@ type Btcturk struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBtcturk(userConfig map[string]interface{}) Btcturk {
+func NewBtcturk(userConfig map[string]interface{}) *Btcturk {
    p := &btcturk{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Btcturk{
+   return &Btcturk{
        btcturk: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

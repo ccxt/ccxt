@@ -6,14 +6,13 @@ type Woofipro struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewWoofipro(userConfig map[string]interface{}) Woofipro {
+func NewWoofipro(userConfig map[string]interface{}) *Woofipro {
    p := &woofipro{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Woofipro{
+   return &Woofipro{
        woofipro: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

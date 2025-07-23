@@ -6,14 +6,13 @@ type Bitbns struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitbns(userConfig map[string]interface{}) Bitbns {
+func NewBitbns(userConfig map[string]interface{}) *Bitbns {
    p := &bitbns{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitbns{
+   return &Bitbns{
        bitbns: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

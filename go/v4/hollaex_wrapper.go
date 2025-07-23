@@ -6,14 +6,13 @@ type Hollaex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewHollaex(userConfig map[string]interface{}) Hollaex {
+func NewHollaex(userConfig map[string]interface{}) *Hollaex {
    p := &hollaex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Hollaex{
+   return &Hollaex{
        hollaex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

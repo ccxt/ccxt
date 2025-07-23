@@ -6,14 +6,13 @@ type Latoken struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewLatoken(userConfig map[string]interface{}) Latoken {
+func NewLatoken(userConfig map[string]interface{}) *Latoken {
    p := &latoken{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Latoken{
+   return &Latoken{
        latoken: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

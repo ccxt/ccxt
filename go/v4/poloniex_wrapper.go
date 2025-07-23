@@ -6,14 +6,13 @@ type Poloniex struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewPoloniex(userConfig map[string]interface{}) Poloniex {
+func NewPoloniex(userConfig map[string]interface{}) *Poloniex {
    p := &poloniex{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Poloniex{
+   return &Poloniex{
        poloniex: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

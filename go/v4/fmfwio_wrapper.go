@@ -6,14 +6,13 @@ type Fmfwio struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewFmfwio(userConfig map[string]interface{}) Fmfwio {
+func NewFmfwio(userConfig map[string]interface{}) *Fmfwio {
    p := &fmfwio{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Fmfwio{
+   return &Fmfwio{
        fmfwio: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

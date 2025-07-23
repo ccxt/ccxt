@@ -6,14 +6,13 @@ type Btcbox struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBtcbox(userConfig map[string]interface{}) Btcbox {
+func NewBtcbox(userConfig map[string]interface{}) *Btcbox {
    p := &btcbox{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Btcbox{
+   return &Btcbox{
        btcbox: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

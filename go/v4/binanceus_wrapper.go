@@ -6,14 +6,13 @@ type Binanceus struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBinanceus(userConfig map[string]interface{}) Binanceus {
+func NewBinanceus(userConfig map[string]interface{}) *Binanceus {
    p := &binanceus{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Binanceus{
+   return &Binanceus{
        binanceus: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

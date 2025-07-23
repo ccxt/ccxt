@@ -6,14 +6,13 @@ type Probit struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewProbit(userConfig map[string]interface{}) Probit {
+func NewProbit(userConfig map[string]interface{}) *Probit {
    p := &probit{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Probit{
+   return &Probit{
        probit: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

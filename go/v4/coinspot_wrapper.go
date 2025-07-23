@@ -6,14 +6,13 @@ type Coinspot struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewCoinspot(userConfig map[string]interface{}) Coinspot {
+func NewCoinspot(userConfig map[string]interface{}) *Coinspot {
    p := &coinspot{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Coinspot{
+   return &Coinspot{
        coinspot: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

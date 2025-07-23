@@ -6,14 +6,13 @@ type Kucoin struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewKucoin(userConfig map[string]interface{}) Kucoin {
+func NewKucoin(userConfig map[string]interface{}) *Kucoin {
    p := &kucoin{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Kucoin{
+   return &Kucoin{
        kucoin: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

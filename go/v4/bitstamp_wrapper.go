@@ -6,14 +6,13 @@ type Bitstamp struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewBitstamp(userConfig map[string]interface{}) Bitstamp {
+func NewBitstamp(userConfig map[string]interface{}) *Bitstamp {
    p := &bitstamp{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Bitstamp{
+   return &Bitstamp{
        bitstamp: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 

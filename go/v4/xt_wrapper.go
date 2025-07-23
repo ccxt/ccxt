@@ -6,14 +6,13 @@ type Xt struct {
    exchangeTyped *ExchangeTyped
 }
 
-func NewXt(userConfig map[string]interface{}) Xt {
+func NewXt(userConfig map[string]interface{}) *Xt {
    p := &xt{}
    p.Init(userConfig)
-   exchangeTypedRef := NewExchangeTyped(&p.Exchange)
-   return Xt{
+   return &Xt{
        xt: p,
        Core:  p,
-       exchangeTyped: &exchangeTypedRef,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
    }
 }
 
