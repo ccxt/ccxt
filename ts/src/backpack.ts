@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -71,7 +71,7 @@ export default class backpack extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
@@ -183,7 +183,7 @@ export default class backpack extends Exchange {
                         'api/v1/capital': 1, // done
                         'api/v1/capital/collateral': 1,
                         'wapi/v1/capital/deposits': 1, // done
-                        'wapi/v1/capital/deposit/address': 1,
+                        'wapi/v1/capital/deposit/address': 1, // done
                         'wapi/v1/capital/withdrawals': 1,
                         'api/v1/position': 1,
                         'wapi/v1/history/borrowLend': 1,
@@ -1088,9 +1088,9 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name blofin#fetchDeposits
+     * @name backpack#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://blofin.com/docs#get-deposite-history
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1197,6 +1197,49 @@ export default class backpack extends Exchange {
             'refunded': 'refunded',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name cex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.networkCode] the network to fetch the deposit address for, default is the first available network, see [network codes]{@link https://docs.ccxt.com/#/?id=network-codes}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/#/?id=network-codes');
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'blockchain': this.networkCodeToId (networkCode),
+        };
+        const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, params));
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+        //
+        //     {
+        //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        return {
+            'info': depositAddress,
+            'currency': currency['code'],
+            'network': undefined, // network is not returned by the API
+            'address': address,
+            'tag': undefined,
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
