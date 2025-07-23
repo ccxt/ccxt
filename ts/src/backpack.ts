@@ -985,39 +985,107 @@ export default class backpack extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
         let url = this.urls['api'][api];
-        if (api === 'public') {
-            const query = this.urlencode (params);
+        const sortedParams = this.keysort (params);
+        const query = this.urlencode (sortedParams);
+        if (method === 'GET') {
             if (query.length !== 0) {
                 endpoint += '?' + query;
             }
-            url += endpoint;
-        } else if (api === 'private') {
+        }
+        if (api === 'private') {
             const ts = this.milliseconds ().toString ();
             const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
-            const apiKey = this.apiKey;
+            const instruction = this.getInstruction (path, method);
+            let queryString = query;
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
+            const payload = 'instruction=' + instruction + '&' + queryString + 'timestamp=' + ts + '&window=' + recvWindow;
+            const secretBytes = this.base64ToBinary (this.secret);
+            const seed = this.arraySlice (secretBytes, 0, 32);
+            const signature = eddsa (this.encode (payload), seed, ed25519);
             headers = {
                 'X-Timestamp': ts,
                 'X-Window': recvWindow,
-                'X-API-Key': apiKey,
+                'X-API-Key': this.apiKey,
+                'X-Signature': signature,
             };
-            const instruction = 'instruction=accountQuery';
-            if (method === 'GET') {
-                const query = this.urlencode (this.keysort (params));
-                const payload = instruction + query + '&timestamp=' + ts + '&window=' + recvWindow;
-                const secretBytes = this.base64ToBinary (this.secret);
-                const seed = this.arraySlice (secretBytes, 0, 32);
-                const signature = eddsa (this.encode (payload), seed, ed25519);
-                headers['X-Signature'] = signature;
-            } else if (method === 'POST') {
-                body = this.json (this.keysort (params));
-                const payload = instruction + body + '&timestamp=' + ts + '&window=' + recvWindow;
-                const secretBytes = this.base64ToBinary (this.secret);
-                const seed = this.arraySlice (secretBytes, 0, 32);
-                const signature = eddsa (this.encode (payload), seed, ed25519);
-                headers['X-Signature'] = signature;
+            if (method !== 'GET') {
+                body = this.json (sortedParams);
             }
-            url += endpoint;
         }
+        url += endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    getInstruction (path, method) {
+        const instructions = {
+            'api/v1/account': {
+                'GET': 'accountQuery',
+            },
+            'api/v1/capital': {
+                'GET': 'balanceQuery',
+            },
+            'api/v1/borrowLend': {
+                'GET': 'borrowLendExecute',
+            },
+            'wapi/v1/history/borrowLend': {
+                'GET': 'borrowHistoryQueryAll',
+            },
+            'api/v1/capital/collateral': {
+                'GET': 'collateralQuery',
+            },
+            'wapi/v1/capital/deposit/address': {
+                'GET': 'depositAddressQuery',
+            },
+            'wapi/v1/capital/deposits': {
+                'GET': 'depositQueryAll',
+            },
+            'wapi/v1/history/fills': {
+                'GET': 'fillHistoryQueryAll',
+            },
+            'wapi/v1/history/funding': {
+                'GET': 'fundingHistoryQueryAll',
+            },
+            'wapi/v1/history/interest': {
+                'GET': 'interestHistoryQueryAll',
+            },
+            'api/v1/order': {
+                'GET': 'orderQuery',
+                'POST': 'orderExecute',
+                'DELETE': 'orderCancel',
+            },
+            'api/v1/orders': {
+                'GET': 'orderQueryAll',
+                'DELETE': 'orderCancelAll',
+            },
+            'wapi/v1/history/orders': {
+                'GET': 'orderHistoryQueryAll',
+            },
+            'wapi/v1/history/pnl': {
+                'GET': 'pnlHistoryQueryAll',
+            },
+            'api/v1/position': {
+                'GET': 'positionQuery',
+            },
+            'api/v1/rfq/quote': {
+                'POST': 'quoteSubmit',
+            },
+            'wapi/v1/history/strategies': {
+                'GET': 'strategyHistoryQueryAll',
+            },
+            'wapi/v1/capital/withdrawals': {
+                'GET': 'withdrawalQueryAll',
+                'POST': 'withdraw',
+            },
+        };
+        const pathInstructions = this.safeDict (instructions, path, {});
+        let instruction = this.safeString (pathInstructions, method);
+        if (instruction === undefined) {
+            const optionInstructions = this.safeDict (this.options, 'instructions', {});
+            const optionPathInstructions = this.safeDict (optionInstructions, path, {});
+            instruction = this.safeString (optionPathInstructions, method, '');
+        }
+        return instruction;
     }
 }
