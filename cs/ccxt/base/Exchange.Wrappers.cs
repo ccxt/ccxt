@@ -1269,6 +1269,7 @@ public class  Digifinex: digifinex { public Digifinex(object args = null) : base
 public class  Ellipx: ellipx { public Ellipx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
 public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { } }
+public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { } }
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public class  Gateio: gateio { public Gateio(object args = null) : base(args) { } }
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
