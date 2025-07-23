@@ -57,7 +57,7 @@ async def test_ws_close():
     except Exception as e:
         print(f"Unexpected exception: {e}")
         assert False
-    await exchange.close() # Added to ensure close finishes correctly
+    await exchange.close()  # Added to ensure close finishes correctly
     # --------------------------------------------
     print('---- Testing exchange.close(): Call watch_multiple unhandled futures are canceled')
     try:
@@ -129,7 +129,7 @@ async def test_unwatch_tickers_after_cancellation(exchange):
     which was causing InvalidStateError. This reproduces the user's reported issue, but for tickers.
     """
     print('---- Testing un_watch_tickers() after task cancellation does not raise InvalidStateError')
-    
+
     async def watch_tickers_task(symbols):
         try:
             while True:
@@ -138,18 +138,18 @@ async def test_unwatch_tickers_after_cancellation(exchange):
         except asyncio.CancelledError:
             print(f"[CANCELLED] {symbols} tickers task cancelled")
         except Exception as e:
-            assert False,   (f"[ERROR] {symbols} tickers: {e}")
-    
+            assert False, (f"[ERROR] {symbols} tickers: {e}")
+
     # Start both tasks for different symbols
     print("Starting BTC/USDT tickers watch...")
     task_btc = asyncio.create_task(watch_tickers_task(['BTC/USDT']))
     print("Starting ETH/USDT tickers watch...")
     task_eth = asyncio.create_task(watch_tickers_task(['ETH/USDT']))
-    
+
     # Let both run for a bit
     print("Letting tasks run for 5 seconds...")
     await asyncio.sleep(5)
-    
+
     # Cancel ETH/USDT task
     print("Cancelling ETH/USDT task...")
     task_eth.cancel()
@@ -157,11 +157,11 @@ async def test_unwatch_tickers_after_cancellation(exchange):
         await task_eth
     except asyncio.CancelledError:
         print("ETH/USDT task cancelled and awaited")
-    
+
     # Let BTC/USDT keep running
     print("Letting BTC/USDT task continue for 5 seconds...")
     await asyncio.sleep(5)
-    
+
     # This is the critical part - calling un_watch_tickers() after cancellation
     print("Calling un_watch_tickers() after task cancellation...")
     try:
@@ -170,12 +170,12 @@ async def test_unwatch_tickers_after_cancellation(exchange):
     except asyncio.InvalidStateError as e:
         assert False, f"InvalidStateError occurred: {e}"
     except Exception as e:
-        print (f"Unexpected exception during un_watch_tickers(): {e}")
-    
+        print(f"Unexpected exception during un_watch_tickers(): {e}")
+
     # Let it run a bit more to see if any errors occur
     print("Letting it run for 5 more seconds...")
     await asyncio.sleep(5)
-    
+
     # Cleanup
     task_btc.cancel()
     await exchange.close()

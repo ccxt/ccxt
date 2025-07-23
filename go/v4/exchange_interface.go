@@ -2,8 +2,55 @@ package ccxt
 
 import "sync"
 
+type IBaseExchange interface {
+	SetRateLimit(rateLimit bool)
+	ExtendExchangeOptions(options interface{})
+	GetSymbols() []string
+	SetWssProxy(wssProxy interface{})
+	SetWsProxy(wsProxy interface{})
+	GetAlias() interface{}
+	GetTimeframes() map[string]interface{}
+	GetFeatures() map[string]interface{}
+	GetCache() *sync.Map
+	GetRequiredCredentials() map[string]interface{}
+	SetTimeout(timeout interface{})
+	SetHttpsProxy(httpsProxy interface{})
+	SetHttpProxy(httpProxy interface{})
+	SetCurrencies(currencies interface{})
+	SetPrivateKey(privateKey interface{})
+	SetWalletAddress(walletAddress interface{})
+	SetSecret(secret interface{})
+	SetUid(uid interface{})
+	SetPassword(password interface{})
+	SetApiKey(apiKey interface{})
+	SetAccounts(account interface{})
+	SetVerbose(verbose interface{})
+	GetLast_request_url() interface{}
+	GetLast_request_body() interface{}
+	GetLast_request_headers() map[string]interface{}
+	GetReturnResponseHeaders() bool
+	SetReturnResponseHeaders(val interface{})
+	GetHas() map[string]interface{}
+	GetId() string
+	GetHostname() string
+	GetUrls() interface{}
+	GetApi() map[string]interface{}
+	GetOptions() *sync.Map
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
+	SetSandboxMode(enable interface{})
+	LoadMarkets(params ...interface{}) <-chan interface{}
+	SetProxyUrl(proxyUrl interface{})
+	SetSocksProxy(proxyUrl interface{})
+	SignIn(optionalArgs ...interface{}) <-chan interface{}
+	Market(symbol interface{}) interface{}
+	Currency(code interface{}) interface{}
+
+	// methods from base
+}
+
 // Exchange interface based on the methods from binance.go
-type IExchange interface {
+type ICoreExchange interface {
 	SetRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
