@@ -50,6 +50,7 @@ if (platform === 'win32') {
     }
 }
 
+const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
 const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
 const ERRORS_FILE = './go/v4/exchange_errors.go';
@@ -150,7 +151,68 @@ const VIRTUAL_BASE_METHODS: any = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
-    "sign": false
+    "sign": false,
+    'cancelAllOrdersWs': true,
+	'cancelOrdersWs': true,
+	'cancelOrderWs': true,
+	'createLimitBuyOrderWs': true,
+	'createLimitOrderWs': true,
+	'createLimitSellOrderWs': true,
+	'createMarketBuyOrderWs': true,
+	'createMarketOrderWithCostWs': true,
+	'createMarketOrderWs': true,
+	'createMarketSellOrderWs': true,
+	'createOrderWithTakeProfitAndStopLossWs': true,
+	'createOrderWs': true,
+	'createPostOnlyOrderWs': true,
+	'createReduceOnlyOrderWs': true,
+	'createStopLimitOrderWs': true,
+	'createStopLossOrderWs': true,
+	'createStopMarketOrderWs': true,
+	'createStopOrderWs': true,
+	'createTakeProfitOrderWs': true,
+	'createTrailingAmountOrderWs': true,
+	'createTrailingPercentOrderWs': true,
+	'createTriggerOrderWs': true,
+	'editOrderWs': true,
+	'fetchBalanceWs': true,
+	'fetchClosedOrdersWs': true,
+    // 'fetchCurrenciesWs': true,
+	'fetchDepositsWs': true,
+	// 'fetchMarketsWs': true,
+	'fetchMyTradesWs': true,
+	'fetchOHLCVWs': true,
+	'fetchOpenOrdersWs': true,
+	'fetchOrderBookWs': true,
+	'fetchOrdersWs': true,
+	'fetchOrderWs': true,
+	'fetchPositionsForSymbolWs': true,
+	'fetchPositionsWs': true,
+	'fetchPositionWs': true,
+	'fetchTickersWs': true,
+	'fetchTickerWs': true,
+	'fetchTradesWs': true,
+	'fetchTradingFeesWs': true,
+	'fetchWithdrawalsWs': true,
+	'watchBalance': true,
+	'watchBidsAsks': true,
+	'watchLiquidations': true,
+	'watchMyLiquidations': true,
+	'watchMyLiquidationsForSymbols': true,
+	'watchMyTrades': true,
+	'watchOHLCV': true,
+	'watchOHLCVForSymbols': true,
+	'watchOrderBook': true,
+	'watchOrderBookForSymbols': true,
+	'watchOrders': true,
+	'watchOrdersForSymbols': true,
+	'watchPosition': true,
+	'watchPositions': true,
+	'watchTicker': true,
+	'watchTickers': true,
+	'watchTrades': true,
+	'watchTradesForSymbols': true,
+	'withdraw': true,
 }
 
 class NewTranspiler {
@@ -1043,7 +1105,7 @@ ${constStatements.join('\n')}
 
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
+    transpileBaseMethods(baseExchangeFile: string, isWs = false) {
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
         const goExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
@@ -1051,14 +1113,15 @@ ${constStatements.join('\n')}
         // to go
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
-        this.transpiler.goTranspiler.wrapCallMethods = Object.keys(VIRTUAL_BASE_METHODS);
+        const baseMethods = VIRTUAL_BASE_METHODS;
+        const allVirtual = Object.keys(baseMethods);
+        this.transpiler.goTranspiler.wrapCallMethods = Object.keys(baseMethods);
         const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 
-        const syncMethods = allVirtual.filter(elem => !VIRTUAL_BASE_METHODS[elem])
-        const asyncMethods = allVirtual.filter(elem => VIRTUAL_BASE_METHODS[elem])
+        const syncMethods = allVirtual.filter(elem => !baseMethods[elem])
+        const asyncMethods = allVirtual.filter(elem => baseMethods[elem])
 
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(syncRegex)
@@ -1239,6 +1302,7 @@ ${caseStatements.join('\n')}
         }
         const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        this.transpileBaseMethods(TS_BASE_FILE, true)
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
     }
 
@@ -1247,7 +1311,6 @@ ${caseStatements.join('\n')}
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , goFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
-            , exchangeBase = './ts/src/base/Exchange.ts'
 
         if (!child) {
             createFolderRecursively (goFolder)
@@ -1276,7 +1339,7 @@ ${caseStatements.join('\n')}
             return;
         }
 
-        this.transpileBaseMethods (exchangeBase)
+        this.transpileBaseMethods (TS_BASE_FILE)
         this.createDynamicInstanceFile();
 
         if (baseOnly) {
@@ -1314,11 +1377,11 @@ ${caseStatements.join('\n')}
 
     safeOptionsStructFile(ws: boolean = false) {
         const EXCHANGE_OPTIONS_FILE = ws 
-            ? './go/v4/exchange_wrapper_structs_ws.go' 
+            ? './go/v4/ws/exchange_wrapper_structs.go' 
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
-            'package ccxt',
+            ws ? 'package ccxtws' : 'package ccxt',
             this.createGeneratedHeader().join('\n'),
             ''
         ];
