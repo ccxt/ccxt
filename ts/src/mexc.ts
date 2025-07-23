@@ -1718,7 +1718,7 @@ export default class mexc extends Exchange {
             }
         }
         if (id === undefined) {
-            id = this.syntheticTradeId (timestamp, side, amountString, priceString, takerOrMaker);
+            id = this.defaultTradeId (timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade ({
             'id': id,

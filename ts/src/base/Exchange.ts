@@ -3796,7 +3796,7 @@ export default class Exchange {
         return trade as Trade;
     }
 
-    syntheticTradeId (timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+    defaultTradeId (timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         let id = undefined;
         if (timestamp !== undefined) {
