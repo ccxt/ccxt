@@ -1857,9 +1857,9 @@ class modetrade extends Exchange {
             // }
             //
             return array(
-                array(
+                $this->safe_order(array(
                     'info' => $response,
-                ),
+                )),
             );
         }) ();
     }

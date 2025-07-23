@@ -4802,11 +4802,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 

@@ -2780,7 +2780,7 @@ class kucoin extends Exchange {
             } else {
                 $response = Async\await($this->privateDeleteOrders ($this->extend($request, $query)));
             }
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

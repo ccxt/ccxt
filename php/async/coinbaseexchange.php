@@ -1638,7 +1638,8 @@ class coinbaseexchange extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->$method ($this->extend($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1660,7 +1661,8 @@ class coinbaseexchange extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

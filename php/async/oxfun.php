@@ -2723,7 +2723,7 @@ class oxfun extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} response from exchange
+             * @return {array} $response from exchange
              */
             $request = array();
             if ($symbol !== null) {
@@ -2741,7 +2741,8 @@ class oxfun extends Exchange {
             //         "data" => array( "notice" => "No working orders found" )
             //     }
             //
-            return Async\await($this->privateDeleteV3OrdersCancelAll ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteV3OrdersCancelAll ($this->extend($request, $params)));
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

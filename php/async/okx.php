@@ -3521,7 +3521,7 @@ class okx extends Exchange {
             $trailing = $this->safe_bool($params, 'trailing', false);
             if ($trigger || $trailing) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-                return $this->safe_value($orderInner, 0);
+                return $this->safe_dict($orderInner, 0);
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);

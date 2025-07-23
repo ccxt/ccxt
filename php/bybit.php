@@ -4809,7 +4809,7 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $orders = $this->safe_list($result, 'list');
         if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }
         return $this->parse_orders($orders, $market);
     }

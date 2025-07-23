@@ -1890,7 +1890,7 @@ class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {

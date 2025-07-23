@@ -1619,7 +1619,7 @@ class paradex extends Exchange {
             //
             // if success, no $response->..
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

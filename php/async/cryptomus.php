@@ -787,7 +787,7 @@ class cryptomus extends Exchange {
             //         "success" => true
             //     }
             //
-            return $response;
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
