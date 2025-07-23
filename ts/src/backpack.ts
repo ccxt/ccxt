@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Balances, Bool, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -72,7 +72,7 @@ export default class backpack extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -182,7 +182,7 @@ export default class backpack extends Exchange {
                         'api/v1/borrowLend/positions': 1,
                         'api/v1/capital': 1, // done
                         'api/v1/capital/collateral': 1,
-                        'wapi/v1/capital/deposits': 1,
+                        'wapi/v1/capital/deposits': 1, // done
                         'wapi/v1/capital/deposit/address': 1,
                         'wapi/v1/capital/withdrawals': 1,
                         'api/v1/position': 1,
@@ -230,24 +230,70 @@ export default class backpack extends Exchange {
                 'broker': '',
                 'networks': {
                     'Solana': 'SOL',
+                    'solana': 'SOL',
                     'Sui': 'SUI',
+                    'sui': 'SUI',
                     'Ethereum': 'ERC20',
+                    'ethereum': 'ERC20',
                     'Story': 'STORY',
+                    'story': 'STORY',
                     'Eclipse': 'ECLIPSE',
+                    'eclipse': 'ECLIPSE',
                     'Arbitrum': 'ARB',
+                    'arbitrum': 'ARB',
                     'Base': 'BASE',
+                    'base': 'BASE',
                     'Optimism': 'OPTIMISM',
+                    'optimism': 'OPTIMISM',
                     'Polygon': 'MATIC',
+                    'polygon': 'MATIC',
                     'XRP': 'XRP',
+                    'xrp': 'XRP',
                     'Cardano': 'ADA',
+                    'cardano': 'ADA',
                     'Hyperliquid': 'HYP',
+                    'hyperliquid': 'HYP',
                     'Tron': 'TRC20',
+                    'tron': 'TRC20',
                     'Dogecoin': 'DOGE',
+                    'dogecoin': 'DOGE',
                     'Bitcoin': 'BTC',
+                    'bitcoin': 'BTC',
+                    'bitcoinCash': 'BCH',
                     'Berachain': 'BERA',
+                    'berachain': 'BERA',
                     'BSC': 'BSC',
+                    'bsc': 'BSC',
+                    'Administrator': 'ADMINISTRATOR',
+                    'administrator': 'ADMINISTRATOR',
+                    'Avalanche': 'AVAX',
+                    'avalanche': 'AVAX',
+                    'Litecoin': 'LTC',
+                    'litecoin': 'LTC',
                 },
-                'networksById': {},
+                'networksById': {
+                    'SOL': 'solana',
+                    'SUI': 'sui',
+                    'ERC20': 'ethereum',
+                    'STORY': 'story',
+                    'ECLIPSE': 'eclipse',
+                    'ARB': 'arbitrum',
+                    'BASE': 'base',
+                    'OPTIMISM': 'optimism',
+                    'MATIC': 'polygon',
+                    'XRP': 'xrp',
+                    'ADA': 'cardano',
+                    'HYP': 'hyperliquid',
+                    'TRC20': 'tron',
+                    'DOGE': 'dogecoin',
+                    'BTC': 'bitcoin',
+                    'BERA': 'berachain',
+                    'BSC': 'bsc',
+                    'ADMINISTRATOR': 'administrator',
+                    'AVAX': 'avalanche',
+                    'BCH': 'bitcoinCash',
+                    'LTC': 'litecoin',
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -987,7 +1033,7 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name bitmart#fetchTime
+     * @name backpack#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1038,6 +1084,119 @@ export default class backpack extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://blofin.com/docs#get-deposite-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {
+        };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetWapiV1CapitalDeposits (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //     [
+        //         {
+        //             "createdAt": "2025-07-23T13:55:54.267",
+        //             "fiatAmount": null,
+        //             "fiatCurrency": null,
+        //             "fromAddress": "0x2e3ab3e88a7dbdc763aadf5b28c18fb085af420a",
+        //             "id": 6695353,
+        //             "institutionBic": null,
+        //             "platformMemo": null,
+        //             "quantity": "120",
+        //             "source": "ethereum",
+        //             "status": "confirmed",
+        //             "symbol": "USDC",
+        //             "toAddress": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170",
+        //             "transactionHash": "0x58edaac415398d617b34c6673fffcaf0024990d5700565030119db5cbf3765d1"
+        //         }
+        //     ]
+        //
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'transactionHash');
+        const coin = this.safeString (transaction, 'symbol');
+        const code = this.safeCurrencyCode (coin, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const amount = this.safeNumber (transaction, 'quantity');
+        const networkId = this.safeString (transaction, 'source');
+        const network = this.networkCodeToId (networkId);
+        const addressTo = this.safeString (transaction, 'toAddress');
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const tag = this.safeString (transaction, 'platformMemo');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': fee,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'cancelled': 'cancelled',
+            'confirmed': 'ok',
+            'declined': 'declined',
+            'expired': 'expired',
+            'initiated': 'initiated',
+            'pending': 'pending',
+            'refunded': 'refunded',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
