@@ -1336,7 +1336,7 @@ public partial class paradex : Exchange
         object status = this.safeString(order, "status");
         if (isTrue(!isEqual(cancelReason, null)))
         {
-            if (isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")))
+            if (isTrue(isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")) || isTrue(isEqual(cancelReason, "ORDER_EXCEEDS_POSITION_LIMIT"))))
             {
                 status = "rejected";
             } else

@@ -13,7 +13,7 @@ public partial class modetrade : Exchange
             { "countries", new List<object>() {"KY"} },
             { "rateLimit", 100 },
             { "version", "v1" },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "dex", true },
             { "hostname", "trade.mode.network" },
