@@ -23,7 +23,7 @@ class modetrade extends modetrade$1 {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'hostname': 'trade.mode.network',
