@@ -142,7 +142,7 @@
                 "method": "fetchOHLCV",
                 "input": [
                     "BTC/BRL",
-                    null,
+                    "1m",
                     null,
                     1
                 ],
