@@ -1249,7 +1249,7 @@ class paradex(Exchange, ImplicitAPI):
         cancelReason = self.safe_string(order, 'cancel_reason')
         status = self.safe_string(order, 'status')
         if cancelReason is not None:
-            if cancelReason == 'NOT_ENOUGH_MARGIN':
+            if cancelReason == 'NOT_ENOUGH_MARGIN' or cancelReason == 'ORDER_EXCEEDS_POSITION_LIMIT':
                 status = 'rejected'
             else:
                 status = 'canceled'
