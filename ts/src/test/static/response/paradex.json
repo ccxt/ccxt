@@ -32,6 +32,98 @@
     "methods": {
         "fetchOrder": [
             {
+                "description": "rejected order due to margin",
+                "method": "fetchOrder",
+                "input": [
+                    "1753283663020201709198660003",
+                    "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                    "id": "1753283663020201709198660003",
+                    "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                    "market": "SOL-USD-PERP",
+                    "side": "BUY",
+                    "type": "MARKET",
+                    "size": "10000",
+                    "remaining_size": "10000",
+                    "price": "190.1889",
+                    "status": "CLOSED",
+                    "created_at": "1753283663029",
+                    "last_updated_at": "1753283663055",
+                    "timestamp": "1753283662000",
+                    "cancel_reason": "NOT_ENOUGH_MARGIN",
+                    "client_id": "",
+                    "seq_no": "1753283663055873623",
+                    "instruction": "",
+                    "avg_fill_price": "",
+                    "stp": "EXPIRE_TAKER",
+                    "received_at": "1753283993083",
+                    "published_at": "1753283993083",
+                    "flags": [],
+                    "trigger_price": "0"
+                },
+                "parsedResponse": {
+                    "id": "1753283663020201709198660003",
+                    "clientOrderId": null,
+                    "timestamp": 1753283663029,
+                    "datetime": "2025-07-23T15:14:23.029Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1753283663055,
+                    "status": "rejected",
+                    "symbol": "SOL/USD:USDC",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 190.1889,
+                    "triggerPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 10000,
+                    "filled": 0,
+                    "remaining": 10000,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "id": "1753283663020201709198660003",
+                        "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                        "market": "SOL-USD-PERP",
+                        "side": "BUY",
+                        "type": "MARKET",
+                        "size": "10000",
+                        "remaining_size": "10000",
+                        "price": "190.1889",
+                        "status": "CLOSED",
+                        "created_at": "1753283663029",
+                        "last_updated_at": "1753283663055",
+                        "timestamp": "1753283662000",
+                        "cancel_reason": "NOT_ENOUGH_MARGIN",
+                        "client_id": "",
+                        "seq_no": "1753283663055873623",
+                        "instruction": "",
+                        "avg_fill_price": "",
+                        "stp": "EXPIRE_TAKER",
+                        "received_at": "1753283993083",
+                        "published_at": "1753283993083",
+                        "flags": [],
+                        "trigger_price": "0"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ],
+                    "stopPrice": 0
+                }
+            },
+            {
                 "description": "fetch canceled order",
                 "method": "fetchOrder",
                 "input": [
@@ -167,7 +259,7 @@
                             "settlement_currency": "USDC",
                             "order_size_increment": "0.001",
                             "price_tick_size": "0.1",
-                            "min_notional": "500",
+                            "min_nott loional": "500",
                             "open_at": 1698756879745,
                             "expiry_at": 0,
                             "asset_kind": "PERP",
@@ -176,7 +268,7 @@
                             "max_open_orders": 100,
                             "max_funding_rate": "0.02",
                             "delta1_cross_margin_params": {
-                                "imf_base": "0.02",
+                            "imf_base": "0.02",
                                 "imf_shift": "180000",
                                 "imf_factor": "0.00007",
                                 "mmf_factor": "0.5"
