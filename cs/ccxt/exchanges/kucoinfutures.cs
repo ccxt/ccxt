@@ -1833,7 +1833,9 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1944,7 +1946,10 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     /**
@@ -3467,7 +3472,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
     }
 
     /**

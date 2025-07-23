@@ -6017,7 +6017,7 @@ public partial class mexc : Exchange
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market);
+        return ((object)this.parseLeverage(response, market));  // tmp revert type
     }
 
     public override object nonce()

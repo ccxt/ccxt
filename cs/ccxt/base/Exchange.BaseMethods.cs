@@ -5457,13 +5457,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDeposits(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchWithdrawals(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;

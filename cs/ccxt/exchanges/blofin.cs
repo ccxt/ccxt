@@ -2707,7 +2707,7 @@ public partial class blofin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
     }
 
     /**
