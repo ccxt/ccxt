@@ -1682,7 +1682,9 @@ public partial class paradex : Exchange
         //
         // if success, no response...
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

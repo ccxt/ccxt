@@ -1895,9 +1895,9 @@ public partial class modetrade : Exchange
         //     }
         // }
         //
-        return new List<object>() {new Dictionary<string, object>() {
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
-}};
+})};
     }
 
     /**
