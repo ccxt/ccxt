@@ -1726,7 +1726,8 @@ export default class cryptocom extends Exchange {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, params));
+        const response = await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, params));
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

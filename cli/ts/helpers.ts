@@ -456,11 +456,12 @@ async function loadSettingsAndCreateExchange (
 
     if (fs.existsSync (keysGlobal)) {
         allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
-    } else if (fs.existsSync (keysLocal)) {
-        allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
-    } else {
-    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
     }
+    if (fs.existsSync (keysLocal)) {
+        const localSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
+        allSettings = { ...allSettings, ...localSettings };
+    }
+    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 
     const exchangeSettings = getExchangeSettings (exchangeId);
 

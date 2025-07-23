@@ -474,7 +474,7 @@ public partial class bitmex
     /// <item>
     /// <term>params.triggerDirection</term>
     /// <description>
-    /// object : the direction whenever the trigger happens with relation to price - 'above' or 'below'
+    /// object : the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
     /// </description>
     /// </item>
     /// <item>

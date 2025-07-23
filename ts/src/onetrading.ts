@@ -1355,7 +1355,7 @@ export default class onetrading extends Exchange {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

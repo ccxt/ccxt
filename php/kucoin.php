@@ -2696,7 +2696,7 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $trigger = $this->safe_bool($params, 'stop', false);
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         $params = $this->omit($params, 'stop');
@@ -2722,7 +2722,7 @@ class kucoin extends Exchange {
         } else {
             $response = $this->privateDeleteOrders ($this->extend($request, $query));
         }
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

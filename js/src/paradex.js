@@ -57,6 +57,7 @@ export default class paradex extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -76,7 +77,6 @@ export default class paradex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchGreeks': true,
-                'fetchAllGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -1567,7 +1567,7 @@ export default class paradex extends Exchange {
         //
         // if success, no response...
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

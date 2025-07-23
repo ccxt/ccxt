@@ -20,6 +20,7 @@ var FunctionsMap = map[string]interface{}{
     "precise": TestPrecise,
     "removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
     "safeMethods": TestSafeMethods,
+    "safeTicker": TestSafeTicker,
     "sort": TestSort,
     "sortBy": TestSortBy,
     "sum": TestSum,

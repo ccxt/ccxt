@@ -51,6 +51,7 @@ func  (this *paradex) Describe() interface{}  {
             "createTriggerOrder": true,
             "editOrder": false,
             "fetchAccounts": false,
+            "fetchAllGreeks": true,
             "fetchBalance": true,
             "fetchBorrowInterest": false,
             "fetchBorrowRateHistories": false,
@@ -70,7 +71,6 @@ func  (this *paradex) Describe() interface{}  {
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
             "fetchGreeks": true,
-            "fetchAllGreeks": true,
             "fetchIndexOHLCV": false,
             "fetchIsolatedBorrowRate": false,
             "fetchIsolatedBorrowRates": false,
@@ -1862,7 +1862,9 @@ func  (this *paradex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 //
             // if success, no response...
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

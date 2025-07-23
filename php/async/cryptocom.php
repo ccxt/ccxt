@@ -1731,7 +1731,8 @@ class cryptocom extends Exchange {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
             }
-            return Async\await($this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params)));
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

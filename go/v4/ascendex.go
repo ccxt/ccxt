@@ -2875,9 +2875,9 @@ func  (this *ascendex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             //         }
             //     }
             //
-        ch <- this.SafeOrder(map[string]interface{} {
-                "info": response,
-            })
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

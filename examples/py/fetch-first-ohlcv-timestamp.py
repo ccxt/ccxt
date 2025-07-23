@@ -67,6 +67,7 @@ async def fetch_first_bar_timestamp(exchange, symbol, use_minute_timeframe=False
             response = all_responses[i]
             if len(response) > 0:
                 found_start_time = response[0][0]
+                break
     return found_start_time
 
 

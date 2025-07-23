@@ -1019,7 +1019,9 @@ class bybit extends Exchange {
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
-                'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'linear', 'inverse', 'option' ),
+                ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
@@ -1152,6 +1154,7 @@ class bybit extends Exchange {
                     '4h' => '4h',
                     '1d' => '1d',
                 ),
+                'useMarkPriceForPositionCollateral' => false, // use mark price for position collateral
             ),
             'features' => array(
                 'default' => array(
@@ -1712,9 +1715,17 @@ class bybit extends Exchange {
             $this->load_time_difference();
         }
         $promisesUnresolved = array();
-        $fetchMarkets = $this->safe_list($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
-        for ($i = 0; $i < count($fetchMarkets); $i++) {
-            $marketType = $fetchMarkets[$i];
+        $types = null;
+        $defaultTypes = array( 'spot', 'linear', 'inverse', 'option' );
+        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+        if ($fetchMarketsOptions !== null) {
+            $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultTypes);
+        } else {
+            // for backward-compatibility
+            $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
+        }
+        for ($i = 0; $i < count($types); $i++) {
+            $marketType = $types[$i];
             if ($marketType === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($marketType === 'linear') {
@@ -1726,7 +1737,7 @@ class bybit extends Exchange {
                 $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'ETH' ));
                 $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'SOL' ));
             } else {
-                throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
+                throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
         $promises = $promisesUnresolved;
@@ -3868,7 +3879,7 @@ class bybit extends Exchange {
          * @param {int} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
-         * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+         * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
          * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
@@ -3892,7 +3903,7 @@ class bybit extends Exchange {
         $isTakeProfit = $takeProfitPrice !== null;
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
         $defaultMethod = null;
-        if ($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) {
+        if (($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -3972,7 +3983,7 @@ class bybit extends Exchange {
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
         $defaultMethod = null;
-        if ($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+        if (($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4103,9 +4114,9 @@ class bybit extends Exchange {
                 }
             } else {
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a $triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.');
+                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a $triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.');
                 }
-                $isAsending = (($triggerDirection === 'above') || ($triggerDirection === '1'));
+                $isAsending = (($triggerDirection === 'ascending') || ($triggerDirection === 'above') || ($triggerDirection === '1'));
                 $request['triggerDirection'] = $isAsending ? 1 : 2;
             }
             $request['triggerPrice'] = $this->get_price($symbol, $triggerPrice);
@@ -4798,7 +4809,7 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $orders = $this->safe_list($result, 'list');
         if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }
         return $this->parse_orders($orders, $market);
     }
@@ -6540,20 +6551,22 @@ class bybit extends Exchange {
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
+        $markPrice = $this->safe_string($position, 'markPrice');
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
         if ($liquidationPrice !== null) {
             if ($market['settle'] === 'USDC') {
-                //  (Entry price - Liq price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
-                $difference = Precise::string_abs(Precise::string_sub($entryPrice, $liquidationPrice));
+                //  (Entry $price - Liq $price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
+                $price = $this->safe_bool($this->options, 'useMarkPriceForPositionCollateral', false) ? $markPrice : $entryPrice;
+                $difference = Precise::string_abs(Precise::string_sub($price, $liquidationPrice));
                 $collateralString = Precise::string_add(Precise::string_add(Precise::string_mul($difference, $size), $maintenanceMarginString), $unrealisedPnl);
             } else {
                 $bustPrice = $this->safe_string($position, 'bustPrice');
                 if ($market['linear']) {
                     // derived from the following formulas
-                    //  (Entry price - Bust price) * Contracts = Collateral
-                    //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
-                    // Maintenance Margin = (Bust price - Liq price) x Contracts
+                    //  (Entry $price - Bust $price) * Contracts = Collateral
+                    //  (Entry $price - Liq $price) * Contracts = Collateral - Maintenance Margin
+                    // Maintenance Margin = (Bust $price - Liq $price) x Contracts
                     $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
                     $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
                     // Initial Margin = Contracts x Entry Price / Leverage
@@ -6561,10 +6574,10 @@ class bybit extends Exchange {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
                     }
                 } else {
-                    // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
-                    // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
-                    // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
-                    // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
+                    // Contracts * (1 / Entry $price - 1 / Bust $price) = Collateral
+                    // Contracts * (1 / Entry $price - 1 / Liq $price) = Collateral - Maintenance Margin
+                    // Maintenance Margin = Contracts * (1 / Liq $price - 1 / Bust $price)
+                    // Maintenance Margin = Contracts * (Bust $price - Liq $price) / (Liq $price x Bust $price)
                     $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
                     $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
                     $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
@@ -6599,7 +6612,7 @@ class bybit extends Exchange {
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $this->parse_number($liquidationPrice),
-            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
@@ -8522,7 +8535,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($income, 'execId'),
-            'amount' => $this->safe_number($income, 'execQty'),
+            'amount' => $this->safe_number($income, 'execFee'),
             'rate' => $this->safe_number($income, 'feeRate'),
         );
     }

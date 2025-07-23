@@ -18,6 +18,23 @@
         ],
         "createOrder": [
             {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"orderFilter\":\"tpslOrder\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\",\"triggerDirection\":2,\"triggerPrice\":\"90\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "spot market buy order",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",

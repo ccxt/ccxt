@@ -1650,7 +1650,7 @@ class okcoin(Exchange, ImplicitAPI):
         advanced = self.safe_value(params, 'advanced')
         if trigger or advanced:
             orderInner = self.cancel_orders([id], symbol, params)
-            return self.safe_value(orderInner, 0)
+            return self.safe_dict(orderInner, 0)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],

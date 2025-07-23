@@ -1537,7 +1537,7 @@ class apex extends apex$1 {
         }
         const response = await this.privatePostV3DeleteOpenOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return [this.parseOrder(data, market)];
     }
     /**
      * @method
@@ -1563,7 +1563,7 @@ class apex extends apex$1 {
             response = await this.privatePostV3DeleteOrder(this.extend(request, params));
         }
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return this.safeOrder(data);
     }
     /**
      * @method

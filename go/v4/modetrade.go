@@ -2079,9 +2079,9 @@ func  (this *modetrade) CancelAllOrders(optionalArgs ...interface{}) <- chan int
             //     }
             // }
             //
-        ch <- []interface{}{map[string]interface{} {
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
             "info": response,
-        }}
+        })}
             return nil
         
             }()

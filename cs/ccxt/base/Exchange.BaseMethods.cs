@@ -1377,7 +1377,7 @@ public partial class Exchange
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -2687,7 +2687,7 @@ public partial class Exchange
         {
             object fee = getValue(fees, i);
             object code = this.safeString(fee, "currency");
-            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(code, null)))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");
@@ -2730,8 +2730,7 @@ public partial class Exchange
     public virtual object safeTicker(object ticker, object market = null)
     {
         object open = this.omitZero(this.safeString(ticker, "open"));
-        object close = this.omitZero(this.safeString(ticker, "close"));
-        object last = this.omitZero(this.safeString(ticker, "last"));
+        object close = this.omitZero(this.safeString2(ticker, "close", "last"));
         object change = this.omitZero(this.safeString(ticker, "change"));
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
@@ -2742,20 +2741,66 @@ public partial class Exchange
         {
             vwap = Precise.stringDiv(this.omitZero(quoteVolume), baseVolume);
         }
-        if (isTrue(isTrue((!isEqual(last, null))) && isTrue((isEqual(close, null)))))
+        // calculate open
+        if (isTrue(!isEqual(change, null)))
         {
-            close = last;
-        } else if (isTrue(isTrue((isEqual(last, null))) && isTrue((!isEqual(close, null)))))
-        {
-            last = close;
-        }
-        if (isTrue(isTrue((!isEqual(last, null))) && isTrue((!isEqual(open, null)))))
-        {
-            if (isTrue(isEqual(change, null)))
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
             {
-                change = Precise.stringSub(last, open);
+                close = Precise.stringAdd(average, Precise.stringDiv(change, "2"));
             }
-            if (isTrue(isEqual(average, null)))
+            if (isTrue(isTrue(isEqual(open, null)) && isTrue(!isEqual(close, null))))
+            {
+                open = Precise.stringSub(close, change);
+            }
+        } else if (isTrue(!isEqual(percentage, null)))
+        {
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
+            {
+                object openAddClose = Precise.stringMul(average, "2");
+                // openAddClose = open * (1 + (100 + percentage)/100)
+                object denominator = Precise.stringAdd("2", Precise.stringDiv(percentage, "100"));
+                object calcOpen = ((bool) isTrue((!isEqual(open, null)))) ? open : Precise.stringDiv(openAddClose, denominator);
+                close = Precise.stringMul(calcOpen, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
+            }
+            if (isTrue(isTrue(isEqual(open, null)) && isTrue(!isEqual(close, null))))
+            {
+                open = Precise.stringDiv(close, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
+            }
+        }
+        // change
+        if (isTrue(isEqual(change, null)))
+        {
+            if (isTrue(isTrue(!isEqual(close, null)) && isTrue(!isEqual(open, null))))
+            {
+                change = Precise.stringSub(close, open);
+            } else if (isTrue(isTrue(!isEqual(close, null)) && isTrue(!isEqual(percentage, null))))
+            {
+                change = Precise.stringMul(Precise.stringDiv(percentage, "100"), Precise.stringDiv(close, "100"));
+            } else if (isTrue(isTrue(!isEqual(open, null)) && isTrue(!isEqual(percentage, null))))
+            {
+                change = Precise.stringMul(open, Precise.stringDiv(percentage, "100"));
+            }
+        }
+        // calculate things according to "open" (similar can be done with "close")
+        if (isTrue(!isEqual(open, null)))
+        {
+            // percentage (using change)
+            if (isTrue(isTrue(isEqual(percentage, null)) && isTrue(!isEqual(change, null))))
+            {
+                percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
+            }
+            // close (using change)
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(change, null))))
+            {
+                close = Precise.stringAdd(open, change);
+            }
+            // close (using average)
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
+            {
+                close = Precise.stringMul(average, "2");
+            }
+            // average
+            if (isTrue(isTrue(isEqual(average, null)) && isTrue(!isEqual(close, null))))
             {
                 object precision = 18;
                 if (isTrue(isTrue(!isEqual(market, null)) && isTrue(this.isTickPrecision())))
@@ -2767,23 +2812,12 @@ public partial class Exchange
                         precision = this.precisionFromString(precisionPrice);
                     }
                 }
-                average = Precise.stringDiv(Precise.stringAdd(last, open), "2", precision);
+                average = Precise.stringDiv(Precise.stringAdd(open, close), "2", precision);
             }
-        }
-        if (isTrue(isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(change, null)))) && isTrue((!isEqual(open, null)))) && isTrue(Precise.stringGt(open, "0"))))
-        {
-            percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
-        }
-        if (isTrue(isTrue(isTrue((isEqual(change, null))) && isTrue((!isEqual(percentage, null)))) && isTrue((!isEqual(open, null)))))
-        {
-            change = Precise.stringDiv(Precise.stringMul(percentage, open), "100");
-        }
-        if (isTrue(isTrue(isTrue((isEqual(open, null))) && isTrue((!isEqual(last, null)))) && isTrue((!isEqual(change, null)))))
-        {
-            open = Precise.stringSub(last, change);
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
+        object closeParsed = this.parseNumber(this.omitZero(close));
         return this.extend(ticker, new Dictionary<string, object>() {
             { "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))) },
             { "bidVolume", this.safeNumber(ticker, "bidVolume") },
@@ -2792,8 +2826,8 @@ public partial class Exchange
             { "high", this.parseNumber(this.omitZero(this.safeString(ticker, "high"))) },
             { "low", this.parseNumber(this.omitZero(this.safeString(ticker, "low"))) },
             { "open", this.parseNumber(this.omitZero(open)) },
-            { "close", this.parseNumber(this.omitZero(close)) },
-            { "last", this.parseNumber(this.omitZero(last)) },
+            { "close", closeParsed },
+            { "last", closeParsed },
             { "change", this.parseNumber(change) },
             { "percentage", this.parseNumber(percentage) },
             { "average", this.parseNumber(average) },
@@ -5423,13 +5457,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDeposits(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchWithdrawals(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;

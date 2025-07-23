@@ -1744,7 +1744,7 @@ export default class ndax extends Exchange {
         return this.extend (order, {
             'id': id,
             'clientOrderId': clientOrderId,
-        });
+        }) as Order;
     }
 
     /**

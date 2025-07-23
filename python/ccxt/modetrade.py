@@ -1750,9 +1750,9 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         return [
-            {
+            self.safe_order({
                 'info': response,
-            },
+            }),
         ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
