@@ -269,6 +269,7 @@ type IDerivedExchange interface {
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddresses(addresses interface{}, optionalArgs ...interface{}) interface{}
+	FetchTradingFees(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{}
 	ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}
 	ParseFundingRateHistory(info interface{}, optionalArgs ...interface{}) interface{}
