@@ -146,6 +146,22 @@
         ],
         "createOrder": [
             {
+                "description": "create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.foxbit-sandbox.com.br/rest/v3/orders",
+                "input": [
+                    "XRP/BRL",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "clientOrderId": "1234"
+                    }
+                ],
+                "output": "{\"market_symbol\":\"xrpbrl\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"2\",\"client_order_id\":\"1234\"}"
+            },
+            {
                 "description": "Create a limit sell order",
                 "method": "createOrder",
                 "url": "https://api.foxbit.com.br/rest/v3/orders",
