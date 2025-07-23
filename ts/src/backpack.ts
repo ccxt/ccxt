@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Account, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Account, Bool, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -401,7 +401,54 @@ export default class backpack extends Exchange {
         //             "orderBookState": "Open",
         //             "quoteSymbol": "USDC",
         //             "symbol": "SOL_USDC"
-        //         }, ...
+        //         },
+        //         {
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowEntryFeeMaxMultiplier": null,
+        //                     "borrowEntryFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": "1000",
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.1",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": {
+        //                         "tolerancePct": "0.05"
+        //                     },
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
+        //                 }
+        //             },
+        //             "fundingInterval": "28800000",
+        //             "fundingRateLowerBound": "-100",
+        //             "fundingRateUpperBound": "100",
+        //             "imfFunction": {
+        //                 "base": "0.02",
+        //                 "factor": "0.0001275",
+        //                 "type": "sqrt"
+        //             },
+        //             "marketType": "PERP",
+        //             "mmfFunction": {
+        //                 "base": "0.0125",
+        //                 "factor": "0.0000765",
+        //                 "type": "sqrt"
+        //             },
+        //             "openInterestLimit": "4000000",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC_PERP"
+        //         }
         //     ]
         //
         const id = this.safeString (market, 'symbol');
@@ -412,25 +459,32 @@ export default class backpack extends Exchange {
         let symbol = base + '/' + quote;
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});
-        const maxPrice = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'maxPrice')));
-        const minPrice = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'minPrice')));
+        const maxPrice = this.safeNumber (priceFilter, 'maxPrice');
+        const minPrice = this.safeNumber (priceFilter, 'minPrice');
+        const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'tickSize')));
         const quantityFilter = this.safeDict (filters, 'quantity', {});
-        const maxQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'maxQuantity')));
-        const minQuantity = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'minQuantity')));
+        const maxQuantity = this.safeNumber (quantityFilter, 'maxQuantity');
+        const minQuantity = this.safeNumber (quantityFilter, 'minQuantity');
+        const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'stepSize')));
         let type: MarketType;
         const typeOfMarket = this.parseMarketType (this.safeString (market, 'marketType'));
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        let settle: Str = undefined;
+        let settleId: Str = undefined;
+        let contractSize: Num = undefined;
         if (typeOfMarket === 'spot') {
             type = 'spot';
         } else if (typeOfMarket === 'swap') {
             type = 'swap';
-        }
-        let settle = undefined;
-        let settleId = undefined;
-        if (type === 'swap') {
+            linear = true;
+            inverse = false;
             settleId = this.safeString (market, 'quoteSymbol');
             settle = this.safeCurrencyCode (settleId);
-            symbol = base + '/' + quote + ':' + settle;
+            symbol += ':' + settle;
+            contractSize = 1; // todo check contract size
         }
+        const orderBookState = this.safeString (market, 'orderBookState');
         return {
             'id': id,
             'symbol': symbol,
@@ -442,24 +496,24 @@ export default class backpack extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': type === 'spot',
-            'margin': type === 'margin',
+            'margin': false,
             'swap': type === 'swap',
             'future': false,
             'option': false,
-            'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'taker': undefined,
-            'maker': undefined,
-            'contractSize': undefined,
+            'active': orderBookState === 'Open',
+            'contract': type !== 'spot',
+            'linear': linear,
+            'inverse': inverse,
+            'taker': undefined, // todo check commission
+            'maker': undefined, // todo check commission
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
@@ -475,7 +529,7 @@ export default class backpack extends Exchange {
                     'max': maxPrice,
                 },
                 'cost': {
-                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'min': undefined,
                     'max': undefined,
                 },
             },
@@ -488,10 +542,11 @@ export default class backpack extends Exchange {
         const types = {
             'SPOT': 'spot',
             'PERP': 'swap',
-            'IPERP': 'swap',
-            'DATED': 'swap',
-            'PREDICTION': 'swap',
-            'RFQ': 'swap',
+            // current types are described in the docs, but the exchange returns only 'SPOT' and 'PERP'
+            // 'IPERP': 'swap',
+            // 'DATED': 'swap',
+            // 'PREDICTION': 'swap',
+            // 'RFQ': 'swap',
         };
         return this.safeString (types, type, type);
     }
