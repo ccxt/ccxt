@@ -436,6 +436,7 @@ export default class mexc extends Exchange {
                         },
                     },
                 },
+                'useSubstituteTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -1717,8 +1718,8 @@ export default class mexc extends Exchange {
                 }
             }
         }
-        if (id === undefined) {
-            id = this.defaultTradeId (timestamp, side, amountString, priceString, takerOrMaker);
+        if (id === undefined && this.safeBool (this.options, 'useSubstituteTradeId', true)) {
+            id = this.createSubstituteTradeId (timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade ({
             'id': id,
