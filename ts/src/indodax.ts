@@ -1415,8 +1415,8 @@ export default class indodax extends Exchange {
         if (Array.isArray (response)) {
             return undefined; // public endpoints may return []-arrays
         }
-        const error = this.safeValue (response, 'error', '');
-        if (!('success' in response) && error === '') {
+        const err = this.safeValue (response, 'error', '');
+        if (!('success' in response) && err === '') {
             return undefined; // no 'success' property on public responses
         }
         const status = this.safeString (response, 'success');
@@ -1432,8 +1432,8 @@ export default class indodax extends Exchange {
             }
         }
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
 }

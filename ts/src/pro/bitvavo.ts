@@ -1375,8 +1375,8 @@ export default class bitvavo extends bitvavoRest {
             // we resolve the future here permanently so authentication only happens once
             client.resolve (message, messageHash);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -1400,14 +1400,14 @@ export default class bitvavo extends bitvavoRest {
         //        error: 'You do not have sufficient balance to complete this operation.'
         //    }
         //
-        const error = this.safeString (message, 'error');
-        const code = this.safeInteger (error, 'errorCode');
+        const err = this.safeString (message, 'error');
+        const code = this.safeInteger (err, 'errorCode');
         const action = this.safeString (message, 'action');
         const buildMessage = this.buildMessageHash (action, message);
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors (code, err, client.url, undefined, undefined, err, message, undefined, undefined);
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);
@@ -1463,8 +1463,8 @@ export default class bitvavo extends bitvavoRest {
         //         "authenticated": true
         //     }
         //
-        const error = this.safeString (message, 'error');
-        if (error !== undefined) {
+        const err = this.safeString (message, 'error');
+        if (err !== undefined) {
             this.handleErrorMessage (client, message);
         }
         const methods: Dict = {

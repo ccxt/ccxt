@@ -1988,8 +1988,8 @@ export default class zonda extends Exchange {
                 const errors = this.safeValue (response, 'errors');
                 const feedback = this.id + ' ' + body;
                 for (let i = 0; i < errors.length; i++) {
-                    const error = errors[i];
-                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                    const err = errors[i];
+                    this.throwExactlyMatchedException (this.exceptions, err, feedback);
                 }
                 throw new ExchangeError (feedback);
             }

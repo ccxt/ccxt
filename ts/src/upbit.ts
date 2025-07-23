@@ -2340,10 +2340,10 @@ export default class upbit extends Exchange {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        const error = this.safeValue (response, 'error');
-        if (error !== undefined) {
-            const message = this.safeString (error, 'message');
-            const name = this.safeString (error, 'name');
+        const err = this.safeValue (response, 'error');
+        if (err !== undefined) {
+            const message = this.safeString (err, 'message');
+            const name = this.safeString (err, 'name');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], name, feedback);

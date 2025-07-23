@@ -172,8 +172,8 @@ export default class Client {
 
     onConnectionTimeout () {
         if (!this.isOpen ()) {
-            const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
-            this.onError (error)
+            const err = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
+            this.onError (err)
             this.connection.close (1006)
         }
     }
@@ -365,8 +365,8 @@ export default class Client {
         }
         try {
             this.onMessageCallback (this, message)
-        } catch (error) {
-            this.reject (error)
+        } catch (e) {
+            this.reject (e)
         }
     }
 }

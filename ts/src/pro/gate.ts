@@ -528,8 +528,8 @@ export default class gate extends gateRest {
             delete this.orderbooks[symbol];
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                client.reject (error, messageHash);
+                const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (err, messageHash);
             }
         }
         client.resolve (storedOrderBook, messageHash);
@@ -1668,15 +1668,15 @@ export default class gate extends gateRest {
         //
         const data = this.safeDict (message, 'data');
         const errs = this.safeDict (data, 'errs');
-        const error = this.safeDict (message, 'error', errs);
-        const code = this.safeString2 (error, 'code', 'label');
+        const err = this.safeDict (message, 'error', errs);
+        const code = this.safeString2 (err, 'code', 'label');
         const id = this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]);
-        if (error !== undefined) {
+        if (err !== undefined) {
             const messageHash = this.safeString (client.subscriptions, id);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, this.json (message));
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, this.json (errs));
-                const errorMessage = this.safeString (error, 'message', this.safeString (errs, 'message'));
+                const errorMessage = this.safeString (err, 'message', this.safeString (errs, 'message'));
                 this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], errorMessage, this.json (message));
                 throw new ExchangeError (this.json (message));
             } catch (e) {

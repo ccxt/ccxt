@@ -697,8 +697,8 @@ export default class bitfinex extends bitfinexRest {
             delete this.orderbooks[symbol];
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                client.reject (error, messageHash);
+                const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (err, messageHash);
             }
         }
     }
@@ -894,8 +894,8 @@ export default class bitfinex extends bitfinexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];

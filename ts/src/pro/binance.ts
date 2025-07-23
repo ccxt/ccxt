@@ -2451,7 +2451,7 @@ export default class binance extends binanceRest {
                     await this.publicPutUserDataStream (this.extend (request, params));
                 }
             }
-        } catch (error) {
+        } catch (e) {
             let urlType = type;
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -2461,7 +2461,7 @@ export default class binance extends binanceRest {
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
             }
             this.options[type] = this.extend (options, {
                 'listenKey': undefined,
@@ -4301,11 +4301,11 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         let rejected = false;
-        const error = this.safeDict (message, 'error', {});
-        const code = this.safeInteger (error, 'code');
-        const msg = this.safeString (error, 'msg');
+        const err = this.safeDict (message, 'error', {});
+        const code = this.safeInteger (err, 'code');
+        const msg = this.safeString (err, 'msg');
         try {
-            this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
+            this.handleErrors (code, msg, client.url, undefined, undefined, this.json (err), err, undefined, undefined);
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash
@@ -4324,7 +4324,7 @@ export default class binance extends binanceRest {
             client.reject (message, id);
         }
         // reset connection if 5xx error
-        const codeString = this.safeString (error, 'code');
+        const codeString = this.safeString (err, 'code');
         if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset (message);
         }
@@ -4333,8 +4333,8 @@ export default class binance extends binanceRest {
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
         const status = this.safeString (message, 'status');
-        const error = this.safeValue (message, 'error');
-        if ((error !== undefined) || (status !== undefined && status !== '200')) {
+        const err = this.safeValue (message, 'error');
+        if ((err !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }

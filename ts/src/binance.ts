@@ -11925,17 +11925,17 @@ export default class binance extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
-        const error = this.safeString (response, 'code');
-        if (error !== undefined) {
+        const err = this.safeString (response, 'code');
+        if (err !== undefined) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((error === '200') || Precise.stringEquals (error, '0')) {
+            if ((err === '200') || Precise.stringEquals (err, '0')) {
                 return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+            if ((err === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -11947,8 +11947,8 @@ export default class binance extends Exchange {
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
             }
-            this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), error, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), err, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
             throw new ExchangeError (feedback);
         }
         if (!success) {

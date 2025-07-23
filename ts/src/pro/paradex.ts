@@ -318,15 +318,15 @@ export default class paradex extends paradexRest {
         //         "usOut": 1718179125962495
         //     }
         //
-        const error = this.safeDict (message, 'error');
-        if (error === undefined) {
+        const err = this.safeDict (message, 'error');
+        if (err === undefined) {
             return true;
         } else {
-            const errorCode = this.safeString (error, 'code');
+            const errorCode = this.safeString (err, 'code');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + this.json (error);
+                const feedback = this.id + ' ' + this.json (err);
                 this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeValue (error, 'message');
+                const messageString = this.safeValue (err, 'message');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }

@@ -631,7 +631,7 @@ export default class Exchange {
         return encodeURIComponent (...args)
     }
 
-    checkRequiredVersion (requiredVersion, error = true) {
+    checkRequiredVersion (requiredVersion, err = true) {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
@@ -652,10 +652,10 @@ export default class Exchange {
             }
         }
         if (!result) {
-            if (error) {
+            if (err) {
                 throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
             } else {
-                return error
+                return err
             }
         }
         return result
@@ -7895,8 +7895,8 @@ export default class Exchange {
                 delete client.subscriptions[subHash];
             }
             if (subHash in client.futures) {
-                const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, subHash);
+                const err = new UnsubscribeError (this.id + ' ' + subHash);
+                client.reject (err, subHash);
             }
         } else {
             const clientSubscriptions = Object.keys (client.subscriptions);
@@ -7910,8 +7910,8 @@ export default class Exchange {
             for (let i = 0; i < clientFutures.length; i++) {
                 const future = clientFutures[i];
                 if (future.startsWith (subHash)) {
-                    const error = new UnsubscribeError (this.id + ' ' + future);
-                    client.reject (error, future);
+                    const err = new UnsubscribeError (this.id + ' ' + future);
+                    client.reject (err, future);
                 }
             }
         }

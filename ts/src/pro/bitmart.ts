@@ -1590,12 +1590,12 @@ export default class bitmart extends bitmartRest {
         //    }
         //
         const errorCode = this.safeString (message, 'errorCode');
-        const error = this.safeString (message, 'error');
+        const err = this.safeString (message, 'error');
         try {
-            if (errorCode !== undefined || error !== undefined) {
+            if (errorCode !== undefined || err !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const messageString = this.safeValue (message, 'message', error);
+                const messageString = this.safeValue (message, 'message', err);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 const action = this.safeString (message, 'action');
                 if (action === 'access') {
