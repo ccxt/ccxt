@@ -113,7 +113,7 @@ export default class backpack extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
@@ -184,7 +184,7 @@ export default class backpack extends Exchange {
                         'api/v1/capital/collateral': 1,
                         'wapi/v1/capital/deposits': 1, // done
                         'wapi/v1/capital/deposit/address': 1, // done
-                        'wapi/v1/capital/withdrawals': 1,
+                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
                         'api/v1/position': 1,
                         'wapi/v1/history/borrowLend': 1,
                         'wapi/v1/history/interest': 1,
@@ -1121,6 +1121,42 @@ export default class backpack extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name backpack#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'until');
+        if (until !== undefined) {
+            request['to'] = until;
+        }
+        const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, params));
+        // todo add after withdrawal
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
@@ -1201,12 +1237,12 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name cex#fetchDepositAddress
+     * @name backpack#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.networkCode] the network to fetch the deposit address for, default is the first available network, see [network codes]{@link https://docs.ccxt.com/#/?id=network-codes}
+     * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
