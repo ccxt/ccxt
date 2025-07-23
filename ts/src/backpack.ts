@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Account, Bool, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -61,7 +61,7 @@ export default class backpack extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -180,7 +180,7 @@ export default class backpack extends Exchange {
                         'api/v1/account/limits/order': 1,
                         'api/v1/account/limits/withdrawal': 1,
                         'api/v1/borrowLend/positions': 1,
-                        'api/v1/capital': 1,
+                        'api/v1/capital': 1, // done
                         'api/v1/capital/collateral': 1,
                         'wapi/v1/capital/deposits': 1,
                         'wapi/v1/capital/deposit/address': 1,
@@ -1003,38 +1003,41 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name backpack#fetchAccounts
-     * @description fetch all the accounts associated with a profile
-     * @see https://docs.backpack.exchange/#tag/Account/operation/get_account
+     * @name backpack#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const response = await this.privateGetApiV1Account (params);
-        //
-        //
-        return this.parseAccounts (response, params);
+        const response = await this.privateGetApiV1Capital (params);
+        return this.parseBalance (response);
     }
 
-    parseAccount (account) {
+    parseBalance (response): Balances {
         //
         //     {
-        //         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
-        //         "currency": "BTC",
-        //         "balance": "0.0000000000000000",
-        //         "available": "0",
-        //         "hold": "0.0000000000000000",
-        //         "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
+        //         "USDC": {
+        //             "available": "120",
+        //             "locked": "0",
+        //             "staked": "0"
+        //         }
         //     }
         //
-        const currencyId = this.safeString (account, 'currency');
-        return {
-            'id': this.safeString (account, 'id'),
-            'type': undefined,
-            'code': this.safeCurrencyCode (currencyId),
-            'info': account,
-        };
+        const balanceKeys = Object.keys (response);
+        const result: Dict = {};
+        for (let i = 0; i < balanceKeys.length; i++) {
+            const id = balanceKeys[i];
+            const code = this.safeCurrencyCode (id);
+            const balance = response[id];
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'staked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
