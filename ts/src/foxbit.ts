@@ -1719,11 +1719,11 @@ export default class foxbit extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 6),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 6),
         ];
     }
 
@@ -1811,7 +1811,7 @@ export default class foxbit extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': this.parseNumber (price),
-            'triggerPrice': this.safeFloat (order, 'stop_price'),
+            'triggerPrice': this.safeNumber (order, 'stop_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'cost': this.parseNumber (cost),
