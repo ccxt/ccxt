@@ -3801,17 +3801,23 @@ export default class Exchange {
         let id = undefined;
         if (timestamp !== undefined) {
             id = this.numberToString (timestamp);
-            // side
-            id += '-' + ((side !== undefined) ? side : 'side');
             // price
             id += '-' + ((price !== undefined) ? this.numberToString (price) : 'p');
             // amount
             id += '-' + ((amount !== undefined) ? this.numberToString (amount) : 'a');
-            // takerOrMaker
-            if (takerOrMaker === undefined) {
-                id += '-' + 'tm';
+            // side
+            id += '-';
+            if (side === undefined) {
+                id += 'side';
             } else {
-                id += '-' + ((takerOrMaker === 'taker') ? 't' : 'm');
+                id += (side === 'buy') ? 'b' : 's';
+            }
+            // takerOrMaker
+            id += '-';
+            if (takerOrMaker === undefined) {
+                id += 'tm';
+            } else {
+                id += (takerOrMaker === 'taker') ? 't' : 'm';
             }
         }
         return id;
