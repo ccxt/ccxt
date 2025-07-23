@@ -2139,6 +2139,74 @@
                     }
                 ]
             }
+        ],
+        "fetchPositionsRisk": [
+            {
+                "description": "fetchPositionsRisk",
+                "method": "fetchPositionsRisk",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "entryPrice": "6563.66500",
+                        "marginType": "isolated",
+                        "isAutoAddMargin": "false",
+                        "isolatedMargin": "15517.54150468",
+                        "leverage": "10",
+                        "liquidationPrice": "5930.78",
+                        "markPrice": "6679.50671178",
+                        "maxNotionalValue": "20000000",
+                        "positionSide": "LONG",
+                        "positionAmt": "20.000",
+                        "symbol": "BTCUSDT",
+                        "unRealizedProfit": "2316.83423560",
+                        "updateTime": 1625474304765
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "entryPrice": "6563.66500",
+                            "marginType": "isolated",
+                            "isAutoAddMargin": "false",
+                            "isolatedMargin": "15517.54150468",
+                            "leverage": "10",
+                            "liquidationPrice": "5930.78",
+                            "markPrice": "6679.50671178",
+                            "maxNotionalValue": "20000000",
+                            "positionSide": "LONG",
+                            "positionAmt": "20.000",
+                            "symbol": "BTCUSDT",
+                            "unRealizedProfit": "2316.83423560",
+                            "updateTime": 1625474304765
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 20,
+                        "contractSize": null,
+                        "unrealizedPnl": 2316.8342356,
+                        "leverage": 10,
+                        "liquidationPrice": 5930.78,
+                        "collateral": 15517.54150468,
+                        "notional": null,
+                        "markPrice": 6679.50671178,
+                        "entryPrice": 6563.665,
+                        "timestamp": 1625474304765,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "marginRatio": null,
+                        "datetime": "2021-07-05T08:38:24.765Z",
+                        "marginMode": "isolated",
+                        "marginType": "isolated",
+                        "side": "long",
+                        "hedged": true,
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

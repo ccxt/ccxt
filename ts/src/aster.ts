@@ -144,7 +144,7 @@ export default class aster extends Exchange {
                 'fetchPositionMode': true,
                 'fetchPositions': false,
                 'fetchPositionsHistory': false,
-                'fetchPositionsRisk': false,
+                'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
@@ -2573,6 +2573,122 @@ export default class aster extends Exchange {
         //     ]
         //
         return this.parseLedger (response, currency, since, limit);
+    }
+
+    parsePositionRisk (position, market: Market = undefined) {
+        //
+        //     {
+        //         "entryPrice": "6563.66500",
+        //         "marginType": "isolated",
+        //         "isAutoAddMargin": "false",
+        //         "isolatedMargin": "15517.54150468",
+        //         "leverage": "10",
+        //         "liquidationPrice": "5930.78",
+        //         "markPrice": "6679.50671178",
+        //         "maxNotionalValue": "20000000",
+        //         "positionSide": "LONG",
+        //         "positionAmt": "20.000",
+        //         "symbol": "BTCUSDT",
+        //         "unRealizedProfit": "2316.83423560",
+        //         "updateTime": 1625474304765
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = this.safeString (market, 'symbol');
+        const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
+        const contracts = this.parseNumber (contractsAbs);
+        const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
+        const unrealizedPnl = this.parseNumber (unrealizedPnlString);
+        const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
+        const liquidationPrice = this.parseNumber (liquidationPriceString);
+        const marginMode = this.safeString (position, 'marginType');
+        const side = this.safeStringLower (position, 'positionSide');
+        const entryPriceString = this.safeString (position, 'entryPrice');
+        const entryPrice = this.parseNumber (entryPriceString);
+        const collateralString = this.safeString (position, 'isolatedMargin');
+        const collateral = this.parseNumber (collateralString);
+        const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
+        const timestamp = this.safeInteger (position, 'updateTime');
+        const positionSide = this.safeString (position, 'positionSide');
+        const hedged = positionSide !== 'BOTH';
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'contracts': contracts,
+            'contractSize': undefined,
+            'unrealizedPnl': unrealizedPnl,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'liquidationPrice': liquidationPrice,
+            'collateral': collateral,
+            'notional': undefined,
+            'markPrice': markPrice,
+            'entryPrice': entryPrice,
+            'timestamp': timestamp,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'marginMode': marginMode,
+            'marginType': marginMode, // deprecated
+            'side': side,
+            'hedged': hedged,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name aster#fetchPositionsRisk
+     * @description fetch positions risk
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} data on the positions risk
+     */
+    async fetchPositionsRisk (symbols: Strings = undefined, params = {}) {
+        if (symbols !== undefined) {
+            if (!Array.isArray (symbols)) {
+                throw new ArgumentsRequired (this.id + ' fetchPositionsRisk() requires an array argument for symbols');
+            }
+        }
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const response = await this.privateGetFapiV2PositionRisk (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "entryPrice": "6563.66500",
+        //             "marginType": "isolated",
+        //             "isAutoAddMargin": "false",
+        //             "isolatedMargin": "15517.54150468",
+        //             "leverage": "10",
+        //             "liquidationPrice": "5930.78",
+        //             "markPrice": "6679.50671178",
+        //             "maxNotionalValue": "20000000",
+        //             "positionSide": "LONG",
+        //             "positionAmt": "20.000", // negative value for 'SHORT'
+        //             "symbol": "BTCUSDT",
+        //             "unRealizedProfit": "2316.83423560",
+        //             "updateTime": 1625474304765
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const rawPosition = response[i];
+            const entryPriceString = this.safeString (rawPosition, 'entryPrice');
+            if (Precise.stringGt (entryPriceString, '0')) {
+                result.push (this.parsePositionRisk (response[i]));
+            }
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

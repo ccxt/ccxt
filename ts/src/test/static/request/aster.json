@@ -428,6 +428,14 @@
                 "url": "https://fapi.asterdex.com/fapi/v1/income?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
                 "input": []
             }
+        ],
+        "fetchPositionsRisk": [
+            {
+                "description": "fetchPositionsRisk",
+                "method": "fetchPositionsRisk",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            }
         ]
     }
 }
