@@ -567,7 +567,7 @@ export default class foxbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'market': market['baseId'] + market['quoteId'],
+            'market': market['id'],
         };
         const response = await this.v3PublicGetMarketsMarketTicker24hr (this.extend (request, params));
         //  {
@@ -689,7 +689,7 @@ export default class foxbit extends Exchange {
         const market = this.market (symbol);
         const defaultLimit = 20;
         const request: Dict = {
-            'market': market['baseId'] + market['quoteId'],
+            'market': market['id'],
             'depth': (limit === undefined) ? defaultLimit : limit,
         };
         const response = await this.v3PublicGetMarketsMarketOrderbook (this.extend (request, params));
@@ -736,7 +736,7 @@ export default class foxbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'market': market['baseId'] + market['quoteId'],
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -775,7 +775,7 @@ export default class foxbit extends Exchange {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
-            'market': market['baseId'] + market['quoteId'],
+            'market': market['id'],
             'interval': interval,
         };
         if (since !== undefined) {
@@ -890,7 +890,7 @@ export default class foxbit extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['market_symbol'] = market['baseId'] + market['quoteId'];
+            request['market_symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
@@ -934,7 +934,7 @@ export default class foxbit extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly', false);
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
         const request: Dict = {
-            'market_symbol': market['baseId'] + market['quoteId'],
+            'market_symbol': market['id'],
             'side': side.toUpperCase (),
             'type': type,
         };
@@ -1003,7 +1003,7 @@ export default class foxbit extends Exchange {
             const postOnly = this.safeBool (orderParams, 'postOnly', false);
             const triggerPrice = this.safeNumber (orderParams, 'triggerPrice');
             const request: Dict = {
-                'market_symbol': market['baseId'] + market['quoteId'],
+                'market_symbol': market['id'],
                 'side': this.safeStringUpper (order, 'side'),
                 'type': type,
             };
@@ -1106,7 +1106,7 @@ export default class foxbit extends Exchange {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['type'] = 'MARKET';
-            request['market_symbol'] = market['baseId'] + market['quoteId'];
+            request['market_symbol'] = market['id'];
         }
         const response = await this.v3PrivatePutOrdersCancel (this.extend (request, params));
         // {
@@ -1179,7 +1179,7 @@ export default class foxbit extends Exchange {
         const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['market_symbol'] = market['baseId'] + market['quoteId'];
+            request['market_symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
@@ -1236,7 +1236,7 @@ export default class foxbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market_symbol': market['baseId'] + market['quoteId'],
+            'market_symbol': market['id'],
         };
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
@@ -1504,7 +1504,7 @@ export default class foxbit extends Exchange {
             'create': {
                 'type': type,
                 'side': side.toUpperCase (),
-                'market_symbol': market['baseId'] + market['quoteId'],
+                'market_symbol': market['id'],
             },
         };
         if (type === 'LIMIT' || type === 'MARKET') {
