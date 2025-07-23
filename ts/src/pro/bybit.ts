@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
@@ -1583,6 +1582,32 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
+     * @name bybit#unwatchPositions
+     * @description unWatches all open positions
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unwatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const method = 'watchPositions';
+        let messageHash = 'unsubscribe:positions';
+        let subHash = 'positions';
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash += '::' + symbols.join (',');
+            subHash += '::' + symbols.join (',');
+        }
+        const firstSymbol = this.safeString (symbols, 0);
+        const url = await this.getUrlByMarketType (firstSymbol, true, method, params);
+        await this.authenticate (url);
+        const topics = [ 'position' ];
+        return await this.unWatchTopics (url, 'positions', symbols, [ messageHash ], [ subHash ], topics, params);
+    }
+
+    /**
+     * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
@@ -2658,4 +2683,5 @@ export default class bybit extends bybitRest {
         }
         return message;
     }
+
 }
