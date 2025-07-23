@@ -1870,8 +1870,8 @@ export default class foxbit extends Exchange {
         if (sn !== undefined && sn[0] === 'D') {
             type = 'deposit';
         }
-        const fee = this.safeNumber (transaction, 'fee', 0);
-        const amount = this.safeNumber (transaction, 'amount');
+        const fee = this.safeString (transaction, 'fee', '0');
+        const amount = this.safeString (transaction, 'amount');
         const currencySymbol = this.safeString (transaction, 'currency_symbol');
         let actualAmount = amount;
         const currencyCode = this.safeCurrencyCode (currencySymbol);
@@ -1880,13 +1880,14 @@ export default class foxbit extends Exchange {
         const timestamp = this.parseDate (created_at);
         const datetime = this.iso8601 (timestamp);
         if (fee !== undefined && amount !== undefined) {
-            actualAmount = amount - fee;
+            // actualAmount = amount - fee;
+            actualAmount = Precise.stringSub (amount, fee);
         }
-        const feeRate = fee / actualAmount;
+        const feeRate = Precise.stringDiv (fee, actualAmount);
         const feeObj = {
-            'cost': fee,
+            'cost': this.parseNumber (fee),
             'currency': currencyCode,
-            'rate': feeRate,
+            'rate': this.parseNumber (feeRate),
         };
         return {
             'info': transaction,
@@ -1902,7 +1903,7 @@ export default class foxbit extends Exchange {
             'tagTo': this.safeString (transaction, 'destination_tag'),
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': currencyCode,
             'status': status,
             'updated': undefined,
