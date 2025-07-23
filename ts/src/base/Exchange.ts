@@ -338,7 +338,6 @@ export default class Exchange {
 
     // rate limiter properties
     rateLimiterAlgorithm: string = 'leakyBucket';  // rollingWindow or leakyBucket
-    maxLimiterRequests: Num = 1000;
     rollingWindowSize: Num = 60000;
 
     httpExceptions = undefined
@@ -2865,7 +2864,6 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxLimiterRequests': this.maxLimiterRequests,
             'refillRate': refillRate,
             'algorithm': this.rateLimiterAlgorithm,
             'windowSize': this.rollingWindowSize,

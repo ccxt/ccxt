@@ -11,7 +11,6 @@ class Throttler:
             'delay': 0.001,
             'cost': 1.0,
             'tokens': 0,
-            'maxLimiterRequests': 2000,
             'capacity': 1.0,
             'algorithm': 'leakyBucket',
             'rateLimit': 0,
@@ -81,8 +80,6 @@ class Throttler:
 
     def __call__(self, cost=None):
         future = asyncio.Future()
-        if len(self.queue) > self.config['maxLimiterRequests']:
-            raise RuntimeError('throttle queue is over maxLimiterRequests (' + str(int(self.config['maxLimiterRequests'])) + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526')
         self.queue.append((future, cost))
         if not self.running:
             self.running = True

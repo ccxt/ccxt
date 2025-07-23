@@ -169,7 +169,6 @@ class Exchange(object):
 
     # rate limiter properties
     rateLimiterAlgorithm = 'leakyBucket'  # rollingWindow or leakyBucket
-    maxLimiterRequests = 1000
     rollingWindowSize = 60000
 
     fees = {
@@ -2881,7 +2880,6 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxLimiterRequests': self.maxLimiterRequests,
             'refillRate': refillRate,
             'algorithm': self.rateLimiterAlgorithm,
             'windowSize': self.rollingWindowSize,

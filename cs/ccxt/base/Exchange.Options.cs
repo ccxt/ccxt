@@ -18,7 +18,6 @@ public partial class Exchange
     public bool verbose { get; set; } = true;
     public bool enableRateLimit { get; set; } = true;
     public string rateLimiterAlgorithm {get; set; } = "leakyBucket";  // rollingWindow or leakyBucket
-    public int maxLimiterRequests {get; set; } = 1000;
     public int rollingWindowSize {get; set; } = 60000;
     public long lastRestRequestTimestamp { get; set; } = 0;
     public string url { get; set; } = "";
@@ -296,7 +295,6 @@ public partial class Exchange
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
         this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
-        this.maxLimiterRequests = (int)(SafeInteger(extendedProperties, "maxLimiterRequests") ?? 1000);
         this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 60000);
     }
 }

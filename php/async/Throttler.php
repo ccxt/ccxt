@@ -19,7 +19,6 @@ class Throttler {
             'delay' => 0.001,
             'cost' => 1.0,
             'tokens' => 0.0,
-            'maxLimiterRequests' => 2000,
             'capacity' => 1.0,
             'algorithm' => 'leakyBucket',
             'rateLimit' => 0,
@@ -105,9 +104,6 @@ class Throttler {
 
     public function __invoke($cost = null) {
         $future = new Deferred();
-        if ($this->queue->count() > $this->config['maxLimiterRequests']) {
-            throw new \RuntimeException('throttle queue is over maxLimiterRequests (' . strval($this->config['maxLimiterRequests']) . '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
-        }
         $this->queue->enqueue(array($future, $cost));
         if (!$this->running) {
             Loop::futureTick(array($this, 'loop'));

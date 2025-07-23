@@ -36,7 +36,6 @@ public class Throttler
             config.Delay = configInput.TryGetValue("delay", out var delay) ? Convert.ToDouble(delay) : config.Delay;
             config.Cost = configInput.TryGetValue("cost", out var cost) ? Convert.ToDouble(cost) : config.Cost;
             config.Tokens = configInput.TryGetValue("tokens", out var tokens) ? Convert.ToDouble(tokens) : config.Tokens;
-            config.MaxLimiterRequests = configInput.TryGetValue("maxLimiterRequests", out var maxRequests) ? Convert.ToInt32(maxRequests) : config.MaxLimiterRequests;
             config.Capacity = configInput.TryGetValue("capacity", out var capacity) ? Convert.ToDouble(capacity) : config.Capacity;
             config.Algorithm = configInput.TryGetValue("algorithm", out var algorithm) ? Convert.ToString(algorithm) : config.Algorithm;
             config.RateLimit = configInput.TryGetValue("rateLimit", out var rateLimit) ? Convert.ToDouble(rateLimit) : config.RateLimit;
@@ -159,10 +158,6 @@ public class Throttler
         var t = new Task(() => { });
         lock (queueLock)
         {
-            if (this.queue.Count > (int)this.config.MaxLimiterRequests)
-            {
-                throw new Exception("throttle queue is over maxLimiterRequests (" + this.config.MaxLimiterRequests.ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
-            }
             this.queue.Enqueue((t, cost));
         }
         if (!this.running)

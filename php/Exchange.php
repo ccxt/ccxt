@@ -302,7 +302,6 @@ class Exchange {
     public $enableRateLimit = true;
     // rate limiter properties
     public $rateLimiterAlgorithm = 'leakyBucket';  // rollingWindow or leakyBucket
-    public $maxLimiterRequests = 1000;
     public $rollingWindowSize = 60000;
     public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
@@ -3448,7 +3447,6 @@ class Exchange {
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxLimiterRequests' => 1000,
             'refillRate' => $refillRate,
             'algorithm' => $this->rateLimiterAlgorithm,
             'windowSize' => $this->rollingWindowSize,

@@ -13,7 +13,6 @@ class Throttler {
         refillRate: number;
         delay: number;
         capacity: number;
-        maxLimiterRequests: number;
         tokens: number;
         cost: number;
         algorithm: string;
@@ -28,7 +27,6 @@ class Throttler {
             'refillRate': 1.0,
             'delay': 0.001,
             'capacity': 1.0,
-            'maxLimiterRequests': 2000,
             'tokens': 0,
             'cost': 1.0,
             'algorithm': 'leakyBucket',
@@ -116,9 +114,6 @@ class Throttler {
         const promise = new Promise ((resolve, reject) => {
             resolver = resolve;
         });
-        if (this.queue.length > this.config['maxLimiterRequests']) {
-            throw new Error ('throttle queue is over maxLimiterRequests (' + this.config['maxLimiterRequests'].toString () + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
-        }
         cost = (cost === undefined) ? this.config['cost'] : cost;
         this.queue.push ({ resolver, cost });
         if (!this.running) {
