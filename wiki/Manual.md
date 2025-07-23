@@ -2860,7 +2860,7 @@ The fetchTrades method shown above returns an ordered list of trades (a flat arr
 [
     {
         'info':          { ... },                  // the original decoded JSON as is
-        'id':           '12345-67890:09876/54321', // string trade id
+        'id':           '12345-67890:09876/54321', // string trade id, if it's empty you can use `createSubstituteTradeId` method
         'timestamp':     1502962946216,            // Unix timestamp in milliseconds
         'datetime':     '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
         'symbol':       'ETH/BTC',                 // symbol
@@ -5211,7 +5211,7 @@ Trades denote the exchange of one currency for another, unlike [transactions](#t
 ```javascript
 {
     'info':         { ... },                    // the original decoded JSON as is
-    'id':           '12345-67890:09876/54321',  // string trade id
+    'id':           '12345-67890:09876/54321',  // string trade id, if it's empty you can use `createSubstituteTradeId` method
     'timestamp':    1502962946216,              // Unix timestamp in milliseconds
     'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
     'symbol':       'ETH/BTC',                  // symbol
