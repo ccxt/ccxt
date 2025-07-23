@@ -297,7 +297,7 @@ func NewMarket(data interface{}) Market {
 		Precision:     precision,
 		MarginModes:   marginModes,
 		Limits:        limits,
-		Info:          m,
+		Info:          GetInfo(m),
 		Created:       created,
 	}
 }
@@ -450,7 +450,7 @@ func NewTicker(data interface{}) Ticker {
 		Average:       SafeFloatTyped(m, "average"),
 		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
-		Info:          m,
+		Info:          GetInfo(m),
 	}
 }
 
@@ -1808,6 +1808,18 @@ func NewOrderArray(orders2 interface{}) []Order {
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
 			order := NewOrder(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
+func NewGreeksArray(orders2 interface{}) []Greeks {
+	orders := orders2.([]interface{})
+	result := make([]Greeks, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewGreeks(tradeMap)
 			result = append(result, order)
 		}
 	}

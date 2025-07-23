@@ -424,6 +424,14 @@
                   "BTC/USD:USDC-117000-P"
                 ]
             }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch greeks for all markets",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
+            }
         ]
     }
 }

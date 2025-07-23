@@ -11,6 +11,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -531,6 +532,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                     'Order could not be placed.': ExchangeNotAvailable,  # Order could not be placed(perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
+                    'Trading is currently unavailable for your account.': AccountSuspended,  # {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.

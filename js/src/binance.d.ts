@@ -1496,6 +1496,16 @@ export default class binance extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
      */
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    /**
+     * @method
+     * @name binance#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     /**

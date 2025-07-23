@@ -50,6 +50,7 @@ class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
@@ -166,6 +167,7 @@ class hyperliquid extends Exchange {
                                 'orderStatus' => 2,
                                 'spotClearinghouseState' => 2,
                                 'exchangeStatus' => 2,
+                                'candleSnapshot' => 3,
                             ),
                         ),
                     ),
@@ -233,7 +235,16 @@ class hyperliquid extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => false,
                         'takeProfitPrice' => false,
-                        'attachedStopLossTakeProfit' => null,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => false,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'triggerPrice' => true,
+                            'type' => true,
+                            'price' => true,
+                        ),
                         'timeInForce' => array(
                             'IOC' => true,
                             'FOK' => false,
@@ -340,6 +351,9 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
+            if ($this->check_required_credentials(false)) {
+                Async\await($this->handle_builder_fee_approval());
+            }
             $request = array(
                 'type' => 'meta',
             );
@@ -629,6 +643,7 @@ class hyperliquid extends Exchange {
                     'quote' => $quote,
                     'settle' => null,
                     'baseId' => $baseId,
+                    'baseName' => $baseName,
                     'quoteId' => $quoteId,
                     'settleId' => null,
                     'type' => 'spot',
@@ -701,7 +716,8 @@ class hyperliquid extends Exchange {
         //     }
         //
         $quoteId = 'USDC';
-        $base = $this->safe_string($market, 'name');
+        $baseName = $this->safe_string($market, 'name');
+        $base = $this->safe_currency_code($baseName);
         $quote = $this->safe_currency_code($quoteId);
         $baseId = $this->safe_string($market, 'baseId');
         $settleId = 'USDC';
@@ -737,6 +753,7 @@ class hyperliquid extends Exchange {
             'quote' => $quote,
             'settle' => $settle,
             'baseId' => $baseId,
+            'baseName' => $baseName,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => 'swap',
@@ -795,6 +812,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
+             * @param {string} [$params->subAccountAddress] sub $account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             $userAddress = null;
@@ -804,9 +822,8 @@ class hyperliquid extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $isSpot = ($type === 'spot');
-            $reqType = ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
             $request = array(
-                'type' => $reqType,
+                'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
                 'user' => $userAddress,
             );
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
@@ -896,7 +913,7 @@ class hyperliquid extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'type' => 'l2Book',
-                'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
             );
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
@@ -1145,7 +1162,7 @@ class hyperliquid extends Exchange {
             $request = array(
                 'type' => 'candleSnapshot',
                 'req' => array(
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                     'startTime' => $since,
                     'endTime' => $until,
@@ -1212,6 +1229,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest trade
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->user] wallet address that made trades
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $userAddress = null;
@@ -1407,6 +1425,77 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function build_approve_builder_fee_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:ApproveBuilderFee' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'maxFeeRate', 'type' => 'string' ),
+                array( 'name' => 'builder', 'type' => 'address' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function approve_builder_fee(string $builder, string $maxFeeRate) {
+        return Async\async(function () use ($builder, $maxFeeRate) {
+            $nonce = $this->milliseconds();
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'maxFeeRate' => $maxFeeRate,
+                'builder' => $builder,
+                'nonce' => $nonce,
+            );
+            $sig = $this->build_approve_builder_fee_sig($payload);
+            $action = array(
+                'hyperliquidChain' => $payload['hyperliquidChain'],
+                'signatureChainId' => '0x66eee',
+                'maxFeeRate' => $payload['maxFeeRate'],
+                'builder' => $payload['builder'],
+                'nonce' => $nonce,
+                'type' => 'approveBuilderFee',
+            );
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $sig,
+                'vaultAddress' => null,
+            );
+            //
+            // {
+            //     "status" => "ok",
+            //     "response" => {
+            //         "type" => "default"
+            //     }
+            // }
+            //
+            return Async\await($this->privatePostExchange ($request));
+        }) ();
+    }
+
+    public function handle_builder_fee_approval() {
+        return Async\async(function ()  {
+            $buildFee = $this->safe_bool($this->options, 'builderFee', true);
+            if (!$buildFee) {
+                return false; // skip if $builder fee is not enabled
+            }
+            $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
+            if ($approvedBuilderFee) {
+                return true; // skip if $builder fee is already approved
+            }
+            try {
+                $builder = $this->safe_string($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+                $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
+                Async\await($this->approve_builder_fee($builder, $maxFeeRate));
+                $this->options['approvedBuilderFee'] = true;
+            } catch (Exception $e) {
+                $this->options['builderFee'] = false; // disable $builder fee if an error occurs
+            }
+            return true;
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1427,6 +1516,7 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->slippage] the slippage for market $order
              * @param {string} [$params->vaultAddress] the vault address for $order
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -1448,6 +1538,7 @@ class hyperliquid extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->handle_builder_fee_approval());
             $request = $this->create_orders_request($orders, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
@@ -1472,6 +1563,72 @@ class hyperliquid extends Exchange {
             $statuses = $this->safe_list($data, 'statuses', array());
             return $this->parse_orders($statuses, null);
         }) ();
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, string $amount, ?string $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $type = strtoupper($type);
+        $side = strtoupper($side);
+        $isMarket = ($type === 'MARKET');
+        $isBuy = ($side === 'BUY');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
+        $slippage = $this->safe_string($params, 'slippage');
+        $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        if ($postOnly) {
+            $defaultTimeInForce = 'alo';
+        }
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = $this->capitalize($timeInForce);
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isTrigger = ($stopLossPrice || $takeProfitPrice);
+        $px = null;
+        if ($isMarket) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . '  $market orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
+            }
+            $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
+            $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
+        } else {
+            $px = $this->price_to_precision($symbol, $price);
+        }
+        $sz = $this->amount_to_precision($symbol, $amount);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $orderType = array();
+        if ($isTrigger) {
+            $isTp = false;
+            if ($takeProfitPrice !== null) {
+                $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                $isTp = true;
+            } else {
+                $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+            }
+            $orderType['trigger'] = array(
+                'isMarket' => $isMarket,
+                'triggerPx' => $triggerPrice,
+                'tpsl' => ($isTp) ? 'tp' : 'sl',
+            );
+        } else {
+            $orderType['limit'] = array(
+                'tif' => $timeInForce,
+            );
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
+        $orderObj = array(
+            'a' => $this->parse_to_int($market['baseId']),
+            'b' => $isBuy,
+            'p' => $px,
+            's' => $sz,
+            'r' => $reduceOnly,
+            't' => $orderType,
+            // 'c' => $clientOrderId,
+        );
+        if ($clientOrderId !== null) {
+            $orderObj['c'] = $clientOrderId;
+        }
+        return $orderObj;
     }
 
     public function create_orders_request($orders, $params = array ()): array {
@@ -1506,76 +1663,56 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
         $nonce = $this->milliseconds();
         $orderReq = array();
+        $grouping = 'na';
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $type = $this->safe_string_upper($rawOrder, 'type');
-            $isMarket = ($type === 'MARKET');
             $side = $this->safe_string_upper($rawOrder, 'side');
-            $isBuy = ($side === 'BUY');
             $amount = $this->safe_string($rawOrder, 'amount');
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
-            $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
-            $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly) {
-                $defaultTimeInForce = 'alo';
-            }
-            $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
-            $timeInForce = $this->capitalize($timeInForce);
-            $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
-            $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
-            $isTrigger = ($stopLossPrice || $takeProfitPrice);
-            $px = null;
-            if ($isMarket) {
-                if ($price === null) {
-                    throw new ArgumentsRequired($this->id . '  $market $orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
-                }
-                $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
-                $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
-            } else {
-                $px = $this->price_to_precision($symbol, $price);
-            }
-            $sz = $this->amount_to_precision($symbol, $amount);
-            $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
-            $orderType = array();
+            $orderParams['slippage'] = $slippage;
+            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
+            $isTrigger = ($stopLoss || $takeProfit);
+            $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+            $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
+            $orderReq[] = $mainOrderObj;
             if ($isTrigger) {
-                $isTp = false;
-                if ($takeProfitPrice !== null) {
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $isTp = true;
+                // $grouping opposed $orders for sl/tp
+                $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
+                $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+                $grouping = 'normalTpsl';
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $triggerOrderSide = '';
+                if ($side === 'BUY') {
+                    $triggerOrderSide = 'sell';
                 } else {
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $triggerOrderSide = 'buy';
                 }
-                $orderType['trigger'] = array(
-                    'isMarket' => $isMarket,
-                    'triggerPx' => $triggerPrice,
-                    'tpsl' => ($isTp) ? 'tp' : 'sl',
-                );
-            } else {
-                $orderType['limit'] = array(
-                    'tif' => $timeInForce,
-                );
+                if ($takeProfit !== null) {
+                    $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
+                        'takeProfitPrice' => $takeProfitOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
+                if ($stopLoss !== null) {
+                    $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
+                        'stopLossPrice' => $stopLossOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
             }
-            $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
-            $orderObj = array(
-                'a' => $this->parse_to_int($market['baseId']),
-                'b' => $isBuy,
-                'p' => $px,
-                's' => $sz,
-                'r' => $reduceOnly,
-                't' => $orderType,
-                // 'c' => $clientOrderId,
-            );
-            if ($clientOrderId !== null) {
-                $orderObj['c'] = $clientOrderId;
-            }
-            $orderReq[] = $orderObj;
         }
         $vaultAddress = null;
         list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
@@ -1583,11 +1720,11 @@ class hyperliquid extends Exchange {
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
-            'grouping' => 'na',
-            // 'brokerCode' => 1, // cant
+            'grouping' => $grouping,
         );
-        if ($vaultAddress === null) {
-            $orderAction['brokerCode'] = 1;
+        if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
+            $wallet = $this->safe_string_lower($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            $orderAction['builder'] = array( 'b' => $wallet, 'f' => $this->safe_integer($this->options, 'feeInt', 10) );
         }
         $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
         $request = array(
@@ -1616,6 +1753,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address for order
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
@@ -1636,6 +1774,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_credentials();
@@ -1679,7 +1818,7 @@ class hyperliquid extends Exchange {
             }
             $cancelAction['cancels'] = $cancelReq;
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
             $vaultAddress = $this->format_vault_address($vaultAddress);
             $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
             $request['action'] = $cancelAction;
@@ -1728,6 +1867,7 @@ class hyperliquid extends Exchange {
              * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
              */
             $this->check_required_credentials();
@@ -1768,7 +1908,7 @@ class hyperliquid extends Exchange {
             $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
             $cancelAction['cancels'] = $cancelReq;
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelOrdersForSymbols', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
             $vaultAddress = $this->format_vault_address($vaultAddress);
             $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
             $request['action'] = $cancelAction;
@@ -1802,6 +1942,7 @@ class hyperliquid extends Exchange {
              * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} the api result
              */
             $this->check_required_credentials();
@@ -1817,7 +1958,7 @@ class hyperliquid extends Exchange {
                 'time' => $nonce . $timeout,
             );
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersAfter', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
             $vaultAddress = $this->format_vault_address($vaultAddress);
             $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
             $request['action'] = $cancelAction;
@@ -1978,6 +2119,7 @@ class hyperliquid extends Exchange {
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @param {string} [$params->clientOrderId] client $order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address for $order
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -2108,7 +2250,7 @@ class hyperliquid extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'type' => 'fundingHistory',
-                'coin' => $market['base'],
+                'coin' => $market['baseName'],
             );
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -2162,6 +2304,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             $userAddress = null;
@@ -2264,6 +2407,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $userAddress = null;
@@ -2303,6 +2447,7 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $userAddress = null;
@@ -2540,6 +2685,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest trade
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $userAddress = null;
@@ -2671,6 +2817,7 @@ class hyperliquid extends Exchange {
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
@@ -2817,6 +2964,8 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->leverage] the rate of $leverage, is required if setting trade mode ($symbol)
+             * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -2839,7 +2988,7 @@ class hyperliquid extends Exchange {
                 'leverage' => $leverage,
             );
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
             if ($vaultAddress !== null) {
                 if (str_starts_with($vaultAddress, '0x')) {
                     $vaultAddress = str_replace('0x', '', $vaultAddress);
@@ -2895,7 +3044,7 @@ class hyperliquid extends Exchange {
                 'leverage' => $leverage,
             );
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'setLeverage', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
             $vaultAddress = $this->format_vault_address($vaultAddress);
             $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
             $request = array(
@@ -2931,6 +3080,8 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
@@ -2947,6 +3098,8 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->vaultAddress] the vault address
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
@@ -2970,7 +3123,7 @@ class hyperliquid extends Exchange {
                 'ntli' => $sz,
             );
             $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'modifyMargin', 'vaultAddress');
+            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
             $vaultAddress = $this->format_vault_address($vaultAddress);
             $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
             $request = array(
@@ -3074,30 +3227,34 @@ class hyperliquid extends Exchange {
                 $transferResponse = Async\await($this->privatePostExchange ($transferRequest));
                 return $transferResponse;
             }
-            // handle sub-account/different account transfer
-            $this->check_address($toAccount);
+            // transfer between main account and subaccount
             if ($code !== null) {
                 $code = strtoupper($code);
                 if ($code !== 'USDC') {
                     throw new NotSupported($this->id . ' transfer() only support USDC');
                 }
             }
-            $payload = array(
-                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
-                'destination' => $toAccount,
-                'amount' => $this->number_to_string($amount),
-                'time' => $nonce,
+            $isDeposit = false;
+            $subAccountAddress = null;
+            if ($fromAccount === 'main') {
+                $subAccountAddress = $toAccount;
+                $isDeposit = true;
+            } elseif ($toAccount === 'main') {
+                $subAccountAddress = $fromAccount;
+            } else {
+                throw new NotSupported($this->id . ' transfer() only support main <> subaccount transfer');
+            }
+            $this->check_address($subAccountAddress);
+            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
+            $action = array(
+                'type' => 'subAccountTransfer',
+                'subAccountUser' => $subAccountAddress,
+                'isDeposit' => $isDeposit,
+                'usd' => $usd,
             );
-            $sig = $this->build_usd_send_sig($payload);
+            $sig = $this->sign_l1_action($action, $nonce);
             $request = array(
-                'action' => array(
-                    'hyperliquidChain' => $payload['hyperliquidChain'],
-                    'signatureChainId' => '0x66eee', // check this out
-                    'destination' => $toAccount,
-                    'amount' => (string) $amount,
-                    'time' => $nonce,
-                    'type' => 'usdSend',
-                ),
+                'action' => $action,
                 'nonce' => $nonce,
                 'signature' => $sig,
             );
@@ -3255,6 +3412,7 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
@@ -3365,6 +3523,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
@@ -3460,6 +3619,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3506,6 +3666,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $withdrawals for
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3616,6 +3777,7 @@ class hyperliquid extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
@@ -3717,7 +3879,7 @@ class hyperliquid extends Exchange {
 
     public function handle_public_address(string $methodName, array $params) {
         $userAux = null;
-        list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
+        list($userAux, $params) = $this->handle_option_and_params_2($params, $methodName, 'user', 'subAccountAddress');
         $user = $userAux;
         list($user, $params) = $this->handle_option_and_params($params, $methodName, 'address', $userAux);
         if (($user !== null) && ($user !== '')) {
@@ -3733,7 +3895,7 @@ class hyperliquid extends Exchange {
         if (mb_strpos($coin, '/') > -1 || mb_strpos($coin, '@') > -1) {
             return $coin; // spot
         }
-        return $coin . '/USDC:USDC';
+        return $this->safe_currency_code($coin) . '/USDC:USDC';
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
@@ -3799,7 +3961,7 @@ class hyperliquid extends Exchange {
     public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $vaultAddress = null;
-        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $symbol = $market['symbol'];
         $order = array(

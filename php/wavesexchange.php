@@ -2322,11 +2322,22 @@ class wavesexchange extends Exchange {
         $order1 = $this->safe_value($data, 'order1');
         $order2 = $this->safe_value($data, 'order2');
         $order = null;
-        // $order2 arrived after $order1
+        // at first, detect if response is from `fetch_my_trades`
         if ($this->safe_string($order1, 'senderPublicKey') === $this->apiKey) {
             $order = $order1;
-        } else {
+        } elseif ($this->safe_string($order2, 'senderPublicKey') === $this->apiKey) {
             $order = $order2;
+        } else {
+            // response is from `fetch_trades`, so find only taker $order
+            $date1 = $this->safe_string($order1, 'timestamp');
+            $date2 = $this->safe_string($order2, 'timestamp');
+            $ts1 = $this->parse8601($date1);
+            $ts2 = $this->parse8601($date2);
+            if ($ts1 > $ts2) {
+                $order = $order1;
+            } else {
+                $order = $order2;
+            }
         }
         $symbol = null;
         $assetPair = $this->safe_value($order, 'assetPair');

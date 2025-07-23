@@ -538,7 +538,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'code': code,
                 'precision': None,
             })
-        self.currencies = self.deep_extend(currencies, self.currencies)
+        self.currencies = self.map_to_safe_map(self.deep_extend(currencies, self.currencies))
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

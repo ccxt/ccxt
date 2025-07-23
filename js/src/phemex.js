@@ -2763,10 +2763,10 @@ export default class phemex extends Exchange {
                 let triggerDirection = undefined;
                 [triggerDirection, params] = this.handleParamString(params, 'triggerDirection');
                 if (triggerDirection === undefined) {
-                    throw new ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                    throw new ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value");
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                if (triggerDirection === 'up') {
+                if (triggerDirection === 'ascending' || triggerDirection === 'up') {
                     if (side === 'sell') {
                         request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
                     }
@@ -2774,7 +2774,7 @@ export default class phemex extends Exchange {
                         request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
                     }
                 }
-                else if (triggerDirection === 'down') {
+                else if (triggerDirection === 'descending' || triggerDirection === 'down') {
                     if (side === 'sell') {
                         request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
                     }

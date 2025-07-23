@@ -67,7 +67,7 @@ function helperTestHandleNetworkRequest() {
             }
         },
     });
-    exchange.currencies = {}; // todo: initialize in C# base files
+    exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
     const currencyCode = 'ETH'; // todo: in future with complex cases
     // no-case
     const [request1, params1] = exchange.handleRequestNetwork({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);

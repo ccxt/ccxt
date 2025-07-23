@@ -21,6 +21,8 @@ ansi.nice
 
 const unlimitedLog = log.unlimited;
 
+let isPartiaBuild = false;
+
 const capitalize = (s) => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
 };
@@ -44,11 +46,19 @@ function logExportExchanges (filename, regex, replacement) {
 
 function getIncludedExchangeIds (pathToDirectory) {
 
+    if (process.argv.length > 2) {
+        // allow a specific exchange to be specified via command line
+        isPartiaBuild = true;
+        return process.argv.slice (2);
+    }
+
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
         .split ('\n') // String → Array
         .map (line => line.split ('#')[0].trim ()) // trim comments
         .filter (exchange => exchange); // filter empty lines
+
+    isPartiaBuild = includedIds.length > 0;
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
     const ids = fs.readdirSync (pathToDirectory)
@@ -708,6 +718,11 @@ async function exportEverything () {
 
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = await createExchanges (ids)
+
+    if (isPartiaBuild) {
+        log.bright.cyan ('Using a partial build'.yellow, 'building only', ids)
+        return
+    }
 
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'

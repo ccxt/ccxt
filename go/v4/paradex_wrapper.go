@@ -894,3 +894,35 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
     }
     return NewGreeks(res), nil
 }
+/**
+ * @method
+ * @name paradex#fetchAllGreeks
+ * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+ * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+ * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ */
+func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+
+    opts := FetchAllGreeksOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchAllGreeks(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewGreeksArray(res), nil
+}

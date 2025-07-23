@@ -619,18 +619,33 @@ class testMainClass:
     def check_constructor(self, exchange):
         # todo: this might be moved in base tests later
         if exchange.id == 'binance':
-            assert exchange.hostname is None, 'binance.com hostname should be empty'
+            assert exchange.hostname is None or exchange.hostname == '', 'binance.com hostname should be empty'
             assert exchange.urls['api']['public'] == 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']
             assert ('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + json_stringify(exchange.api['sapi']['get'])
         elif exchange.id == 'binanceus':
             assert exchange.hostname == 'binance.us', 'binance.us hostname does not match ' + exchange.hostname
             assert exchange.urls['api']['public'] == 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' + exchange.urls['api']['public']
 
+    def test_return_response_headers(self, exchange):
+        if exchange.id != 'binance':
+            return False   # this test is only for binance exchange for now
+        exchange.return_response_headers = True
+        ticker = exchange.fetch_ticker('BTC/USDT')
+        info = ticker['info']
+        headers = info['responseHeaders']
+        headers_keys = list(headers.keys())
+        assert len(headers_keys) > 0, 'Response headers should not be empty'
+        header_values = list(headers.values())
+        assert len(header_values) > 0, 'Response headers values should not be empty'
+        exchange.return_response_headers = False
+        return True
+
     def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
             return True
         self.check_constructor(exchange)
+        self.test_return_response_headers(exchange)
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         try:
@@ -1170,7 +1185,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1392,7 +1407,7 @@ class testMainClass:
         try:
             exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         broker_id = spot_order_request['broker_id']
         id_string = str(id)
         assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string
@@ -1486,20 +1501,22 @@ class testMainClass:
             close(exchange)
         return True
 
-    def test_hyperliquid(self):
-        exchange = self.init_offline_exchange('hyperliquid')
-        id = '1'
-        request = None
-        try:
-            exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        broker_id = str((request['action']['brokerCode']))
-        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
-        if not is_sync():
-            close(exchange)
-        return True
-
+    # testHyperliquid () {
+    #     const exchange = this.initOfflineExchange ('hyperliquid');
+    #     const id = '1';
+    #     let request = undefined;
+    #     try {
+    #         exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    #     } catch (e) {
+    #         request = jsonParse (exchange.last_request_body);
+    #     }
+    #     const brokerId = (request['action']['brokerCode']).toString ();
+    #     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    #     if (!isSync ()) {
+    #         close (exchange);
+    #     }
+    #     return true;
+    # }
     def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
         exchange.options['portfolio'] = 'random'

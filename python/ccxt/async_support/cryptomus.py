@@ -367,66 +367,44 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         coins = self.safe_list(response, 'result')
+        groupedById = self.group_by(coins, 'currency_code')
+        keys = list(groupedById.keys())
         result: dict = {}
-        for i in range(0, len(coins)):
-            networkEntry = coins[i]
-            currencyId = self.safe_string(networkEntry, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            if not (code in result):
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
+        for i in range(0, len(keys)):
+            id = keys[i]
+            code = self.safe_currency_code(id)
+            networks = {}
+            networkEntries = groupedById[id]
+            for j in range(0, len(networkEntries)):
+                networkEntry = networkEntries[j]
+                networkId = self.safe_string(networkEntry, 'network_code')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': None,
-                            'max': None,
+                            'min': self.safe_number(networkEntry, 'min_withdraw'),
+                            'max': self.safe_number(networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': None,
-                            'max': None,
+                            'min': self.safe_number(networkEntry, 'min_deposit'),
+                            'max': self.safe_number(networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': {},
-                    'info': {},
+                    'active': None,
+                    'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
+                    'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
+                    'fee': None,
+                    'precision': None,
+                    'info': networkEntry,
                 }
-            networkId = self.safe_string(networkEntry, 'network_code')
-            networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'min_withdraw'),
-                        'max': self.safe_number(networkEntry, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(networkEntry, 'min_deposit'),
-                        'max': self.safe_number(networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': None,
-                'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
-                'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
-                'fee': None,
-                'precision': None,
-                'info': networkEntry,
-            }
-            # add entry in info
-            info = self.safe_list(result[code], 'info', [])
-            info.append(networkEntry)
-            result[code]['info'] = info
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            })
         return result
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
