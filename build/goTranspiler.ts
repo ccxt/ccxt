@@ -97,6 +97,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "fetchMyTrades": true,
     "fetchOHLCV": true,
     "fetchOpenOrders": true,
+    "fetchTradingFees": true,
     "fetchOption": true,
     "fetchOrder": true,
     "fetchOrderBook": true,
