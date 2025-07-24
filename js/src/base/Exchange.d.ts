@@ -567,6 +567,12 @@ export default class Exchange {
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
     parseOrders(orders: object, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
+    calculateFeeWithRate(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, feeRate?: Num, params?: {}): {
+        type: string;
+        currency: any;
+        rate: number;
+        cost: number;
+    };
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
         type: string;
         currency: any;
