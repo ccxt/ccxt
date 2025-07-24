@@ -39,20 +39,23 @@ body:
     validations:
       required: false
 
-  - type: markdown
-    value: |
-      ### CCXT version
-      (ensure you have the latest version as shown [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
-
   - type: input
     id: ccxt-version
+    attributes:
+      label: CCXT version 
     validations:
       required: false
 
   - type: markdown
     attributes:
       value: |
-        ## Please provide:
+        (ensure you have the latest version as shown [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Please provide:
         - Set `exchange.verbose = true` property before calling exchange functions
         - minimal, reproducible example/code
         - surround your code and verbose output with triple backticks:
@@ -64,6 +67,6 @@ body:
 
   - type: textarea
     attributes:
-      label: Description
+      label: textarea
     validations:
       required: true
