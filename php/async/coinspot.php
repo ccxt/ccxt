@@ -619,7 +619,8 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            return Async\await($this->$method ($this->extend($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 

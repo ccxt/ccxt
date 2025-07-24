@@ -1660,7 +1660,7 @@ class derive extends derive$1 {
         //     "result": "ok"
         // }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

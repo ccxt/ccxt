@@ -1173,7 +1173,9 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
+                },
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'defaultType': 'spot',  # 'funding', 'spot', 'margin', 'future', 'swap', 'option'
@@ -1559,7 +1561,12 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        types = self.safe_list(self.options, 'fetchMarkets', [])
+        types = ['spot', 'future', 'swap', 'option']
+        fetchMarketsOption = self.safe_dict(self.options, 'fetchMarkets')
+        if fetchMarketsOption is not None:
+            types = self.safe_list(fetchMarketsOption, 'types', types)
+        else:
+            types = self.safe_list(self.options, 'fetchMarkets', types)  # backward-support
         promises = []
         result = []
         for i in range(0, len(types)):
@@ -3325,7 +3332,7 @@ class okx(Exchange, ImplicitAPI):
         trailing = self.safe_bool(params, 'trailing', False)
         if trigger or trailing:
             orderInner = await self.cancel_orders([id], symbol, params)
-            return self.safe_value(orderInner, 0)
+            return self.safe_dict(orderInner, 0)
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {

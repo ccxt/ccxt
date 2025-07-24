@@ -154,20 +154,23 @@ public class Throttler
 
     public async Task<Task> throttle(object cost2)
     {
-        var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config.Cost);
-        var t = new Task(() => { });
-        lock (queueLock)
-        {
-            this.queue.Enqueue((t, cost));
+        lock (throttlerLock) {
+            var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config.Cost);
+            var t = new Task(() => { });
+            lock (queueLock)
+            {
+                this.queue.Enqueue((t, cost));
+            }
+            if (!this.running)
+            {
+                this.running = true;
+                // Task.Run(() => { this.loop(); });
+                this.loop();
+            }
+            return t;
         }
-        if (!this.running)
-        {
-            this.running = true;
-            // Task.Run(() => { this.loop(); });
-            this.loop();
-        }
-        return t;
     }
+
 
     // move this elsewhere later
     private dict extend(object aa, object bb)

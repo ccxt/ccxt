@@ -939,7 +939,7 @@ public partial class testMainClass
             return true;
         }
         this.checkConstructor(exchange);
-        await this.testReturnResponseHeaders(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);

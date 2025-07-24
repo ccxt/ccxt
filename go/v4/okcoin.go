@@ -1860,7 +1860,7 @@ func  (this *okcoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 orderInner:= (<-this.CancelOrders([]interface{}{id}, symbol, params))
                 PanicOnError(orderInner)
         
-                ch <- this.SafeValue(orderInner, 0)
+                ch <- this.SafeDict(orderInner, 0)
                 return nil
             }
             var market interface{} = this.Market(symbol)

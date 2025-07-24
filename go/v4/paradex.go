@@ -1500,7 +1500,7 @@ func  (this *paradex) ParseOrder(order interface{}, optionalArgs ...interface{})
     var cancelReason interface{} = this.SafeString(order, "cancel_reason")
     var status interface{} = this.SafeString(order, "status")
     if IsTrue(!IsEqual(cancelReason, nil)) {
-        if IsTrue(IsEqual(cancelReason, "NOT_ENOUGH_MARGIN")) {
+        if IsTrue(IsTrue(IsEqual(cancelReason, "NOT_ENOUGH_MARGIN")) || IsTrue(IsEqual(cancelReason, "ORDER_EXCEEDS_POSITION_LIMIT"))) {
             status = "rejected"
         } else {
             status = "canceled"
@@ -1862,7 +1862,9 @@ func  (this *paradex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 //
             // if success, no response...
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

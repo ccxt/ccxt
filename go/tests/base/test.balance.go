@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestBalance(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
+    func TestBalance(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
         var format interface{} = map[string]interface{} {
             "free": map[string]interface{} {},
             "used": map[string]interface{} {},

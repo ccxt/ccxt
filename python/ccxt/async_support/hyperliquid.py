@@ -174,7 +174,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
-                                'candleSnapshot': 3,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1811,7 +1811,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """

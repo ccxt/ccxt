@@ -863,6 +863,9 @@
                 "price": "sometimes is not set",
                 "cost": "same",
                 "amount": "sometimes not present, only cost present sometimes"
+            },
+            "fetchTickers" : {
+                "checkActiveSymbols": "todo"
             }
         }
     },

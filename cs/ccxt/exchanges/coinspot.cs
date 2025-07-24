@@ -730,7 +730,8 @@ public partial class coinspot : Exchange
             { "amount", amount },
             { "rate", price },
         };
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        return this.parseOrder(response);
     }
 
     /**

@@ -1631,7 +1631,8 @@ class cryptocom(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
-        return self.v1PrivatePostPrivateCancelAllOrders(self.extend(request, params))
+        response = self.v1PrivatePostPrivateCancelAllOrders(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

@@ -1503,7 +1503,9 @@ func  (this *onetrading) CancelAllOrders(optionalArgs ...interface{}) <- chan in
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

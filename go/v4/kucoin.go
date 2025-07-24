@@ -2932,7 +2932,9 @@ func  (this *kucoin) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                 PanicOnError(response)
             }
         
-            ch <- response
+            ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

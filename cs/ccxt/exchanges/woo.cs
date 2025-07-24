@@ -1624,9 +1624,13 @@ public partial class woo : Exchange
             object market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        object response = null;
         if (isTrue(trigger))
         {
-            return await this.v3PrivateDeleteTradeAlgoOrders(parameters);
+            response = await this.v3PrivateDeleteTradeAlgoOrders(parameters);
+        } else
+        {
+            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, parameters));
         }
         //
         //     {
@@ -1637,7 +1641,10 @@ public partial class woo : Exchange
         //         "timestamp": 1751941988134
         //     }
         //
-        return await this.v3PrivateDeleteTradeOrders(this.extend(request, parameters));
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     /**

@@ -8,241 +8,61 @@
 package ccxt
 
 func (this *vertex) V1ArchivePost (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1ArchivePost", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1ArchivePost", args...)
 }
 
 func (this *vertex) V1GatewayGetQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GatewayGetQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1GatewayGetQuery", args...)
 }
 
 func (this *vertex) V1GatewayGetSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GatewayGetSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1GatewayGetSymbols", args...)
 }
 
 func (this *vertex) V1GatewayGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GatewayGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1GatewayGetTime", args...)
 }
 
 func (this *vertex) V1GatewayPostQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GatewayPostQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1GatewayPostQuery", args...)
 }
 
 func (this *vertex) V1GatewayPostExecute (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1GatewayPostExecute", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1GatewayPostExecute", args...)
 }
 
 func (this *vertex) V1TriggerPostExecute (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1TriggerPostExecute", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1TriggerPostExecute", args...)
 }
 
 func (this *vertex) V1TriggerPostQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v1TriggerPostQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v1TriggerPostQuery", args...)
 }
 
 func (this *vertex) V2ArchiveGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2ArchiveGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2ArchiveGetTickers", args...)
 }
 
 func (this *vertex) V2ArchiveGetContracts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2ArchiveGetContracts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2ArchiveGetContracts", args...)
 }
 
 func (this *vertex) V2ArchiveGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2ArchiveGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2ArchiveGetTrades", args...)
 }
 
 func (this *vertex) V2ArchiveGetVrtx (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2ArchiveGetVrtx", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2ArchiveGetVrtx", args...)
 }
 
 func (this *vertex) V2GatewayGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GatewayGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2GatewayGetAssets", args...)
 }
 
 func (this *vertex) V2GatewayGetPairs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GatewayGetPairs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2GatewayGetPairs", args...)
 }
 
 func (this *vertex) V2GatewayGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2GatewayGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("v2GatewayGetOrderbook", args...)
 }

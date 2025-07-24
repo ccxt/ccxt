@@ -2638,7 +2638,8 @@ class oxfun extends oxfun$1 {
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        return await this.privateDeleteV3OrdersCancelAll(this.extend(request, params));
+        const response = await this.privateDeleteV3OrdersCancelAll(this.extend(request, params));
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

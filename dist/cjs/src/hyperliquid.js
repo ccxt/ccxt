@@ -164,7 +164,7 @@ class hyperliquid extends hyperliquid$1 {
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
-                                'candleSnapshot': 3,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1867,7 +1867,7 @@ class hyperliquid extends hyperliquid$1 {
         //         }
         //     }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

@@ -167,7 +167,7 @@ class hyperliquid extends Exchange {
                                 'orderStatus' => 2,
                                 'spotClearinghouseState' => 2,
                                 'exchangeStatus' => 2,
-                                'candleSnapshot' => 3,
+                                'candleSnapshot' => 4,
                             ),
                         ),
                     ),
@@ -1931,7 +1931,7 @@ class hyperliquid extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
