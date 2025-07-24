@@ -149,6 +149,7 @@ export default class arkm extends Exchange {
                     'public': {
                         'get': {
                             'public/pairs': 1,
+                            'public/contracts': 1,
                         },
                     },
                     'private': {
@@ -288,14 +289,6 @@ export default class arkm extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const promiseSpot = this.fetchSpotMarkets (params);
-        const promiseSwap = this.fetchSwapMarkets (params);
-        const [ spotMarkets, swapMarkets ] = await Promise.all ([ promiseSpot, promiseSwap ]);
-        const all = this.arrayConcat (spotMarkets, swapMarkets);
-        return all;
-    }
-
-    async fetchSpotMarkets (params = {}): Promise<Market[]> {
         const response = await this.v1PublicGetPublicPairs (params);
         //
         //    [
@@ -322,6 +315,30 @@ export default class arkm extends Exchange {
         //            "maxLeverage": "0",
         //            "status": "listed"
         //        },
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "baseSymbol": "BTC.P",
+        //            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+        //            "baseIsStablecoin": false,
+        //            "baseName": "Bitcoin Perpetual",
+        //            "quoteSymbol": "USDT",
+        //            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+        //            "quoteIsStablecoin": true,
+        //            "quoteName": "Tether",
+        //            "minTickPrice": "0.01",
+        //            "minLotSize": "0.00001",
+        //            "minSize": "0.00001",
+        //            "maxSize": "9000",
+        //            "minPrice": "0.01",
+        //            "maxPrice": "1000000",
+        //            "minNotional": "5",
+        //            "maxPriceScalarUp": "1.5",
+        //            "maxPriceScalarDown": "0.5",
+        //            "pairType": "perpetual",
+        //            "marginSchedule": "C",
+        //            "maxLeverage": "25",
+        //            "status": "listed"
+        //        },
         //        ...
         //
         const result = [];
@@ -332,7 +349,19 @@ export default class arkm extends Exchange {
             const quoteId = this.safeString (market, 'quoteSymbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let marketType: Str = undefined;
+            let symbol: Str = undefined;
+            const pairType = this.safeString (market, 'pairType');
+            const isSpot = pairType === 'spot';
+            const isPerpetual = pairType === 'perpetual';
+            if (isSpot) {
+                marketType = 'spot';
+                symbol = base + '/' + quote;
+            } else if (isPerpetual) {
+                marketType = 'swap';
+                const baseCorrected = baseId.replace ('.P', '');
+                symbol = baseCorrected + '/' + quote + ':' + quote;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -342,15 +371,15 @@ export default class arkm extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': marketType,
+                'spot': isSpot,
                 'margin': undefined,
-                'swap': false,
+                'swap': isPerpetual,
                 'future': false,
                 'option': false,
                 'active': this.safeString (market, 'status') === 'listed',
-                'contract': false,
-                'linear': undefined,
+                'contract': isPerpetual,
+                'linear': isPerpetual,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -375,7 +404,7 @@ export default class arkm extends Exchange {
                         'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minNotional'),
                         'max': undefined,
                     },
                 },
@@ -385,6 +414,35 @@ export default class arkm extends Exchange {
         }
         return result;
     }
+
+    // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    //     const response = await this.v1PublicGetPublicContracts (params);
+    //     //
+    //     //    [
+    //     //        {
+    //     //            "symbol": "BTC_USDT_PERP",
+    //     //            "baseSymbol": "BTC.P",
+    //     //            "quoteSymbol": "USDT",
+    //     //            "indexCurrency": "USDT",
+    //     //            "price": "118806.89",
+    //     //            "price24hAgo": "118212.29",
+    //     //            "high24h": "119468.05",
+    //     //            "low24h": "117104.44",
+    //     //            "volume24h": "180.99438",
+    //     //            "quoteVolume24h": "21430157.5928827",
+    //     //            "markPrice": "118814.71",
+    //     //            "indexPrice": "118804.222610343",
+    //     //            "fundingRate": "0.000007",
+    //     //            "nextFundingRate": "0.000006",
+    //     //            "nextFundingTime": "1753390800000000",
+    //     //            "productType": "perpetual",
+    //     //            "openInterest": "2.55847",
+    //     //            "usdVolume24h": "21430157.5928827",
+    //     //            "openInterestUSD": "303963.8638583"
+    //     //        },
+    //     //        ...
+    //     //
+    // }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
