@@ -6,29 +6,14 @@ body:
   - type: checkboxes
     id: checklist
     attributes:
-      label: Checklist
-      description: Please confirm the following
+      label: Please confirm
       options:
         - label: I have already searched across existing issues
           required: true
-        - label: I have read the documentation
+        - label: I have looked through the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or searched for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
           required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        ## Ensure :
-        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
-        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
-
-        ## Please provide:
-        - Set `exchange.verbose = true` property before calling exchange functions
-        - minimal, reproducible example/code
-        - surround your code and verbose output with triple backticks:
-          ````markdown
-          ```
-          your codes or output
-          ```
+        - label: I have looked through the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand the issue.
+          required: false
 
   - type: input
     id: operating-system
@@ -58,9 +43,21 @@ body:
     validations:
       required: false
 
+  - type: markdown
+    attributes:
+      value: |
+        ## Please provide:
+        - Set `exchange.verbose = true` property before calling exchange functions
+        - minimal, reproducible example/code
+        - surround your code and verbose output with triple backticks:
+          ````markdown
+          ```
+          your codes or output
+          ```
+        - do not expose API keys
+
   - type: textarea
     attributes:
       label: Description
-      description: (Do not expose your API keys)
     validations:
       required: true
