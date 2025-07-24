@@ -10,10 +10,13 @@ body:
       options:
         - label: I have already searched across existing issues
           required: true
-        - label: I have looked through the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or searched for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
-          required: false
-        - label: I have looked through the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand the issue.
-          required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Ensure:
+        - You have looked through the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or searched for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
+        - You have looked through the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand the issue.
 
   - type: input
     id: operating-system
