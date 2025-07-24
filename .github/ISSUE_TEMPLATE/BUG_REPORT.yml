@@ -3,12 +3,21 @@ description: Report bugs here
 labels: []
 assignees: []
 body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have already searched across existing issues
+          required: true
+        - label: I have read the documentation
+          required: false
+
   - type: markdown
     attributes:
       value: |
         ## Ensure :
-        - You have already searched for similar issues
-        - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
         - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
         - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
 
@@ -20,7 +29,6 @@ body:
           ```
           your codes or output
           ```
-        - Do not include keys & credentials.
 
   - type: input
     id: operating-system
@@ -53,5 +61,6 @@ body:
   - type: textarea
     attributes:
       label: Description
+      description: (Do not expose your API keys)
     validations:
-      required: false
+      required: true
