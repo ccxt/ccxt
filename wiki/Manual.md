@@ -370,15 +370,6 @@ console.log(exchange.features);
 }
 ```
 
-There is also an old approach by checking `.has` property, but it's not as precise as `.features`, eg: 
-```
-exchange.has['createOrderWithTakeProfitAndStopLoss']
-exchange.has['createStopLossOrder']
-exchange.has['createTakeProfitOrder']
-etc...
-```
-
-
 ### Overriding Exchange Properties Upon Instantiation
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
