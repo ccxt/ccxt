@@ -43,7 +43,9 @@ class binanceus(binance, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
                 'defaultType': 'spot',
                 'fetchMargins': False,
                 'quoteOrderQty': False,
