@@ -81,7 +81,7 @@ func  (this *foxbit) Describe() interface{}  {
             "1M": "1M",
         },
         "urls": map[string]interface{} {
-            "logo": "https://github.com/user-attachments/assets/63be1a3a-775d-459b-8c03-493c71c0253c",
+            "logo": "https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3",
             "api": map[string]interface{} {
                 "public": "https://api.foxbit.com.br",
                 "private": "https://api.foxbit.com.br",
