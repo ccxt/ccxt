@@ -1260,10 +1260,12 @@ class binance extends Exchange {
                 'sandboxMode' => false,
                 'fetchMargins' => true,
                 'fetchMarkets' => array(
-                    'spot', // allows CORS in browsers
-                    'linear', // allows CORS in browsers
-                    'inverse', // allows CORS in browsers
-                    // 'option', // does not allow CORS, enable outside of the browser only
+                    'types' => array(
+                        'spot', // allows CORS in browsers
+                        'linear', // allows CORS in browsers
+                        'inverse', // allows CORS in browsers
+                        // 'option', // does not allow CORS, enable outside of the browser only
+                    ),
                 ),
                 'loadAllOptions' => false,
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
@@ -3030,7 +3032,15 @@ class binance extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $promisesRaw = array();
-        $rawFetchMarkets = $this->safe_list($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
+        $rawFetchMarkets = null;
+        $defaultTypes = array( 'spot', 'linear', 'inverse' );
+        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+        if ($fetchMarketsOptions !== null) {
+            $rawFetchMarkets = $this->safe_list($fetchMarketsOptions, 'types', $defaultTypes);
+        } else {
+            // for backward-compatibility
+            $rawFetchMarkets = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
+        }
         // handle $loadAllOptions option
         $loadAllOptions = $this->safe_bool($this->options, 'loadAllOptions', false);
         if ($loadAllOptions) {
