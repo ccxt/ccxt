@@ -370,6 +370,7 @@ console.log(exchange.features);
 }
 ```
 
+
 ### Overriding Exchange Properties Upon Instantiation
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
