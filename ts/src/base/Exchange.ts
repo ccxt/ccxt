@@ -3803,24 +3803,16 @@ export default class Exchange {
             id = this.numberToString (timestamp);
             // price
             id += '-';
-            id += (price !== undefined) ? this.numberToString (price) : 'p';
+            id += (price !== undefined) ? this.numberToString (price) : 'price';
             // amount
             id += '-';
-            id += (amount !== undefined) ? this.numberToString (amount) : 'a';
+            id += (amount !== undefined) ? this.numberToString (amount) : 'amount';
             // side
             id += '-';
-            if (side === undefined) {
-                id += 'side';
-            } else {
-                id += (side === 'buy') ? 'b' : 's';
-            }
+            id += (side === undefined) ? 'side' : side;
             // takerOrMaker
             id += '-';
-            if (takerOrMaker === undefined) {
-                id += 'tm';
-            } else {
-                id += (takerOrMaker === 'taker') ? 't' : 'm';
-            }
+            id += (takerOrMaker === undefined) ? 'tm' : takerOrMaker;
         }
         return id;
     }
