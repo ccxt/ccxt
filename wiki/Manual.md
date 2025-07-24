@@ -5957,10 +5957,11 @@ fetchDepositWithdrawFees (codes, params = {})
 
 Trading fees are properties of markets. Most often trading fees are loaded into the markets by the `fetchMarkets` call. Sometimes, however, the exchanges serve fees from different endpoints.
 
-The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+The `calculateFee` method can be used to precalculate trading fees that will be paid (use `calculateFeeWithRate` if you have a custom trading fee / tier, like VIP-X, instead of the default user fee) . **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
 ```javascript
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+    calculateFeeWithRate (symbol, type, side, amount, price, takerOrMaker = 'taker', customRate, params = {})
 ```
 
 The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
