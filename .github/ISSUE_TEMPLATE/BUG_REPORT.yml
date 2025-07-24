@@ -39,10 +39,13 @@ body:
     validations:
       required: false
 
+  - type: markdown
+    value: |
+      ### CCXT version
+      (ensure you have the latest version as shown [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+
   - type: input
     id: ccxt-version
-    attributes:
-      label: CCXT version ( ensure you have the latest version as shown [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
     validations:
       required: false
 
