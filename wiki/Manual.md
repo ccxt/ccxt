@@ -370,10 +370,11 @@ console.log(exchange.features);
 }
 ```
 
-The older approach of checking `.has` property is no longer preferred, eg: 
+There is also an old approach by checking `.has` property, but it's not as precise as `.features`, eg: 
 ```
 exchange.has['createOrderWithTakeProfitAndStopLoss']
 exchange.has['createStopLossOrder']
+exchange.has['createTakeProfitOrder']
 etc...
 ```
 
