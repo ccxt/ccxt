@@ -966,7 +966,7 @@ export default class timex extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**

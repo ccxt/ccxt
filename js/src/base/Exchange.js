@@ -5502,10 +5502,10 @@ export default class Exchange {
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
-    async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDeposits() is not supported yet');
     }
-    async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
     }
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {

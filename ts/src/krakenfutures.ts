@@ -1285,7 +1285,7 @@ export default class krakenfutures extends Exchange {
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
         }
-        return this.extend ({ 'info': response }, order);
+        return this.extend ({ 'info': response }, order) as Order;
     }
 
     /**

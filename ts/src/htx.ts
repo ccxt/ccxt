@@ -5920,7 +5920,7 @@ export default class htx extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**
@@ -6275,7 +6275,7 @@ export default class htx extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data');
-            return this.parseCancelOrders (data);
+            return this.parseCancelOrders (data) as Order[];
         }
     }
 

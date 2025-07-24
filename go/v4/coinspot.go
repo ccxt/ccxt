@@ -816,10 +816,11 @@ func  (this *coinspot) CreateOrder(symbol interface{}, typeVar interface{}, side
                 "rate": price,
             }
         
-                retRes60815 :=  (<-this.callDynamically(method, this.Extend(request, params)))
-                PanicOnError(retRes60815)
-                ch <- retRes60815
-                return nil
+            response:= (<-this.callDynamically(method, this.Extend(request, params)))
+            PanicOnError(response)
+        
+            ch <- this.ParseOrder(response)
+            return nil
         
             }()
             return ch

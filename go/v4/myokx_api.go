@@ -8,5521 +8,1381 @@
 package ccxt
 
 func (this *myokx) PublicGetMarketBooksFull (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBooksFull", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketBooksFull", args...)
 }
 
 func (this *myokx) PublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
 func (this *myokx) PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
 func (this *myokx) PublicGetMarketIndexTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketIndexTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
 }
 
 func (this *myokx) PublicGetMarketBooks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBooks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
 func (this *myokx) PublicGetMarketBooksLite (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBooksLite", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketBooksLite", args...)
 }
 
 func (this *myokx) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketHistoryCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketHistoryCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketIndexCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketIndexCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketHistoryIndexCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketHistoryIndexCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketMarkPriceCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketMarkPriceCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketHistoryMarkPriceCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketHistoryMarkPriceCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
 func (this *myokx) PublicGetMarketHistoryTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketHistoryTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
 }
 
 func (this *myokx) PublicGetMarketOptionInstrumentFamilyTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOptionInstrumentFamilyTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
 }
 
 func (this *myokx) PublicGetMarketPlatform24Volume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketPlatform24Volume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
 }
 
 func (this *myokx) PublicGetMarketOpenOracle (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOpenOracle", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
 }
 
 func (this *myokx) PublicGetMarketExchangeRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketExchangeRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
 }
 
 func (this *myokx) PublicGetMarketIndexComponents (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketIndexComponents", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
 }
 
 func (this *myokx) PublicGetPublicEconomicCalendar (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicEconomicCalendar", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
 }
 
 func (this *myokx) PublicGetMarketBlockTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBlockTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
 }
 
 func (this *myokx) PublicGetMarketBlockTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBlockTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
 }
 
 func (this *myokx) PublicGetPublicBlockTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicBlockTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
 }
 
 func (this *myokx) PublicGetPublicInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicInstruments", args...)
 }
 
 func (this *myokx) PublicGetPublicDeliveryExerciseHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicDeliveryExerciseHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
 }
 
 func (this *myokx) PublicGetPublicOpenInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicOpenInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
 }
 
 func (this *myokx) PublicGetPublicFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicFundingRate", args...)
 }
 
 func (this *myokx) PublicGetPublicFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
 }
 
 func (this *myokx) PublicGetPublicPriceLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicPriceLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
 }
 
 func (this *myokx) PublicGetPublicOptSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicOptSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicOptSummary", args...)
 }
 
 func (this *myokx) PublicGetPublicEstimatedPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicEstimatedPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
 }
 
 func (this *myokx) PublicGetPublicDiscountRateInterestFreeQuota (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicDiscountRateInterestFreeQuota", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
 }
 
 func (this *myokx) PublicGetPublicTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicTime", args...)
 }
 
 func (this *myokx) PublicGetPublicMarkPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicMarkPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
 }
 
 func (this *myokx) PublicGetPublicPositionTiers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicPositionTiers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
 }
 
 func (this *myokx) PublicGetPublicInterestRateLoanQuota (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicInterestRateLoanQuota", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
 }
 
 func (this *myokx) PublicGetPublicVipInterestRateLoanQuota (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicVipInterestRateLoanQuota", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
 }
 
 func (this *myokx) PublicGetPublicUnderlying (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicUnderlying", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicUnderlying", args...)
 }
 
 func (this *myokx) PublicGetPublicInsuranceFund (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicInsuranceFund", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
 }
 
 func (this *myokx) PublicGetPublicConvertContractCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicConvertContractCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
 }
 
 func (this *myokx) PublicGetPublicOptionTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicOptionTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
 }
 
 func (this *myokx) PublicGetPublicInstrumentTickBands (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPublicInstrumentTickBands", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
 }
 
 func (this *myokx) PublicGetRubikStatTradingDataSupportCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatTradingDataSupportCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
 }
 
 func (this *myokx) PublicGetRubikStatTakerVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatTakerVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
 }
 
 func (this *myokx) PublicGetRubikStatMarginLoanRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatMarginLoanRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
 }
 
 func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatContractsLongShortAccountRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
 }
 
 func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatioContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatContractsLongShortAccountRatioContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
 }
 
 func (this *myokx) PublicGetRubikStatContractsOpenInterestVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatContractsOpenInterestVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
 }
 
 func (this *myokx) PublicGetRubikStatOptionOpenInterestVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatOptionOpenInterestVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
 }
 
 func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatOptionOpenInterestVolumeRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
 }
 
 func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeExpiry (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatOptionOpenInterestVolumeExpiry", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
 }
 
 func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeStrike (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatOptionOpenInterestVolumeStrike", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
 }
 
 func (this *myokx) PublicGetRubikStatOptionTakerBlockVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRubikStatOptionTakerBlockVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
 }
 
 func (this *myokx) PublicGetSystemStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSystemStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSystemStatus", args...)
 }
 
 func (this *myokx) PublicGetSprdSpreads (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSprdSpreads", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSprdSpreads", args...)
 }
 
 func (this *myokx) PublicGetSprdBooks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSprdBooks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSprdBooks", args...)
 }
 
 func (this *myokx) PublicGetSprdTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSprdTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSprdTicker", args...)
 }
 
 func (this *myokx) PublicGetSprdPublicTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSprdPublicTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
 }
 
 func (this *myokx) PublicGetMarketSprdTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketSprdTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
 }
 
 func (this *myokx) PublicGetMarketSprdCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketSprdCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
 }
 
 func (this *myokx) PublicGetMarketSprdHistoryCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketSprdHistoryCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
 }
 
 func (this *myokx) PublicGetTradingBotGridAiParam (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradingBotGridAiParam", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
 }
 
 func (this *myokx) PublicGetTradingBotGridMinInvestment (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradingBotGridMinInvestment", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
 }
 
 func (this *myokx) PublicGetTradingBotPublicRsiBackTesting (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradingBotPublicRsiBackTesting", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
 }
 
 func (this *myokx) PublicGetAssetExchangeList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetExchangeList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetAssetExchangeList", args...)
 }
 
 func (this *myokx) PublicGetFinanceStakingDefiEthApyHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceStakingDefiEthApyHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
 }
 
 func (this *myokx) PublicGetFinanceStakingDefiSolApyHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceStakingDefiSolApyHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
 }
 
 func (this *myokx) PublicGetFinanceSavingsLendingRateSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceSavingsLendingRateSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
 }
 
 func (this *myokx) PublicGetFinanceSavingsLendingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceSavingsLendingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
 }
 
 func (this *myokx) PublicGetFinanceFixedLoanLendingOffers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceFixedLoanLendingOffers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
 }
 
 func (this *myokx) PublicGetFinanceFixedLoanLendingApyHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceFixedLoanLendingApyHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
 }
 
 func (this *myokx) PublicGetFinanceFixedLoanPendingLendingVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceFixedLoanPendingLendingVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
 }
 
 func (this *myokx) PublicGetFinanceSfpDcdProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFinanceSfpDcdProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicLeadTraders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicLeadTraders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicWeeklyPnl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicWeeklyPnl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicStats (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicStats", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicPreferenceCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicPreferenceCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicCurrentSubpositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicCurrentSubpositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
 }
 
 func (this *myokx) PublicGetCopytradingPublicSubpositionsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCopytradingPublicSubpositionsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
 }
 
 func (this *myokx) PublicGetSupportAnnouncementsTypes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSupportAnnouncementsTypes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
 }
 
 func (this *myokx) PrivateGetRfqCounterparties (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqCounterparties", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqCounterparties", args...)
 }
 
 func (this *myokx) PrivateGetRfqMakerInstrumentSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqMakerInstrumentSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
 }
 
 func (this *myokx) PrivateGetRfqMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
 }
 
 func (this *myokx) PrivateGetRfqRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqRfqs", args...)
 }
 
 func (this *myokx) PrivateGetRfqQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqQuotes", args...)
 }
 
 func (this *myokx) PrivateGetRfqTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqTrades", args...)
 }
 
 func (this *myokx) PrivateGetRfqPublicTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRfqPublicTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
 }
 
 func (this *myokx) PrivateGetSprdOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSprdOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSprdOrder", args...)
 }
 
 func (this *myokx) PrivateGetSprdOrdersPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSprdOrdersPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
 }
 
 func (this *myokx) PrivateGetSprdOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSprdOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
 }
 
 func (this *myokx) PrivateGetSprdOrdersHistoryArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSprdOrdersHistoryArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
 }
 
 func (this *myokx) PrivateGetSprdTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSprdTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSprdTrades", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrdersPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrdersHistoryArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersHistoryArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
 }
 
 func (this *myokx) PrivateGetTradeFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeFills", args...)
 }
 
 func (this *myokx) PrivateGetTradeFillsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeFillsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradeFillsArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeFillsArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersAlgoPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
 func (this *myokx) PrivateGetTradeOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersAlgoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradeEasyConvertCurrencyList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeEasyConvertCurrencyList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
 }
 
 func (this *myokx) PrivateGetTradeEasyConvertHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeEasyConvertHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradeOneClickRepayCurrencyList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOneClickRepayCurrencyList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
 }
 
 func (this *myokx) PrivateGetTradeOneClickRepayCurrencyListV2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOneClickRepayCurrencyListV2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
 }
 
 func (this *myokx) PrivateGetTradeOneClickRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOneClickRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradeOneClickRepayHistoryV2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOneClickRepayHistoryV2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
 }
 
 func (this *myokx) PrivateGetTradeAccountRateLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeAccountRateLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
 }
 
 func (this *myokx) PrivateGetAssetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
 func (this *myokx) PrivateGetAssetBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
 func (this *myokx) PrivateGetAssetNonTradableAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetNonTradableAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
 }
 
 func (this *myokx) PrivateGetAssetAssetValuation (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetAssetValuation", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
 }
 
 func (this *myokx) PrivateGetAssetTransferState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetTransferState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetTransferState", args...)
 }
 
 func (this *myokx) PrivateGetAssetBills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
 func (this *myokx) PrivateGetAssetDepositLightning (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetDepositLightning", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
 }
 
 func (this *myokx) PrivateGetAssetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
 func (this *myokx) PrivateGetAssetDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
 func (this *myokx) PrivateGetAssetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetWithdrawalHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
 func (this *myokx) PrivateGetAssetDepositWithdrawStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetDepositWithdrawStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
 }
 
 func (this *myokx) PrivateGetAssetConvertCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetConvertCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
 }
 
 func (this *myokx) PrivateGetAssetConvertCurrencyPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetConvertCurrencyPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
 }
 
 func (this *myokx) PrivateGetAssetConvertHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetConvertHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
 }
 
 func (this *myokx) PrivateGetAssetMonthlyStatement (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetMonthlyStatement", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
 }
 
 func (this *myokx) PrivateGetAccountInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountInstruments", args...)
 }
 
 func (this *myokx) PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
 func (this *myokx) PrivateGetAccountPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
 func (this *myokx) PrivateGetAccountPositionsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountPositionsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
 func (this *myokx) PrivateGetAccountAccountPositionRisk (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountAccountPositionRisk", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
 }
 
 func (this *myokx) PrivateGetAccountBills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBills", args...)
 }
 
 func (this *myokx) PrivateGetAccountBillsArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBillsArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
 }
 
 func (this *myokx) PrivateGetAccountBillsHistoryArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBillsHistoryArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
 }
 
 func (this *myokx) PrivateGetAccountConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountConfig", args...)
 }
 
 func (this *myokx) PrivateGetAccountMaxSize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMaxSize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMaxSize", args...)
 }
 
 func (this *myokx) PrivateGetAccountMaxAvailSize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMaxAvailSize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
 }
 
 func (this *myokx) PrivateGetAccountLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
 }
 
 func (this *myokx) PrivateGetAccountAdjustLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountAdjustLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
 }
 
 func (this *myokx) PrivateGetAccountMaxLoan (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMaxLoan", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
 }
 
 func (this *myokx) PrivateGetAccountTradeFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountTradeFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountTradeFee", args...)
 }
 
 func (this *myokx) PrivateGetAccountInterestAccrued (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountInterestAccrued", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
 }
 
 func (this *myokx) PrivateGetAccountInterestRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountInterestRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountInterestRate", args...)
 }
 
 func (this *myokx) PrivateGetAccountMaxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMaxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
 }
 
 func (this *myokx) PrivateGetAccountRiskState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountRiskState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountRiskState", args...)
 }
 
 func (this *myokx) PrivateGetAccountQuickMarginBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountQuickMarginBorrowRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
 }
 
 func (this *myokx) PrivateGetAccountBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBorrowRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
 }
 
 func (this *myokx) PrivateGetAccountVipInterestAccrued (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountVipInterestAccrued", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
 }
 
 func (this *myokx) PrivateGetAccountVipInterestDeducted (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountVipInterestDeducted", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
 }
 
 func (this *myokx) PrivateGetAccountVipLoanOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountVipLoanOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
 }
 
 func (this *myokx) PrivateGetAccountVipLoanOrderDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountVipLoanOrderDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
 }
 
 func (this *myokx) PrivateGetAccountInterestLimits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountInterestLimits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
 }
 
 func (this *myokx) PrivateGetAccountGreeks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountGreeks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountGreeks", args...)
 }
 
 func (this *myokx) PrivateGetAccountPositionTiers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountPositionTiers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
 }
 
 func (this *myokx) PrivateGetAccountMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
 }
 
 func (this *myokx) PrivateGetAccountFixedLoanBorrowingLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountFixedLoanBorrowingLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
 }
 
 func (this *myokx) PrivateGetAccountFixedLoanBorrowingQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountFixedLoanBorrowingQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
 }
 
 func (this *myokx) PrivateGetAccountFixedLoanBorrowingOrdersList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountFixedLoanBorrowingOrdersList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
 }
 
 func (this *myokx) PrivateGetAccountSpotManualBorrowRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSpotManualBorrowRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
 }
 
 func (this *myokx) PrivateGetAccountSetAutoRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSetAutoRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
 }
 
 func (this *myokx) PrivateGetAccountSpotBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSpotBorrowRepayHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
 }
 
 func (this *myokx) PrivateGetAccountMovePositionsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMovePositionsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
 }
 
 func (this *myokx) PrivateGetUsersSubaccountList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersSubaccountList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
 }
 
 func (this *myokx) PrivateGetAccountSubaccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubaccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
 }
 
 func (this *myokx) PrivateGetAssetSubaccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetSubaccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
 }
 
 func (this *myokx) PrivateGetAccountSubaccountMaxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubaccountMaxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
 }
 
 func (this *myokx) PrivateGetAssetSubaccountBills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetSubaccountBills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
 }
 
 func (this *myokx) PrivateGetAssetSubaccountManagedSubaccountBills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetSubaccountManagedSubaccountBills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
 }
 
 func (this *myokx) PrivateGetUsersEntrustSubaccountList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersEntrustSubaccountList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
 }
 
 func (this *myokx) PrivateGetAccountSubaccountInterestLimits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountSubaccountInterestLimits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
 }
 
 func (this *myokx) PrivateGetUsersSubaccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersSubaccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridOrdersAlgoPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridOrdersAlgoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridOrdersAlgoDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridSubOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridSubOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotGridAiParam (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotGridAiParam", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalSignals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalSignals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalOrdersAlgoDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalOrdersAlgoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalPositionsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalPositionsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalSubOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalSubOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotSignalEventHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotSignalEventHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotRecurringOrdersAlgoPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotRecurringOrdersAlgoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotRecurringOrdersAlgoDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
 }
 
 func (this *myokx) PrivateGetTradingBotRecurringSubOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradingBotRecurringSubOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
 }
 
 func (this *myokx) PrivateGetFinanceSavingsBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceSavingsBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
 }
 
 func (this *myokx) PrivateGetFinanceSavingsLendingHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceSavingsLendingHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiOffers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiOffers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiOrdersActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiOrdersActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiEthBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiEthBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiEthProductInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiEthProductInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiSolBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiSolBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
 }
 
 func (this *myokx) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingCurrentSubpositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingCurrentSubpositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingSubpositionsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingSubpositionsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingProfitSharingDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingProfitSharingDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingTotalProfitSharing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTotalProfitSharing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingUnrealizedProfitSharingDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingUnrealizedProfitSharingDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingCopySettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingCopySettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingBatchLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingBatchLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingCurrentLeadTraders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingCurrentLeadTraders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
 }
 
 func (this *myokx) PrivateGetCopytradingLeadTradersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingLeadTradersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
 }
 
 func (this *myokx) PrivateGetBrokerNdInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerNdInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
 }
 
 func (this *myokx) PrivateGetBrokerNdSubaccountInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerNdSubaccountInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
 }
 
 func (this *myokx) PrivateGetBrokerNdSubaccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerNdSubaccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
 }
 
 func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBrokerNdSubaccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
 func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBrokerNdSubaccountDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
 }
 
 func (this *myokx) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBrokerNdSubaccountWithdrawalHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
 }
 
 func (this *myokx) PrivateGetBrokerNdRebateDaily (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerNdRebateDaily", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
 }
 
 func (this *myokx) PrivateGetBrokerNdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerNdRebatePerOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
 }
 
 func (this *myokx) PrivateGetFinanceSfpDcdOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceSfpDcdOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
 }
 
 func (this *myokx) PrivateGetFinanceSfpDcdOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFinanceSfpDcdOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
 }
 
 func (this *myokx) PrivateGetBrokerFdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerFdRebatePerOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
 }
 
 func (this *myokx) PrivateGetBrokerFdIfRebate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerFdIfRebate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
 }
 
 func (this *myokx) PrivateGetAffiliateInviteeDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAffiliateInviteeDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
 }
 
 func (this *myokx) PrivateGetUsersPartnerIfRebate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersPartnerIfRebate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
 }
 
 func (this *myokx) PrivateGetSupportAnnouncements (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSupportAnnouncements", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
 }
 
 func (this *myokx) PrivatePostRfqCreateRfq (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCreateRfq", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelRfq (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelRfq", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelBatchRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelBatchRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelAllRfqs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelAllRfqs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
 }
 
 func (this *myokx) PrivatePostRfqExecuteQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqExecuteQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
 }
 
 func (this *myokx) PrivatePostRfqMakerInstrumentSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqMakerInstrumentSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
 }
 
 func (this *myokx) PrivatePostRfqMmpReset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqMmpReset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqMmpReset", args...)
 }
 
 func (this *myokx) PrivatePostRfqMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
 }
 
 func (this *myokx) PrivatePostRfqCreateQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCreateQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelBatchQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelBatchQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
 }
 
 func (this *myokx) PrivatePostRfqCancelAllQuotes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRfqCancelAllQuotes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
 }
 
 func (this *myokx) PrivatePostSprdOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSprdOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostSprdOrder", args...)
 }
 
 func (this *myokx) PrivatePostSprdCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSprdCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
 }
 
 func (this *myokx) PrivatePostSprdMassCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSprdMassCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostSprdMassCancel", args...)
 }
 
 func (this *myokx) PrivatePostSprdAmendOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSprdAmendOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
 }
 
 func (this *myokx) PrivatePostSprdCancelAllAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSprdCancelAllAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
 }
 
 func (this *myokx) PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
 }
 
 func (this *myokx) PrivatePostTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradeCancelBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
 }
 
 func (this *myokx) PrivatePostTradeAmendOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeAmendOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradeAmendBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeAmendBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
 }
 
 func (this *myokx) PrivatePostTradeClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeClosePosition", args...)
 }
 
 func (this *myokx) PrivatePostTradeFillsArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeFillsArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
 }
 
 func (this *myokx) PrivatePostTradeOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradeCancelAlgos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelAlgos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
 }
 
 func (this *myokx) PrivatePostTradeAmendAlgos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeAmendAlgos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
 }
 
 func (this *myokx) PrivatePostTradeCancelAdvanceAlgos (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelAdvanceAlgos", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
 }
 
 func (this *myokx) PrivatePostTradeEasyConvert (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeEasyConvert", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
 }
 
 func (this *myokx) PrivatePostTradeOneClickRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOneClickRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
 }
 
 func (this *myokx) PrivatePostTradeOneClickRepayV2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOneClickRepayV2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
 }
 
 func (this *myokx) PrivatePostTradeMassCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeMassCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeMassCancel", args...)
 }
 
 func (this *myokx) PrivatePostTradeCancelAllAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelAllAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
 }
 
 func (this *myokx) PrivatePostAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetTransfer", args...)
 }
 
 func (this *myokx) PrivatePostAssetWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
 }
 
 func (this *myokx) PrivatePostAssetWithdrawalLightning (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetWithdrawalLightning", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
 }
 
 func (this *myokx) PrivatePostAssetCancelWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetCancelWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
 }
 
 func (this *myokx) PrivatePostAssetConvertDustAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetConvertDustAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
 }
 
 func (this *myokx) PrivatePostAssetConvertEstimateQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetConvertEstimateQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
 }
 
 func (this *myokx) PrivatePostAssetConvertTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetConvertTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
 }
 
 func (this *myokx) PrivatePostAssetMonthlyStatement (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetMonthlyStatement", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetPositionMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetPositionMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
 }
 
 func (this *myokx) PrivatePostAccountPositionMarginBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountPositionMarginBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetGreeks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetGreeks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetIsolatedMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetIsolatedMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
 }
 
 func (this *myokx) PrivatePostAccountQuickMarginBorrowRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountQuickMarginBorrowRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
 }
 
 func (this *myokx) PrivatePostAccountBorrowRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBorrowRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
 }
 
 func (this *myokx) PrivatePostAccountSimulatedMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSimulatedMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
 }
 
 func (this *myokx) PrivatePostAccountPositionBuilder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountPositionBuilder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetRiskOffsetType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetRiskOffsetType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
 }
 
 func (this *myokx) PrivatePostAccountActivateOption (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountActivateOption", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountActivateOption", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetAutoLoan (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetAutoLoan", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
 }
 
 func (this *myokx) PrivatePostAccountSetAccountLevel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetAccountLevel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
 }
 
 func (this *myokx) PrivatePostAccountMmpReset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountMmpReset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountMmpReset", args...)
 }
 
 func (this *myokx) PrivatePostAccountMmpConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountMmpConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
 }
 
 func (this *myokx) PrivatePostAccountFixedLoanBorrowingOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountFixedLoanBorrowingOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
 }
 
 func (this *myokx) PrivatePostAccountFixedLoanAmendBorrowingOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountFixedLoanAmendBorrowingOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
 }
 
 func (this *myokx) PrivatePostAccountFixedLoanManualReborrow (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountFixedLoanManualReborrow", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
 }
 
 func (this *myokx) PrivatePostAccountFixedLoanRepayBorrowingOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountFixedLoanRepayBorrowingOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
 }
 
 func (this *myokx) PrivatePostAccountBillsHistoryArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBillsHistoryArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
 }
 
 func (this *myokx) PrivatePostAccountMovePositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountMovePositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountMovePositions", args...)
 }
 
 func (this *myokx) PrivatePostUsersSubaccountModifyApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountModifyApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
 }
 
 func (this *myokx) PrivatePostAssetSubaccountTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetSubaccountTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }
 
 func (this *myokx) PrivatePostUsersSubaccountSetTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountSetTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
 }
 
 func (this *myokx) PrivatePostAccountSubaccountSetLoanAllocation (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSubaccountSetLoanAllocation", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
 }
 
 func (this *myokx) PrivatePostUsersSubaccountCreateSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountCreateSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
 }
 
 func (this *myokx) PrivatePostUsersSubaccountSubaccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountSubaccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
 }
 
 func (this *myokx) PrivatePostUsersSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountDeleteApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridAmendOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridAmendOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridStopOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridCancelCloseOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridCancelCloseOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridOrderInstantTrigger (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridOrderInstantTrigger", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridWithdrawIncome (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridWithdrawIncome", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridComputeMarginBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridComputeMarginBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridMarginBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridMarginBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridMinInvestment (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridMinInvestment", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotGridAdjustInvestment (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotGridAdjustInvestment", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalCreateSignal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalCreateSignal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalStopOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalMarginBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalMarginBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalAmendTPSL (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalAmendTPSL", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalSetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalSetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalSubOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalSubOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotSignalCancelSubOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotSignalCancelSubOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotRecurringOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotRecurringOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotRecurringAmendOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotRecurringAmendOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostTradingBotRecurringStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradingBotRecurringStopOrderAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
 }
 
 func (this *myokx) PrivatePostFinanceSavingsPurchaseRedempt (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceSavingsPurchaseRedempt", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
 }
 
 func (this *myokx) PrivatePostFinanceSavingsSetLendingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceSavingsSetLendingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiEthPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiEthPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiEthRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiEthRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiSolPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiSolPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
 }
 
 func (this *myokx) PrivatePostFinanceStakingDefiSolRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceStakingDefiSolRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingAlgoOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingAlgoOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingCloseSubposition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingCloseSubposition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingSetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingSetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingFirstCopySettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingFirstCopySettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingAmendCopySettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingAmendCopySettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingStopCopyTrading (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingStopCopyTrading", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
 }
 
 func (this *myokx) PrivatePostCopytradingBatchSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingBatchSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdCreateSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdCreateSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdDeleteSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdDeleteSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSubaccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSubaccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSubaccountModifyApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSubaccountModifyApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSubaccountDeleteApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSetSubaccountLevel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSetSubaccountLevel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSetSubaccountFeeRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSetSubaccountFeeRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdSetSubaccountAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdSetSubaccountAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
 }
 
 func (this *myokx) PrivatePostAssetBrokerNdSubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetBrokerNdSubaccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
 func (this *myokx) PrivatePostAssetBrokerNdModifySubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetBrokerNdModifySubaccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdRebatePerOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
 }
 
 func (this *myokx) PrivatePostFinanceSfpDcdQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceSfpDcdQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
 }
 
 func (this *myokx) PrivatePostFinanceSfpDcdOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFinanceSfpDcdOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
 }
 
 func (this *myokx) PrivatePostBrokerNdReportSubaccountIp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerNdReportSubaccountIp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
 }
 
 func (this *myokx) PrivatePostBrokerFdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBrokerFdRebatePerOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
 }

@@ -1809,7 +1809,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1913,7 +1913,8 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 

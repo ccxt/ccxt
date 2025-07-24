@@ -1827,7 +1827,10 @@ public partial class cryptocom : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
+        object response = await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

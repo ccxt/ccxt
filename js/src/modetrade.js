@@ -26,7 +26,7 @@ export default class modetrade extends Exchange {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'hostname': 'trade.mode.network',
@@ -1812,9 +1812,9 @@ export default class modetrade extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**

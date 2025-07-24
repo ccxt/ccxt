@@ -1023,7 +1023,9 @@ class bybit extends bybit$1 {
             'options': {
                 'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
-                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'linear', 'inverse', 'option'],
+                },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
@@ -1710,9 +1712,18 @@ class bybit extends bybit$1 {
             await this.loadTimeDifference();
         }
         const promisesUnresolved = [];
-        const fetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
-        for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+        let types = undefined;
+        const defaultTypes = ['spot', 'linear', 'inverse', 'option'];
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            types = this.safeList(fetchMarketsOptions, 'types', defaultTypes);
+        }
+        else {
+            // for backward-compatibility
+            types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
+        }
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
             if (marketType === 'spot') {
                 promisesUnresolved.push(this.fetchSpotMarkets(params));
             }
@@ -4828,7 +4839,7 @@ class bybit extends bybit$1 {
         const result = this.safeDict(response, 'result', {});
         const orders = this.safeList(result, 'list');
         if (!Array.isArray(orders)) {
-            return response;
+            return [this.safeOrder({ 'info': response })];
         }
         return this.parseOrders(orders, market);
     }

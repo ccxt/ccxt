@@ -1147,7 +1147,9 @@ class okx extends okx$1 {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
+                },
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1544,7 +1546,14 @@ class okx extends okx$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const types = this.safeList(this.options, 'fetchMarkets', []);
+        let types = ['spot', 'future', 'swap', 'option'];
+        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList(fetchMarketsOption, 'types', types);
+        }
+        else {
+            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -3477,7 +3486,7 @@ class okx extends okx$1 {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);

@@ -374,11 +374,9 @@ class bitrue extends bitrue$1 {
             // exchange-specific options
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [
-                    'spot',
-                    'linear',
-                    'inverse',
-                ],
+                'fetchMarkets': {
+                    'types': ['spot', 'linear', 'inverse'],
+                },
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -828,9 +826,18 @@ class bitrue extends bitrue$1 {
      */
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
-        const fetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
-        for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+        let types = undefined;
+        const defaultTypes = ['spot', 'linear', 'inverse'];
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            types = this.safeList(fetchMarketsOptions, 'types', defaultTypes);
+        }
+        else {
+            // for backward-compatibility
+            types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
+        }
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
             if (marketType === 'spot') {
                 promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
             }

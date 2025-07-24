@@ -163,7 +163,7 @@ func  (this *hyperliquid) Describe() interface{}  {
                             "orderStatus": 2,
                             "spotClearinghouseState": 2,
                             "exchangeStatus": 2,
-                            "candleSnapshot": 3,
+                            "candleSnapshot": 4,
                         },
                     },
                 },
@@ -2188,7 +2188,9 @@ func  (this *hyperliquid) CancelOrdersForSymbols(orders interface{}, optionalArg
             //         }
             //     }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

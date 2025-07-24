@@ -8,929 +8,233 @@
 package ccxt
 
 func (this *timex) AddressbookGetMe (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("addressbookGetMe", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("addressbookGetMe", args...)
 }
 
 func (this *timex) AddressbookPost (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("addressbookPost", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("addressbookPost", args...)
 }
 
 func (this *timex) AddressbookPostIdId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("addressbookPostIdId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("addressbookPostIdId", args...)
 }
 
 func (this *timex) AddressbookPostIdIdRemove (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("addressbookPostIdIdRemove", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("addressbookPostIdIdRemove", args...)
 }
 
 func (this *timex) CustodyGetCredentials (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetCredentials", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetCredentials", args...)
 }
 
 func (this *timex) CustodyGetCredentialsHHash (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetCredentialsHHash", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetCredentialsHHash", args...)
 }
 
 func (this *timex) CustodyGetCredentialsKKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetCredentialsKKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetCredentialsKKey", args...)
 }
 
 func (this *timex) CustodyGetCredentialsMe (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetCredentialsMe", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetCredentialsMe", args...)
 }
 
 func (this *timex) CustodyGetCredentialsMeAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetCredentialsMeAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetCredentialsMeAddress", args...)
 }
 
 func (this *timex) CustodyGetDepositAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetDepositAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetDepositAddresses", args...)
 }
 
 func (this *timex) CustodyGetDepositAddressesHHash (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("custodyGetDepositAddressesHHash", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("custodyGetDepositAddressesHHash", args...)
 }
 
 func (this *timex) HistoryGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("historyGetOrders", args...)
 }
 
 func (this *timex) HistoryGetOrdersDetails (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetOrdersDetails", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("historyGetOrdersDetails", args...)
 }
 
 func (this *timex) HistoryGetOrdersExportCsv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetOrdersExportCsv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("historyGetOrdersExportCsv", args...)
 }
 
 func (this *timex) HistoryGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("historyGetTrades", args...)
 }
 
 func (this *timex) HistoryGetTradesExportCsv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetTradesExportCsv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("historyGetTradesExportCsv", args...)
 }
 
 func (this *timex) CurrenciesGetAAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesGetAAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesGetAAddress", args...)
 }
 
 func (this *timex) CurrenciesGetIId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesGetIId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesGetIId", args...)
 }
 
 func (this *timex) CurrenciesGetSSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesGetSSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesGetSSymbol", args...)
 }
 
 func (this *timex) CurrenciesPostPerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostPerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostPerform", args...)
 }
 
 func (this *timex) CurrenciesPostPrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostPrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostPrepare", args...)
 }
 
 func (this *timex) CurrenciesPostRemovePerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostRemovePerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostRemovePerform", args...)
 }
 
 func (this *timex) CurrenciesPostSSymbolRemovePrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostSSymbolRemovePrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostSSymbolRemovePrepare", args...)
 }
 
 func (this *timex) CurrenciesPostSSymbolUpdatePerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostSSymbolUpdatePerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostSSymbolUpdatePerform", args...)
 }
 
 func (this *timex) CurrenciesPostSSymbolUpdatePrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("currenciesPostSSymbolUpdatePrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("currenciesPostSSymbolUpdatePrepare", args...)
 }
 
 func (this *timex) ManagerGetDeposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("managerGetDeposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("managerGetDeposits", args...)
 }
 
 func (this *timex) ManagerGetTransfers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("managerGetTransfers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("managerGetTransfers", args...)
 }
 
 func (this *timex) ManagerGetWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("managerGetWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("managerGetWithdrawals", args...)
 }
 
 func (this *timex) MarketsGetIId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsGetIId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsGetIId", args...)
 }
 
 func (this *timex) MarketsGetSSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsGetSSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsGetSSymbol", args...)
 }
 
 func (this *timex) MarketsPostPerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostPerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostPerform", args...)
 }
 
 func (this *timex) MarketsPostPrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostPrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostPrepare", args...)
 }
 
 func (this *timex) MarketsPostRemovePerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostRemovePerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostRemovePerform", args...)
 }
 
 func (this *timex) MarketsPostSSymbolRemovePrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostSSymbolRemovePrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostSSymbolRemovePrepare", args...)
 }
 
 func (this *timex) MarketsPostSSymbolUpdatePerform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostSSymbolUpdatePerform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostSSymbolUpdatePerform", args...)
 }
 
 func (this *timex) MarketsPostSSymbolUpdatePrepare (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketsPostSSymbolUpdatePrepare", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketsPostSSymbolUpdatePrepare", args...)
 }
 
 func (this *timex) PublicGetCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCandles", args...)
 }
 
 func (this *timex) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
 func (this *timex) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
 func (this *timex) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
 func (this *timex) PublicGetOrderbookRaw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbookRaw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrderbookRaw", args...)
 }
 
 func (this *timex) PublicGetOrderbookV2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbookV2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrderbookV2", args...)
 }
 
 func (this *timex) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTickers", args...)
 }
 
 func (this *timex) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 func (this *timex) StatisticsGetAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("statisticsGetAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("statisticsGetAddress", args...)
 }
 
 func (this *timex) TradingGetBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingGetBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingGetBalances", args...)
 }
 
 func (this *timex) TradingGetFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingGetFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingGetFees", args...)
 }
 
 func (this *timex) TradingGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingGetOrders", args...)
 }
 
 func (this *timex) TradingPostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingPostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingPostOrders", args...)
 }
 
 func (this *timex) TradingPostOrdersJson (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingPostOrdersJson", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingPostOrdersJson", args...)
 }
 
 func (this *timex) TradingPutOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingPutOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingPutOrders", args...)
 }
 
 func (this *timex) TradingPutOrdersJson (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingPutOrdersJson", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingPutOrdersJson", args...)
 }
 
 func (this *timex) TradingDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingDeleteOrders", args...)
 }
 
 func (this *timex) TradingDeleteOrdersJson (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingDeleteOrdersJson", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingDeleteOrdersJson", args...)
 }
 
 func (this *timex) TradingviewGetConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingviewGetConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingviewGetConfig", args...)
 }
 
 func (this *timex) TradingviewGetHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingviewGetHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingviewGetHistory", args...)
 }
 
 func (this *timex) TradingviewGetSymbolInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingviewGetSymbolInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingviewGetSymbolInfo", args...)
 }
 
 func (this *timex) TradingviewGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("tradingviewGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("tradingviewGetTime", args...)
 }

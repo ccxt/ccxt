@@ -6726,8 +6726,8 @@ func  (this *Exchange) FetchDeposits(optionalArgs ...interface{}) <- chan interf
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    symbol := GetArg(optionalArgs, 0, nil)
-            _ = symbol
+                    code := GetArg(optionalArgs, 0, nil)
+            _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
             limit := GetArg(optionalArgs, 2, nil)
@@ -6744,8 +6744,8 @@ func  (this *Exchange) FetchWithdrawals(optionalArgs ...interface{}) <- chan int
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    symbol := GetArg(optionalArgs, 0, nil)
-            _ = symbol
+                    code := GetArg(optionalArgs, 0, nil)
+            _ = code
             since := GetArg(optionalArgs, 1, nil)
             _ = since
             limit := GetArg(optionalArgs, 2, nil)
@@ -8042,7 +8042,7 @@ func  (this *Exchange) FetchTradingFee(symbol interface{}, optionalArgs ...inter
                 panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported yet")))
             }
         
-            fees:= (<-this.FetchTradingFees(params))
+            fees:= <-this.DerivedExchange.FetchTradingFees(params)
             PanicOnError(fees)
         
             ch <- this.SafeDict(fees, symbol)

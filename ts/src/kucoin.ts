@@ -2727,7 +2727,7 @@ export default class kucoin extends Exchange {
         } else {
             response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

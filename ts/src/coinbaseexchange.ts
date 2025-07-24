@@ -1603,7 +1603,8 @@ export default class coinbaseexchange extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        return await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        return this.safeOrder ({ 'info': response });
     }
 
     /**
@@ -1623,7 +1624,8 @@ export default class coinbaseexchange extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        return await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     async fetchPaymentMethods (params = {}) {

@@ -155,7 +155,7 @@ public partial class hyperliquid : Exchange
                                 { "orderStatus", 2 },
                                 { "spotClearinghouseState", 2 },
                                 { "exchangeStatus", 2 },
-                                { "candleSnapshot", 3 },
+                                { "candleSnapshot", 4 },
                             } },
                         } },
                     } },
@@ -2047,7 +2047,9 @@ public partial class hyperliquid : Exchange
         //         }
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
