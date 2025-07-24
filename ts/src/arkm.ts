@@ -131,7 +131,7 @@ export default class arkm extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'v2': 'https://api.xyz.com/v2',
+                    'v1': 'https://arkm.com/api',
                 },
                 'www': 'https://arkm.com/',
                 'referral': {
@@ -145,9 +145,10 @@ export default class arkm extends Exchange {
                 'fees': 'https://arkm.com/fees',
             },
             'api': {
-                'v2': {
+                'v1': {
                     'public': {
                         'get': {
+                            'public/pairs': 1,
                         },
                     },
                     'private': {
@@ -278,4 +279,154 @@ export default class arkm extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name arkm#fetchMarkets
+     * @see https://arkm.com/docs#get/public/pairs
+     * @description retrieves data on all markets for cryptocom
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const promiseSpot = this.fetchSpotMarkets (params);
+        const promiseSwap = this.fetchSwapMarkets (params);
+        const [ spotMarkets, swapMarkets ] = await Promise.all ([ promiseSpot, promiseSwap ]);
+        const all = this.arrayConcat (spotMarkets, swapMarkets);
+        return all;
+    }
+
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+        const response = await this.v1PublicGetPublicPairs (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT",
+        //            "baseSymbol": "BTC",
+        //            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+        //            "baseIsStablecoin": false,
+        //            "baseName": "Bitcoin",
+        //            "quoteSymbol": "USDT",
+        //            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+        //            "quoteIsStablecoin": true,
+        //            "quoteName": "Tether",
+        //            "minTickPrice": "0.01",
+        //            "minLotSize": "0.00001",
+        //            "minSize": "0.00001",
+        //            "maxSize": "9000",
+        //            "minPrice": "0.01",
+        //            "maxPrice": "1000000",
+        //            "minNotional": "5",
+        //            "maxPriceScalarUp": "1.8",
+        //            "maxPriceScalarDown": "0.2",
+        //            "pairType": "spot", // atm, always 'spot' value
+        //            "maxLeverage": "0",
+        //            "status": "listed"
+        //        },
+        //        ...
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseSymbol');
+            const quoteId = this.safeString (market, 'quoteSymbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeString (market, 'status') === 'listed',
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'minTickPrice'),
+                    'amount': this.safeNumber (market, 'minLotSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minSize'),
+                        'max': this.safeNumber (market, 'maxSize'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const type = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
+        let url = this.urls['api'][type] + '/' + path;
+        const query = this.omit (params, this.extractParams (path));
+        if (access === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            // this.checkRequiredCredentials ();
+            // const nonce = this.nonce ().toString ();
+            // const requestParams = this.extend ({}, params);
+            // const paramsKeys = Object.keys (requestParams);
+            // const strSortKey = this.paramsToString (requestParams, 0);
+            // const payload = path + nonce + this.apiKey + strSortKey + nonce;
+            // const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+            // body = this.json ({
+            //     'id': nonce,
+            //     'method': path,
+            //     'params': params,
+            //     'api_key': this.apiKey,
+            //     'sig': signature,
+            //     'nonce': nonce,
+            // });
+            // headers = {
+            //     'Content-Type': 'application/json',
+            // };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // response examples:
+        //   {message: 'Not Found'}
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+        return undefined;
+    }
 }
