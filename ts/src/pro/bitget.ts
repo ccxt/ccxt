@@ -137,6 +137,7 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string} symbol unified symbol of the market to watch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -179,8 +180,10 @@ export default class bitget extends bitgetRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string[]} symbols unified symbol of the market to watch the tickers for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -188,7 +191,9 @@ export default class bitget extends bitgetRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
         let instType = undefined;
-        [ instType, params ] = this.getInstType (market, false, params);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchTickers', 'uta', false);
+        [ instType, params ] = this.getInstType (market, uta, params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -196,9 +201,11 @@ export default class bitget extends bitgetRest {
             const marketInner = this.market (symbol);
             const args: Dict = {
                 'instType': instType,
-                'channel': 'ticker',
-                'instId': marketInner['id'],
             };
+            const topicOrChannel = uta ? 'topic' : 'channel';
+            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            args[topicOrChannel] = 'ticker';
+            args[symbolOrInstId] = marketInner['id'];
             topics.push (args);
             messageHashes.push ('ticker:' + symbol);
         }
@@ -409,11 +416,13 @@ export default class bitget extends bitgetRest {
     /**
      * @method
      * @name bitget#watchBidsAsks
+     * @description watches best bid & ask for symbols
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-     * @description watches best bid & ask for symbols
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -421,7 +430,9 @@ export default class bitget extends bitgetRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
         let instType = undefined;
-        [ instType, params ] = this.getInstType (market, false, params);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'uta', false);
+        [ instType, params ] = this.getInstType (market, uta, params);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -429,9 +440,11 @@ export default class bitget extends bitgetRest {
             const marketInner = this.market (symbol);
             const args: Dict = {
                 'instType': instType,
-                'channel': 'ticker',
-                'instId': marketInner['id'],
             };
+            const topicOrChannel = uta ? 'topic' : 'channel';
+            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            args[topicOrChannel] = 'ticker';
+            args[symbolOrInstId] = marketInner['id'];
             topics.push (args);
             messageHashes.push ('bidask:' + symbol);
         }
@@ -1934,13 +1947,24 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublicMultiple (messageHashes, argsArray, params = {}) {
-        let url = this.urls['api']['ws']['public'];
+        let uta = undefined;
+        let url = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchPublicMultiple', 'uta', false);
+        if (uta) {
+            url = this.urls['api']['ws']['utaPublic'];
+        } else {
+            url = this.urls['api']['ws']['public'];
+        }
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const argsArrayFirst = this.safeDict (argsArray, 0, {});
             const instType = this.safeString (argsArrayFirst, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = this.urls['api']['demo']['public'];
+                if (uta) {
+                    url = this.urls['api']['demo']['utaPublic'];
+                } else {
+                    url = this.urls['api']['demo']['public'];
+                }
             }
         }
         const request: Dict = {
