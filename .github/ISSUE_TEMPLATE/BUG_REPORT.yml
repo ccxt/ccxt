@@ -42,7 +42,8 @@ body:
   - type: input
     id: ccxt-version
     attributes:
-      label: CCXT Version (ensure you have the latest version as shown here https://github.com/ccxt/ccxt/blob/master/package.json#L3 )
+      label: CCXT version
+      description: Ensure you have the latest version as shown here: https://github.com/ccxt/ccxt/blob/master/package.json#L3
     validations:
       required: false
 
