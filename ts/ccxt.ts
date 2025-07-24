@@ -48,6 +48,7 @@ const version = '4.4.96';
 
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
+import arkm from  './src/arkm.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
@@ -232,6 +233,7 @@ import xtPro from  './src/pro/xt.js'
 const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
+    'arkm':                   arkm,
     'ascendex':               ascendex,
     'bequant':                bequant,
     'bigone':                 bigone,
@@ -557,6 +559,7 @@ export {
     LeverageTiers,
     alpaca,
     apex,
+    arkm,
     ascendex,
     bequant,
     bigone,
