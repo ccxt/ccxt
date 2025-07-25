@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func LogTemplate(exchange ccxt.IExchange, method interface{}, entry interface{}) interface{}  {
+    func LogTemplate(exchange ccxt.ICoreExchange, method interface{}, entry interface{}) interface{}  {
         // there are cases when exchange is undefined (eg. base tests)
         var id interface{} = Ternary(IsTrue((!IsEqual(exchange, nil))), exchange.GetId(), "undefined")
         var methodString interface{} = Ternary(IsTrue((!IsEqual(method, nil))), method, "undefined")
@@ -26,7 +26,7 @@ import "github.com/ccxt/ccxt/go/v4"
         }
         return stringVal
     }
-    func AssertType(exchange ccxt.IExchange, skippedProperties interface{}, entry interface{}, key interface{}, format interface{}) interface{}  {
+    func AssertType(exchange ccxt.ICoreExchange, skippedProperties interface{}, entry interface{}, key interface{}, format interface{}) interface{}  {
         if IsTrue(InOp(skippedProperties, key)) {
             return nil
         }
@@ -41,7 +41,7 @@ import "github.com/ccxt/ccxt/go/v4"
         var result interface{} = IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(entryKeyVal, nil))) || IsTrue(same_string)) || IsTrue(same_numeric)) || IsTrue(same_boolean)) || IsTrue(same_array)) || IsTrue(same_object)
         return result
     }
-    func AssertStructure(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, format interface{}, optionalArgs ...interface{})  {
+    func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, format interface{}, optionalArgs ...interface{})  {
         emptyAllowedFor := GetArg(optionalArgs, 0, nil)
         _ = emptyAllowedFor
         deep := GetArg(optionalArgs, 1, false)
@@ -110,7 +110,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func AssertTimestamp(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
+    func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
         nowToCheck := GetArg(optionalArgs, 0, nil)
         _ = nowToCheck
         keyNameOrIndex := GetArg(optionalArgs, 1, "timestamp")
@@ -144,7 +144,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func AssertTimestampAndDatetime(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
+    func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
         nowToCheck := GetArg(optionalArgs, 0, nil)
         _ = nowToCheck
         keyNameOrIndex := GetArg(optionalArgs, 1, "timestamp")
@@ -176,7 +176,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func AssertCurrencyCode(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, actualCode interface{}, optionalArgs ...interface{})  {
+    func AssertCurrencyCode(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, actualCode interface{}, optionalArgs ...interface{})  {
         expectedCode := GetArg(optionalArgs, 0, nil)
         _ = expectedCode
         allowNull := GetArg(optionalArgs, 1, true)
@@ -194,7 +194,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func AssertValidCurrencyIdAndCode(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, currencyId interface{}, currencyCode interface{}, optionalArgs ...interface{})  {
+    func AssertValidCurrencyIdAndCode(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, currencyId interface{}, currencyCode interface{}, optionalArgs ...interface{})  {
         // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
@@ -215,7 +215,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(IsEqual(GetValue(currencyById, "code"), currencyCode), Add(Add(Add(Add("currencyCode ", StringValue(currencyCode)), " does not match currency of id: "), StringValue(currencyId)), logText))
         }
     }
-    func AssertSymbol(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
+    func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
         expectedSymbol := GetArg(optionalArgs, 0, nil)
         _ = expectedSymbol
         allowNull := GetArg(optionalArgs, 1, true)
@@ -234,11 +234,11 @@ import "github.com/ccxt/ccxt/go/v4"
         var definedValues interface{} = IsTrue(!IsEqual(actualSymbol, nil)) && IsTrue(!IsEqual(expectedSymbol, nil))
         Assert(IsTrue(definedValues) || IsTrue(allowNull), Add("symbols are not defined", logText))
     }
-    func AssertSymbolInMarkets(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, symbol interface{})  {
+    func AssertSymbolInMarkets(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, symbol interface{})  {
         var logText interface{} = LogTemplate(exchange, method, map[string]interface{} {})
         Assert((InOp(exchange.GetMarkets(), symbol)), Add("symbol should be present in exchange.symbols", logText))
     }
-    func AssertGreater(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -251,7 +251,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(ccxt.Precise.StringGt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be > "), StringValue(compareTo)), logText))
         }
     }
-    func AssertGreaterOrEqual(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertGreaterOrEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -264,7 +264,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(ccxt.Precise.StringGe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be >= "), StringValue(compareTo)), logText))
         }
     }
-    func AssertLess(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertLess(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -277,7 +277,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(ccxt.Precise.StringLt(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be < "), StringValue(compareTo)), logText))
         }
     }
-    func AssertLessOrEqual(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertLessOrEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -290,7 +290,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(ccxt.Precise.StringLe(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be <= "), StringValue(compareTo)), logText))
         }
     }
-    func AssertEqual(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -303,7 +303,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(ccxt.Precise.StringEq(value, compareTo), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected to be equal to "), StringValue(compareTo)), logText))
         }
     }
-    func AssertNonEqual(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
+    func AssertNonEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, compareTo interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -316,7 +316,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(!IsTrue(ccxt.Precise.StringEq(value, compareTo)), Add(Add(Add(Add(Add(StringValue(key), " key (with a value of "), StringValue(value)), ") was expected not to be equal to "), StringValue(compareTo)), logText))
         }
     }
-    func AssertInArray(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, expectedArray interface{}, optionalArgs ...interface{})  {
+    func AssertInArray(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, expectedArray interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -331,7 +331,7 @@ import "github.com/ccxt/ccxt/go/v4"
             Assert(exchange.InArray(value, expectedArray), Add(Add(Add(Add(Add(Add(Add("\"", StringValue(key)), "\" key (value \""), StringValue(value)), "\") is not from the expected list : ["), stingifiedArrayValue), "]"), logText))
         }
     }
-    func AssertFeeStructure(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
+    func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         var logText interface{} = LogTemplate(exchange, method, entry)
@@ -358,7 +358,7 @@ import "github.com/ccxt/ccxt/go/v4"
             AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(feeObject, "currency"))
         }
     }
-    func AssertTimestampOrder(exchange ccxt.IExchange, method interface{}, codeOrSymbol interface{}, items interface{}, optionalArgs ...interface{})  {
+    func AssertTimestampOrder(exchange ccxt.ICoreExchange, method interface{}, codeOrSymbol interface{}, items interface{}, optionalArgs ...interface{})  {
         ascending := GetArg(optionalArgs, 0, true)
         _ = ascending
         for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
@@ -373,7 +373,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func AssertInteger(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
+    func AssertInteger(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{}, optionalArgs ...interface{})  {
         allowNull := GetArg(optionalArgs, 0, true)
         _ = allowNull
         if IsTrue(InOp(skippedProperties, key)) {
@@ -389,7 +389,7 @@ import "github.com/ccxt/ccxt/go/v4"
             }
         }
     }
-    func CheckPrecisionAccuracy(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{})  {
+    func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{})  {
         if IsTrue(InOp(skippedProperties, key)) {
             return
         }
@@ -410,7 +410,7 @@ import "github.com/ccxt/ccxt/go/v4"
             AssertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8") // in real-world cases, there would not be less than that
         }
     }
-    func FetchBestBidAsk(exchange ccxt.IExchange, method interface{}, symbol interface{}) <- chan interface{} {
+    func FetchBestBidAsk(exchange ccxt.ICoreExchange, method interface{}, symbol interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -464,7 +464,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func FetchOrder(exchange ccxt.IExchange, symbol interface{}, orderId interface{}, skippedProperties interface{}) <- chan interface{} {
+    func FetchOrder(exchange ccxt.ICoreExchange, symbol interface{}, orderId interface{}, skippedProperties interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -520,7 +520,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func AssertOrderState(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, order interface{}, AssertedStatus interface{}, strictCheck interface{})  {
+    func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, order interface{}, AssertedStatus interface{}, strictCheck interface{})  {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         var logText interface{} = LogTemplate(exchange, method, order)
         var msg interface{} = Add(Add(Add("order should be ", AssertedStatus), ", but it was not Asserted"), logText)
@@ -582,7 +582,7 @@ import "github.com/ccxt/ccxt/go/v4"
             return
         }
     }
-    func GetActiveMarkets(exchange ccxt.IExchange, optionalArgs ...interface{}) interface{}  {
+    func GetActiveMarkets(exchange ccxt.ICoreExchange, optionalArgs ...interface{}) interface{}  {
         includeUnknown := GetArg(optionalArgs, 0, true)
         _ = includeUnknown
         var filteredActive interface{} = exchange.FilterBy(exchange.GetMarkets(), "active", true)
@@ -592,7 +592,7 @@ import "github.com/ccxt/ccxt/go/v4"
         }
         return filteredActive
     }
-    func RemoveProxyOptions(exchange ccxt.IExchange, skippedProperties interface{}) interface{}  {
+    func RemoveProxyOptions(exchange ccxt.ICoreExchange, skippedProperties interface{}) interface{}  {
         var proxyUrl interface{} = exchange.CheckProxyUrlSettings()
         httpProxyhttpsProxysocksProxyVariable := exchange.CheckProxySettings();
         httpProxy := GetValue(httpProxyhttpsProxysocksProxyVariable,0);
@@ -609,7 +609,7 @@ import "github.com/ccxt/ccxt/go/v4"
         exchange.SetProperty(exchange, "socks_proxy", nil)
         return []interface{}{proxyUrl, httpProxy, httpsProxy, socksProxy}
     }
-    func SetProxyOptions(exchange ccxt.IExchange, skippedProperties interface{}, proxyUrl interface{}, httpProxy interface{}, httpsProxy interface{}, socksProxy interface{})  {
+    func SetProxyOptions(exchange ccxt.ICoreExchange, skippedProperties interface{}, proxyUrl interface{}, httpProxy interface{}, httpsProxy interface{}, socksProxy interface{})  {
         exchange.SetProxyUrl(proxyUrl)
         exchange.SetHttpProxy(httpProxy)
         exchange.SetHttpsProxy(httpsProxy)
@@ -636,7 +636,7 @@ import "github.com/ccxt/ccxt/go/v4"
             return result
         }
     }
-    func AssertNonEmtpyArray(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
+    func AssertNonEmtpyArray(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
         hint := GetArg(optionalArgs, 0, nil)
         _ = hint
         var logText interface{} = LogTemplate(exchange, method, entry)
@@ -649,7 +649,7 @@ import "github.com/ccxt/ccxt/go/v4"
         }
         Assert(IsGreaterThan(GetArrayLength(entry), 0), Add(Add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"))
     }
-    func AssertRoundMinuteTimestamp(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{})  {
+    func AssertRoundMinuteTimestamp(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, key interface{})  {
         if IsTrue(InOp(skippedProperties, key)) {
             return
         }
@@ -660,7 +660,7 @@ import "github.com/ccxt/ccxt/go/v4"
     func DeepEqual(a interface{}, b interface{}) interface{}  {
         return IsEqual(JsonStringify(a), JsonStringify(b))
     }
-    func AssertDeepEqual(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, a interface{}, b interface{})  {
+    func AssertDeepEqual(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, a interface{}, b interface{})  {
         var logText interface{} = LogTemplate(exchange, method, map[string]interface{} {})
         Assert(DeepEqual(a, b), Add(Add(Add(Add("two dicts do not match: ", JsonStringify(a)), " != "), JsonStringify(b)), logText))
     }

@@ -1810,7 +1810,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """

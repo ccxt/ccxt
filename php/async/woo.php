@@ -1595,8 +1595,11 @@ class woo extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $response = null;
             if ($trigger) {
-                return Async\await($this->v3PrivateDeleteTradeAlgoOrders ($params));
+                $response = Async\await($this->v3PrivateDeleteTradeAlgoOrders ($params));
+            } else {
+                $response = Async\await($this->v3PrivateDeleteTradeOrders ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1607,7 +1610,8 @@ class woo extends Exchange {
             //         "timestamp" => 1751941988134
             //     }
             //
-            return Async\await($this->v3PrivateDeleteTradeOrders ($this->extend($request, $params)));
+            $data = $this->safe_dict($response, 'data', array());
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 

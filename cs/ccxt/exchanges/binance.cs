@@ -1297,7 +1297,9 @@ public partial class binance : Exchange
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
                 { "fetchMargins", true },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                } },
                 { "loadAllOptions", false },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
@@ -3005,7 +3007,17 @@ public partial class binance : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object rawFetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
+        object rawFetchMarkets = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
+        {
+            rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
         // handle loadAllOptions option
         object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
         if (isTrue(loadAllOptions))

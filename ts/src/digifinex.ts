@@ -1977,7 +1977,7 @@ export default class digifinex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
             const orders = this.parseCancelOrders (response);
-            return this.safeDict (orders, 0);
+            return this.safeDict (orders, 0) as Order;
         } else {
             return this.safeOrder ({
                 'info': response,

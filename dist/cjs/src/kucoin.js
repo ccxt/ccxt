@@ -2721,7 +2721,7 @@ class kucoin extends kucoin$1 {
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

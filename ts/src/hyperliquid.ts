@@ -1730,7 +1730,7 @@ export default class hyperliquid extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**
@@ -1900,7 +1900,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

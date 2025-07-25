@@ -3230,7 +3230,7 @@ class bitmart extends bitmart$1 {
         //     }
         //
         if (market['swap']) {
-            return response;
+            return this.safeOrder({ 'info': response });
         }
         const data = this.safeValue(response, 'data');
         if (data === true) {
@@ -3363,7 +3363,7 @@ class bitmart extends bitmart$1 {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {

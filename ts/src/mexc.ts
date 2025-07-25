@@ -6013,7 +6013,7 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage (response, market);
+        return this.parseLeverage (response, market) as any; // tmp revert type
     }
 
     nonce () {

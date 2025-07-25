@@ -752,7 +752,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return response
+        return self.safe_order({'info': response})
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

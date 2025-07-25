@@ -762,7 +762,7 @@ class cryptomus extends cryptomus$1 {
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method

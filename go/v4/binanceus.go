@@ -47,7 +47,9 @@ func  (this *binanceus) Describe() interface{}  {
             },
         },
         "options": map[string]interface{} {
-            "fetchMarkets": []interface{}{"spot"},
+            "fetchMarkets": map[string]interface{} {
+                "types": []interface{}{"spot"},
+            },
             "defaultType": "spot",
             "fetchMargins": false,
             "quoteOrderQty": false,

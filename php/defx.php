@@ -1500,7 +1500,7 @@ class defx extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_position(string $symbol, $params = array ()) {

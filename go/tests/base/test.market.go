@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestMarket(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, market interface{})  {
+    func TestMarket(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, market interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btcusd",
             "symbol": "BTC/USD",

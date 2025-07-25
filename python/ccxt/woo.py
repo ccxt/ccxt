@@ -1502,8 +1502,11 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        response = None
         if trigger:
-            return self.v3PrivateDeleteTradeAlgoOrders(params)
+            response = self.v3PrivateDeleteTradeAlgoOrders(params)
+        else:
+            response = self.v3PrivateDeleteTradeOrders(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1513,7 +1516,8 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1751941988134
         #     }
         #
-        return self.v3PrivateDeleteTradeOrders(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        return [self.safe_order({'info': data})]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """

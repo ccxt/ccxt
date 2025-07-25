@@ -6648,7 +6648,7 @@ func  (this *mexc) SetMarginMode(marginMode interface{}, optionalArgs ...interfa
                 //
             // { success: true, code: '0' }
             //
-        ch <- this.ParseLeverage(response, market)
+        ch <- this.ParseLeverage(response, market)  // tmp revert type
             return nil
         
             }()

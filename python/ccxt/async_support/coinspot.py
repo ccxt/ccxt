@@ -585,7 +585,8 @@ class coinspot(Exchange, ImplicitAPI):
             'amount': amount,
             'rate': price,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_order(response)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """

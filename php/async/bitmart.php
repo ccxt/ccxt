@@ -3249,7 +3249,7 @@ class bitmart extends Exchange {
             //     }
             //
             if ($market['swap']) {
-                return $response;
+                return $this->safe_order(array( 'info' => $response ));
             }
             $data = $this->safe_value($response, 'data');
             if ($data === true) {
@@ -3385,7 +3385,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
             //     }
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

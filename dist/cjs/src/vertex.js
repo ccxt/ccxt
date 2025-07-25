@@ -2421,7 +2421,7 @@ class vertex extends vertex$1 {
             // }
             //
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2435,7 +2435,8 @@ class vertex extends vertex$1 {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        return await this.cancelOrders([id], symbol, params);
+        const order = await this.cancelOrders([id], symbol, params);
+        return this.safeOrder({ 'info': order });
     }
     /**
      * @method

@@ -766,7 +766,7 @@ class cryptomus extends Exchange {
         //         "success" => true
         //     }
         //
-        return $response;
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

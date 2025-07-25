@@ -1818,9 +1818,9 @@ class woofipro extends woofipro$1 {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**

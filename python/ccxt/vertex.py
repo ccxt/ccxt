@@ -2351,7 +2351,7 @@ class vertex(Exchange, ImplicitAPI):
             #     "request_type": "execute_cancel_product_orders"
             # }
             #
-        return response
+        return [self.safe_order({'info': response})]
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2365,7 +2365,8 @@ class vertex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return self.cancel_orders([id], symbol, params)
+        order = self.cancel_orders([id], symbol, params)
+        return self.safe_order({'info': order})
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """

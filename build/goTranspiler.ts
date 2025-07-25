@@ -51,8 +51,11 @@ if (platform === 'win32') {
 }
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
+const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
 const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
+const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
+// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4/';
@@ -66,6 +69,8 @@ const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 const goComments: any = {};
 
 const goTypeOptions: any = {};
+
+const WRAPPER_METHODS: {} = {};
 
 let goTests: string[] = [];
 
@@ -97,6 +102,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "fetchMyTrades": true,
     "fetchOHLCV": true,
     "fetchOpenOrders": true,
+    "fetchTradingFees": true,
     "fetchOption": true,
     "fetchOrder": true,
     "fetchOrderBook": true,
@@ -152,68 +158,199 @@ const VIRTUAL_BASE_METHODS: any = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
-    'cancelAllOrdersWs': true,
-	'cancelOrdersWs': true,
-	'cancelOrderWs': true,
-	'createLimitBuyOrderWs': true,
-	'createLimitOrderWs': true,
-	'createLimitSellOrderWs': true,
-	'createMarketBuyOrderWs': true,
-	'createMarketOrderWithCostWs': true,
-	'createMarketOrderWs': true,
-	'createMarketSellOrderWs': true,
-	'createOrderWithTakeProfitAndStopLossWs': true,
-	'createOrderWs': true,
-	'createPostOnlyOrderWs': true,
-	'createReduceOnlyOrderWs': true,
-	'createStopLimitOrderWs': true,
-	'createStopLossOrderWs': true,
-	'createStopMarketOrderWs': true,
-	'createStopOrderWs': true,
-	'createTakeProfitOrderWs': true,
-	'createTrailingAmountOrderWs': true,
-	'createTrailingPercentOrderWs': true,
-	'createTriggerOrderWs': true,
-	'editOrderWs': true,
-	'fetchBalanceWs': true,
-	'fetchClosedOrdersWs': true,
-    // 'fetchCurrenciesWs': true,
-	'fetchDepositsWs': true,
-	// 'fetchMarketsWs': true,
-	'fetchMyTradesWs': true,
-	'fetchOHLCVWs': true,
-	'fetchOpenOrdersWs': true,
-	'fetchOrderBookWs': true,
-	'fetchOrdersWs': true,
-	'fetchOrderWs': true,
-	'fetchPositionsForSymbolWs': true,
-	'fetchPositionsWs': true,
-	'fetchPositionWs': true,
-	'fetchTickersWs': true,
-	'fetchTickerWs': true,
-	'fetchTradesWs': true,
-	'fetchTradingFeesWs': true,
-	'fetchWithdrawalsWs': true,
-	'watchBalance': true,
-	'watchBidsAsks': true,
-	'watchLiquidations': true,
-	'watchMyLiquidations': true,
-	'watchMyLiquidationsForSymbols': true,
-	'watchMyTrades': true,
-	'watchOHLCV': true,
-	'watchOHLCVForSymbols': true,
-	'watchOrderBook': true,
-	'watchOrderBookForSymbols': true,
-	'watchOrders': true,
-	'watchOrdersForSymbols': true,
-	'watchPosition': true,
-	'watchPositions': true,
-	'watchTicker': true,
-	'watchTickers': true,
-	'watchTrades': true,
-	'watchTradesForSymbols': true,
-	'withdraw': true,
 }
+
+const INTERFACE_METHODS = [
+    'cancelAllOrders',
+    'cancelAllOrdersAfter',
+    'cancelOrder',
+    'cancelOrdersForSymbols',
+    'createConvertTrade',
+    'createDepositAddress',
+    'createLimitBuyOrder',
+    'createLimitOrder',
+    'createLimitSellOrder',
+    'createMarketBuyOrder',
+    'createMarketBuyOrderWithCost',
+    'createMarketOrder',
+    'createMarketOrderWithCost',
+    'createMarketSellOrder',
+    'createMarketSellOrderWithCost',
+    'createOrder',
+    'createOrders',
+    'createOrderWithTakeProfitAndStopLoss',
+    'createPostOnlyOrder',
+    'createReduceOnlyOrder',
+    'createStopLimitOrder',
+    'createStopLossOrder',
+    'createStopMarketOrder',
+    'createStopOrder',
+    'createTakeProfitOrder',
+    'createTrailingAmountOrder',
+    'createTrailingPercentOrder',
+    'createTriggerOrder',
+    'editLimitBuyOrder',
+    'editLimitOrder',
+    'editLimitSellOrder',
+    'editOrder',
+    'editOrders',
+    'fetchAccounts',
+    'fetchAllGreeks',
+    'fetchBalance',
+    'fetchBidsAsks',
+    'fetchBorrowInterest',
+    'fetchBorrowRate',
+    'fetchCanceledAndClosedOrders',
+    'fetchClosedOrders',
+    'fetchConvertCurrencies',
+    'fetchConvertQuote',
+    'fetchConvertTrade',
+    'fetchConvertTradeHistory',
+    'fetchCrossBorrowRate',
+    'fetchCrossBorrowRates',
+    'fetchCurrencies',
+    'fetchDepositAddress',
+    'fetchDepositAddresses',
+    'fetchDepositAddressesByNetwork',
+    'fetchDeposits',
+    'fetchDepositsWithdrawals',
+    'fetchDepositWithdrawFee',
+    'fetchDepositWithdrawFees',
+    'fetchFreeBalance',
+    'fetchFundingHistory',
+    'fetchFundingInterval',
+    'fetchFundingIntervals',
+    'fetchFundingRate',
+    'fetchFundingRateHistory',
+    'fetchFundingRates',
+    'fetchGreeks',
+    'fetchIndexOHLCV',
+    'fetchIsolatedBorrowRate',
+    'fetchIsolatedBorrowRates',
+    'fetchLastPrices',
+    'fetchLedger',
+    'fetchLedgerEntry',
+    'fetchLeverage',
+    'fetchLeverages',
+    'fetchLeverageTiers',
+    'fetchLiquidations',
+    'fetchLongShortRatio',
+    'fetchLongShortRatioHistory',
+    'fetchMarginAdjustmentHistory',
+    'fetchMarginMode',
+    'fetchMarginModes',
+    'fetchMarketLeverageTiers',
+    'fetchMarkets',
+    'fetchMarkOHLCV',
+    'fetchMarkPrice',
+    'fetchMarkPrices',
+    'fetchMyLiquidations',
+    'fetchMyTrades',
+    'fetchOHLCV',
+    'fetchOpenInterest',
+    'fetchOpenInterestHistory',
+    'fetchOpenInterests',
+    'fetchOpenOrders',
+    'fetchOption',
+    'fetchOptionChain',
+    'fetchOrder',
+    'fetchOrderBook',
+    'fetchOrderBooks',
+    'fetchOrders',
+    'fetchOrderStatus',
+    'fetchOrderTrades',
+    'fetchPaymentMethods',
+    'fetchPosition',
+    'fetchPositionHistory',
+    'fetchPositionMode',
+    'fetchPositions',
+    'fetchPositionsForSymbol',
+    'fetchPositionsHistory',
+    'fetchPositionsRisk',
+    'fetchPremiumIndexOHLCV',
+    'fetchStatus',
+    'fetchTicker',
+    'fetchTickers',
+    'fetchTime',
+    'fetchTrades',
+    'fetchTradingFee',
+    'fetchTradingFees',
+    'fetchTradingLimits',
+    'fetchTransactionFee',
+    'fetchTransactionFees',
+    'fetchTransactions',
+    'fetchTransfer',
+    'fetchTransfers',
+    'fetchWithdrawals',
+    // 'setLeverage', // tmp remove we have to unify types
+    'setMargin',
+    'setMarginMode',
+    'setPositionMode',
+    'transfer',
+    'withdraw',
+    // ws methods
+    'cancelAllOrdersWs',
+	'cancelOrdersWs',
+	'cancelOrderWs',
+	'createLimitBuyOrderWs',
+	'createLimitOrderWs',
+	'createLimitSellOrderWs',
+	'createMarketBuyOrderWs',
+	'createMarketOrderWithCostWs',
+	'createMarketOrderWs',
+	'createMarketSellOrderWs',
+	'createOrderWithTakeProfitAndStopLossWs',
+	'createOrderWs',
+	'createPostOnlyOrderWs',
+	'createReduceOnlyOrderWs',
+	'createStopLimitOrderWs',
+	'createStopLossOrderWs',
+	'createStopMarketOrderWs',
+	'createStopOrderWs',
+	'createTakeProfitOrderWs',
+	'createTrailingAmountOrderWs',
+	'createTrailingPercentOrderWs',
+	'createTriggerOrderWs',
+	'editOrderWs',
+	'fetchBalanceWs',
+	'fetchClosedOrdersWs',
+    // 'fetchCurrenciesWs',
+	'fetchDepositsWs',
+	// 'fetchMarketsWs',
+	'fetchMyTradesWs',
+	'fetchOHLCVWs',
+	'fetchOpenOrdersWs',
+	'fetchOrderBookWs',
+	'fetchOrdersWs',
+	'fetchOrderWs',
+	'fetchPositionsForSymbolWs',
+	'fetchPositionsWs',
+	'fetchPositionWs',
+	'fetchTickersWs',
+	'fetchTickerWs',
+	'fetchTradesWs',
+	'fetchTradingFeesWs',
+	'fetchWithdrawalsWs',
+	'watchBalance',
+	'watchBidsAsks',
+	'watchLiquidations',
+	'watchMyLiquidations',
+	'watchMyLiquidationsForSymbols',
+	'watchMyTrades',
+	'watchOHLCV',
+	'watchOHLCVForSymbols',
+	'watchOrderBook',
+	'watchOrderBookForSymbols',
+	'watchOrders',
+	'watchOrdersForSymbols',
+	'watchPosition',
+	'watchPositions',
+	'watchTicker',
+	'watchTickers',
+	'watchTrades',
+	'watchTradesForSymbols',
+	'withdraw',
+]
 
 class NewTranspiler {
 
@@ -555,6 +692,10 @@ class NewTranspiler {
             return ` <- chan int64`; // custom handling for now
         }
 
+        if (name.startsWith('fetchDepositWithdrawFee')) { // tmp fix later with proper types
+            return `map[string]interface{}`
+        }
+
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -738,7 +879,7 @@ class NewTranspiler {
             'createContractOrder',
             'createSwapOrder',
             'fetchPortfolioDetails',
-            'createVault'
+            'createVault',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -767,6 +908,10 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `(res).(int64)`;
+        }
+
+        if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
+            return `(res).(map[string]interface{})`;
         }
 
         // handle the typescript type Dict
@@ -895,12 +1040,50 @@ class NewTranspiler {
         goTypeOptions[capName] = res.concat(withMethod).join("\n");
     }
 
+
+    createMissingMethodWrapper(exchangeName: string, name: string, methodInfo: any) {
+        if (!methodInfo) {
+            return '';
+        }
+        const itf = methodInfo.interface
+        // const params = methodInfo.params;
+        const exCap = capitalize(exchangeName);
+        const nameCap = capitalize(name);
+        const wrapper = methodInfo.wrapper;
+
+        let args: string[] = [];
+        for (const param of wrapper.parameters) {
+            if (param.name === 'params' && wrapper.parameters.length === 1) {
+                args.push('params...')
+                break;
+            }
+            if (param.isOptional || param.name === 'params' || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}') {
+                // if (wrapper.parameters.length === 1) {
+                //     args.push(`params...`)
+                // } else {
+                //     args.push(`options...`)
+                // }
+                args.push(`options...`)
+                break;
+            } else {
+                args.push(this.safeGoName(param.name))
+            }
+        }
+
+        return `func (this *${exCap}) ${itf} {return this.exchangeTyped.${nameCap}(${args.join(', ')})}`;
+    }
+
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
         const isAsync = methodWrapper.async;
+        const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
+        if (methodName.startsWith('watch') || methodName.endsWith('Ws')) {
+            return '';
+        }
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
+
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
@@ -940,13 +1123,14 @@ class NewTranspiler {
             params = 'params...'
         }
 
+        const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
            `${defaultParams}`,
-            `${two}res := <- this.Core.${methodNameCapitalized}(${params})`,
+            `${two}res := <- ${accessor}${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
             `${three}return ${emtpyObject}, CreateReturnError(res)`,
             `${two}}`,
@@ -954,8 +1138,22 @@ class NewTranspiler {
             // `${two}}()`,
             // `${two}return ch`,
         ]
+        const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
+        if (!WRAPPER_METHODS[exchangeName]) {
+            WRAPPER_METHODS[exchangeName] = [];
+        }
+        if (!WRAPPER_METHODS[exchangeName][methodName]) {
+            WRAPPER_METHODS[exchangeName][methodName] = {};
+        }
+        WRAPPER_METHODS[exchangeName][methodName] = {
+            wrapper: methodWrapper,
+            interface: interfaceMethod,
+            params: stringArgs,
+        }
+        // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
+        const funcContext = isExchange ? 'ExchangeTyped' : capitalize(exchangeName);
         const method = [
-            `${one}func (this *${capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
+            `${one}func (this *${funcContext}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
             ...body,
             // this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
             // `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
@@ -979,31 +1177,71 @@ class NewTranspiler {
     }
 
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
+        const methodsList = wrappers.map(wrapper => wrapper.name);
+        const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.includes(method));
+
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
+
+        let missingMethodsWrappers = '';
+        if (exchange !== 'Exchange') {
+            if (!WRAPPER_METHODS['Exchange']) {
+                throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
+            }
+            missingMethodsWrappers = missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
+        }
+
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         const namespace = `package ${ws ? 'ccxtws' : 'ccxt'}`;
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         const coreName = capitalize(exchange) + 'Core';
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        
-        const exchangeStruct = [
-            `type ${capitizedName} struct {`,
-            `   *${coreName}`,
-            `   Core *${coreName}`,
-            `}`
-        ].join('\n');
 
-        const newMethod = [
-            'func New' + capitizedName + '(userConfig map[string]interface{}) ' + capitizedName + ' {',
-            `   p := New${coreName}()`,
-            '   p.Init(userConfig)',
-            `   return ${capitizedName}{`,
-            `       ${coreName}: p,`,
-            `       Core:  p,`,
-            `   }`,
-            '}'
-        ].join('\n');
+        let exchangeStruct = '';
+        if (exchange === 'Exchange') {
+
+            exchangeStruct = [
+                `type ExchangeTyped struct {`,
+                `   *Exchange`,
+                `}`
+            ].join('\n');
+
+        } else {
+
+            exchangeStruct = [
+                `type ${capitizedName} struct {`,
+                `   *${coreName}`,
+                `   Core *${coreName}`,
+                `   exchangeTyped *ExchangeTyped`,
+                `}`
+            ].join('\n');
+
+        }
+
+        let newMethod = '';
+        if (exchange === 'Exchange') {
+            newMethod = [
+                'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
+                `   return &ExchangeTyped{`,
+                `       Exchange: exchangePointer,`,
+                `   }`,
+                '}'
+            ].join('\n');
+
+        } else {
+            newMethod = [
+                'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
+                `   p := New${coreName}()`,
+                '   p.Init(userConfig)',
+                `   return &${capitizedName}{`,
+                `       ${coreName}: p,`,
+                `       Core:  p,`,
+                '       exchangeTyped: NewExchangeTyped(&p.Exchange),',
+                `   }`,
+                '}'
+            ].join('\n');
+        }
+
 
 
         const getsImport = (
@@ -1020,7 +1258,9 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             '',
             wrappersIndented,
-            // Wrapper regex replacements
+            '// missing typed methods from base',
+            '//nolint',
+            missingMethodsWrappers,
         ].join('\n')
         if (ws) {
             file = this.addPackagePrefix(file, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
@@ -1139,7 +1379,13 @@ ${constStatements.join('\n')}
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        // this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+
+        // const exchangeMethods = wrapperMethods['Exchange'];
+        // const sortedList = exchangeMethods.sort((a, b) => a.localeCompare(b));
+        // sortedList.forEach( i => {
+        //     console.log(i)
+        // });
 
 
         // custom transformations needed for go
@@ -1210,7 +1456,7 @@ ${constStatements.join('\n')}
         })
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
         default:
@@ -1228,6 +1474,58 @@ ${caseStatements.join('\n')}
 
         fs.writeFileSync (dynamicInstanceFile, file);
     }
+
+
+    createTypedInterfaceFile(){
+        if (!WRAPPER_METHODS['Exchange']) {
+            throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
+        }
+        const exchanges = ['exchange'].concat(exchangeIds);
+
+        const caseStatements = exchanges.map(exchange => {
+            const struct = exchange === 'exchange' ? 'ExchangeTyped' : capitalize(exchange);
+            const args = exchange === 'exchange' ? 'nil' : 'options';
+            return`    case "${exchange}":
+        itf := New${struct}(${args})
+        return itf`;
+        })
+
+        const functionDecl = `
+func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
+    exchangeId = strings.ToLower(exchangeId)
+    switch exchangeId {
+${caseStatements.join('\n')}
+        default:
+            return nil
+    }
+}
+`
+        const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
+            const methodInfo = WRAPPER_METHODS['Exchange'][method];
+            if (!INTERFACE_METHODS.includes(method)) {
+                return '';
+            }
+            return methodInfo.interface;
+        }).filter(e => !!e)
+
+        const interfaceDecl = `
+type IExchange interface {
+    IBaseExchange
+    ${interfaceMethods.join('\n    ')}
+}`;
+
+        const file = [
+            'package ccxt',
+            'import "strings"',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            interfaceDecl,
+            functionDecl,
+        ].join('\n');
+
+        fs.writeFileSync (TYPED_INTERFACE_FILE, file);
+    }
+
 
     camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
@@ -1321,28 +1619,27 @@ ${caseStatements.join('\n')}
         }
         const options = { goFolder, exchanges }
 
+        this.transpileBaseMethods (TS_BASE_FILE) // now we always need the baseMethods info
+        if (!transpilingSingleExchange && !child) {
+            this.createDynamicInstanceFile();
+            this.createTypedInterfaceFile();
+        }
+
         if (!baseOnly && !examplesOnly) {
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
-        // this.transpileExamples(); // disabled for now
 
-        if (examplesOnly) {
-            return;
-        }
-
-        if (transpilingSingleExchange) {
-            this.createDynamicInstanceFile();
-            return;
-        }
         if (child) {
             return;
         }
 
-        this.transpileBaseMethods (TS_BASE_FILE)
-        this.createDynamicInstanceFile();
 
         if (baseOnly) {
+            return;
+        }
+
+        if (transpilingSingleExchange) {
             return;
         }
 
@@ -1877,13 +2174,13 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [/var exchange interface{} =/g,'var exchange ccxt.IExchange ='],
-            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.IExchange ='],
-            [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
-            [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+            [/var exchange interface{} =/g,'var exchange ccxt.ICoreExchange ='],
+            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.ICoreExchange ='],
+            [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
+            [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {'],
+            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
             [/GetRootException\(ex\)/g, 'GetRootException(e)'],
             [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
@@ -1977,8 +2274,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let regexes = [
                 [/exchange \:\= &ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange := ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
-                [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+                [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
+                [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
                 [/testSharedMethods\./g, ''],
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],

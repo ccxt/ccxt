@@ -6007,7 +6007,7 @@ class mexc extends Exchange {
         //
         // array( success => true, code => '0' )
         //
-        return $this->parse_leverage($response, $market);
+        return $this->parse_leverage($response, $market); // tmp revert type
     }
 
     public function nonce() {

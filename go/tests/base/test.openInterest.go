@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestOpenInterest(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
+    func TestOpenInterest(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
         var format interface{} = map[string]interface{} {
             "symbol": "BTC/USDT",
             "openInterestAmount": exchange.ParseNumber("3544581864.598"),

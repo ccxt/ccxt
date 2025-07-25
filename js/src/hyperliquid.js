@@ -1870,7 +1870,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

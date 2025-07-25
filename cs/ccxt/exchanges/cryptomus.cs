@@ -799,7 +799,9 @@ public partial class cryptomus : Exchange
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**

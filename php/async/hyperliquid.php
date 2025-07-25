@@ -1931,7 +1931,7 @@ class hyperliquid extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

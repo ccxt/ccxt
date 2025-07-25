@@ -1351,7 +1351,7 @@ class onetrading extends Exchange {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     )
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
