@@ -62,7 +62,7 @@ export default class cryptocom extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
@@ -2990,6 +2990,79 @@ export default class cryptocom extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRate (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRate', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'valuation_type': 'estimated_funding_rate',
+        };
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PublicGetPublicGetValuations (this.extend (request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
+        const marketId = this.safeString (result, 'instrument_name');
+        const entry = data[0];
+        const timestamp = this.safeInteger (entry, 't');
+        return {
+            'info': entry,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (entry, 'v'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as FundingRate;
     }
 
     /**
