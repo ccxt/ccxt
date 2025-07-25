@@ -22,21 +22,25 @@ type Throttler struct {
 
 func NewThrottler(config map[string]interface{}) Throttler {
 	defaultConfig := map[string]interface{}{
-		"refillRate":  1.0,
-		"delay":       0.001,
-		"capacity":    1.0,
-		"maxLimiterRequests": 2000,
-		"tokens":      0,
-		"cost":        1.0,
+		"refillRate":  1.0,					// leaky bucket refill rate in tokens per second
+		"delay":       0.001,				// leaky bucket seconds before checking the queue after waiting
+		"capacity":    1.0,					// leaky bucket
+		"tokens":      0,					// leaky bucket
+		"cost":        1.0,					// leaky bucket and rolling window
 		"algorithm":   "leakyBucket",
 		"rateLimit":   0.0,
-		"windowSize":  60000.0,
+		"windowSize":  60000.0,				// rolling window size in milliseconds
+		"maxWeight":   0.0,					// rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
+	}
+	config = ExtendMap(defaultConfig, config)
+	if config["windowSize"] != 0.0 {
+		config["maxWeight"] = config["windowSize"].(float64) / config["rateLimit"].(float64)
 	}
 
 	return Throttler{
 		Queue:   NewQueue(),
 		Running: false,
-		Config:  ExtendMap(defaultConfig, config),
+		Config:  config,
 		Timestamps: []TimestampedCost{},
 	}
 }

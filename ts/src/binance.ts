@@ -2589,6 +2589,7 @@ export default class binance extends Exchange {
                     'MAX_POSITION': BadRequest, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
 

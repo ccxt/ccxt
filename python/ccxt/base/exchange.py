@@ -166,10 +166,7 @@ class Exchange(object):
     codes = None
     timeframes = {}
     tokenBucket = None
-
-    # rate limiter properties
-    rateLimiterAlgorithm = 'leakyBucket'  # rollingWindow or leakyBucket
-    rollingWindowSize = 60000
+    rollingWindowSize = 0.0  # set to 0.0 to use leaky bucket rate limiter
 
     fees = {
         'trading': {

@@ -15,16 +15,19 @@ class Throttler {
 
     public function __construct($config) {
         $this->config = array_merge(array(
-            'refillRate' => 1.0,
-            'delay' => 0.001,
-            'cost' => 1.0,
-            'tokens' => 0.0,
-            'capacity' => 1.0,
+            'refillRate' => 1.0,             // leaky bucket refill rate in tokens per second
+            'delay' => 0.001,                // leaky bucket seconds before checking the queue after waiting
+            'cost' => 1.0,                   // leaky bucket and rolling window
+            'tokens' => 0.0,                 // leaky bucket
+            'capacity' => 1.0,               // leaky bucket
             'algorithm' => 'leakyBucket',
-            'rateLimit' => 0,
-            'windowSize' => 60000.0,
-            'maxWeight' => 0
+            'rateLimit' => 0.0,
+            'windowSize' => 60000.0,         // rolling window size in milliseconds
+            'maxWeight' => 0.0                 // rolling window - rollingWindowSize / rateLimit   // ms_of_window / ms_of_rate_limit  
         ), $config);
+        if ($this->config['windowSize'] !== 0.0) {
+            $this->config['maxWeight'] = $this->config['windowSize'] / $this->config['rateLimit'];
+        }
         $this->queue = new \SplQueue();
         $this->running = false;
         $this->timestamps = [];
