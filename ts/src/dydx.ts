@@ -2,11 +2,8 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/dydx.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
-import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface } from './base/types.js';
+import type { Int, Market, Dict, int, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -390,7 +387,7 @@ export default class dydx extends Exchange {
             active = false;
         }
         return this.safeMarketStructure ({
-            'id': this.safeString (market, 'clobPairId'),
+            'id': this.safeString (market, 'ticker'),
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -417,8 +414,8 @@ export default class dydx extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
-                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
+                'amount': this.parseNumber (amountPrecisionStr),
+                'price': this.parseNumber (pricePrecisionStr),
             },
             'limits': {
                 'leverage': {
@@ -489,6 +486,81 @@ export default class dydx extends Exchange {
         const data = this.safeDict (response, 'markets', {});
         const markets = Object.values (data);
         return this.parseMarkets (markets);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // {
+        //     "id": "02ac5b1f0000000200000002",
+        //     "side": "BUY",
+        //     "size": "0.0501",
+        //     "price": "115732",
+        //     "type": "LIMIT",
+        //     "createdAt": "2025-07-25T05:11:09.800Z",
+        //     "createdAtHeight": "44849951"
+        // }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        const side = this.safeStringLower (trade, 'side');
+        const id = this.safeString (trade, 'id');
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'ticker': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.indexerGetTradesPerpetualMarketTicker (this.extend (request, params));
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "id": "02ac5b1f0000000200000002",
+        //             "side": "BUY",
+        //             "size": "0.0501",
+        //             "price": "115732",
+        //             "type": "LIMIT",
+        //             "createdAt": "2025-07-25T05:11:09.800Z",
+        //             "createdAtHeight": "44849951"
+        //         }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'trades', []);
+        return this.parseTrades (rows, market, since, limit);
     }
 
     nonce () {
