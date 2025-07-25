@@ -29,92 +29,11 @@ export default class arkm extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'sandbox': false,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-
-                'addMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
-                'cancelOrdersForSymbols': false,
-                'closeAllPositions': false,
-                'closePosition': false,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
-                'createOrder': false,
-                'createOrders': false,
-                'createStopOrder': false,
-                'createTriggerOrder': false,
-                'editOrder': false,
-                'fetchAccounts': false,
-                'fetchBalance': false,
-                'fetchBidsAsks': false,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': false,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
-                'fetchDepositAddress': false,
-                'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
-                'fetchDepositsWithdrawals': false,
-                'fetchDepositWithdrawFee': false,
-                'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchGreeks': false,
-                'fetchIndexOHLCV': false,
-                'fetchIsolatedBorrowRate': false,
-                'fetchIsolatedBorrowRates': false,
-                'fetchLedger': false,
-                'fetchLeverage': false,
-                'fetchLeverageTiers': false,
-                'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
-                'fetchMarkOHLCV': false,
-                'fetchMySettlementHistory': false,
-                'fetchMyTrades': false,
-                'fetchOHLCV': false,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
-                'fetchOrders': false,
-                'fetchPosition': false,
-                'fetchPositionHistory': false,
-                'fetchPositionMode': false,
-                'fetchPositions': false,
-                'fetchPositionsHistory': false,
-                'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
-                'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
-                'fetchTime': false,
-                'fetchTrades': false,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'fetchTransactionFees': false,
-                'fetchTransactions': false,
-                'fetchTransfers': false,
-                'fetchUnderlyingAssets': false,
-                'fetchVolatilityHistory': false,
-                'fetchWithdrawals': false,
-                'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
-                'sandbox': false,
-                'setLeverage': false,
-                'setMarginMode': false,
-                'setPositionMode': false,
-                'transfer': false,
-                'withdraw': false,
             },
             'timeframes': {
                 '1m': '60000000',
@@ -145,11 +64,12 @@ export default class arkm extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'public/assets': 1,
-                            'public/pairs': 1,
-                            'public/contracts': 1,
-                            'public/book': 1,
-                            'public/tickers': 1,
+                            'assets': 1,
+                            'pairs': 1,
+                            'contracts': 1,
+                            'book': 1,
+                            'ticker': 1,
+                            'tickers': 1,
                         },
                     },
                     'private': {
@@ -289,7 +209,7 @@ export default class arkm extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.v1PublicGetPublicAssets (params);
+        const response = await this.v1PublicGetAssets (params);
         //
         //    [
         //        {
@@ -384,7 +304,7 @@ export default class arkm extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.v1PublicGetPublicPairs (params);
+        const response = await this.v1PublicGetPairs (params);
         //
         //    [
         //        {
@@ -529,7 +449,7 @@ export default class arkm extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetPublicBook (this.extend (request, params));
+        const response = await this.v1PublicGetBook (this.extend (request, params));
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -610,13 +530,13 @@ export default class arkm extends Exchange {
         } else {
             request['end_ts'] = until;
         }
-        const response = await this.v1PublicGetPublicCandles (this.extend (request, params));
+        const response = await this.v1PublicGetCandles (this.extend (request, params));
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        const response = await this.v1PublicGetPublicTickers (params);
+        const response = await this.v1PublicGetTickers (params);
         //
         //    [
         //        {
@@ -643,6 +563,47 @@ export default class arkm extends Exchange {
         //        ...
         //
         return this.parseTickers (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetTicker (this.extend (request, params));
+        //
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "baseSymbol": "BTC.P",
+        //            "quoteSymbol": "USDT",
+        //            "indexCurrency": "USDT",
+        //            "price": "118806.89",
+        //            "price24hAgo": "118212.29",
+        //            "high24h": "119468.05",
+        //            "low24h": "117104.44",
+        //            "volume24h": "180.99438",
+        //            "quoteVolume24h": "21430157.5928827",
+        //            "markPrice": "118814.71",
+        //            "indexPrice": "118804.222610343",
+        //            "fundingRate": "0.000007",
+        //            "nextFundingRate": "0.000006",
+        //            "nextFundingTime": "1753390800000000",
+        //            "productType": "perpetual",
+        //            "openInterest": "2.55847",
+        //            "usdVolume24h": "21430157.5928827",
+        //            "openInterestUSD": "303963.8638583"
+        //        }
+        //
+        return this.parseTicker (response, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -673,7 +634,7 @@ export default class arkm extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][type] + '/' + path;
+        let url = this.urls['api'][type] + '/' + access + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {

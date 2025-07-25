@@ -5,6 +5,26 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "url": "https://arkm.com/api/public/ticker?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap",
+                "method": "fetchTicker",
+                "url": "https://arkm.com/api/public/ticker?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "with symbols",
