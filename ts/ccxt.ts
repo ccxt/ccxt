@@ -152,7 +152,7 @@ import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
 import zebpayfutures from  './src/zebpayfutures.js'
-import zebpayspot from  './src/zebpayspot.js'
+import zebpayspot from  './src/zebpay.js'
 
 
 // pro exchanges
