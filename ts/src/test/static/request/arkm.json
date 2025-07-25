@@ -5,6 +5,30 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "swap  with args",
+                "method": "fetchTrades",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT_PERP&limit=2&before=1745000000000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with args",
+                "method": "fetchTrades",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT&limit=5&before=1745000000000000",
+                "input": [
+                    "BTC/USDT",
+                    1745000000000,
+                    5
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "spot",

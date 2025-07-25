@@ -2,6 +2,166 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "swap  with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539712",
+                        "size": "0.00585",
+                        "price": "116346.42",
+                        "takerSide": "sell",
+                        "time": "1753440450249651"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539709",
+                        "size": "0.03451",
+                        "price": "116352.12",
+                        "takerSide": "sell",
+                        "time": "1753440450249651"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539709",
+                            "size": "0.03451",
+                            "price": "116352.12",
+                            "takerSide": "sell",
+                            "time": "1753440450249651"
+                        },
+                        "id": "1130539709",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116352.12,
+                        "amount": 0.03451,
+                        "cost": 4015.3116612,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539712",
+                            "size": "0.00585",
+                            "price": "116346.42",
+                            "takerSide": "sell",
+                            "time": "1753440450249651"
+                        },
+                        "id": "1130539712",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116346.42,
+                        "amount": 0.00585,
+                        "cost": 680.626557,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "spot with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640730",
+                        "size": "0.00082",
+                        "price": "116352.94",
+                        "takerSide": "sell",
+                        "time": "1753440101890053"
+                    },
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640188",
+                        "size": "0.00082",
+                        "price": "116332.04",
+                        "takerSide": "buy",
+                        "time": "1753440094488742"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640188",
+                            "size": "0.00082",
+                            "price": "116332.04",
+                            "takerSide": "buy",
+                            "time": "1753440094488742"
+                        },
+                        "id": "829640188",
+                        "timestamp": 1753440094488,
+                        "datetime": "2025-07-25T10:41:34.488Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 116332.04,
+                        "amount": 0.00082,
+                        "cost": 95.3922728,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640730",
+                            "size": "0.00082",
+                            "price": "116352.94",
+                            "takerSide": "sell",
+                            "time": "1753440101890053"
+                        },
+                        "id": "829640730",
+                        "timestamp": 1753440101890,
+                        "datetime": "2025-07-25T10:41:41.890Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 116352.94,
+                        "amount": 0.00082,
+                        "cost": 95.4094108,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "fetchTicker": [
         
             {

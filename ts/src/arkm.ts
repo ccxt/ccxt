@@ -34,6 +34,7 @@ export default class arkm extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTraades': true,
             },
             'timeframes': {
                 '1m': '60000000',
@@ -70,6 +71,7 @@ export default class arkm extends Exchange {
                             'book': 1,
                             'ticker': 1,
                             'tickers': 1,
+                            'trades': 1,
                         },
                     },
                     'private': {
@@ -629,6 +631,81 @@ export default class arkm extends Exchange {
             'askVolume': undefined,
             'bidVolume': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://arkm.com/docs#get/public/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.loc] crypto location, default: us
+     * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request: Dict = {
+            'symbol': marketId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['before'] = since * 1000;
+        }
+        const response = await this.v1PublicGetTrades (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "revisionId": "1130514101",
+        //            "size": "0.01668",
+        //            "price": "116309.57",
+        //            "takerSide": "sell",
+        //            "time": "1753439710374047"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "revisionId": "1130514101",
+        //            "size": "0.01668",
+        //            "price": "116309.57",
+        //            "takerSide": "sell",
+        //            "time": "1753439710374047"
+        //        }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'revisionId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': this.safeString (trade, 'takerSide'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
