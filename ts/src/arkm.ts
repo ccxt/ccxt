@@ -116,18 +116,13 @@ export default class arkm extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1D',
-                '1w': '7D',
-                '2w': '14D',
-                '1M': '1M',
+                '1m': '60000000',
+                '5m': '300000000',
+                '15m': '900000000',
+                '30m': '1800000000',
+                '1h': '3600000000',
+                '6h': '21600000000',
+                '1d': '86400000000',
             },
             'urls': {
                 'logo': '',
@@ -382,7 +377,7 @@ export default class arkm extends Exchange {
      * @method
      * @name arkm#fetchMarkets
      * @see https://arkm.com/docs#get/public/pairs
-     * @description retrieves data on all markets for cryptocom
+     * @description retrieves data on all markets for arkm
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -565,6 +560,57 @@ export default class arkm extends Exchange {
         const timestamp = this.safeIntegerProduct (response, 'lastTime', 0.001);
         const marketId = this.safeString (response, 'symbol');
         return this.parseOrderBook (response, this.safeSymbol (marketId, market), timestamp, 'bids', 'asks', 'price', 'size');
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://arkm.com/docs#get/public/candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
+            request['count'] = limit;
+        }
+        const now = this.microseconds ();
+        const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger (params, 'until', now);
+        params = this.omit (params, [ 'until' ]);
+        if (since !== undefined) {
+            request['start_ts'] = since - duration * 1000;
+            if (limit !== undefined) {
+                request['end_ts'] = this.sum (since, duration * limit * 1000);
+            } else {
+                request['end_ts'] = until;
+            }
+        } else {
+            request['end_ts'] = until;
+        }
+        const response = await this.v1PublicGetPublicCandles (this.extend (request, params));
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
