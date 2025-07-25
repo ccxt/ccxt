@@ -267,6 +267,7 @@ export default class phemex extends Exchange {
                         // swap
                         'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'g-orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/create': 1,
                         'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
@@ -2845,9 +2846,8 @@ export default class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         let response = undefined;
-        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+        if (market['settle'] === 'USDT') {
             response = await this.privatePostGOrders (this.extend (request, params));
-            // response = await this.privatePutGOrdersCreate (this.extend (request, params));
         } else if (market['contract']) {
             response = await this.privatePostOrders (this.extend (request, params));
         } else {
