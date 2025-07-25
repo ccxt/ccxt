@@ -5242,6 +5242,7 @@ Trades denote the exchange of one currency for another, unlike [transactions](#t
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 - The `cost` of the trade is a _"gross"_ value. That is the value pre-fee, and the fee has to be applied afterwards.
+- Note, if `id` field is empty, you can yourself generate synthetic id for any trade by `.createSubstituteTradeId()` method.
 
 ### Trades By Order Id
 <!-- tabs:start -->
