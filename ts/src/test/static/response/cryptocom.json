@@ -5,6 +5,8 @@
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate",
+                "disabledGO": true,
+                "disabledCS": true,
                 "method": "fetchFundingRate",
                 "input": [
                     "BTC/USD:USD"
