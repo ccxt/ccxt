@@ -30,7 +30,8 @@ export default class arkm extends Exchange {
                 'future': false,
                 'option': false,
                 'fetchCurrencies': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
+                'fetchTickers': true,
 
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -148,6 +149,7 @@ export default class arkm extends Exchange {
                             'public/pairs': 1,
                             'public/contracts': 1,
                             'public/book': 1,
+                            'public/tickers': 1,
                         },
                     },
                     'private': {
@@ -613,34 +615,60 @@ export default class arkm extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-    //     const response = await this.v1PublicGetPublicContracts (params);
-    //     //
-    //     //    [
-    //     //        {
-    //     //            "symbol": "BTC_USDT_PERP",
-    //     //            "baseSymbol": "BTC.P",
-    //     //            "quoteSymbol": "USDT",
-    //     //            "indexCurrency": "USDT",
-    //     //            "price": "118806.89",
-    //     //            "price24hAgo": "118212.29",
-    //     //            "high24h": "119468.05",
-    //     //            "low24h": "117104.44",
-    //     //            "volume24h": "180.99438",
-    //     //            "quoteVolume24h": "21430157.5928827",
-    //     //            "markPrice": "118814.71",
-    //     //            "indexPrice": "118804.222610343",
-    //     //            "fundingRate": "0.000007",
-    //     //            "nextFundingRate": "0.000006",
-    //     //            "nextFundingTime": "1753390800000000",
-    //     //            "productType": "perpetual",
-    //     //            "openInterest": "2.55847",
-    //     //            "usdVolume24h": "21430157.5928827",
-    //     //            "openInterestUSD": "303963.8638583"
-    //     //        },
-    //     //        ...
-    //     //
-    // }
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        const response = await this.v1PublicGetPublicTickers (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "baseSymbol": "BTC.P",
+        //            "quoteSymbol": "USDT",
+        //            "indexCurrency": "USDT",
+        //            "price": "118806.89",
+        //            "price24hAgo": "118212.29",
+        //            "high24h": "119468.05",
+        //            "low24h": "117104.44",
+        //            "volume24h": "180.99438",
+        //            "quoteVolume24h": "21430157.5928827",
+        //            "markPrice": "118814.71",
+        //            "indexPrice": "118804.222610343",
+        //            "fundingRate": "0.000007",
+        //            "nextFundingRate": "0.000006",
+        //            "nextFundingTime": "1753390800000000",
+        //            "productType": "perpetual",
+        //            "openInterest": "2.55847",
+        //            "usdVolume24h": "21430157.5928827",
+        //            "openInterestUSD": "303963.8638583"
+        //        },
+        //        ...
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeTicker ({
+            'info': ticker,
+            'symbol': this.safeSymbol (marketId, market),
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low24h'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'last': this.safeNumber (ticker, 'price'),
+            'open': this.safeNumber (ticker, 'price24hAgo'),
+            'change': this.safeNumber (ticker, 'priceChange'),
+            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'baseVolume': this.safeNumber (ticker, 'volume24h'),
+            'quoteVolume': this.safeNumber (ticker, 'usdVolume24h'),
+            'markPrice': this.safeNumber (ticker, 'markPrice'),
+            'indexPrice': this.safeNumber (ticker, 'indexPrice'),
+            'vwap': undefined,
+            'average': undefined,
+            'previousClose': undefined,
+            'askVolume': undefined,
+            'bidVolume': undefined,
+        });
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);

@@ -5,6 +5,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "with symbols",
+                "method": "fetchTickers",
+                "url": "https://arkm.com/api/public/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "with limit",
