@@ -36,6 +36,7 @@ export default class arkm extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchTime': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -82,21 +83,20 @@ export default class arkm extends Exchange {
                         },
                     },
                 },
-                'derivatives': {
-                    'public': {
-                        'get': {
-                        },
-                    },
-                    'private': {
-                        'post': {
-                        },
-                    },
-                },
             },
             'options': {
                 'networks': {
+                    'ERC20': 'ETH',
                     'ETH': 'ETH',
                     'BTC': 'BTC',
+                    'SOL': 'SOL',
+                    'TON': 'TON',
+                    'DOGE': 'DOGE',
+                    'SUI': 'SUI',
+                    'XRP': 'XRP',
+                    'OP': 'OP',
+                    'AVAXC': 'AVAX',
+                    'ARBONE': 'ARB',
                 },
             },
             'features': {
