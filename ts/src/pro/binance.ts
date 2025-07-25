@@ -4040,11 +4040,8 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new BadRequest (this.id + ' fetchTradesWs () requires a symbol argument');
-        }
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchTradesWs', market, params);
         if (type !== 'spot' && type !== 'future') {
