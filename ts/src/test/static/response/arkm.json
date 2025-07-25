@@ -2,6 +2,17 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "serverTime": "1753465897737684"
+                },
+                "parsedResponse": 1753465897737
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "spot  with args",

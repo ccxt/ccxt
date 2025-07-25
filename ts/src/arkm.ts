@@ -74,6 +74,7 @@ export default class arkm extends Exchange {
                             'tickers': 1,
                             'trades': 1,
                             'candles': 1,
+                            'server-time': 1,
                         },
                     },
                     'private': {
@@ -94,106 +95,105 @@ export default class arkm extends Exchange {
             },
             'options': {
                 'networks': {
-                    'BEP20': 'BSC',
-                    'ERC20': 'ETH',
-                    'TRC20': 'TRON',
+                    'ETH': 'ETH',
+                    'BTC': 'BTC',
                 },
             },
             'features': {
-                'default': {
-                    'sandbox': true,
-                    'createOrder': {
-                        'marginMode': true,
-                        'triggerPrice': true,
-                        // todo: implementation fix
-                        'triggerPriceType': {
-                            'last': true,
-                            'mark': true,
-                            'index': true,
-                        },
-                        'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': undefined,
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
-                        'hedged': false,
-                        'selfTradePrevention': true, // todo: implement
-                        'trailing': false,
-                        'iceberg': false,
-                        'leverage': false,
-                        'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': true,
-                    },
-                    'createOrders': {
-                        'max': 10,
-                    },
-                    'fetchMyTrades': {
-                        'marginMode': false,
-                        'limit': 100,
-                        'daysBack': undefined,
-                        'untilDays': 1,
-                        'symbolRequired': false,
-                    },
-                    'fetchOrder': {
-                        'marginMode': false,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
-                    'fetchOpenOrders': {
-                        'marginMode': true,
-                        'limit': 100,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
-                    'fetchOrders': {
-                        'marginMode': false,
-                        'limit': 100,
-                        'daysBack': undefined,
-                        'untilDays': 1,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': 100,
-                        'daysBack': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 1,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
-                    'fetchOHLCV': {
-                        'limit': 365,
-                    },
-                },
-                'spot': {
-                    'extends': 'default',
-                },
-                'swap': {
-                    'linear': {
-                        'extends': 'default',
-                    },
-                    'inverse': {
-                        'extends': 'default',
-                    },
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'default',
-                    },
-                    'inverse': {
-                        'extends': 'default',
-                    },
-                },
+                // 'default': {
+                //     'sandbox': true,
+                //     'createOrder': {
+                //         'marginMode': true,
+                //         'triggerPrice': true,
+                //         // todo: implementation fix
+                //         'triggerPriceType': {
+                //             'last': true,
+                //             'mark': true,
+                //             'index': true,
+                //         },
+                //         'triggerDirection': false,
+                //         'stopLossPrice': true,
+                //         'takeProfitPrice': true,
+                //         'attachedStopLossTakeProfit': undefined,
+                //         'timeInForce': {
+                //             'IOC': true,
+                //             'FOK': true,
+                //             'PO': true,
+                //             'GTD': false,
+                //         },
+                //         'hedged': false,
+                //         'selfTradePrevention': true, // todo: implement
+                //         'trailing': false,
+                //         'iceberg': false,
+                //         'leverage': false,
+                //         'marketBuyByCost': true,
+                //         'marketBuyRequiresPrice': true,
+                //     },
+                //     'createOrders': {
+                //         'max': 10,
+                //     },
+                //     'fetchMyTrades': {
+                //         'marginMode': false,
+                //         'limit': 100,
+                //         'daysBack': undefined,
+                //         'untilDays': 1,
+                //         'symbolRequired': false,
+                //     },
+                //     'fetchOrder': {
+                //         'marginMode': false,
+                //         'trigger': false,
+                //         'trailing': false,
+                //         'symbolRequired': false,
+                //     },
+                //     'fetchOpenOrders': {
+                //         'marginMode': true,
+                //         'limit': 100,
+                //         'trigger': false,
+                //         'trailing': false,
+                //         'symbolRequired': false,
+                //     },
+                //     'fetchOrders': {
+                //         'marginMode': false,
+                //         'limit': 100,
+                //         'daysBack': undefined,
+                //         'untilDays': 1,
+                //         'trigger': false,
+                //         'trailing': false,
+                //         'symbolRequired': false,
+                //     },
+                //     'fetchClosedOrders': {
+                //         'marginMode': false,
+                //         'limit': 100,
+                //         'daysBack': undefined,
+                //         'daysBackCanceled': undefined,
+                //         'untilDays': 1,
+                //         'trigger': false,
+                //         'trailing': false,
+                //         'symbolRequired': false,
+                //     },
+                //     'fetchOHLCV': {
+                //         'limit': 365,
+                //     },
+                // },
+                // 'spot': {
+                //     'extends': 'default',
+                // },
+                // 'swap': {
+                //     'linear': {
+                //         'extends': 'default',
+                //     },
+                //     'inverse': {
+                //         'extends': 'default',
+                //     },
+                // },
+                // 'future': {
+                //     'linear': {
+                //         'extends': 'default',
+                //     },
+                //     'inverse': {
+                //         'extends': 'default',
+                //     },
+                // },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -432,6 +432,24 @@ export default class arkm extends Exchange {
             });
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://arkm.com/docs#get/public/server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}) {
+        const response = await this.v1PublicGetServerTime (params);
+        //
+        //    {
+        //        "serverTime": "1753465832770820"
+        //    }
+        //
+        return this.safeIntegerProduct (response, 'serverTime', 0.001);
     }
 
     /**

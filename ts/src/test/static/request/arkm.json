@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://arkm.com/api/public/server-time",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "spot  with args",
