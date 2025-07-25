@@ -24,11 +24,13 @@ export default class arkm extends Exchange {
             'pro': false,
             'has': {
                 'CORS': false,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
+                'fetchCurrencies': true,
+
                 'addMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': false,
@@ -50,16 +52,15 @@ export default class arkm extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
-                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -148,6 +149,7 @@ export default class arkm extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
+                            'public/assets': 1,
                             'public/pairs': 1,
                             'public/contracts': 1,
                         },
@@ -278,6 +280,101 @@ export default class arkm extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://arkm.com/docs#get/public/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.v1PublicGetPublicAssets (params);
+      //
+        //    [
+        //        {
+        //            "symbol": "USDT",
+        //            "name": "Tether",
+        //            "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+        //            "stablecoin": true,
+        //            "featuredPair": "BTC_USDT",
+        //            "chains": [
+        //                {
+        //                    "symbol": "ETH",
+        //                    "assetSymbol": "ETH",
+        //                    "name": "Ethereum",
+        //                    "type": "1",
+        //                    "confirmations": "6",
+        //                    "blockTime": "12000000"
+        //                }
+        //            ],
+        //            "status": "listed",
+        //            "minDeposit": "5",
+        //            "minWithdrawal": "5",
+        //            "withdrawalFee": "2"
+        //        },
+        //        ...
+        //
+        const result: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
+            const networks: Dict = {};
+            const chains = this.safeList (currency, 'chains', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'symbol');
+                const network = this.networkIdToCode (networkId);
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'title': this.safeString (chain, 'name'),
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': this.safeString (currency, 'name'),
+                'active': this.safeString (currency, 'status') === 'listed',
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber (currency, 'withdrawalFee'),
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'minDeposit'),
+                        'max': undefined,
+                    },
+                },
+                'type': 'crypto',
+                'networks': networks,
+            });
+        }
+        return result;
     }
 
     /**
@@ -414,6 +511,7 @@ export default class arkm extends Exchange {
         }
         return result;
     }
+
 
     // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
     //     const response = await this.v1PublicGetPublicContracts (params);
