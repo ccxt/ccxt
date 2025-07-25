@@ -158,6 +158,67 @@ const VIRTUAL_BASE_METHODS: any = {
     "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false,
+    // ws methods
+    'cancelAllOrdersWs': true,
+	'cancelOrdersWs': true,
+	'cancelOrderWs': true,
+	'createLimitBuyOrderWs': true,
+	'createLimitOrderWs': true,
+	'createLimitSellOrderWs': true,
+	'createMarketBuyOrderWs': true,
+	'createMarketOrderWithCostWs': true,
+	'createMarketOrderWs': true,
+	'createMarketSellOrderWs': true,
+	'createOrderWithTakeProfitAndStopLossWs': true,
+	'createOrderWs': true,
+	'createPostOnlyOrderWs': true,
+	'createReduceOnlyOrderWs': true,
+	'createStopLimitOrderWs': true,
+	'createStopLossOrderWs': true,
+	'createStopMarketOrderWs': true,
+	'createStopOrderWs': true,
+	'createTakeProfitOrderWs': true,
+	'createTrailingAmountOrderWs': true,
+	'createTrailingPercentOrderWs': true,
+	'createTriggerOrderWs': true,
+	'editOrderWs': true,
+	'fetchBalanceWs': true,
+	'fetchClosedOrdersWs': true,
+    // 'fetchCurrenciesWs': true,
+	'fetchDepositsWs': true,
+	// 'fetchMarketsWs': true,
+	'fetchMyTradesWs': true,
+	'fetchOHLCVWs': true,
+	'fetchOpenOrdersWs': true,
+	'fetchOrderBookWs': true,
+	'fetchOrdersWs': true,
+	'fetchOrderWs': true,
+	'fetchPositionsForSymbolWs': true,
+	'fetchPositionsWs': true,
+	'fetchPositionWs': true,
+	'fetchTickersWs': true,
+	'fetchTickerWs': true,
+	'fetchTradesWs': true,
+	'fetchTradingFeesWs': true,
+	'fetchWithdrawalsWs': true,
+	'watchBalance': true,
+	'watchBidsAsks': true,
+	'watchLiquidations': true,
+	'watchMyLiquidations': true,
+	'watchMyLiquidationsForSymbols': true,
+	'watchMyTrades': true,
+	'watchOHLCV': true,
+	'watchOHLCVForSymbols': true,
+	'watchOrderBook': true,
+	'watchOrderBookForSymbols': true,
+	'watchOrders': true,
+	'watchOrdersForSymbols': true,
+	'watchPosition': true,
+	'watchPositions': true,
+	'watchTicker': true,
+	'watchTickers': true,
+	'watchTrades': true,
+	'watchTradesForSymbols': true,
 }
 
 const INTERFACE_METHODS = [
@@ -331,6 +392,13 @@ const INTERFACE_METHODS = [
 	'fetchTradesWs',
 	'fetchTradingFeesWs',
 	'fetchWithdrawalsWs',
+    'unWatchOrders',
+    'unWatchTrades',
+    'unWatchTradesForSymbols',
+    'unWatchOHLCVForSymbols',
+    'unWatchOrderBook',
+    'unWatchTickers',
+    'unWatchOrderBookForSymbols',
 	'watchBalance',
 	'watchBidsAsks',
 	'watchLiquidations',
@@ -349,7 +417,6 @@ const INTERFACE_METHODS = [
 	'watchTickers',
 	'watchTrades',
 	'watchTradesForSymbols',
-	'withdraw',
 ]
 
 class NewTranspiler {
@@ -873,6 +940,7 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            'watchPublicMultiple',
             'setPositionsCache',
             'setPositionCache',
             'createSpotOrder',
@@ -880,6 +948,8 @@ class NewTranspiler {
             'createSwapOrder',
             'fetchPortfolioDetails',
             'createVault',
+            'fetchCurrenciesWs',
+            'fetchMarketsWs',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -1077,9 +1147,6 @@ class NewTranspiler {
         const isAsync = methodWrapper.async;
         const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
-        if (methodName.startsWith('watch') || methodName.endsWith('Ws')) {
-            return '';
-        }
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
@@ -1242,15 +1309,9 @@ class NewTranspiler {
             ].join('\n');
         }
 
-
-
-        const getsImport = (
-            // TODO: would be nice if this was dynamic
-            !this.isAliasExchange(exchange) && ws
-        );
         let file = [
             namespace,
-            getsImport ? imports.join('\n') : '',
+            ws ? imports.join('\n') : '',
             exchangeStruct,
             '',
             newMethod,
@@ -1704,19 +1765,19 @@ type IExchange interface {
         // todo normalize jsFolder and other arguments
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        let ids: string[] = []
+        let ids: string[] = [];
         try {
-            ids = (exchanges as any).ids
+            ids = (exchanges as any).ids;
         } catch (e) {
         }
 
-        const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
         // let exchanges
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x:string) => x + pattern)
+            exchanges = options.exchanges.map ((x:string) => x + pattern);
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
         }
 
         // exchanges = ['bitmart.ts']
@@ -1731,15 +1792,15 @@ type IExchange interface {
             const exchangeName = exchanges[i].replace('.ts','');
             const path = `${ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER}/${exchangeName}_wrapper.go`;
 
-            this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws)
+            this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
+        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
         if (exchanges.length > 1) {
             this.safeOptionsStructFile(ws);
         }
-        const classes = {}
+        const classes = {};
 
-        return classes
+        return classes;
     }
 
     /**
@@ -2301,7 +2362,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
             const namespace = 'package base';
-            const imports = isWs ? 'import "github.com/ccxt/ccxt/go/v4/ws"' : 'import "github.com/ccxt/ccxt/go/v4"';
+            const imports = 'import "github.com/ccxt/ccxt/go/v4"';
             const fileHeaders = [
                 namespace,
                 imports,
