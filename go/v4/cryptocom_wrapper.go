@@ -970,6 +970,33 @@ func (this *Cryptocom) FetchSettlementHistory(options ...FetchSettlementHistoryO
 }
 /**
  * @method
+ * @name cryptocom#fetchFundingRate
+ * @description fetches historical funding rates
+ * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ */
+func (this *Cryptocom) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+    opts := FetchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRate(symbol, params)
+    if IsError(res) {
+        return FundingRate{}, CreateReturnError(res)
+    }
+    return NewFundingRate(res), nil
+}
+/**
+ * @method
  * @name cryptocom#fetchFundingRateHistory
  * @description fetches historical funding rates
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
@@ -1163,7 +1190,6 @@ func (this *Cryptocom) FetchFreeBalance(params ...interface{}) (Balance, error) 
 func (this *Cryptocom) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
 func (this *Cryptocom) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
 func (this *Cryptocom) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
-func (this *Cryptocom) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {return this.exchangeTyped.FetchFundingRate(symbol, options...)}
 func (this *Cryptocom) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingRates(options...)}
 func (this *Cryptocom) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
 func (this *Cryptocom) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
