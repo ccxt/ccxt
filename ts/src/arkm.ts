@@ -564,7 +564,7 @@ export default class arkm extends Exchange {
         //
         const timestamp = this.safeIntegerProduct (response, 'lastTime', 0.001);
         const marketId = this.safeString (response, 'symbol');
-        return this.parseOrderBook (response, this.safeSymbol (marketId, market), timestamp);
+        return this.parseOrderBook (response, this.safeSymbol (marketId, market), timestamp, 'bids', 'asks', 'price', 'size');
     }
 
     // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {

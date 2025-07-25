@@ -5,5 +5,26 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "with limit",
+                "method": "fetchOrderBook",
+                "url": "https://arkm.com/api/public/book?symbol=BTC_USDT&limit=8",
+                "input": [
+                    "BTC/USDT",
+                    8
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "without params",
+                "method": "fetchCurrencies",
+                "url": "https://arkm.com/api/public/assets",
+                "input": [],
+                "output": null
+            }
+        ],
     }
 }
