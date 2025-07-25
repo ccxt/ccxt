@@ -2,6 +2,95 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot  with args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "time": "1744999860000000",
+                        "duration": "60000000",
+                        "open": "84552.75",
+                        "high": "84552.75",
+                        "low": "84552.75",
+                        "close": "84552.75",
+                        "volume": "0.00141",
+                        "quoteVolume": "119.2193775"
+                    },
+                    {
+                        "symbol": "BTC_USDT",
+                        "time": "1744999440000000",
+                        "duration": "60000000",
+                        "open": "84529.62",
+                        "high": "84529.62",
+                        "low": "84528.1",
+                        "close": "84528.1",
+                        "volume": "0.00124",
+                        "quoteVolume": "104.8157864"
+                    }
+                ],
+                "parsedResponse": []
+            },
+            {
+                "description": "swap  with args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000100000000",
+                        "duration": "60000000",
+                        "open": "84568.64",
+                        "high": "84575.17",
+                        "low": "84568.64",
+                        "close": "84571.69",
+                        "volume": "0.11097",
+                        "quoteVolume": "9384.9550866"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000040000000",
+                        "duration": "60000000",
+                        "open": "84566.72",
+                        "high": "84572.38",
+                        "low": "84565.09",
+                        "close": "84571.36",
+                        "volume": "0.12368",
+                        "quoteVolume": "10459.3296352"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1745000040000,
+                        84566.72,
+                        84572.38,
+                        84565.09,
+                        84571.36,
+                        0.12368
+                    ],
+                    [
+                        1745000100000,
+                        84568.64,
+                        84575.17,
+                        84568.64,
+                        84571.69,
+                        0.11097
+                    ]
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "swap  with args",

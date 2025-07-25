@@ -34,16 +34,17 @@ export default class arkm extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTraades': true,
+                'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
-                '1m': '60000000',
-                '5m': '300000000',
-                '15m': '900000000',
-                '30m': '1800000000',
-                '1h': '3600000000',
-                '6h': '21600000000',
-                '1d': '86400000000',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '1d': '24h',
             },
             'urls': {
                 'logo': '',
@@ -72,6 +73,7 @@ export default class arkm extends Exchange {
                             'ticker': 1,
                             'tickers': 1,
                             'trades': 1,
+                            'candles': 1,
                         },
                     },
                     'private': {
@@ -170,7 +172,7 @@ export default class arkm extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
+                        'limit': 365,
                     },
                 },
                 'spot': {
@@ -501,40 +503,75 @@ export default class arkm extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const maxLimit = 365;
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'instrument_name': market['id'],
-            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
+            'symbol': market['id'],
+            'duration': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (limit !== undefined) {
-            if (limit > 300) {
-                limit = 300;
-            }
-            request['count'] = limit;
-        }
-        const now = this.microseconds ();
-        const duration = this.parseTimeframe (timeframe);
-        const until = this.safeInteger (params, 'until', now);
+        const durationMs = this.parseTimeframe (timeframe) * 1000;
+        const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
+        const selectedLimit = (limit !== undefined) ? Math.min (limit, maxLimit) : maxLimit;
         if (since !== undefined) {
-            request['start_ts'] = since - duration * 1000;
-            if (limit !== undefined) {
-                request['end_ts'] = this.sum (since, duration * limit * 1000);
-            } else {
-                request['end_ts'] = until;
-            }
+            request['start'] = since;
+            request['end'] = since + selectedLimit * durationMs;
         } else {
-            request['end_ts'] = until;
+            const now = this.milliseconds ();
+            request['end'] = (until !== undefined) ? until : now;
+            request['start'] = request['end'] - selectedLimit * durationMs;
         }
+        // exchange needs macroseconds
+        request['start'] = request['start'] * 1000;
+        request['end'] = request['end'] * 1000;
         const response = await this.v1PublicGetCandles (this.extend (request, params));
         //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        },
+        //        ...
+        //    ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "time": "1753464720000000",
+        //            "duration": "60000000",
+        //            "open": "116051.35",
+        //            "high": "116060.27",
+        //            "low": "116051.35",
+        //            "close": "116060.27",
+        //            "volume": "0.0257",
+        //            "quoteVolume": "2982.6724054"
+        //        }
+        //
+        return [
+            this.safeIntegerProduct (ohlcv, 'time', 0.001),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {

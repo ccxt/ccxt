@@ -5,6 +5,32 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot  with args",
+                "method": "fetchOHLCV",
+                "url": "https://arkm.com/api/public/candles?symbol=BTC_USDT&duration=1m&start=1745000000000000&end=1745000120000000",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap  with args",
+                "method": "fetchOHLCV",
+                "url": "https://arkm.com/api/public/candles?symbol=BTC_USDT_PERP&duration=1m&start=1745000000000000&end=1745000120000000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "swap  with args",
