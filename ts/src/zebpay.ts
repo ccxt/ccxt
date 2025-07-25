@@ -88,6 +88,7 @@ export default class zebpay extends Exchange {
                             'ex/exchangeInfo': 10,
                             'ex/currencies': 10,
                             'market/klines': 10,
+                            'ex/tradefees': 10,
                         },
                     },
                     'future': {
@@ -115,7 +116,7 @@ export default class zebpay extends Exchange {
                             'account/balance': 10,
                             'ex/fee/{symbol}': 10,
                             'ex/order': 10,
-                            'ex/orders/fills/{orderId}': 10,
+                            'ex/order/fills': 10,
                         },
                         'delete': {
                             'ex/order': 10,
@@ -497,12 +498,14 @@ export default class zebpay extends Exchange {
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchTradingFees() does not support ' + type + ' markets');
-        }
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'spot');
         params['defaultType'] = type;
-        const response = await this.publicFutureGetExchangeTradefees (params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicSpotGetExTradefees (params);
+        } else {
+            response = await this.publicFutureGetExchangeTradefees (params);
+        }
         //
         // {
         //     "statusDescription": "OK",
@@ -775,6 +778,52 @@ export default class zebpay extends Exchange {
         //
         const data = this.safeList (response, 'data');
         return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name zebpatspot#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        let type = undefined;
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchOrderTrades', 'defaultType', 'spot');
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + type + ' markets');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {};
+        params['orderId'] = id;
+        params['defaultType'] = type;
+        const response = await this.privateSpotGetExOrderFills (this.extend (request, params));
+        console.log ('response', response);
+        //
+        //         {
+        //             "orderId": "456789",
+        //             "symbol": "LINK_USDT",
+        //             "origQty": "1.5",
+        //             "orderId": "30249408733945856",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "matchRole": "MAKER",
+        //             "createTime": 1648200366864,
+        //             "price": "3.1",
+        //             "avgExecutedPrice": "2.3456"
+        //             "openQty": "1",
+        //             "filledQty": "0",
+        //             "fees": "0.00145",
+        //         }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const trades = [ data ];
+        return this.parseTrades (trades);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
