@@ -407,6 +407,10 @@ func (this *phemex) PrivatePutGOrdersReplace (args ...interface{}) <-chan interf
    return this.callEndpointAsync("privatePutGOrdersReplace", args...)
 }
 
+func (this *phemex) PrivatePutGOrdersCreate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePutGOrdersCreate", args...)
+}
+
 func (this *phemex) PrivatePutPositionsLeverage (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePutPositionsLeverage", args...)
 }
