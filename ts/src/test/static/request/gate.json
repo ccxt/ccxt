@@ -930,6 +930,20 @@
         ],
         "fetchWithdrawals": [
             {
+                "description": "fetchWithdrawals with since and until",
+                "method": "fetchWithdrawals",
+                "url": "https://api.gateio.ws/api/v4/wallet/withdrawals?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
                 "url": "https://api.gateio.ws/api/v4/wallet/withdrawals",
