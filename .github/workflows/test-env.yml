@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: Prod
     steps:
-      - name: Check if secret is available
+      - name: Check if secret is available if not prod
         run: |
           if [ -z "${{ secrets.NUGET_PROD }}" ]; then
             echo "❌ DEPLOY_KEY is NOT defined in this environment."
