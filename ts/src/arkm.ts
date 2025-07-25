@@ -30,6 +30,7 @@ export default class arkm extends Exchange {
                 'future': false,
                 'option': false,
                 'fetchCurrencies': true,
+                'fetchOrderBook': false,
 
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -83,7 +84,6 @@ export default class arkm extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
                 'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -152,6 +152,7 @@ export default class arkm extends Exchange {
                             'public/assets': 1,
                             'public/pairs': 1,
                             'public/contracts': 1,
+                            'public/book': 1,
                         },
                     },
                     'private': {
@@ -292,7 +293,7 @@ export default class arkm extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.v1PublicGetPublicAssets (params);
-      //
+        //
         //    [
         //        {
         //            "symbol": "USDT",
@@ -512,6 +513,59 @@ export default class arkm extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name arkm#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://arkm.com/docs#get/public/book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the number of order book entries to return, max 50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PublicGetPublicBook (this.extend (request, params));
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "group": "0.01",
+        //        "asks": [
+        //            {
+        //                "price": "122900.43",
+        //                "size": "0.0243"
+        //            },
+        //            {
+        //                "price": "121885.53",
+        //                "size": "0.00116"
+        //            },
+        //            ...
+        //        ],
+        //        "bids": [
+        //            {
+        //                "price": "20400",
+        //                "size": "0.00316"
+        //            },
+        //            {
+        //                "price": "30000",
+        //                "size": "0.00116"
+        //            },
+        //            ...
+        //        ],
+        //        "lastTime": "1753419275604353"
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct (response, 'lastTime', 0.001);
+        const marketId = this.safeString (response, 'symbol');
+        return this.parseOrderBook (response, this.safeSymbol (marketId, market), timestamp);
+    }
 
     // async fetchSwapTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
     //     const response = await this.v1PublicGetPublicContracts (params);
