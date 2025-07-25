@@ -14,6 +14,9 @@ sys.path.append(root)
 
 
 from ccxt.test.base.test_deep_extend import test_deep_extend # noqa E402
+from ccxt.test.base.language_specific.test_throttler_performance import test_throttler_performance  # noqa E402
+
+
 
 def test_language_specific():
-    pass
+    test_throttler_performance()

@@ -22,8 +22,8 @@ import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
 
-function baseTestsInit () {
-    testLanguageSpecific ();
+async function baseTestsInit () {
+    await testLanguageSpecific ();
     testAfterConstructor ();
     testExtend ();
     testDeepExtend ();
