@@ -12,7 +12,6 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    environment: Prod
     steps:
       - name: Check if secret is available if not prod
         run: |
