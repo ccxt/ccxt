@@ -2,8 +2,9 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/dydx.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, Dict, int, Trade, OHLCV } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ export default class dydx extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
@@ -664,6 +665,66 @@ export default class dydx extends Exchange {
         //
         const rows = this.safeList (response, 'candles', []);
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.dydx.xyz/indexer-client/http#get-historical-funding
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['effectiveBeforeOrAt'] = this.iso8601 (until);
+        }
+        const response = await this.indexerGetHistoricalFundingMarket (this.extend (request, params));
+        //
+        // {
+        //     "historicalFunding": [
+        //         {
+        //             "ticker": "BTC-USD",
+        //             "rate": "0",
+        //             "price": "116302.62419",
+        //             "effectiveAtHeight": "44865196",
+        //             "effectiveAt": "2025-07-25T11:00:00.013Z"
+        //         }
+        //     ]
+        // }
+        //
+        const rates = [];
+        const rows = this.safeList (response, 'historicalFunding', []);
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
+            const timestamp = this.parse8601 (this.safeString (entry, 'effectiveAt'));
+            const marketId = this.safeString (entry, 'ticker');
+            rates.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (marketId, market),
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     nonce () {
