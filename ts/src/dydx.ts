@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/dydx.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, Dict, int, Trade } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ export default class dydx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
@@ -98,8 +98,8 @@ export default class dydx extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -114,17 +114,13 @@ export default class dydx extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '4h': '4h',
-                '12h': '12h',
-                '1d': '1d',
-                '1w': '1w',
-                '1M': '1mon',
-                '1y': '1y',
+                '1m': '1MIN',
+                '5m': '5MINS',
+                '15m': '15MINS',
+                '30m': '30MINS',
+                '1h': '1HOUR',
+                '4h': '4HOURS',
+                '1d': '1DAY',
             },
             'urls': {
                 'logo': '',
@@ -150,33 +146,55 @@ export default class dydx extends Exchange {
             'api': {
                 'indexer': {
                     'get': {
+                        'addresses/{address}': 1,
+                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
+                        'addresses/{address}/subaccountNumber/{subaccount_number}': 1,
+                        'assetPositions': 1,
+                        'assetPositions/parentSubaccountNumber': 1,
+                        'candles/perpetualMarkets/{market}': 1,
+                        'compliance/screen/{address}': 1,
+                        'fills': 1,
+                        'fills/parentSubaccountNumber': 1,
+                        'fundingPayments': 1,
+                        'fundingPayments/parentSubaccount': 1,
                         'height': 1,
-                        'time': 1,
+                        'historical-pnl': 1,
+                        'historical-pnl/parentSubaccountNumber': 1,
+                        'historicalBlockTradingRewards/{address}': 1,
+                        'historicalFunding/{market}': 1,
+                        'historicalTradingRewardAggregations/{address}': 1,
+                        'orderbooks/perpetualMarket/{market}': 1,
+                        'orders': 1,
+                        'orders/parentSubaccountNumber': 1,
+                        'orders/{order_id}': 1,
                         'perpetualMarkets': 1,
+                        'perpetualPositions': 1,
+                        'perpetualPositions/parentSubaccountNumber': 1,
+                        'screen': 1,
+                        'sparklines': 1,
+                        'time': 1,
+                        'trades/perpetualMarket/{market}': 1,
+                        'transfers': 1,
+                        'transfers/between': 1,
+                        'transfers/parentSubaccountNumber': 1,
+                        'vault/v1/megavault/historicalPnl': 1,
+                        'vault/v1/megavault/positions': 1,
+                        'vault/v1/vaults/historicalPnl': 1,
+                        //
                         'perpetualMarketSparklines': 1,
                         'perpetualMarkets/{ticker}': 1,
                         'perpetualMarkets/{ticker}/orderbook': 1,
                         'trades/perpetualMarket/{ticker}': 1,
                         'historicalFunding/{ticker}': 1,
                         'candles/{ticker}/{resolution}': 1,
-                        'compliance/screen/{address}': 1,
                         'addresses/{address}/subaccounts': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
                         'orders/{orderId}': 1,
-                        'fills': 1,
-                        'transfers': 1,
-                        'historical-pnl': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
                         'fills/parentSubaccount': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
                         'historical-pnl/parentSubaccount': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
                     },
                 },
             },
@@ -538,12 +556,12 @@ export default class dydx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'ticker': market['id'],
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.indexerGetTradesPerpetualMarketTicker (this.extend (request, params));
+        const response = await this.indexerGetTradesPerpetualMarketMarket (this.extend (request, params));
         //
         // {
         //     "trades": [
@@ -561,6 +579,91 @@ export default class dydx extends Exchange {
         //
         const rows = this.safeList (response, 'trades', []);
         return this.parseTrades (rows, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        // {
+        //     "startedAt": "2025-07-25T09:47:00.000Z",
+        //     "ticker": "BTC-USD",
+        //     "resolution": "1MIN",
+        //     "low": "116099",
+        //     "high": "116099",
+        //     "open": "116099",
+        //     "close": "116099",
+        //     "baseTokenVolume": "0",
+        //     "usdVolume": "0",
+        //     "trades": 0,
+        //     "startingOpenInterest": "54.0594",
+        //     "orderbookMidPriceOpen": "115845.5",
+        //     "orderbookMidPriceClose": "115845.5"
+        // }
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'startedAt')),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'baseTokenVolume'),
+        ];
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchOHLCV
+     * @see https://docs.dydx.xyz/indexer-client/http#get-candles
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        if (since !== undefined) {
+            request['fromIso'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['toIso'] = this.iso8601 (until);
+        }
+        const response = await this.indexerGetCandlesPerpetualMarketsMarket (this.extend (request, params));
+        //
+        // {
+        //     "candles": [
+        //         {
+        //             "startedAt": "2025-07-25T09:47:00.000Z",
+        //             "ticker": "BTC-USD",
+        //             "resolution": "1MIN",
+        //             "low": "116099",
+        //             "high": "116099",
+        //             "open": "116099",
+        //             "close": "116099",
+        //             "baseTokenVolume": "0",
+        //             "usdVolume": "0",
+        //             "trades": 0,
+        //             "startingOpenInterest": "54.0594",
+        //             "orderbookMidPriceOpen": "115845.5",
+        //             "orderbookMidPriceClose": "115845.5"
+        //         }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'candles', []);
+        return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
     nonce () {
