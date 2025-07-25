@@ -28,6 +28,15 @@ jobs:
         echo "SHA: $GITHUB_SHA"
         echo "Head Commit: ${{ github.event.head_commit.message }}"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
+
+    - name: Check if secret is available if not prod
+        run: |
+          if [ -z "${{ secrets.NUGET_PROD }}" ]; then
+            echo "❌ DEPLOY_KEY is NOT defined in this environment."
+            exit 1
+          else
+            echo "✅ DEPLOY_KEY is available."
+          fi 
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
