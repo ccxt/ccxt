@@ -3022,6 +3022,7 @@ export default class cryptocom extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
             'valuation_type': 'estimated_funding_rate',
+            'count': 1,
         };
         if (since !== undefined) {
             request['start_ts'] = since;
@@ -3056,12 +3057,18 @@ export default class cryptocom extends Exchange {
         const marketId = this.safeString (result, 'instrument_name');
         const entry = data[0];
         const timestamp = this.safeInteger (entry, 't');
+//         fundingTimestamp is end of current hour
+        const fundingTimestamp = rawTimestamp !== undefined
+            ? Math.ceil(rawTimestamp / 3600000) * 3600000
+            : undefined;
         return {
             'info': entry,
             'symbol': this.safeSymbol (marketId, market),
-            'fundingRate': this.safeNumber (entry, 'v'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (entry, 'v'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
         } as FundingRate;
     }
 
