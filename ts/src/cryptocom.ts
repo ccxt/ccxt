@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -2998,23 +2998,11 @@ export default class cryptocom extends Exchange {
      * @description fetches historical funding rates
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    async fetchFundingRate (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
-        }
+    async fetchFundingRate (symbol: string, params = {}) {
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRate', symbol, since, limit, '8h', params) as FundingRateHistory[];
-        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
@@ -3024,17 +3012,6 @@ export default class cryptocom extends Exchange {
             'valuation_type': 'estimated_funding_rate',
             'count': 1,
         };
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['count'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, [ 'until' ]);
-        if (until !== undefined) {
-            request['end_ts'] = until;
-        }
         const response = await this.v1PublicGetPublicGetValuations (this.extend (request, params));
         //
         //     {
@@ -3054,21 +3031,41 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
-        const marketId = this.safeString (result, 'instrument_name');
-        const entry = data[0];
-        const timestamp = this.safeInteger (entry, 't');
-//         fundingTimestamp is end of current hour
-        const fundingTimestamp = rawTimestamp !== undefined
-            ? Math.ceil(rawTimestamp / 3600000) * 3600000
-            : undefined;
+        const entry = this.safeDict (data, 0, {});
+        return this.parseFundingRate (entry, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //
+        const timestamp = this.safeInteger (contract, 't');
+        let fundingTimestamp = undefined;
+        if (timestamp !== undefined) {
+            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+        }
         return {
-            'info': entry,
-            'symbol': this.safeSymbol (marketId, market),
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (entry, 'v'),
+            'fundingRate': this.safeNumber (contract, 'v'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
         } as FundingRate;
     }
 
