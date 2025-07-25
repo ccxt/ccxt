@@ -3801,18 +3801,18 @@ export default class Exchange {
         let id = undefined;
         if (timestamp !== undefined) {
             id = this.numberToString (timestamp);
-            // price
-            id += '-';
-            id += (price !== undefined) ? this.numberToString (price) : 'price';
-            // amount
-            id += '-';
-            id += (amount !== undefined) ? this.numberToString (amount) : 'amount';
-            // side
-            id += '-';
-            id += (side === undefined) ? 'side' : side;
-            // takerOrMaker
-            id += '-';
-            id += (takerOrMaker === undefined) ? 'tm' : takerOrMaker;
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString (amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString (price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
         }
         return id;
     }
