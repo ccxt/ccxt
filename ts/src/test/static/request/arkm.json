@@ -1,0 +1,9 @@
+{
+    "exchange": "arkm",
+    "skipKeys": [
+        "client_order_id"
+    ],
+    "outputType": "json",
+    "methods": {
+    }
+}
