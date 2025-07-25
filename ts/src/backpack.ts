@@ -121,7 +121,7 @@ export default class backpack extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -204,7 +204,7 @@ export default class backpack extends Exchange {
                     'post': {
                         'api/v1/account/convertDust': 1,
                         'api/v1/borrowLend': 1,
-                        'wapi/v1/capital/withdrawals': 1,
+                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
                         'api/v1/order': 1,
                         'api/v1/orders': 1,
                         'api/v1/rfq': 1,
@@ -1155,6 +1155,38 @@ export default class backpack extends Exchange {
         // todo add after withdrawal
         //
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bybit#withdraw
+     * @description make a withdrawal
+     * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'symbol': currency['id'],
+            'amount': this.numberToString (amount),
+            'address': address,
+        };
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() requires a network parameter');
+        }
+        request['blockchain'] = networkId;
+        const response = await this.privatePostWapiV1CapitalWithdrawals (this.extend (request, query));
+        //
+        //
+        return this.parseTransaction (response, currency);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
