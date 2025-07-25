@@ -101,6 +101,7 @@ class ImplicitAPI:
     private_put_spot_orders_create = privatePutSpotOrdersCreate = Entry('spot/orders/create', 'private', 'PUT', {'cost': 1})
     private_put_spot_orders = privatePutSpotOrders = Entry('spot/orders', 'private', 'PUT', {'cost': 1})
     private_put_orders_replace = privatePutOrdersReplace = Entry('orders/replace', 'private', 'PUT', {'cost': 1})
+    private_put_g_orders_create = privatePutGOrdersCreate = Entry('g-orders/create', 'private', 'PUT', {'cost': 1})
     private_put_g_orders_replace = privatePutGOrdersReplace = Entry('g-orders/replace', 'private', 'PUT', {'cost': 1})
     private_put_positions_leverage = privatePutPositionsLeverage = Entry('positions/leverage', 'private', 'PUT', {'cost': 5})
     private_put_g_positions_leverage = privatePutGPositionsLeverage = Entry('g-positions/leverage', 'private', 'PUT', {'cost': 5})
