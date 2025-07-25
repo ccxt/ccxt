@@ -2846,7 +2846,7 @@ export default class phemex extends Exchange {
             params = this.omit (params, 'stopLossPrice');
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privatePostGOrders (this.extend (request, params));
         } else if (market['contract']) {
             response = await this.privatePostOrders (this.extend (request, params));
