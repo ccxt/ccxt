@@ -1,0 +1,1004 @@
+{
+    "exchange": "arkm",
+    "skipKeys": [],
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "serverTime": "1753465897737684"
+                },
+                "parsedResponse": 1753465897737
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot  with args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "time": "1744999860000000",
+                        "duration": "60000000",
+                        "open": "84552.75",
+                        "high": "84552.75",
+                        "low": "84552.75",
+                        "close": "84552.75",
+                        "volume": "0.00141",
+                        "quoteVolume": "119.2193775"
+                    },
+                    {
+                        "symbol": "BTC_USDT",
+                        "time": "1744999440000000",
+                        "duration": "60000000",
+                        "open": "84529.62",
+                        "high": "84529.62",
+                        "low": "84528.1",
+                        "close": "84528.1",
+                        "volume": "0.00124",
+                        "quoteVolume": "104.8157864"
+                    }
+                ],
+                "parsedResponse": []
+            },
+            {
+                "description": "swap  with args",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000100000000",
+                        "duration": "60000000",
+                        "open": "84568.64",
+                        "high": "84575.17",
+                        "low": "84568.64",
+                        "close": "84571.69",
+                        "volume": "0.11097",
+                        "quoteVolume": "9384.9550866"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "time": "1745000040000000",
+                        "duration": "60000000",
+                        "open": "84566.72",
+                        "high": "84572.38",
+                        "low": "84565.09",
+                        "close": "84571.36",
+                        "volume": "0.12368",
+                        "quoteVolume": "10459.3296352"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1745000040000,
+                        84566.72,
+                        84572.38,
+                        84565.09,
+                        84571.36,
+                        0.12368
+                    ],
+                    [
+                        1745000100000,
+                        84568.64,
+                        84575.17,
+                        84568.64,
+                        84571.69,
+                        0.11097
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "swap  with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539712",
+                        "size": "0.00585",
+                        "price": "116346.42",
+                        "takerSide": "sell",
+                        "time": "1753440450249651"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "revisionId": "1130539709",
+                        "size": "0.03451",
+                        "price": "116352.12",
+                        "takerSide": "sell",
+                        "time": "1753440450249651"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539709",
+                            "size": "0.03451",
+                            "price": "116352.12",
+                            "takerSide": "sell",
+                            "time": "1753440450249651"
+                        },
+                        "id": "1130539709",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116352.12,
+                        "amount": 0.03451,
+                        "cost": 4015.3116612,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "revisionId": "1130539712",
+                            "size": "0.00585",
+                            "price": "116346.42",
+                            "takerSide": "sell",
+                            "time": "1753440450249651"
+                        },
+                        "id": "1130539712",
+                        "timestamp": 1753440450249,
+                        "datetime": "2025-07-25T10:47:30.249Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 116346.42,
+                        "amount": 0.00585,
+                        "cost": 680.626557,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "spot with args",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1745000000000,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640730",
+                        "size": "0.00082",
+                        "price": "116352.94",
+                        "takerSide": "sell",
+                        "time": "1753440101890053"
+                    },
+                    {
+                        "symbol": "BTC_USDT",
+                        "revisionId": "829640188",
+                        "size": "0.00082",
+                        "price": "116332.04",
+                        "takerSide": "buy",
+                        "time": "1753440094488742"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640188",
+                            "size": "0.00082",
+                            "price": "116332.04",
+                            "takerSide": "buy",
+                            "time": "1753440094488742"
+                        },
+                        "id": "829640188",
+                        "timestamp": 1753440094488,
+                        "datetime": "2025-07-25T10:41:34.488Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 116332.04,
+                        "amount": 0.00082,
+                        "cost": 95.3922728,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "revisionId": "829640730",
+                            "size": "0.00082",
+                            "price": "116352.94",
+                            "takerSide": "sell",
+                            "time": "1753440101890053"
+                        },
+                        "id": "829640730",
+                        "timestamp": 1753440101890,
+                        "datetime": "2025-07-25T10:41:41.890Z",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 116352.94,
+                        "amount": 0.00082,
+                        "cost": 95.4094108,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+        
+            {
+                "description": "spot",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT",
+                    "baseSymbol": "BTC",
+                    "quoteSymbol": "USDT",
+                    "price": "115482.6",
+                    "price24hAgo": "118382.48",
+                    "high24h": "119455.9",
+                    "low24h": "114748.85",
+                    "volume24h": "47.74406",
+                    "quoteVolume24h": "5633694.9342398",
+                    "markPrice": "0",
+                    "indexPrice": "115475.982212293",
+                    "fundingRate": "0",
+                    "nextFundingRate": "0",
+                    "nextFundingTime": "0",
+                    "productType": "spot",
+                    "openInterest": "0",
+                    "indexCurrency": "USDT",
+                    "usdVolume24h": "5633694.9342398",
+                    "openInterestUSD": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT",
+                        "baseSymbol": "BTC",
+                        "quoteSymbol": "USDT",
+                        "price": "115482.6",
+                        "price24hAgo": "118382.48",
+                        "high24h": "119455.9",
+                        "low24h": "114748.85",
+                        "volume24h": "47.74406",
+                        "quoteVolume24h": "5633694.9342398",
+                        "markPrice": "0",
+                        "indexPrice": "115475.982212293",
+                        "fundingRate": "0",
+                        "nextFundingRate": "0",
+                        "nextFundingTime": "0",
+                        "productType": "spot",
+                        "openInterest": "0",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "5633694.9342398",
+                        "openInterestUSD": "0"
+                    },
+                    "symbol": "BTC/USDT",
+                    "high": 119455.9,
+                    "low": 114748.85,
+                    "bid": null,
+                    "last": 115482.6,
+                    "open": 118382.48,
+                    "change": -2899.88,
+                    "percentage": -2.449585445413882,
+                    "baseVolume": 47.74406,
+                    "quoteVolume": 5633694.9342398,
+                    "markPrice": 0,
+                    "indexPrice": 115475.982212293,
+                    "vwap": 117997.81866560574,
+                    "average": 116932.54,
+                    "previousClose": null,
+                    "askVolume": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "close": 115482.6
+                }
+            },
+            {
+                "description": "swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT_PERP",
+                    "baseSymbol": "BTC.P",
+                    "quoteSymbol": "USDT",
+                    "price": "115581.27",
+                    "price24hAgo": "118466.96",
+                    "high24h": "119468.05",
+                    "low24h": "114722.52",
+                    "volume24h": "149.28382",
+                    "quoteVolume24h": "17621918.517774",
+                    "markPrice": "115576.67",
+                    "indexPrice": "115557.903551448",
+                    "fundingRate": "0.000007",
+                    "nextFundingRate": "0.000008",
+                    "nextFundingTime": "1753437600000000",
+                    "productType": "perpetual",
+                    "openInterest": "2.297795",
+                    "indexCurrency": "USDT",
+                    "usdVolume24h": "17621918.517774",
+                    "openInterestUSD": "265582.06429965"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT_PERP",
+                        "baseSymbol": "BTC.P",
+                        "quoteSymbol": "USDT",
+                        "price": "115581.27",
+                        "price24hAgo": "118466.96",
+                        "high24h": "119468.05",
+                        "low24h": "114722.52",
+                        "volume24h": "149.28382",
+                        "quoteVolume24h": "17621918.517774",
+                        "markPrice": "115576.67",
+                        "indexPrice": "115557.903551448",
+                        "fundingRate": "0.000007",
+                        "nextFundingRate": "0.000008",
+                        "nextFundingTime": "1753437600000000",
+                        "productType": "perpetual",
+                        "openInterest": "2.297795",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "17621918.517774",
+                        "openInterestUSD": "265582.06429965"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "high": 119468.05,
+                    "low": 114722.52,
+                    "bid": null,
+                    "last": 115581.27,
+                    "open": 118466.96,
+                    "change": -2885.69,
+                    "percentage": -2.435860597756539,
+                    "baseVolume": 149.28382,
+                    "quoteVolume": 17621918.517774,
+                    "markPrice": 115576.67,
+                    "indexPrice": 115557.903551448,
+                    "vwap": 118043.05729699307,
+                    "average": 117024.115,
+                    "previousClose": null,
+                    "askVolume": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "close": 115581.27
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "with symbols",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "baseSymbol": "BTC",
+                        "quoteSymbol": "USDT",
+                        "price": "115790.27",
+                        "price24hAgo": "118611.49",
+                        "high24h": "119455.9",
+                        "low24h": "114748.85",
+                        "volume24h": "48.41096",
+                        "quoteVolume24h": "5715729.9028597",
+                        "markPrice": "0",
+                        "indexPrice": "115789.86210398",
+                        "fundingRate": "0",
+                        "nextFundingRate": "0",
+                        "nextFundingTime": "0",
+                        "productType": "spot",
+                        "openInterest": "0",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "5715729.9028597",
+                        "openInterestUSD": "0"
+                    },
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "baseSymbol": "BTC.P",
+                        "quoteSymbol": "USDT",
+                        "price": "115785.38",
+                        "price24hAgo": "118628.36",
+                        "high24h": "119468.05",
+                        "low24h": "114722.52",
+                        "volume24h": "150.94093",
+                        "quoteVolume24h": "17822970.6521057",
+                        "markPrice": "115820",
+                        "indexPrice": "115789.86210398",
+                        "fundingRate": "0.000007",
+                        "nextFundingRate": "0.000008",
+                        "nextFundingTime": "1753437600000000",
+                        "productType": "perpetual",
+                        "openInterest": "2.085525",
+                        "indexCurrency": "USDT",
+                        "usdVolume24h": "17822970.6521057",
+                        "openInterestUSD": "241473.3046245"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "symbol": "BTC_USDT",
+                            "baseSymbol": "BTC",
+                            "quoteSymbol": "USDT",
+                            "price": "115790.27",
+                            "price24hAgo": "118611.49",
+                            "high24h": "119455.9",
+                            "low24h": "114748.85",
+                            "volume24h": "48.41096",
+                            "quoteVolume24h": "5715729.9028597",
+                            "markPrice": "0",
+                            "indexPrice": "115789.86210398",
+                            "fundingRate": "0",
+                            "nextFundingRate": "0",
+                            "nextFundingTime": "0",
+                            "productType": "spot",
+                            "openInterest": "0",
+                            "indexCurrency": "USDT",
+                            "usdVolume24h": "5715729.9028597",
+                            "openInterestUSD": "0"
+                        },
+                        "symbol": "BTC/USDT",
+                        "high": 119455.9,
+                        "low": 114748.85,
+                        "bid": null,
+                        "last": 115790.27,
+                        "open": 118611.49,
+                        "change": -2821.22,
+                        "percentage": -2.3785385378768953,
+                        "baseVolume": 48.41096,
+                        "quoteVolume": 5715729.9028597,
+                        "markPrice": 0,
+                        "indexPrice": 115789.86210398,
+                        "vwap": 118066.8572335624,
+                        "average": 117200.88,
+                        "previousClose": null,
+                        "askVolume": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "close": 115790.27
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "BTC_USDT_PERP",
+                            "baseSymbol": "BTC.P",
+                            "quoteSymbol": "USDT",
+                            "price": "115785.38",
+                            "price24hAgo": "118628.36",
+                            "high24h": "119468.05",
+                            "low24h": "114722.52",
+                            "volume24h": "150.94093",
+                            "quoteVolume24h": "17822970.6521057",
+                            "markPrice": "115820",
+                            "indexPrice": "115789.86210398",
+                            "fundingRate": "0.000007",
+                            "nextFundingRate": "0.000008",
+                            "nextFundingTime": "1753437600000000",
+                            "productType": "perpetual",
+                            "openInterest": "2.085525",
+                            "indexCurrency": "USDT",
+                            "usdVolume24h": "17822970.6521057",
+                            "openInterestUSD": "241473.3046245"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "high": 119468.05,
+                        "low": 114722.52,
+                        "bid": null,
+                        "last": 115785.38,
+                        "open": 118628.36,
+                        "change": -2842.98,
+                        "percentage": -2.3965432886368823,
+                        "baseVolume": 150.94093,
+                        "quoteVolume": 17822970.6521057,
+                        "markPrice": 115820,
+                        "indexPrice": 115789.86210398,
+                        "vwap": 118079.10983525608,
+                        "average": 117206.87,
+                        "previousClose": null,
+                        "askVolume": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "close": 115785.38
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "with limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    8
+                ],
+                "httpResponse": {
+                    "symbol": "BTC_USDT",
+                    "group": "0.01",
+                    "asks": [
+                        
+                        {
+                            "price": "115556.99",
+                            "size": "0.05623"
+                        },
+                        {
+                            "price": "115547.26",
+                            "size": "0.00849"
+                        }
+                    ],
+                    "bids": [
+                        {
+                            "price": "115538.45",
+                            "size": "0.0173"
+                        },
+                        {
+                            "price": "115547.25",
+                            "size": "0.05624"
+                        }
+                    ],
+                    "lastTime": "1753420207107706"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            115547.25,
+                            0.05624
+                        ],
+                        [
+                            115538.45,
+                            0.0173
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            115547.26,
+                            0.00849
+                        ],
+                        [
+                            115556.99,
+                            0.05623
+                        ]
+                    ],
+                    "timestamp": 1753420207107,
+                    "datetime": "2025-07-25T05:10:07.107Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "without params",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDT",
+                        "name": "Tether",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+                        "stablecoin": true,
+                        "featuredPair": "BTC_USDT",
+                        "chains": [
+                            {
+                                "symbol": "ETH",
+                                "assetSymbol": "ETH",
+                                "name": "Ethereum",
+                                "type": "1",
+                                "confirmations": "6",
+                                "blockTime": "12000000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "5",
+                        "minWithdrawal": "5",
+                        "withdrawalFee": "2"
+                    },
+                    {
+                        "symbol": "BTC",
+                        "name": "Bitcoin",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+                        "stablecoin": false,
+                        "featuredPair": "BTC_USDT",
+                        "chains": [
+                            {
+                                "symbol": "BTC",
+                                "assetSymbol": "BTC",
+                                "name": "Bitcoin",
+                                "type": "2",
+                                "confirmations": "3",
+                                "blockTime": "600000000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "0.0001",
+                        "minWithdrawal": "0.0001",
+                        "withdrawalFee": "0.00005"
+                    },
+                    {
+                        "symbol": "ETH",
+                        "name": "Ethereum",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/ethereum.png",
+                        "stablecoin": false,
+                        "featuredPair": "ETH_USDT",
+                        "chains": [
+                            {
+                                "symbol": "ETH",
+                                "assetSymbol": "ETH",
+                                "name": "Ethereum",
+                                "type": "1",
+                                "confirmations": "6",
+                                "blockTime": "12000000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "0.001",
+                        "minWithdrawal": "0.001",
+                        "withdrawalFee": "0.0005"
+                    },
+                    {
+                        "symbol": "SOL",
+                        "name": "Solana",
+                        "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+                        "stablecoin": false,
+                        "featuredPair": "SOL_USDT",
+                        "chains": [
+                            {
+                                "symbol": "SOL",
+                                "assetSymbol": "SOL",
+                                "name": "Solana",
+                                "type": "4",
+                                "confirmations": "32",
+                                "blockTime": "400000"
+                            }
+                        ],
+                        "status": "listed",
+                        "minDeposit": "0.05",
+                        "minWithdrawal": "0.05",
+                        "withdrawalFee": "0.02"
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "symbol": "USDT",
+                            "name": "Tether",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+                            "stablecoin": true,
+                            "featuredPair": "BTC_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "5",
+                            "minWithdrawal": "5",
+                            "withdrawalFee": "2"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 2,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "title": "Ethereum",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 5,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 5,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "symbol": "BTC",
+                            "name": "Bitcoin",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/bitcoin.png",
+                            "stablecoin": false,
+                            "featuredPair": "BTC_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "BTC",
+                                    "assetSymbol": "BTC",
+                                    "name": "Bitcoin",
+                                    "type": "2",
+                                    "confirmations": "3",
+                                    "blockTime": "600000000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "0.0001",
+                            "minWithdrawal": "0.0001",
+                            "withdrawalFee": "0.00005"
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Bitcoin",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.00005,
+                        "fees": {},
+                        "networks": {
+                            "BTC": {
+                                "info": {
+                                    "symbol": "BTC",
+                                    "assetSymbol": "BTC",
+                                    "name": "Bitcoin",
+                                    "type": "2",
+                                    "confirmations": "3",
+                                    "blockTime": "600000000"
+                                },
+                                "id": "BTC",
+                                "network": "BTC",
+                                "title": "Bitcoin",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.0001,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ETH": {
+                        "info": {
+                            "symbol": "ETH",
+                            "name": "Ethereum",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/ethereum.png",
+                            "stablecoin": false,
+                            "featuredPair": "ETH_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "0.001",
+                            "minWithdrawal": "0.001",
+                            "withdrawalFee": "0.0005"
+                        },
+                        "id": "ETH",
+                        "numericId": null,
+                        "code": "ETH",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Ethereum",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0005,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "ETH",
+                                    "assetSymbol": "ETH",
+                                    "name": "Ethereum",
+                                    "type": "1",
+                                    "confirmations": "6",
+                                    "blockTime": "12000000"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "title": "Ethereum",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.001,
+                                "max": null
+                            }
+                        }
+                    },
+                    "SOL": {
+                        "info": {
+                            "symbol": "SOL",
+                            "name": "Solana",
+                            "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+                            "stablecoin": false,
+                            "featuredPair": "SOL_USDT",
+                            "chains": [
+                                {
+                                    "symbol": "SOL",
+                                    "assetSymbol": "SOL",
+                                    "name": "Solana",
+                                    "type": "4",
+                                    "confirmations": "32",
+                                    "blockTime": "400000"
+                                }
+                            ],
+                            "status": "listed",
+                            "minDeposit": "0.05",
+                            "minWithdrawal": "0.05",
+                            "withdrawalFee": "0.02"
+                        },
+                        "id": "SOL",
+                        "numericId": null,
+                        "code": "SOL",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Solana",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.02,
+                        "fees": {},
+                        "networks": {
+                            "SOL": {
+                                "info": {
+                                    "symbol": "SOL",
+                                    "assetSymbol": "SOL",
+                                    "name": "Solana",
+                                    "type": "4",
+                                    "confirmations": "32",
+                                    "blockTime": "400000"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "title": "Solana",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.05,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.05,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+    }
+}
