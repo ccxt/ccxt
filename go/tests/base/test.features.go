@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFeatures(exchange ccxt.IExchange, skippedProperties interface{}) <- chan interface{} {
+    func TestFeatures(exchange ccxt.ICoreExchange, skippedProperties interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -44,7 +44,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func TestFeaturesInner(exchange ccxt.IExchange, skippedProperties interface{}, featureObj interface{})  {
+    func TestFeaturesInner(exchange ccxt.ICoreExchange, skippedProperties interface{}, featureObj interface{})  {
         var format interface{} = map[string]interface{} {
             "sandbox": false,
             "createOrder": map[string]interface{} {

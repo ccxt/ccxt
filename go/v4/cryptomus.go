@@ -31,11 +31,15 @@ func  (this *cryptomus) Describe() interface{}  {
             "future": false,
             "option": false,
             "addMargin": false,
+            "borrowCrossMargin": false,
+            "borrowIsolatedMargin": false,
+            "borrowMargin": false,
             "cancelAllOrders": false,
             "cancelAllOrdersAfter": false,
             "cancelOrder": true,
             "cancelOrders": false,
             "cancelWithdraw": false,
+            "closeAllPositions": false,
             "closePosition": false,
             "createConvertTrade": false,
             "createDepositAddress": false,
@@ -45,6 +49,8 @@ func  (this *cryptomus) Describe() interface{}  {
             "createMarketSellOrderWithCost": false,
             "createOrder": true,
             "createOrderWithTakeProfitAndStopLoss": false,
+            "createOrderWithTakeProfitAndStopLossWs": false,
+            "createPostOnlyOrder": false,
             "createReduceOnlyOrder": false,
             "createStopLimitOrder": false,
             "createStopLossOrder": false,
@@ -56,6 +62,12 @@ func  (this *cryptomus) Describe() interface{}  {
             "createTriggerOrder": false,
             "fetchAccounts": false,
             "fetchBalance": true,
+            "fetchBorrowInterest": false,
+            "fetchBorrowRate": false,
+            "fetchBorrowRateHistories": false,
+            "fetchBorrowRateHistory": false,
+            "fetchBorrowRates": false,
+            "fetchBorrowRatesPerSymbol": false,
             "fetchCanceledAndClosedOrders": true,
             "fetchCanceledOrders": false,
             "fetchClosedOrder": false,
@@ -64,27 +76,48 @@ func  (this *cryptomus) Describe() interface{}  {
             "fetchConvertQuote": false,
             "fetchConvertTrade": false,
             "fetchConvertTradeHistory": false,
+            "fetchCrossBorrowRate": false,
+            "fetchCrossBorrowRates": false,
             "fetchCurrencies": true,
             "fetchDepositAddress": false,
             "fetchDeposits": false,
             "fetchDepositsWithdrawals": false,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
             "fetchIndexOHLCV": false,
+            "fetchIsolatedBorrowRate": false,
+            "fetchIsolatedBorrowRates": false,
+            "fetchIsolatedPositions": false,
             "fetchLedger": false,
             "fetchLeverage": false,
+            "fetchLeverages": false,
             "fetchLeverageTiers": false,
+            "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
             "fetchMarginAdjustmentHistory": false,
             "fetchMarginMode": false,
+            "fetchMarginModes": false,
+            "fetchMarketLeverageTiers": false,
             "fetchMarkets": true,
             "fetchMarkOHLCV": false,
+            "fetchMarkPrices": false,
+            "fetchMyLiquidations": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": false,
             "fetchOHLCV": false,
+            "fetchOpenInterest": false,
             "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
             "fetchOpenOrder": false,
             "fetchOpenOrders": true,
+            "fetchOption": false,
+            "fetchOptionChain": false,
             "fetchOrder": true,
             "fetchOrderBook": true,
             "fetchOrders": false,
@@ -95,7 +128,9 @@ func  (this *cryptomus) Describe() interface{}  {
             "fetchPositions": false,
             "fetchPositionsForSymbol": false,
             "fetchPositionsHistory": false,
+            "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchStatus": false,
             "fetchTicker": false,
             "fetchTickers": true,
@@ -105,11 +140,16 @@ func  (this *cryptomus) Describe() interface{}  {
             "fetchTradingFees": true,
             "fetchTransactions": false,
             "fetchTransfers": false,
+            "fetchVolatilityHistory": false,
             "fetchWithdrawals": false,
             "reduceMargin": false,
+            "repayCrossMargin": false,
+            "repayIsolatedMargin": false,
+            "repayMargin": false,
             "sandbox": false,
             "setLeverage": false,
             "setMargin": false,
+            "setMarginMode": false,
             "setPositionMode": false,
             "transfer": false,
             "withdraw": false,
@@ -382,112 +422,45 @@ func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             //     }
             //
             var coins interface{} = this.SafeList(response, "result")
+            var groupedById interface{} = this.GroupBy(coins, "currency_code")
+            var keys interface{} = ObjectKeys(groupedById)
             var result interface{} = map[string]interface{} {}
-            for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
-                var currency interface{} = GetValue(coins, i)
-                var currencyId interface{} = this.SafeString(currency, "currency_code")
-                var code interface{} = this.SafeCurrencyCode(currencyId)
-                var allowWithdraw interface{} = this.SafeBool(currency, "can_withdraw")
-                var allowDeposit interface{} = this.SafeBool(currency, "can_deposit")
-                var isActive interface{} = IsTrue(allowWithdraw) && IsTrue(allowDeposit)
-                var networkId interface{} = this.SafeString(currency, "network_code")
-                var networksById interface{} = this.SafeDict(this.Options, "networksById")
-                var networkName interface{} = this.SafeString(networksById, networkId, networkId)
-                var minWithdraw interface{} = this.SafeNumber(currency, "min_withdraw")
-                var maxWithdraw interface{} = this.SafeNumber(currency, "max_withdraw")
-                var minDeposit interface{} = this.SafeNumber(currency, "min_deposit")
-                var maxDeposit interface{} = this.SafeNumber(currency, "max_deposit")
-                var network interface{} = map[string]interface{} {
-                    "id": networkId,
-                    "network": networkName,
-                    "limits": map[string]interface{} {
-                        "withdraw": map[string]interface{} {
-                            "min": minWithdraw,
-                            "max": maxWithdraw,
-                        },
-                        "deposit": map[string]interface{} {
-                            "min": minDeposit,
-                            "max": maxDeposit,
-                        },
-                    },
-                    "active": isActive,
-                    "deposit": allowDeposit,
-                    "withdraw": allowWithdraw,
-                    "fee": nil,
-                    "precision": nil,
-                    "info": currency,
-                }
+            for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+                var id interface{} = GetValue(keys, i)
+                var code interface{} = this.SafeCurrencyCode(id)
                 var networks interface{} = map[string]interface{} {}
-                AddElementToObject(networks, networkName, network)
-                if !IsTrue((InOp(result, code))) {
-                    AddElementToObject(result, code, map[string]interface{} {
-            "id": currencyId,
-            "code": code,
-            "precision": nil,
-            "type": nil,
-            "name": nil,
-            "active": isActive,
-            "deposit": allowDeposit,
-            "withdraw": allowWithdraw,
-            "fee": nil,
+                var networkEntries interface{} = GetValue(groupedById, id)
+                for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
+                    var networkEntry interface{} = GetValue(networkEntries, j)
+                    var networkId interface{} = this.SafeString(networkEntry, "network_code")
+                    var networkCode interface{} = this.NetworkIdToCode(networkId)
+                    AddElementToObject(networks, networkCode, map[string]interface{} {
+            "id": networkId,
+            "network": networkCode,
             "limits": map[string]interface{} {
                 "withdraw": map[string]interface{} {
-                    "min": minWithdraw,
-                    "max": maxWithdraw,
+                    "min": this.SafeNumber(networkEntry, "min_withdraw"),
+                    "max": this.SafeNumber(networkEntry, "max_withdraw"),
                 },
                 "deposit": map[string]interface{} {
-                    "min": minDeposit,
-                    "max": maxDeposit,
+                    "min": this.SafeNumber(networkEntry, "min_deposit"),
+                    "max": this.SafeNumber(networkEntry, "max_deposit"),
                 },
             },
-            "networks": networks,
-            "info": currency,
+            "active": nil,
+            "deposit": this.SafeBool(networkEntry, "can_withdraw"),
+            "withdraw": this.SafeBool(networkEntry, "can_deposit"),
+            "fee": nil,
+            "precision": nil,
+            "info": networkEntry,
         })
-                } else {
-                    var parsed interface{} = GetValue(result, code)
-                    var parsedNetworks interface{} = this.SafeDict(parsed, "networks")
-                    AddElementToObject(parsed, "networks", this.Extend(parsedNetworks, networks))
-                    if IsTrue(isActive) {
-                        AddElementToObject(parsed, "active", true)
-                        AddElementToObject(parsed, "deposit", true)
-                        AddElementToObject(parsed, "withdraw", true)
-                    } else {
-                        if IsTrue(allowWithdraw) {
-                            AddElementToObject(parsed, "withdraw", true)
-                        }
-                        if IsTrue(allowDeposit) {
-                            AddElementToObject(parsed, "deposit", true)
-                        }
-                    }
-                    var parsedLimits interface{} = this.SafeDict(parsed, "limits")
-                    var withdrawLimits interface{} = map[string]interface{} {
-                        "min": nil,
-                        "max": nil,
-                    }
-                    var parsedWithdrawLimits interface{} = this.SafeDict(parsedLimits, "withdraw", withdrawLimits)
-                    var depositLimits interface{} = map[string]interface{} {
-                        "min": nil,
-                        "max": nil,
-                    }
-                    var parsedDepositLimits interface{} = this.SafeDict(parsedLimits, "deposit", depositLimits)
-                    if IsTrue(minWithdraw) {
-                        AddElementToObject(withdrawLimits, "min", Ternary(IsTrue(GetValue(parsedWithdrawLimits, "min")), mathMin(GetValue(parsedWithdrawLimits, "min"), minWithdraw), minWithdraw))
-                    }
-                    if IsTrue(maxWithdraw) {
-                        AddElementToObject(withdrawLimits, "max", Ternary(IsTrue(GetValue(parsedWithdrawLimits, "max")), mathMax(GetValue(parsedWithdrawLimits, "max"), maxWithdraw), maxWithdraw))
-                    }
-                    if IsTrue(minDeposit) {
-                        AddElementToObject(depositLimits, "min", Ternary(IsTrue(GetValue(parsedDepositLimits, "min")), mathMin(GetValue(parsedDepositLimits, "min"), minDeposit), minDeposit))
-                    }
-                    if IsTrue(maxDeposit) {
-                        AddElementToObject(depositLimits, "max", Ternary(IsTrue(GetValue(parsedDepositLimits, "max")), mathMax(GetValue(parsedDepositLimits, "max"), maxDeposit), maxDeposit))
-                    }
-                    var limits interface{} = map[string]interface{} {
-                        "withdraw": withdrawLimits,
-                        "deposit": depositLimits,
-                    }
-                    AddElementToObject(parsed, "limits", limits)
                 }
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
+            "id": id,
+            "code": code,
+            "networks": networks,
+            "info": networkEntries,
+        }))
             }
         
             ch <- result
@@ -515,8 +488,8 @@ func  (this *cryptomus) FetchTickers(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4908 := (<-this.LoadMarkets())
-            PanicOnError(retRes4908)
+            retRes4638 := (<-this.LoadMarkets())
+            PanicOnError(retRes4638)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetV1ExchangeMarketTickers(params))
@@ -545,7 +518,7 @@ func  (this *cryptomus) ParseTicker(ticker interface{}, optionalArgs ...interfac
     //
     //     {
     //         "currency_pair": "XMR_USDT",
-    //         "last_price": "158.04829771",
+    //         "last_price": "158.04829772",
     //         "base_volume": "0.35185785",
     //         "quote_volume": "55.523761128544"
     //     }
@@ -600,8 +573,8 @@ func  (this *cryptomus) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5588 := (<-this.LoadMarkets())
-            PanicOnError(retRes5588)
+            retRes5318 := (<-this.LoadMarkets())
+            PanicOnError(retRes5318)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -665,8 +638,8 @@ func  (this *cryptomus) FetchTrades(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6038 := (<-this.LoadMarkets())
-            PanicOnError(retRes6038)
+            retRes5768 := (<-this.LoadMarkets())
+            PanicOnError(retRes5768)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -745,8 +718,8 @@ func  (this *cryptomus) FetchBalance(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6688 := (<-this.LoadMarkets())
-            PanicOnError(retRes6688)
+            retRes6418 := (<-this.LoadMarkets())
+            PanicOnError(retRes6418)
             var request interface{} = map[string]interface{} {}
         
             response:= (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params)))
@@ -818,8 +791,8 @@ func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, sid
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7268 := (<-this.LoadMarkets())
-            PanicOnError(retRes7268)
+            retRes6998 := (<-this.LoadMarkets())
+            PanicOnError(retRes6998)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -905,8 +878,8 @@ func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7918 := (<-this.LoadMarkets())
-            PanicOnError(retRes7918)
+            retRes7648 := (<-this.LoadMarkets())
+            PanicOnError(retRes7648)
             var request interface{} = map[string]interface{} {}
             AddElementToObject(request, "orderId", id)
         
@@ -918,7 +891,9 @@ func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{})
             //         "success": true
             //     }
             //
-        ch <- response
+        ch <- this.SafeOrder(map[string]interface{} {
+                "info": response,
+            })
             return nil
         
             }()
@@ -954,8 +929,8 @@ func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8208 := (<-this.LoadMarkets())
-            PanicOnError(retRes8208)
+            retRes7938 := (<-this.LoadMarkets())
+            PanicOnError(retRes7938)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1050,8 +1025,8 @@ func  (this *cryptomus) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8968 := (<-this.LoadMarkets())
-            PanicOnError(retRes8968)
+            retRes8698 := (<-this.LoadMarkets())
+            PanicOnError(retRes8698)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)

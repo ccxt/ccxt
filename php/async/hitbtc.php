@@ -930,29 +930,46 @@ class hitbtc extends Exchange {
              */
             $response = Async\await($this->publicGetPublicCurrency ($params));
             //
-            //     {
-            //       "WEALTH" => {
-            //         "full_name" => "ConnectWealth",
-            //         "payin_enabled" => false,
-            //         "payout_enabled" => false,
-            //         "transfer_enabled" => true,
-            //         "precision_transfer" => "0.001",
-            //         "networks" => array(
-            //           {
-            //             "network" => "ETH",
-            //             "protocol" => "ERC20",
-            //             "default" => true,
-            //             "payin_enabled" => false,
-            //             "payout_enabled" => false,
-            //             "precision_payout" => "0.001",
-            //             "payout_fee" => "0.016800000000",
-            //             "payout_is_payment_id" => false,
-            //             "payin_payment_id" => false,
-            //             "payin_confirmations" => "2"
-            //           }
-            //         )
-            //       }
-            //     }
+            //    {
+            //        "DFC" => {
+            //            "full_name" => "DeFiScale",
+            //            "crypto" => true,
+            //            "payin_enabled" => false,
+            //            "payout_enabled" => true,
+            //            "transfer_enabled" => false,
+            //            "transfer_to_wallet_enabled" => true,
+            //            "transfer_to_exchange_enabled" => false,
+            //            "sign" => "D",
+            //            "crypto_payment_id_name" => "",
+            //            "crypto_explorer" => "https://etherscan.io/tx/{tx}",
+            //            "precision_transfer" => "0.00000001",
+            //            "delisted" => false,
+            //            "networks" => array(
+            //                {
+            //                    "code" => "ETH",
+            //                    "network_name" => "Ethereum",
+            //                    "network" => "ETH",
+            //                    "protocol" => "ERC-20",
+            //                    "default" => true,
+            //                    "is_ens_available" => true,
+            //                    "payin_enabled" => true,
+            //                    "payout_enabled" => true,
+            //                    "precision_payout" => "0.000000000000000001",
+            //                    "payout_fee" => "277000.0000000000",
+            //                    "payout_is_payment_id" => false,
+            //                    "payin_payment_id" => false,
+            //                    "payin_confirmations" => "2",
+            //                    "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+            //                    "crypto_payment_id_name" => "",
+            //                    "crypto_explorer" => "https://etherscan.io/tx/{tx}",
+            //                    "is_multichain" => true,
+            //                    "asset_id" => array(
+            //                        "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+            //                    }
+            //                }
+            //            )
+            //        ),
+            //    }
             //
             $result = array();
             $currencies = is_array($response) ? array_keys($response) : array();
@@ -960,48 +977,22 @@ class hitbtc extends Exchange {
                 $currencyId = $currencies[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $entry = $response[$currencyId];
-                $name = $this->safe_string($entry, 'full_name');
-                $precision = $this->safe_number($entry, 'precision_transfer');
-                $payinEnabled = $this->safe_bool($entry, 'payin_enabled', false);
-                $payoutEnabled = $this->safe_bool($entry, 'payout_enabled', false);
-                $transferEnabled = $this->safe_bool($entry, 'transfer_enabled', false);
-                $active = $payinEnabled && $payoutEnabled && $transferEnabled;
-                $rawNetworks = $this->safe_value($entry, 'networks', array());
-                $isCrypto = $this->safe_bool($entry, 'crypto');
-                $type = $isCrypto ? 'crypto' : 'fiat';
+                $rawNetworks = $this->safe_list($entry, 'networks', array());
                 $networks = array();
-                $fee = null;
-                $depositEnabled = null;
-                $withdrawEnabled = null;
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
                     $networkCode = $this->network_id_to_code($networkId);
-                    $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
-                    $fee = $this->safe_number($rawNetwork, 'payout_fee');
-                    $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                    $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
-                    $payoutEnabledNetwork = $this->safe_bool($rawNetwork, 'payout_enabled', false);
-                    $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
-                    if ($payinEnabledNetwork && !$depositEnabled) {
-                        $depositEnabled = true;
-                    } elseif (!$payinEnabledNetwork) {
-                        $depositEnabled = false;
-                    }
-                    if ($payoutEnabledNetwork && !$withdrawEnabled) {
-                        $withdrawEnabled = true;
-                    } elseif (!$payoutEnabledNetwork) {
-                        $withdrawEnabled = false;
-                    }
+                    $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
                         'network' => $networkCode,
-                        'fee' => $fee,
-                        'active' => $activeNetwork,
-                        'deposit' => $payinEnabledNetwork,
-                        'withdraw' => $payoutEnabledNetwork,
-                        'precision' => $networkPrecision,
+                        'active' => null,
+                        'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                        'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                        'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => null,
@@ -1010,27 +1001,25 @@ class hitbtc extends Exchange {
                         ),
                     );
                 }
-                $networksKeys = is_array($networks) ? array_keys($networks) : array();
-                $networksLength = count($networksKeys);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'code' => $code,
                     'id' => $currencyId,
-                    'precision' => $precision,
-                    'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'precision' => $this->safe_number($entry, 'precision_transfer'),
+                    'name' => $this->safe_string($entry, 'full_name'),
+                    'active' => !$this->safe_bool($entry, 'delisted'),
+                    'deposit' => $this->safe_bool($entry, 'payin_enabled'),
+                    'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
                     'networks' => $networks,
-                    'fee' => ($networksLength <= 1) ? $fee : null,
+                    'fee' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                     ),
-                    'type' => $type,
-                );
+                    'type' => null, // 'crypto' field emits incorrect values
+                ));
             }
             return $result;
         }) ();

@@ -105,6 +105,7 @@ public partial class bingx : Exchange
                     { "account", "https://open-api.{hostname}/openApi" },
                     { "copyTrading", "https://open-api.{hostname}/openApi" },
                     { "cswap", "https://open-api.{hostname}/openApi" },
+                    { "api", "https://open-api.{hostname}/openApi" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "swap", "https://open-api-vst.{hostname}/openApi" },
@@ -434,11 +435,26 @@ public partial class bingx : Exchange
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
                                 { "asset/transfer", 1 },
+                                { "asset/transferRecord", 5 },
                                 { "capital/deposit/hisrec", 1 },
                                 { "capital/withdraw/history", 1 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "post/asset/transfer", 1 },
+                            } },
+                        } },
+                    } },
+                    { "asset", new Dictionary<string, object>() {
+                        { "v1", new Dictionary<string, object>() {
+                            { "private", new Dictionary<string, object>() {
+                                { "post", new Dictionary<string, object>() {
+                                    { "transfer", 5 },
+                                } },
+                            } },
+                            { "public", new Dictionary<string, object>() {
+                                { "get", new Dictionary<string, object>() {
+                                    { "transfer/supportCoins", 5 },
+                                } },
                             } },
                         } },
                     } },
@@ -491,6 +507,8 @@ public partial class bingx : Exchange
                     { "100437", typeof(BadRequest) },
                     { "101204", typeof(InsufficientFunds) },
                     { "110425", typeof(InvalidOrder) },
+                    { "Insufficient assets", typeof(InsufficientFunds) },
+                    { "illegal transferType", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -504,14 +522,19 @@ public partial class bingx : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
                 { "accountsByType", new Dictionary<string, object>() {
-                    { "spot", "FUND" },
-                    { "swap", "PFUTURES" },
-                    { "future", "SFUTURES" },
+                    { "funding", "fund" },
+                    { "spot", "spot" },
+                    { "future", "stdFutures" },
+                    { "swap", "USDTMPerp" },
+                    { "linear", "USDTMPerp" },
+                    { "inverse", "coinMPerp" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
-                    { "FUND", "spot" },
-                    { "PFUTURES", "swap" },
-                    { "SFUTURES", "future" },
+                    { "fund", "funding" },
+                    { "spot", "spot" },
+                    { "stdFutures", "future" },
+                    { "USDTMPerp", "linear" },
+                    { "coinMPerp", "inverse" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "broker", "CCXT" },
@@ -754,65 +777,72 @@ public partial class bingx : Exchange
             object name = this.safeString(entry, "name");
             object networkList = this.safeList(entry, "networkList");
             object networks = new Dictionary<string, object>() {};
-            object fee = null;
-            object depositEnabled = false;
-            object withdrawEnabled = false;
-            object defaultLimits = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(networkList, j);
                 object network = this.safeString(rawNetwork, "network");
                 object networkCode = this.networkIdToCode(network);
-                object isDefault = this.safeBool(rawNetwork, "isDefault");
-                object networkDepositEnabled = this.safeBool(rawNetwork, "depositEnable");
-                if (isTrue(networkDepositEnabled))
-                {
-                    depositEnabled = true;
-                }
-                object networkWithdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
-                if (isTrue(networkWithdrawEnabled))
-                {
-                    withdrawEnabled = true;
-                }
                 object limits = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(rawNetwork, "depositMin") },
+                        { "max", null },
+                    } },
                 };
-                fee = this.safeNumber(rawNetwork, "withdrawFee");
-                if (isTrue(isDefault))
-                {
-                    defaultLimits = limits;
-                }
-                object precision = this.safeNumber(rawNetwork, "withdrawPrecision");
-                object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
+                object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", network },
                     { "network", networkCode },
-                    { "fee", fee },
-                    { "active", networkActive },
-                    { "deposit", networkDepositEnabled },
-                    { "withdraw", networkWithdrawEnabled },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
+                    { "active", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnable") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
                     { "precision", precision },
                     { "limits", limits },
                 };
             }
-            object active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "code", code },
-                { "id", currencyId },
-                { "precision", null },
-                { "name", name },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "networks", networks },
-                { "fee", fee },
-                { "limits", defaultLimits },
-            });
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "code", code },
+                    { "id", currencyId },
+                    { "precision", null },
+                    { "name", name },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "networks", networks },
+                    { "fee", null },
+                    { "limits", null },
+                    { "type", "crypto" },
+                };
+            } else
+            {
+                object existing = getValue(result, code);
+                object existingNetworks = this.safeDict(existing, "networks", new Dictionary<string, object>() {});
+                object newNetworkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(newNetworkCodes)); postFixIncrement(ref j))
+                {
+                    object newNetworkCode = getValue(newNetworkCodes, j);
+                    if (!isTrue((inOp(existingNetworks, newNetworkCode))))
+                    {
+                        ((IDictionary<string,object>)existingNetworks)[(string)newNetworkCode] = getValue(networks, newNetworkCode);
+                    }
+                }
+                ((IDictionary<string,object>)getValue(result, code))["networks"] = existingNetworks;
+            }
+        }
+        object codes = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            object code = getValue(codes, i);
+            object currency = getValue(result, code);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(currency);
         }
         return result;
     }
@@ -1631,7 +1661,7 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeDict(response, "data");
         return this.parseFundingRate(data, market);
     }
 
@@ -4542,11 +4572,11 @@ public partial class bingx : Exchange
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -4556,22 +4586,48 @@ public partial class bingx : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
+        if (isTrue(isEqual(fromId, "swap")))
+        {
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                fromId = "coinMPerp";
+            } else
+            {
+                fromId = "USDTMPerp";
+            }
+        }
+        if (isTrue(isEqual(toId, "swap")))
+        {
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                toId = "coinMPerp";
+            } else
+            {
+                toId = "USDTMPerp";
+            }
+        }
         object request = new Dictionary<string, object>() {
+            { "fromAccount", fromId },
+            { "toAccount", toId },
             { "asset", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
-            { "type", add(add(fromId, "_"), toId) },
         };
-        object response = await this.spotV3PrivateGetGetAssetTransfer(this.extend(request, parameters));
+        object response = await this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId": 1933130865269936128,
+        //         "transferId": "1051450703949464903736"
+        //     }
         //
         return new Dictionary<string, object>() {
             { "info", response },
-            { "id", this.safeString(response, "tranId") },
+            { "id", this.safeString(response, "transferId") },
             { "timestamp", null },
             { "datetime", null },
             { "currency", code },
@@ -4586,17 +4642,21 @@ public partial class bingx : Exchange
      * @method
      * @name bingx#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -4609,32 +4669,51 @@ public partial class bingx : Exchange
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         if (isTrue(isTrue(isEqual(fromId, null)) || isTrue(isEqual(toId, null))))
         {
-            throw new ExchangeError ((string)add(this.id, " fromAccount & toAccount parameter are required")) ;
+            throw new ExchangeError ((string)add(this.id, " fromAccount & toAccount parameters are required")) ;
         }
-        object request = new Dictionary<string, object>() {
-            { "type", add(add(fromId, "_"), toId) },
-        };
+        if (isTrue(!isEqual(fromAccount, null)))
+        {
+            ((IDictionary<string,object>)request)["fromAccount"] = fromId;
+        }
+        if (isTrue(!isEqual(toAccount, null)))
+        {
+            ((IDictionary<string,object>)request)["toAccount"] = toId;
+        }
+        parameters = this.omit(parameters, new List<object>() {"fromAccount", "toAccount"});
+        object maxLimit = 100;
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit);
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = limit;
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        object response = await this.spotV3PrivateGetAssetTransfer(this.extend(request, parameters));
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.apiV3PrivateGetAssetTransferRecord(this.extend(request, parameters));
         //
         //     {
-        //         "total": 3,
+        //         "total": 2,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
-        //             },
+        //                 "asset": "LTC",
+        //                 "amount": "0.05000000000000000000",
+        //                 "status": "CONFIRMED",
+        //                 "transferId": "1051461075661819338791",
+        //                 "timestamp": 1752202092000,
+        //                 "fromAccount": "spot",
+        //                 "toAccount": "USDTMPerp"
+        //             }
         //         ]
         //     }
         //
@@ -4644,15 +4723,14 @@ public partial class bingx : Exchange
 
     public override object parseTransfer(object transfer, object currency = null)
     {
-        object tranId = this.safeString(transfer, "tranId");
+        object tranId = this.safeString(transfer, "transferId");
         object timestamp = this.safeInteger(transfer, "timestamp");
-        object currencyCode = this.safeCurrencyCode(null, currency);
+        object currencyId = this.safeString(transfer, "asset");
+        object currencyCode = this.safeCurrencyCode(currencyId, currency);
         object status = this.safeString(transfer, "status");
         object accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-        object typeId = this.safeString(transfer, "type");
-        object typeIdSplit = ((string)typeId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object fromId = this.safeString(typeIdSplit, 0);
-        object toId = this.safeString(typeId, 1);
+        object fromId = this.safeString(transfer, "fromAccount");
+        object toId = this.safeString(transfer, "toAccount");
         object fromAccount = this.safeString(accountsById, fromId, fromId);
         object toAccount = this.safeString(accountsById, toId, toId);
         return new Dictionary<string, object>() {
@@ -4664,8 +4742,16 @@ public partial class bingx : Exchange
             { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "status", status },
+            { "status", this.parseTransferStatus(status) },
         };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "CONFIRMED", "ok" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -5333,37 +5419,13 @@ public partial class bingx : Exchange
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
         //
-        //    {
-        //        "coin": "BTC",
-        //        "name": "BTC",
-        //        "networkList": [
-        //          {
-        //            "name": "BTC",
-        //            "network": "BTC",
-        //            "isDefault": true,
-        //            "minConfirm": "2",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00035",
-        //            "withdrawMax": "1.62842",
-        //            "withdrawMin": "0.0005"
-        //          },
-        //          {
-        //            "name": "BTC",
-        //            "network": "BEP20",
-        //            "isDefault": false,
-        //            "minConfirm": "15",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00001",
-        //            "withdrawMax": "1.62734",
-        //            "withdrawMin": "0.0001"
-        //          }
-        //        ]
-        //    }
+        // currencie structure
         //
-        object networkList = this.safeList(fee, "networkList", new List<object>() {});
-        object networkListLength = getArrayLength(networkList);
+        object networks = this.safeDict(fee, "networks", new Dictionary<string, object>() {});
+        object networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkCodes);
         object result = new Dictionary<string, object>() {
-            { "info", fee },
+            { "info", networks },
             { "withdraw", new Dictionary<string, object>() {
                 { "fee", null },
                 { "percentage", null },
@@ -5374,26 +5436,23 @@ public partial class bingx : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        if (isTrue(!isEqual(networkListLength, 0)))
+        if (isTrue(!isEqual(networksLength, 0)))
         {
-            for (object i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
             {
-                object network = getValue(networkList, i);
-                object networkId = this.safeString(network, "network");
-                object isDefault = this.safeBool(network, "isDefault");
-                object currencyCode = this.safeString(currency, "code");
-                object networkCode = this.networkIdToCode(networkId, currencyCode);
+                object networkCode = getValue(networkCodes, i);
+                object network = getValue(networks, networkCode);
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(network, "withdrawFee") },
+                        { "fee", this.safeNumber(network, "fee") },
                         { "percentage", false },
                     } },
                 };
-                if (isTrue(isDefault))
+                if (isTrue(isEqual(networksLength, 1)))
                 {
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(network, "withdrawFee");
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
@@ -5416,9 +5475,19 @@ public partial class bingx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
-        object coins = this.safeList(response, "data");
-        return this.parseDepositWithdrawFees(coins, codes, "coin");
+        object response = await this.fetchCurrencies(parameters);
+        object depositWithdrawFees = new Dictionary<string, object>() {};
+        object responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(responseCodes)); postFixIncrement(ref i))
+        {
+            object code = getValue(responseCodes, i);
+            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            {
+                object entry = getValue(response, code);
+                ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(entry);
+            }
+        }
+        return depositWithdrawFees;
     }
 
     /**
@@ -5431,7 +5500,7 @@ public partial class bingx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5443,15 +5512,7 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType");
-        if (isTrue(isEqual(walletType, null)))
-        {
-            walletType = 1;
-        }
-        if (!isTrue(this.inArray(walletType, new List<object>() {1, 2, 3})))
-        {
-            throw new BadRequest ((string)add(this.id, " withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType")) ;
-        }
+        object walletType = this.safeInteger(parameters, "walletType", 1);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
@@ -5482,12 +5543,13 @@ public partial class bingx : Exchange
 
     public virtual object parseParams(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = "[";
@@ -5501,10 +5563,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)sortedParams)[(string)key] = arrStr;
+                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
             }
         }
-        return sortedParams;
+        return parameters;
     }
 
     /**
@@ -6011,14 +6073,15 @@ public partial class bingx : Exchange
 
     public virtual object customEncode(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         object adjustedValue = null;
         object result = null;
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = null;
@@ -6075,9 +6138,17 @@ public partial class bingx : Exchange
         }
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
         path = this.implodeParams(path, parameters);
-        if (isTrue(isEqual(version, "transfer")))
+        object versionIsTransfer = (isEqual(version, "transfer"));
+        object versionIsAsset = (isEqual(version, "asset"));
+        if (isTrue(isTrue(versionIsTransfer) || isTrue(versionIsAsset)))
         {
-            type = "account/transfer";
+            if (isTrue(versionIsTransfer))
+            {
+                type = "account/transfer";
+            } else
+            {
+                type = "api/asset";
+            }
             version = getValue(section, 2);
             access = getValue(section, 3);
         }
@@ -6113,7 +6184,7 @@ public partial class bingx : Exchange
             } else
             {
                 parsedParams = this.parseParams(parameters);
-                encodeRequest = this.rawencode(parsedParams);
+                encodeRequest = this.rawencode(parsedParams, true);
             }
             object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
@@ -6127,7 +6198,7 @@ public partial class bingx : Exchange
                 body = this.json(parameters);
             } else
             {
-                object query = this.urlencode(parsedParams);
+                object query = this.urlencode(parsedParams, true);
                 url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
             }
         }
@@ -6166,8 +6237,13 @@ public partial class bingx : Exchange
         //
         object code = this.safeString(response, "code");
         object message = this.safeString(response, "msg");
-        if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))
+        object transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
+        if (isTrue(isTrue((!isEqual(transferErrorMsg, null))) || isTrue((isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))))
         {
+            if (isTrue(!isEqual(transferErrorMsg, null)))
+            {
+                message = transferErrorMsg;
+            }
             object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);

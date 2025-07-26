@@ -98,7 +98,11 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
-        return orders[0];
+        const parsedOrder = orders[0];
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -135,7 +139,11 @@ export default class hyperliquid extends hyperliquidRest {
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
         const first = this.safeDict(statuses, 0, {});
-        return this.parseOrder(first, market);
+        const parsedOrder = this.parseOrder(first, market);
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -157,7 +165,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -186,7 +194,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -494,7 +502,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -524,7 +532,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -651,7 +659,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -682,7 +690,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };

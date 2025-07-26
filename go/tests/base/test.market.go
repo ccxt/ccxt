@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestMarket(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, market interface{})  {
+    func TestMarket(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, market interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btcusd",
             "symbol": "BTC/USD",
@@ -194,7 +194,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be undefined when \"option\" is false", logText))
                 Assert(IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be undefined when \"option\" is false", logText))
             }
-        } else {
+        } else if IsTrue(spot) {
             // otherwise, expiry needs to be undefined
             Assert(IsTrue((IsEqual(GetValue(market, "expiry"), nil))) && IsTrue((IsEqual(GetValue(market, "expiryDatetime"), nil))), Add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText))
         }

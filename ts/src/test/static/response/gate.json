@@ -2,6 +2,1126 @@
     "exchange": "gate",
     "options": {},
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "usdt on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "currency": "USDT",
+                    "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                    "multichain_addresses": [
+                        {
+                            "chain": "ETH",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "10"
+                        },
+                        {
+                            "chain": "APT",
+                            "address": "0xeedf3a7a8bddd275f8e58b4f4a6626653636430a8db9cc7eca36dee5a9d8c02b",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "600"
+                        },
+                        {
+                            "chain": "ARBEVM",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "300"
+                        },
+                        {
+                            "chain": "BSC",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "15"
+                        },
+                        {
+                            "chain": "AVAX_C",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "6"
+                        },
+                        {
+                            "chain": "CELO",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "180"
+                        },
+                        {
+                            "chain": "DOTSM",
+                            "address": "15jBY6LxpjbMprV47rcEZfPE1xU7iNLEPYDA1mC359mTp18w",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "20"
+                        },
+                        {
+                            "chain": "GTEVM",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "25"
+                        },
+                        {
+                            "chain": "KAIA",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "200"
+                        },
+                        {
+                            "chain": "KAVAEVM",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "20"
+                        },
+                        {
+                            "chain": "MATIC",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "100"
+                        },
+                        {
+                            "chain": "NEAR",
+                            "address": "9d343dd0c97e3e03328f20e331ab8088df70fea432e52e819af226d204761332",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "100"
+                        },
+                        {
+                            "chain": "OKT",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "60"
+                        },
+                        {
+                            "chain": "OPETH",
+                            "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "60"
+                        },
+                        {
+                            "chain": "SOL",
+                            "address": "53wCea2kFkR4kkKz1By99EDert3e3kq5FVr7Ew2ofpeil",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "20"
+                        },
+                        {
+                            "chain": "TON",
+                            "address": "EQC0lrj3O0af8GotieYsTXChA_wijIIVN7Sd_wkgYLwoH07q",
+                            "payment_id": "855032211",
+                            "payment_name": "Memo",
+                            "obtain_failed": "0",
+                            "min_confirms": "35"
+                        },
+                        {
+                            "chain": "TRX",
+                            "address": "TEe8JxcJWPsF24K4wu71X6maCtxqsxfOp2",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "20"
+                        },
+                        {
+                            "chain": "XTZ",
+                            "address": "tz2aeJdNXyRKC7weUxtvRdBbBjFp1xcmprol",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": "0",
+                            "min_confirms": "10"
+                        }
+                    ],
+                    "min_deposit_amount": "0.01",
+                    "min_confirms": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "chain": "ETH",
+                        "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                        "payment_id": "",
+                        "payment_name": "",
+                        "obtain_failed": "0",
+                        "min_confirms": "10"
+                    },
+                    "currency": null,
+                    "address": "0x123b79D31EA07AA218F4a11c50d488770Aa42eE8",
+                    "tag": null,
+                    "network": "ERC20"
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "currency": "USDT",
+                        "name": "Tether",
+                        "delisted": false,
+                        "withdraw_disabled": false,
+                        "withdraw_delayed": false,
+                        "deposit_disabled": false,
+                        "trade_disabled": false,
+                        "fixed_rate": "",
+                        "chain": "ETH",
+                        "chains": [
+                            {
+                                "name": "ETH",
+                                "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "ALGO",
+                                "addr": "312769",
+                                "withdraw_disabled": true,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": true
+                            },
+                            {
+                                "name": "APT",
+                                "addr": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "ARBEVM",
+                                "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "BSC",
+                                "addr": "0x55d398326f99059fF775485246999027B3197955",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "BTC",
+                                "addr": "aaaaa000000111111xxx00000xxx000111",
+                                "withdraw_disabled": true,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": true
+                            },
+                            {
+                                "name": "AVAX_C",
+                                "addr": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "CELO",
+                                "addr": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "DOTSM",
+                                "addr": "1984",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "EOS",
+                                "addr": "USDT@tethertether",
+                                "withdraw_disabled": true,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": true
+                            },
+                            {
+                                "name": "GTEVM",
+                                "addr": "0x4151ab5072198d0843cd2999590ef292f49d6c66",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "KAIA",
+                                "addr": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "KAVAEVM",
+                                "addr": "0x919C1c267BC06a7039e03fcc2eF738525769109c",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "KSMSM",
+                                "addr": "1984",
+                                "withdraw_disabled": true,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": true
+                            },
+                            {
+                                "name": "MATIC",
+                                "addr": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "NEAR",
+                                "addr": "usdt.tether-token.near",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "OKT",
+                                "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
+                                "withdraw_disabled": true,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "OPETH",
+                                "addr": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "SOL",
+                                "addr": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "TON",
+                                "addr": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "TRX",
+                                "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            },
+                            {
+                                "name": "XTZ",
+                                "addr": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                "withdraw_disabled": false,
+                                "withdraw_delayed": false,
+                                "deposit_disabled": false
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "name": "Tether",
+                            "delisted": false,
+                            "withdraw_disabled": false,
+                            "withdraw_delayed": false,
+                            "deposit_disabled": false,
+                            "trade_disabled": false,
+                            "fixed_rate": "",
+                            "chain": "ETH",
+                            "chains": [
+                                {
+                                    "name": "ETH",
+                                    "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "ALGO",
+                                    "addr": "312769",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                {
+                                    "name": "APT",
+                                    "addr": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "ARBEVM",
+                                    "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "BSC",
+                                    "addr": "0x55d398326f99059fF775485246999027B3197955",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "BTC",
+                                    "addr": "aaaaa000000111111xxx00000xxx000111",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                {
+                                    "name": "AVAX_C",
+                                    "addr": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "CELO",
+                                    "addr": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "DOTSM",
+                                    "addr": "1984",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "EOS",
+                                    "addr": "USDT@tethertether",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                {
+                                    "name": "GTEVM",
+                                    "addr": "0x4151ab5072198d0843cd2999590ef292f49d6c66",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "KAIA",
+                                    "addr": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "KAVAEVM",
+                                    "addr": "0x919C1c267BC06a7039e03fcc2eF738525769109c",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "KSMSM",
+                                    "addr": "1984",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                {
+                                    "name": "MATIC",
+                                    "addr": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "NEAR",
+                                    "addr": "usdt.tether-token.near",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "OKT",
+                                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "OPETH",
+                                    "addr": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "SOL",
+                                    "addr": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "TON",
+                                    "addr": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "TRX",
+                                    "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                {
+                                    "name": "XTZ",
+                                    "addr": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "name": "ETH",
+                                    "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ALGO": {
+                                "info": {
+                                    "name": "ALGO",
+                                    "addr": "312769",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                "id": "ALGO",
+                                "network": "ALGO",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "APT": {
+                                "info": {
+                                    "name": "APT",
+                                    "addr": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "APT",
+                                "network": "APT",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARBONE": {
+                                "info": {
+                                    "name": "ARBEVM",
+                                    "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "ARBEVM",
+                                "network": "ARBONE",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "name": "BSC",
+                                    "addr": "0x55d398326f99059fF775485246999027B3197955",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "BSC",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BTC": {
+                                "info": {
+                                    "name": "BTC",
+                                    "addr": "aaaaa000000111111xxx00000xxx000111",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                "id": "BTC",
+                                "network": "BTC",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "AVAXC": {
+                                "info": {
+                                    "name": "AVAX_C",
+                                    "addr": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "AVAX_C",
+                                "network": "AVAXC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "CELO": {
+                                "info": {
+                                    "name": "CELO",
+                                    "addr": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "CELO",
+                                "network": "CELO",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "POLKADOT": {
+                                "info": {
+                                    "name": "DOTSM",
+                                    "addr": "1984",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "DOTSM",
+                                "network": "POLKADOT",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "EOS": {
+                                "info": {
+                                    "name": "EOS",
+                                    "addr": "USDT@tethertether",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                "id": "EOS",
+                                "network": "EOS",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "GATECHAIN": {
+                                "info": {
+                                    "name": "GTEVM",
+                                    "addr": "0x4151ab5072198d0843cd2999590ef292f49d6c66",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "GTEVM",
+                                "network": "GATECHAIN",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KAIA": {
+                                "info": {
+                                    "name": "KAIA",
+                                    "addr": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "KAIA",
+                                "network": "KAIA",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KAVAEVM": {
+                                "info": {
+                                    "name": "KAVAEVM",
+                                    "addr": "0x919C1c267BC06a7039e03fcc2eF738525769109c",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "KAVAEVM",
+                                "network": "KAVAEVM",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KUSAMA": {
+                                "info": {
+                                    "name": "KSMSM",
+                                    "addr": "1984",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": true
+                                },
+                                "id": "KSMSM",
+                                "network": "KUSAMA",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "name": "MATIC",
+                                    "addr": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "NEAR": {
+                                "info": {
+                                    "name": "NEAR",
+                                    "addr": "usdt.tether-token.near",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "NEAR",
+                                "network": "NEAR",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OKC": {
+                                "info": {
+                                    "name": "OKT",
+                                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
+                                    "withdraw_disabled": true,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "OKT",
+                                "network": "OKC",
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OP": {
+                                "info": {
+                                    "name": "OPETH",
+                                    "addr": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "OPETH",
+                                "network": "OP",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "name": "SOL",
+                                    "addr": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "name": "TON",
+                                    "addr": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "TON",
+                                "network": "TON",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "name": "TRX",
+                                    "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "XTZ": {
+                                "info": {
+                                    "name": "XTZ",
+                                    "addr": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                                    "withdraw_disabled": false,
+                                    "withdraw_delayed": false,
+                                    "deposit_disabled": false
+                                },
+                                "id": "XTZ",
+                                "network": "XTZ",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchLiquidations": [
             {
                 "description": "fetch liquidations BTC/USDT:USDT",
@@ -883,13 +2003,13 @@
                     "ask": 73364.2,
                     "askVolume": null,
                     "vwap": 71483.5095909713,
-                    "open": null,
+                    "open": 72140.30085537312,
                     "close": 73373.9,
                     "last": 73373.9,
                     "previousClose": null,
-                    "change": null,
+                    "change": 1233.5991446268804,
                     "percentage": 1.71,
-                    "average": null,
+                    "average": 72757.1,
                     "baseVolume": 3410.0783503636,
                     "quoteVolume": 243764368.46418,
                     "markPrice":  null,

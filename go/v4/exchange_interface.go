@@ -2,8 +2,7 @@ package ccxt
 
 import "sync"
 
-// Exchange interface based on the methods from binance.go
-type IExchange interface {
+type IBaseExchange interface {
 	SetRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
@@ -29,14 +28,64 @@ type IExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetReturnResponseHeaders() bool
+	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}
 	GetId() string
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
-	GetOptions() map[string]interface{}
-	GetCurrencies() map[string]interface{}
-	GetMarkets() map[string]interface{}
+	GetOptions() *sync.Map
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
+	SetSandboxMode(enable interface{})
+	LoadMarkets(params ...interface{}) <-chan interface{}
+	SetProxyUrl(proxyUrl interface{})
+	SetSocksProxy(proxyUrl interface{})
+	SignIn(optionalArgs ...interface{}) <-chan interface{}
+	Market(symbol interface{}) interface{}
+	Currency(code interface{}) interface{}
+
+	// methods from base
+}
+
+// Exchange interface based on the methods from binance.go
+type ICoreExchange interface {
+	SetRateLimit(rateLimit bool)
+	ExtendExchangeOptions(options interface{})
+	GetSymbols() []string
+	SetWssProxy(wssProxy interface{})
+	SetWsProxy(wsProxy interface{})
+	GetAlias() interface{}
+	GetTimeframes() map[string]interface{}
+	GetFeatures() map[string]interface{}
+	GetCache() *sync.Map
+	GetRequiredCredentials() map[string]interface{}
+	SetTimeout(timeout interface{})
+	SetHttpsProxy(httpsProxy interface{})
+	SetHttpProxy(httpProxy interface{})
+	SetCurrencies(currencies interface{})
+	SetPrivateKey(privateKey interface{})
+	SetWalletAddress(walletAddress interface{})
+	SetSecret(secret interface{})
+	SetUid(uid interface{})
+	SetPassword(password interface{})
+	SetApiKey(apiKey interface{})
+	SetAccounts(account interface{})
+	SetVerbose(verbose interface{})
+	GetLast_request_url() interface{}
+	GetLast_request_body() interface{}
+	GetLast_request_headers() map[string]interface{}
+	GetReturnResponseHeaders() bool
+	SetReturnResponseHeaders(val interface{})
+	GetHas() map[string]interface{}
+	GetId() string
+	GetHostname() string
+	GetUrls() interface{}
+	GetApi() map[string]interface{}
+	GetOptions() *sync.Map
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}
@@ -87,6 +136,7 @@ type IExchange interface {
 	FetchDeposits(optionalArgs ...interface{}) <-chan interface{}
 	Milliseconds() int64
 	ParseNumber(v interface{}, a ...interface{}) interface{}
+	OmitZero(v interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
@@ -172,14 +222,16 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
-	CreateSafeDictionary() interface{}
+	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
 	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
+	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
 	ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}
@@ -217,6 +269,7 @@ type IDerivedExchange interface {
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddresses(addresses interface{}, optionalArgs ...interface{}) interface{}
+	FetchTradingFees(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{}
 	ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}
 	ParseFundingRateHistory(info interface{}, optionalArgs ...interface{}) interface{}
@@ -234,4 +287,5 @@ type IDerivedExchange interface {
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
 }

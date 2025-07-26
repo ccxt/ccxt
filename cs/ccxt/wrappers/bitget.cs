@@ -33,11 +33,18 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
+    /// See <see href="https://www.bitget.bike/api-doc/uta/public/Instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// string : set to true to fetch markets for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -46,6 +53,16 @@ public partial class bitget
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchDefaultMarkets(object parameters)
+    {
+        var res = await this.fetchDefaultMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchUtaMarkets(object parameters)
+    {
+        var res = await this.fetchUtaMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -488,6 +505,12 @@ public partial class bitget
     /// <term>params.useHistoryEndpoint</term>
     /// <description>
     /// boolean : whether to force to use historical endpoint (it has max limit of 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpointForPagination</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint for pagination (default true)
     /// </description>
     /// </item>
     /// <item>

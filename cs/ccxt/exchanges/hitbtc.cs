@@ -731,29 +731,46 @@ public partial class hitbtc : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPublicCurrency(parameters);
         //
-        //     {
-        //       "WEALTH": {
-        //         "full_name": "ConnectWealth",
-        //         "payin_enabled": false,
-        //         "payout_enabled": false,
-        //         "transfer_enabled": true,
-        //         "precision_transfer": "0.001",
-        //         "networks": [
-        //           {
-        //             "network": "ETH",
-        //             "protocol": "ERC20",
-        //             "default": true,
-        //             "payin_enabled": false,
-        //             "payout_enabled": false,
-        //             "precision_payout": "0.001",
-        //             "payout_fee": "0.016800000000",
-        //             "payout_is_payment_id": false,
-        //             "payin_payment_id": false,
-        //             "payin_confirmations": "2"
-        //           }
-        //         ]
-        //       }
-        //     }
+        //    {
+        //        "DFC": {
+        //            "full_name": "DeFiScale",
+        //            "crypto": true,
+        //            "payin_enabled": false,
+        //            "payout_enabled": true,
+        //            "transfer_enabled": false,
+        //            "transfer_to_wallet_enabled": true,
+        //            "transfer_to_exchange_enabled": false,
+        //            "sign": "D",
+        //            "crypto_payment_id_name": "",
+        //            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //            "precision_transfer": "0.00000001",
+        //            "delisted": false,
+        //            "networks": [
+        //                {
+        //                    "code": "ETH",
+        //                    "network_name": "Ethereum",
+        //                    "network": "ETH",
+        //                    "protocol": "ERC-20",
+        //                    "default": true,
+        //                    "is_ens_available": true,
+        //                    "payin_enabled": true,
+        //                    "payout_enabled": true,
+        //                    "precision_payout": "0.000000000000000001",
+        //                    "payout_fee": "277000.0000000000",
+        //                    "payout_is_payment_id": false,
+        //                    "payin_payment_id": false,
+        //                    "payin_confirmations": "2",
+        //                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        //                    "crypto_payment_id_name": "",
+        //                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //                    "is_multichain": true,
+        //                    "asset_id": {
+        //                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        //                    }
+        //                }
+        //            ]
+        //        },
+        //    }
         //
         object result = new Dictionary<string, object>() {};
         object currencies = new List<object>(((IDictionary<string,object>)response).Keys);
@@ -762,53 +779,23 @@ public partial class hitbtc : Exchange
             object currencyId = getValue(currencies, i);
             object code = this.safeCurrencyCode(currencyId);
             object entry = getValue(response, currencyId);
-            object name = this.safeString(entry, "full_name");
-            object precision = this.safeNumber(entry, "precision_transfer");
-            object payinEnabled = this.safeBool(entry, "payin_enabled", false);
-            object payoutEnabled = this.safeBool(entry, "payout_enabled", false);
-            object transferEnabled = this.safeBool(entry, "transfer_enabled", false);
-            object active = isTrue(isTrue(payinEnabled) && isTrue(payoutEnabled)) && isTrue(transferEnabled);
-            object rawNetworks = this.safeValue(entry, "networks", new List<object>() {});
-            object isCrypto = this.safeBool(entry, "crypto");
-            object type = ((bool) isTrue(isCrypto)) ? "crypto" : "fiat";
+            object rawNetworks = this.safeList(entry, "networks", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            object fee = null;
-            object depositEnabled = null;
-            object withdrawEnabled = null;
             for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString2(rawNetwork, "protocol", "network");
                 object networkCode = this.networkIdToCode(networkId);
-                networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
-                fee = this.safeNumber(rawNetwork, "payout_fee");
-                object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
-                object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
-                object payoutEnabledNetwork = this.safeBool(rawNetwork, "payout_enabled", false);
-                object activeNetwork = isTrue(payinEnabledNetwork) && isTrue(payoutEnabledNetwork);
-                if (isTrue(isTrue(payinEnabledNetwork) && !isTrue(depositEnabled)))
-                {
-                    depositEnabled = true;
-                } else if (!isTrue(payinEnabledNetwork))
-                {
-                    depositEnabled = false;
-                }
-                if (isTrue(isTrue(payoutEnabledNetwork) && !isTrue(withdrawEnabled)))
-                {
-                    withdrawEnabled = true;
-                } else if (!isTrue(payoutEnabledNetwork))
-                {
-                    withdrawEnabled = false;
-                }
+                networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", networkId },
                     { "network", networkCode },
-                    { "fee", fee },
-                    { "active", activeNetwork },
-                    { "deposit", payinEnabledNetwork },
-                    { "withdraw", payoutEnabledNetwork },
-                    { "precision", networkPrecision },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "payout_fee") },
+                    { "deposit", this.safeBool(rawNetwork, "payin_enabled") },
+                    { "withdraw", this.safeBool(rawNetwork, "payout_enabled") },
+                    { "precision", this.safeNumber(rawNetwork, "precision_payout") },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", null },
@@ -817,27 +804,25 @@ public partial class hitbtc : Exchange
                     } },
                 };
             }
-            object networksKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networksLength = getArrayLength(networksKeys);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", code },
                 { "id", currencyId },
-                { "precision", precision },
-                { "name", name },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "precision", this.safeNumber(entry, "precision_transfer") },
+                { "name", this.safeString(entry, "full_name") },
+                { "active", !isTrue(this.safeBool(entry, "delisted")) },
+                { "deposit", this.safeBool(entry, "payin_enabled") },
+                { "withdraw", this.safeBool(entry, "payout_enabled") },
                 { "networks", networks },
-                { "fee", ((bool) isTrue((isLessThanOrEqual(networksLength, 1)))) ? fee : null },
+                { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                 } },
-                { "type", type },
-            };
+                { "type", null },
+            });
         }
         return result;
     }

@@ -32,11 +32,15 @@ export default class hashkey extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
@@ -56,7 +60,14 @@ export default class hashkey extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': true,
@@ -65,6 +76,8 @@ export default class hashkey extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -72,23 +85,42 @@ export default class hashkey extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -99,7 +131,9 @@ export default class hashkey extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -109,11 +143,16 @@ export default class hashkey extends Exchange {
                 'fetchTradingFees': true, // for spot markets only
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -1140,48 +1179,44 @@ export default class hashkey extends Exchange {
             const currecy = coins[i];
             const currencyId = this.safeString (currecy, 'coinId');
             const code = this.safeCurrencyCode (currencyId);
-            const allowWithdraw = this.safeBool (currecy, 'allowWithdraw');
-            const allowDeposit = this.safeBool (currecy, 'allowDeposit');
             const networks = this.safeList (currecy, 'chainTypes');
-            const networksById = this.safeDict (this.options, 'networksById');
             const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chainType');
-                const networkName = this.safeString (networksById, networkId, networkId);
-                const maxWithdrawQuantity = this.omitZero (this.safeString (network, 'maxWithdrawQuantity'));
-                const networkDeposit = this.safeBool (network, 'allowDeposit');
-                const networkWithdraw = this.safeBool (network, 'allowWithdraw');
-                parsedNetworks[networkName] = {
+                const networkCode = this.networkCodeToId (networkId);
+                parsedNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber (maxWithdrawQuantity),
+                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
                         },
                         'deposit': {
                             'min': this.safeNumber (network, 'minDepositQuantity'),
                             'max': undefined,
                         },
                     },
-                    'active': networkDeposit && networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': undefined,
+                    'deposit': this.safeBool (network, 'allowDeposit'),
+                    'withdraw': this.safeBool (network, 'allowWithdraw'),
                     'fee': this.safeNumber (network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
             }
-            result[code] = {
+            const rawType = this.safeString (currecy, 'tokenType');
+            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'code': code,
                 'precision': undefined,
-                'type': this.parseCurrencyType (this.safeString (currecy, 'tokenType')),
+                'type': type,
                 'name': this.safeString (currecy, 'coinFullName'),
-                'active': allowWithdraw && allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': undefined,
+                'deposit': this.safeBool (currecy, 'allowDeposit'),
+                'withdraw': this.safeBool (currecy, 'allowWithdraw'),
                 'fee': undefined,
                 'limits': {
                     'deposit': {
@@ -1195,19 +1230,9 @@ export default class hashkey extends Exchange {
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            };
+            });
         }
         return result;
-    }
-
-    parseCurrencyType (type) {
-        const types = {
-            'CHAIN_TOKEN': 'crypto',
-            'ERC20_TOKEN': 'crypto',
-            'BSC_TOKEN': 'crypto',
-            'REAL_MONEY': 'fiat',
-        };
-        return this.safeString (types, type);
     }
 
     /**

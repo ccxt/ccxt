@@ -104,7 +104,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
         object orders = await this.createOrdersWs(new List<object>() {((object)order)}, globalParams);
-        return getValue(orders, 0);
+        object parsedOrder = getValue(orders, 0);
+        object orderInfo = this.safeDict(parsedOrder, "info");
+        // handle potential error here
+        this.handleErrors(null, null, null, null, null, this.json(orderInfo), orderInfo, null, null);
+        return parsedOrder;
     }
 
     /**
@@ -146,7 +150,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         object dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(dataObject, "statuses", new List<object>() {});
         object first = this.safeDict(statuses, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(first, market);
+        object parsedOrder = this.parseOrder(first, market);
+        object orderInfo = this.safeDict(parsedOrder, "info");
+        // handle potential error here
+        this.handleErrors(null, null, null, null, null, this.json(orderInfo), orderInfo, null, null);
+        return parsedOrder;
     }
 
     /**
@@ -171,7 +179,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
             } },
         };
         object message = this.extend(request, parameters);
@@ -203,7 +211,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
             } },
         };
         object message = this.extend(request, parameters);
@@ -546,7 +554,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
             } },
         };
         object message = this.extend(request, parameters);
@@ -580,7 +588,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
             } },
         };
         object message = this.extend(request, parameters);
@@ -721,7 +729,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
                 { "interval", timeframe },
             } },
         };
@@ -757,7 +765,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
                 { "interval", timeframe },
             } },
         };

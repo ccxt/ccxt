@@ -2,6 +2,411 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "disabledGO": true,
+                "disabledCS": true,
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-valuations",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "v": "0.000043997",
+                                "t": 1753436579000
+                            }
+                        ],
+                        "instrument_name": "BTCUSD-PERP"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "v": "0.000043997",
+                        "t": 1753436579000
+                    },
+                    "symbol": "BTC/USD:USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1753436579000,
+                    "datetime": "2025-07-25T09:42:59.000Z",
+                    "fundingRate": 0.000043997,
+                    "fundingTimestamp": 1753437600000,
+                    "fundingDatetime": "2025-07-25T10:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "httpResponse": {
+                    "id": 1749674362537,
+                    "method": "private/amend-order",
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    },
+                    "id": "6142909930410561608",
+                    "clientOrderId": "1749674362537",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "id": "1747503246658",
+                    "method": "private/get-currency-networks",
+                    "code": "0",
+                    "result": {
+                        "update_time": "1747503241000",
+                        "currency_map": {
+                            "USDT": {
+                                "full_name": "Tether USD",
+                                "default_network": "ETH",
+                                "network_list": [
+                                    {
+                                        "network_id": "ETH",
+                                        "withdrawal_fee": "10.00000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "20.0",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "32"
+                                    },
+                                    {
+                                        "network_id": "CRONOS",
+                                        "withdrawal_fee": "0.18000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "0.36",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "15"
+                                    },
+                                    {
+                                        "network_id": "SOL",
+                                        "withdrawal_fee": "5.32000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "10.64",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "1"
+                                    },
+                                    {
+                                        "network_id": "MATIC",
+                                        "withdrawal_fee": "0.80000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "1.6",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "256"
+                                    },
+                                    {
+                                        "network_id": "ARB",
+                                        "withdrawal_fee": "1.18000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "2.36",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "10"
+                                    },
+                                    {
+                                        "network_id": "OP",
+                                        "withdrawal_fee": "1.25000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "2.5",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "100"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "full_name": "Tether USD",
+                            "default_network": "ETH",
+                            "network_list": [
+                                {
+                                    "network_id": "ETH",
+                                    "withdrawal_fee": "10.00000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "20.0",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "32"
+                                },
+                                {
+                                    "network_id": "CRONOS",
+                                    "withdrawal_fee": "0.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "0.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "15"
+                                },
+                                {
+                                    "network_id": "SOL",
+                                    "withdrawal_fee": "5.32000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "10.64",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "1"
+                                },
+                                {
+                                    "network_id": "MATIC",
+                                    "withdrawal_fee": "0.80000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "1.6",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "256"
+                                },
+                                {
+                                    "network_id": "ARB",
+                                    "withdrawal_fee": "1.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "10"
+                                },
+                                {
+                                    "network_id": "OP",
+                                    "withdrawal_fee": "1.25000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.5",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "100"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.18,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "network_id": "ETH",
+                                    "withdrawal_fee": "10.00000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "20.0",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "32"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 10,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 20,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "CRONOS": {
+                                "info": {
+                                    "network_id": "CRONOS",
+                                    "withdrawal_fee": "0.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "0.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "15"
+                                },
+                                "id": "CRONOS",
+                                "network": "CRONOS",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.18,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.36,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "network_id": "SOL",
+                                    "withdrawal_fee": "5.32000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "10.64",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "1"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 5.32,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10.64,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "network_id": "MATIC",
+                                    "withdrawal_fee": "0.80000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "1.6",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "256"
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.8,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.6,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARB": {
+                                "info": {
+                                    "network_id": "ARB",
+                                    "withdrawal_fee": "1.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "10"
+                                },
+                                "id": "ARB",
+                                "network": "ARB",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.18,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.36,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OP": {
+                                "info": {
+                                    "network_id": "OP",
+                                    "withdrawal_fee": "1.25000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.5",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "100"
+                                },
+                                "id": "OP",
+                                "network": "OP",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.25,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.5,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.36,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "Create Spot order limit",
@@ -1787,13 +2192,13 @@
                     "ask": 73375.26,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
+                    "open": 73362.71497573915,
                     "close": 73375.26,
                     "last": 73375.26,
                     "previousClose": null,
-                    "change": null,
+                    "change": 12.545024260851394,
                     "percentage": 0.0171,
-                    "average": null,
+                    "average": 73368.98,
                     "baseVolume": 6921.5068,
                     "quoteVolume": null,
                     "markPrice":  null,

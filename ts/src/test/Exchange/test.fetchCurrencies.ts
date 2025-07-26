@@ -17,7 +17,8 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
         // ensure exchange returns enough length of currencies
-        assert (currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
+        const skipAmount = ('amountOfCurrencies' in skippedProperties);
+        assert (skipAmount || currenciesLength > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + currenciesLength.toString ());
         // allow skipped exchanges
         const skipActive = ('activeCurrenciesQuota' in skippedProperties);
         const skipMajorCurrencyCheck = ('activeMajorCurrencies' in skippedProperties);

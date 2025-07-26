@@ -51,7 +51,7 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = marketsContent.(map[string]interface{})
+	exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
 
 	beforeTickerNs := time.Now().UnixNano()
 	_ = exchange.ParseTickers(tickersContent)
@@ -364,7 +364,7 @@ func PrettyPrintData(data interface{}) {
 	}
 }
 
-func SetCredential(instance ccxt.IExchange, key string, value string) {
+func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	switch key {
 	case "apiKey":
 		instance.SetApiKey(value)
@@ -381,7 +381,7 @@ func SetCredential(instance ccxt.IExchange, key string, value string) {
 	}
 }
 
-func SetCredentials(instance ccxt.IExchange) {
+func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
 
 	for key, value := range credentials {

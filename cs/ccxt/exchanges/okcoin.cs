@@ -810,53 +810,33 @@ public partial class okcoin : Exchange
         } else
         {
             object response = await this.privateGetAssetCurrencies(parameters);
-            object data = this.safeValue(response, "data", new List<object>() {});
+            object data = this.safeList(response, "data", new List<object>() {});
             object result = new Dictionary<string, object>() {};
             object dataByCurrencyId = this.groupBy(data, "ccy");
             object currencyIds = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencyIds, i);
-                object currency = this.safeCurrency(currencyId);
-                object code = getValue(currency, "code");
+                object code = this.safeCurrencyCode(currencyId);
                 object chains = getValue(dataByCurrencyId, currencyId);
                 object networks = new Dictionary<string, object>() {};
-                object currencyActive = false;
-                object depositEnabled = false;
-                object withdrawEnabled = false;
-                object maxPrecision = null;
                 for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
                 {
                     object chain = getValue(chains, j);
-                    object canDeposit = this.safeValue(chain, "canDep");
-                    depositEnabled = ((bool) isTrue((canDeposit))) ? canDeposit : depositEnabled;
-                    object canWithdraw = this.safeValue(chain, "canWd");
-                    withdrawEnabled = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdrawEnabled;
-                    object canInternal = this.safeValue(chain, "canInternal");
-                    object active = ((bool) isTrue((isTrue(isTrue(canDeposit) && isTrue(canWithdraw)) && isTrue(canInternal)))) ? true : false;
-                    currencyActive = ((bool) isTrue((active))) ? active : currencyActive;
                     object networkId = this.safeString(chain, "chain");
                     if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
                     {
                         object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         object chainPart = this.safeString(parts, 1, networkId);
                         object networkCode = this.networkIdToCode(chainPart);
-                        object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
-                        if (isTrue(isEqual(maxPrecision, null)))
-                        {
-                            maxPrecision = precision;
-                        } else
-                        {
-                            maxPrecision = Precise.stringMin(maxPrecision, precision);
-                        }
                         ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                             { "id", networkId },
                             { "network", networkCode },
-                            { "active", active },
-                            { "deposit", canDeposit },
-                            { "withdraw", canWithdraw },
+                            { "active", null },
+                            { "deposit", this.safeBool(chain, "canDep") },
+                            { "withdraw", this.safeBool(chain, "canWd") },
                             { "fee", this.safeNumber(chain, "minFee") },
-                            { "precision", this.parseNumber(precision) },
+                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))) },
                             { "limits", new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
                                     { "min", this.safeNumber(chain, "minWd") },
@@ -868,16 +848,16 @@ public partial class okcoin : Exchange
                     }
                 }
                 object firstChain = this.safeValue(chains, 0);
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                     { "info", chains },
                     { "code", code },
                     { "id", currencyId },
                     { "name", this.safeString(firstChain, "name") },
-                    { "active", currencyActive },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
                     { "fee", null },
-                    { "precision", this.parseNumber(maxPrecision) },
+                    { "precision", null },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },
@@ -885,7 +865,7 @@ public partial class okcoin : Exchange
                         } },
                     } },
                     { "networks", networks },
-                };
+                });
             }
             return result;
         }
@@ -1805,7 +1785,7 @@ public partial class okcoin : Exchange
         if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {

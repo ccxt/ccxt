@@ -405,9 +405,12 @@ class onetrading(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "code":"BEST",
-        #             "precision":8
-        #         }
+        #             "code": "USDT",
+        #             "precision": 6,
+        #             "unified_cryptoasset_id": 825,
+        #             "name": "Tether USDt",
+        #             "collateral_percentage": 0
+        #         },
         #     ]
         #
         result: dict = {}
@@ -415,11 +418,11 @@ class onetrading(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'code')
             code = self.safe_currency_code(id)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
-                'name': None,
-                'info': currency,  # the original payload
+                'name': self.safe_string(currency, 'name'),
+                'info': currency,
                 'active': None,
                 'fee': None,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
@@ -430,7 +433,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'withdraw': {'min': None, 'max': None},
                 },
                 'networks': {},
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -1318,7 +1321,7 @@ class onetrading(Exchange, ImplicitAPI):
         #         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         #     ]
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """

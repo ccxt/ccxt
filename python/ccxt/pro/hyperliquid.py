@@ -103,7 +103,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
-        return orders[0]
+        parsedOrder = orders[0]
+        orderInfo = self.safe_dict(parsedOrder, 'info')
+        # handle potential error here
+        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
+        return parsedOrder
 
     async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         """
@@ -140,7 +144,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         dataObject = self.safe_dict(responseObject, 'data', {})
         statuses = self.safe_list(dataObject, 'statuses', [])
         first = self.safe_dict(statuses, 0, {})
-        return self.parse_order(first, market)
+        parsedOrder = self.parse_order(first, market)
+        orderInfo = self.safe_dict(parsedOrder, 'info')
+        # handle potential error here
+        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
+        return parsedOrder
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -162,7 +170,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -191,7 +199,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -492,7 +500,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -521,7 +529,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -645,7 +653,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
                 'interval': timeframe,
             },
         }
@@ -675,7 +683,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
                 'interval': timeframe,
             },
         }

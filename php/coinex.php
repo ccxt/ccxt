@@ -653,6 +653,7 @@ class coinex extends Exchange {
                 'broad' => array(
                     'ip not allow visit' => '\\ccxt\\PermissionDenied',
                     'service too busy' => '\\ccxt\\ExchangeNotAvailable',
+                    'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
         ));
@@ -718,33 +719,7 @@ class coinex extends Exchange {
             $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
             $firstChain = $this->safe_dict($chains, 0, array());
             $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
-            $result[$code] = array(
-                'id' => $currencyId,
-                'code' => $code,
-                'name' => null,
-                'active' => $canDeposit && $canWithdraw,
-                'deposit' => $canDeposit,
-                'withdraw' => $canWithdraw,
-                'fee' => null,
-                'precision' => $this->parse_number($firstPrecisionString),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => array(),
-                'type' => 'crypto',
-                'info' => $coin,
-            );
+            $networks = array();
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -782,10 +757,35 @@ class coinex extends Exchange {
                     ),
                     'info' => $chain,
                 );
-                $networks = $this->safe_dict($result[$code], 'networks', array());
                 $networks[$networkId] = $network;
-                $result[$code]['networks'] = $networks;
             }
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $currencyId,
+                'code' => $code,
+                'name' => null,
+                'active' => $canDeposit && $canWithdraw,
+                'deposit' => $canDeposit,
+                'withdraw' => $canWithdraw,
+                'fee' => null,
+                'precision' => $this->parse_number($firstPrecisionString),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+                'type' => 'crypto',
+                'info' => $coin,
+            ));
         }
         return $result;
     }
@@ -816,18 +816,20 @@ class coinex extends Exchange {
         //     {
         //         "code" => 0,
         //         "data" => array(
-        //             array(
-        //                 "base_ccy" => "SORA",
-        //                 "base_ccy_precision" => 8,
-        //                 "is_amm_available" => true,
-        //                 "is_margin_available" => false,
-        //                 "maker_fee_rate" => "0.003",
-        //                 "market" => "SORAUSDT",
-        //                 "min_amount" => "500",
+        //             {
+        //                 "market" => "BTCUSDT",
+        //                 "taker_fee_rate" => "0.002",
+        //                 "maker_fee_rate" => "0.002",
+        //                 "min_amount" => "0.0005",
+        //                 "base_ccy" => "BTC",
         //                 "quote_ccy" => "USDT",
-        //                 "quote_ccy_precision" => 6,
-        //                 "taker_fee_rate" => "0.003"
-        //             ),
+        //                 "base_ccy_precision" => 8,
+        //                 "quote_ccy_precision" => 2,
+        //                 "is_amm_available" => true,
+        //                 "is_margin_available" => true,
+        //                 "is_pre_trading_available" => true,
+        //                 "is_api_trading_available" => true
+        //             }
         //         ),
         //         "message" => "OK"
         //     }
@@ -853,11 +855,11 @@ class coinex extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => null,
+                'margin' => $this->safe_bool($market, 'is_margin_available'),
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => null,
+                'active' => $this->safe_bool($market, 'is_api_trading_available'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

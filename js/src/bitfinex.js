@@ -742,7 +742,8 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:pool',
             'pub:map:currency:explorer',
             'pub:map:currency:tx:fee',
-            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:map:tx:method',
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ];
         const config = labels.join(',');
         const request = {
@@ -825,42 +826,85 @@ export default class bitfinex extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         const indexed = {
-            'sym': this.indexBy(this.safeValue(response, 1, []), 0),
-            'label': this.indexBy(this.safeValue(response, 2, []), 0),
-            'unit': this.indexBy(this.safeValue(response, 3, []), 0),
-            'undl': this.indexBy(this.safeValue(response, 4, []), 0),
-            'pool': this.indexBy(this.safeValue(response, 5, []), 0),
-            'explorer': this.indexBy(this.safeValue(response, 6, []), 0),
-            'fees': this.indexBy(this.safeValue(response, 7, []), 0),
+            'sym': this.indexBy(this.safeList(response, 1, []), 0),
+            'label': this.indexBy(this.safeList(response, 2, []), 0),
+            'unit': this.indexBy(this.safeList(response, 3, []), 0),
+            'undl': this.indexBy(this.safeList(response, 4, []), 0),
+            'pool': this.indexBy(this.safeList(response, 5, []), 0),
+            'explorer': this.indexBy(this.safeList(response, 6, []), 0),
+            'fees': this.indexBy(this.safeList(response, 7, []), 0),
+            'networks': this.safeList(response, 8, []),
+            'statuses': this.indexBy(this.safeList(response, 9, []), 0),
         };
-        const ids = this.safeValue(response, 0, []);
+        const indexedNetworks = {};
+        for (let i = 0; i < indexed['networks'].length; i++) {
+            const networkObj = indexed['networks'][i];
+            const networkId = this.safeString(networkObj, 0);
+            const valuesList = this.safeList(networkObj, 1);
+            const networkName = this.safeString(valuesList, 0);
+            // for GOlang transpiler, do with "safe" method
+            const networksList = this.safeList(indexedNetworks, networkName, []);
+            networksList.push(networkId);
+            indexedNetworks[networkName] = networksList;
+        }
+        const ids = this.safeList(response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (id.indexOf('F0') >= 0) {
+            if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
             const code = this.safeCurrencyCode(id);
-            const label = this.safeValue(indexed['label'], id, []);
+            const label = this.safeList(indexed['label'], id, []);
             const name = this.safeString(label, 1);
-            const pool = this.safeValue(indexed['pool'], id, []);
+            const pool = this.safeList(indexed['pool'], id, []);
             const rawType = this.safeString(pool, 1);
             const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
             let type = undefined;
             if (isCryptoCoin) {
                 type = 'crypto';
             }
-            const feeValues = this.safeValue(indexed['fees'], id, []);
-            const fees = this.safeValue(feeValues, 1, []);
+            const feeValues = this.safeList(indexed['fees'], id, []);
+            const fees = this.safeList(feeValues, 1, []);
             const fee = this.safeNumber(fees, 1);
-            const undl = this.safeValue(indexed['undl'], id, []);
+            const undl = this.safeList(indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
-            result[code] = {
+            const dwStatuses = this.safeList(indexed['statuses'], id, []);
+            const depositEnabled = this.safeInteger(dwStatuses, 1) === 1;
+            const withdrawEnabled = this.safeInteger(dwStatuses, 2) === 1;
+            const networks = {};
+            const netwokIds = this.safeList(indexedNetworks, id, []);
+            for (let j = 0; j < netwokIds.length; j++) {
+                const networkId = netwokIds[j];
+                const network = this.networkIdToCode(networkId);
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase(),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': fid,
                 'uppercaseId': id,
                 'code': code,
@@ -868,8 +912,8 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': parseInt(precision),
                 'limits': {
@@ -882,40 +926,8 @@ export default class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
-            };
-            const networks = {};
-            const currencyNetworks = this.safeValue(response, 8, []);
-            const cleanId = id.replace('F0', '');
-            for (let j = 0; j < currencyNetworks.length; j++) {
-                const pair = currencyNetworks[j];
-                const networkId = this.safeString(pair, 0);
-                const currencyId = this.safeString(this.safeValue(pair, 1, []), 0);
-                if (currencyId === cleanId) {
-                    const network = this.networkIdToCode(networkId);
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.toLowerCase(),
-                        'network': networkId,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'precision': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    };
-                }
-            }
-            const keysNetworks = Object.keys(networks);
-            const networksLength = keysNetworks.length;
-            if (networksLength > 0) {
-                result[code]['networks'] = networks;
-            }
+                'networks': networks,
+            });
         }
         return result;
     }

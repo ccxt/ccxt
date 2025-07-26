@@ -1389,36 +1389,32 @@ export default class kucoin extends Exchange {
         //    }
         //
         const currenciesData = this.safeList(response, 'data', []);
+        const brokenCurrencies = this.safeList(this.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT']);
+        const otherFiats = this.safeList(this.options, 'fiats', ['KWD', 'IRR', 'PKR']);
         const result = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const id = this.safeString(entry, 'currency');
-            const name = this.safeString(entry, 'fullName');
+            if (this.inArray(id, brokenCurrencies)) {
+                continue; // skip buggy entries: https://t.me/KuCoin_API/217798
+            }
             const code = this.safeCurrencyCode(id);
             const networks = {};
             const chains = this.safeList(entry, 'chains', []);
-            const rawPrecision = this.safeString(entry, 'precision');
-            const precision = this.parseNumber(this.parsePrecision(rawPrecision));
             const chainsLength = chains.length;
-            if (!chainsLength) {
-                // one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
-                continue;
-            }
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
                 const networkCode = this.networkIdToCode(chainId, code);
-                const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
-                const chainDepositEnabled = this.safeBool(chain, 'isDepositEnabled', false);
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': this.safeString(chain, 'chainName'),
                     'code': networkCode,
-                    'active': chainWithdrawEnabled && chainDepositEnabled,
+                    'active': undefined,
                     'fee': this.safeNumber(chain, 'withdrawalMinFee'),
-                    'deposit': chainDepositEnabled,
-                    'withdraw': chainWithdrawEnabled,
+                    'deposit': this.safeBool(chain, 'isDepositEnabled'),
+                    'withdraw': this.safeBool(chain, 'isWithdrawEnabled'),
                     'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
@@ -1433,10 +1429,12 @@ export default class kucoin extends Exchange {
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
-            const isFiat = (rawPrecision === '2') && (chainsLength === 0);
+            const rawPrecision = this.safeString(entry, 'precision');
+            const precision = this.parseNumber(this.parsePrecision(rawPrecision));
+            const isFiat = this.inArray(id, otherFiats) || ((rawPrecision === '2') && (chainsLength === 0));
             result[code] = this.safeCurrencyStructure({
                 'id': id,
-                'name': name,
+                'name': this.safeString(entry, 'fullName'),
                 'code': code,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'precision': precision,
@@ -2697,7 +2695,7 @@ export default class kucoin extends Exchange {
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const trigger = this.safeBool(params, 'stop', false);
+        const trigger = this.safeBool2(params, 'trigger', 'stop', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         params = this.omit(params, 'stop');
@@ -2726,7 +2724,7 @@ export default class kucoin extends Exchange {
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

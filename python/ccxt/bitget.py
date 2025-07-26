@@ -194,6 +194,7 @@ class bitget(Exchange, ImplicitAPI):
                     'convert': 'https://api.{hostname}',
                     'copy': 'https://api.{hostname}',
                     'earn': 'https://api.{hostname}',
+                    'uta': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -308,6 +309,24 @@ class bitget(Exchange, ImplicitAPI):
                         'get': {
                             'v2/earn/loan/public/coinInfos': 2,
                             'v2/earn/loan/public/hour-interest': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/market/instruments': 1,
+                            'v3/market/tickers': 1,
+                            'v3/market/orderbook': 1,
+                            'v3/market/fills': 1,
+                            'v3/market/open-interest': 1,
+                            'v3/market/candles': 1,
+                            'v3/market/history-candles': 1,
+                            'v3/market/current-fund-rate': 1,
+                            'v3/market/history-fund-rate': 1,
+                            'v3/market/risk-reserve': 1,
+                            'v3/market/discount-rate': 1,
+                            'v3/market/margin-loans': 1,
+                            'v3/market/position-tier': 1,
+                            'v3/market/oi-limit': 2,
                         },
                     },
                 },
@@ -801,6 +820,56 @@ class bitget(Exchange, ImplicitAPI):
                     'common': {
                         'get': {
                             'v2/common/trade-rate': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/account/assets': 1,
+                            'v3/account/settings': 1,
+                            'v3/account/financial-records': 1,
+                            'v3/account/repayable-coins': 2,
+                            'v3/account/payment-coins': 2,
+                            'v3/account/convert-records': 1,
+                            'v3/account/transferable-coins': 2,
+                            'v3/account/sub-transfer-record': 4,
+                            'v3/ins-loan/transfered': 6.6667,
+                            'v3/ins-loan/symbols': 6.6667,
+                            'v3/ins-loan/risk-unit': 6.6667,
+                            'v3/ins-loan/repaid-history': 6.6667,
+                            'v3/ins-loan/product-infos': 6.6667,
+                            'v3/ins-loan/loan-order': 6.6667,
+                            'v3/ins-loan/ltv-convert': 6.6667,
+                            'v3/ins-loan/ensure-coins-convert': 6.6667,
+                            'v3/position/current-position': 1,
+                            'v3/position/history-position': 1,
+                            'v3/trade/order-info': 1,
+                            'v3/trade/unfilled-orders': 1,
+                            'v3/trade/history-orders': 1,
+                            'v3/trade/fills': 1,
+                            'v3/user/sub-list': 2,
+                            'v3/user/sub-api-list': 2,
+                        },
+                        'post': {
+                            'v3/account/set-leverage': 2,
+                            'v3/account/set-hold-mode': 2,
+                            'v3/account/repay': 4,
+                            'v3/account/transfer': 4,
+                            'v3/account/sub-transfer': 4,
+                            'v3/account/max-open-available': 4,
+                            'v3/ins-loan/bind-uid': 6.6667,
+                            'v3/trade/place-order': 2,
+                            'v3/trade/modify-order': 2,
+                            'v3/trade/cancel-order': 2,
+                            'v3/trade/place-batch': 4,
+                            'v3/trade/batch-modify-order': 2,
+                            'v3/trade/cancel-batch': 4,
+                            'v3/trade/cancel-symbol-order': 4,
+                            'v3/trade/close-positions': 4,
+                            'v3/user/create-sub': 2,
+                            'v3/user/freeze-sub': 2,
+                            'v3/user/create-sub-api': 2,
+                            'v3/user/update-sub-api': 2,
+                            'v3/user/delete-sub-api': 2,
                         },
                     },
                 },
@@ -1346,6 +1415,7 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
+                'uta': False,
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'timeframes': {
@@ -1380,10 +1450,9 @@ class bitget(Exchange, ImplicitAPI):
                         '1M': '1Mutc',
                     },
                 },
-                'fetchMarkets': [
-                    'spot',
-                    'swap',  # there is future markets but they use the same endpoints
-                ],
+                'fetchMarkets': {
+                    'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
+                },
                 'defaultType': 'spot',  # 'spot', 'swap', 'future'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
@@ -1566,6 +1635,8 @@ class bitget(Exchange, ImplicitAPI):
                     'method': 'privateMixGetV2MixPositionAllPosition',  # or privateMixGetV2MixPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                # fiat currencies on deposit page
+                'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
             },
             'features': {
                 'spot': {
@@ -1771,13 +1842,30 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/market/Get-Symbols
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
         https://www.bitget.com/api-doc/margin/common/support-currencies
+        https://www.bitget.bike/api-doc/uta/public/Instruments
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.uta]: set to True to fetch markets for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
+        if uta:
+            return self.fetch_uta_markets(params)
+        else:
+            return self.fetch_default_markets(params)
+
+    def fetch_default_markets(self, params) -> List[Market]:
+        types = None
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        defaultMarkets = ['spot', 'swap']
+        if fetchMarketsOptions is not None:
+            types = self.safe_list(fetchMarketsOptions, 'types', defaultMarkets)
+        else:
+            # for backward-compatibility
+            types = self.safe_list(self.options, 'fetchMarkets', defaultMarkets)
         promises = []
         fetchMargins = False
         for i in range(0, len(types)):
@@ -1809,12 +1897,6 @@ class bitget(Exchange, ImplicitAPI):
                 self.options['isolatedMarginPairsData'] = keysList
             else:
                 markets = self.array_concat(markets, data)
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
-    def parse_market(self, market: dict) -> Market:
         #
         # spot
         #
@@ -1872,146 +1954,388 @@ class bitget(Exchange, ImplicitAPI):
         #         "maintainTime": ""
         #     }
         #
-        marketId = self.safe_string(market, 'symbol')
-        quoteId = self.safe_string(market, 'quoteCoin')
-        baseId = self.safe_string(market, 'baseCoin')
-        quote = self.safe_currency_code(quoteId)
-        base = self.safe_currency_code(baseId)
-        supportMarginCoins = self.safe_value(market, 'supportMarginCoins', [])
-        settleId = None
-        if self.in_array(baseId, supportMarginCoins):
-            settleId = baseId
-        elif self.in_array(quoteId, supportMarginCoins):
-            settleId = quoteId
-        else:
-            settleId = self.safe_string(supportMarginCoins, 0)
-        settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote
-        type = None
-        swap = False
-        spot = False
-        future = False
-        contract = False
-        pricePrecision = None
-        amountPrecision = None
-        linear = None
-        inverse = None
-        expiry = None
-        expiryDatetime = None
-        symbolType = self.safe_string(market, 'symbolType')
-        marginModes = None
-        isMarginTradingAllowed = False
-        if symbolType is None:
-            type = 'spot'
-            spot = True
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            marketId = self.safe_string(market, 'symbol')
+            quoteId = self.safe_string(market, 'quoteCoin')
+            baseId = self.safe_string(market, 'baseCoin')
+            quote = self.safe_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            supportMarginCoins = self.safe_value(market, 'supportMarginCoins', [])
+            settleId = None
+            if self.in_array(baseId, supportMarginCoins):
+                settleId = baseId
+            elif self.in_array(quoteId, supportMarginCoins):
+                settleId = quoteId
+            else:
+                settleId = self.safe_string(supportMarginCoins, 0)
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            type = None
+            swap = False
+            spot = False
+            future = False
+            contract = False
+            pricePrecision = None
+            amountPrecision = None
+            linear = None
+            inverse = None
+            expiry = None
+            expiryDatetime = None
+            symbolType = self.safe_string(market, 'symbolType')
+            marginModes = None
+            isMarginTradingAllowed = False
+            if symbolType is None:
+                type = 'spot'
+                spot = True
+                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
+                hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
+                hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
+                marginModes = {
+                    'cross': hasCrossMargin,
+                    'isolated': hasIsolatedMargin,
+                }
+                isMarginTradingAllowed = hasCrossMargin or hasIsolatedMargin
+            else:
+                if symbolType == 'perpetual':
+                    type = 'swap'
+                    swap = True
+                    symbol = symbol + ':' + settle
+                elif symbolType == 'delivery':
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    expiryParts = expiryDatetime.split('-')
+                    yearPart = self.safe_string(expiryParts, 0)
+                    dayPart = self.safe_string(expiryParts, 2)
+                    year = yearPart[2:4]
+                    month = self.safe_string(expiryParts, 1)
+                    day = dayPart[0:2]
+                    expiryString = year + month + day
+                    type = 'future'
+                    future = True
+                    symbol = symbol + ':' + settle + '-' + expiryString
+                contract = True
+                inverse = (base == settle)
+                linear = not inverse
+                priceDecimals = self.safe_integer(market, 'pricePlace')
+                amountDecimals = self.safe_integer(market, 'volumePlace')
+                priceStep = self.safe_string(market, 'priceEndStep')
+                amountStep = self.safe_string(market, 'sizeMultiplier')
+                precise = Precise(priceStep)
+                precise.decimals = max(precise.decimals, priceDecimals)
+                precise.reduce()
+                priceString = str(precise)
+                pricePrecision = self.parse_number(priceString)
+                preciseAmount = Precise(amountStep)
+                preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
+                preciseAmount.reduce()
+                amountString = str(preciseAmount)
+                amountPrecision = self.parse_number(amountString)
+                marginModes = {
+                    'cross': True,
+                    'isolated': True,
+                }
+            status = self.safe_string_2(market, 'status', 'symbolStatus')
+            active = None
+            if status is not None:
+                active = ((status == 'online') or (status == 'normal'))
+            minCost = None
+            if quote == 'USDT':
+                minCost = self.safe_number(market, 'minTradeUSDT')
+            contractSize = 1 if contract else None
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': spot and isMarginTradingAllowed,
+                'marginModes': marginModes,
+                'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_number(market, 'minLever'),
+                        'max': self.safe_number(market, 'maxLever'),
+                    },
+                    'amount': {
+                        'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                        'max': self.safe_number(market, 'maxTradeAmount'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': None,
+                    },
+                },
+                'created': self.safe_integer(market, 'launchTime'),
+                'info': market,
+            }))
+        return result
+
+    def fetch_uta_markets(self, params) -> List[Market]:
+        subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
+        promises = []
+        for i in range(0, len(subTypes)):
+            req = self.extend(params, {
+                'category': subTypes[i],
+            })
+            promises.append(self.publicUtaGetV3MarketInstruments(req))
+        results = promises
+        markets = []
+        for i in range(0, len(results)):
+            res = self.safe_dict(results, i)
+            data = self.safe_list(res, 'data', [])
+            markets = self.array_concat(markets, data)
+        #
+        # spot uta
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "category": "SPOT",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDT",
+        #         "buyLimitPriceRatio": "0.05",
+        #         "sellLimitPriceRatio": "0.05",
+        #         "minOrderQty": "0.000001",
+        #         "maxOrderQty": "0",
+        #         "pricePrecision": "2",
+        #         "quantityPrecision": "6",
+        #         "quotePrecision": "8",
+        #         "minOrderAmount": "1",
+        #         "maxSymbolOrderNum": "400",
+        #         "maxProductOrderNum": "400",
+        #         "status": "online",
+        #         "maintainTime": ""
+        #     }
+        #
+        # margin uta
+        #
+        #     {
+        #         "symbol": "BTCUSDC",
+        #         "category": "MARGIN",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDC",
+        #         "buyLimitPriceRatio": "0.05",
+        #         "sellLimitPriceRatio": "0.05",
+        #         "minOrderQty": "0.00001",
+        #         "maxOrderQty": "0",
+        #         "pricePrecision": "2",
+        #         "quantityPrecision": "5",
+        #         "quotePrecision": "7",
+        #         "minOrderAmount": "1",
+        #         "maxSymbolOrderNum": "400",
+        #         "maxProductOrderNum": "400",
+        #         "status": "online",
+        #         "maintainTime": "",
+        #         "isIsolatedBaseBorrowable": "NO",
+        #         "isIsolatedQuotedBorrowable": "NO",
+        #         "warningRiskRatio": "0.8",
+        #         "liquidationRiskRatio": "1",
+        #         "maxCrossedLeverage": "3",
+        #         "maxIsolatedLeverage": "0",
+        #         "userMinBorrow": "0.00000001",
+        #         "areaSymbol": "no"
+        #     }
+        #
+        # swap and future uta
+        #
+        #     {
+        #         "symbol": "BTCPERP",
+        #         "category": "USDC-FUTURES",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDC",
+        #         "buyLimitPriceRatio": "0.02",
+        #         "sellLimitPriceRatio": "0.02",
+        #         "feeRateUpRatio": "0.005",
+        #         "makerFeeRate": "0.0002",
+        #         "takerFeeRate": "0.0006",
+        #         "openCostUpRatio": "0.01",
+        #         "minOrderQty": "0.0001",
+        #         "maxOrderQty": "",
+        #         "pricePrecision": "1",
+        #         "quantityPrecision": "4",
+        #         "quotePrecision": null,
+        #         "priceMultiplier": "0.5",
+        #         "quantityMultiplier": "0.0001",
+        #         "type": "perpetual",
+        #         "minOrderAmount": "5",
+        #         "maxSymbolOrderNum": "200",
+        #         "maxProductOrderNum": "1000",
+        #         "maxPositionNum": "150",
+        #         "status": "online",
+        #         "offTime": "-1",
+        #         "limitOpenTime": "-1",
+        #         "deliveryTime": "",
+        #         "deliveryStartTime": "",
+        #         "deliveryPeriod": "",
+        #         "launchTime": "",
+        #         "fundInterval": "8",
+        #         "minLeverage": "1",
+        #         "maxLeverage": "125",
+        #         "maintainTime": ""
+        #     }
+        #
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            category = self.safe_string(market, 'category')
+            marketId = self.safe_string(market, 'symbol')
+            quoteId = self.safe_string(market, 'quoteCoin')
+            baseId = self.safe_string(market, 'baseCoin')
+            quote = self.safe_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            settleId = None
+            settle = None
+            if category == 'USDT-FUTURES':
+                settleId = 'USDT'
+            elif category == 'USDC-FUTURES':
+                settleId = 'USDC'
+            elif category == 'COIN-FUTURES':
+                settleId = base
+            if settleId is not None:
+                settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            type = None
+            swap = False
+            spot = False
+            future = False
+            contract = False
+            pricePrecision = None
+            amountPrecision = None
+            linear = None
+            inverse = None
+            expiry = None
+            expiryDatetime = None
+            symbolType = self.safe_string(market, 'type')
+            marginModes = None
+            isMarginTradingAllowed = False
+            isUtaMargin = (category == 'MARGIN')
+            if isUtaMargin or (category == 'SPOT'):
+                type = 'spot'
+                spot = True
+                if isUtaMargin:
+                    isolatedBase = self.safe_string(market, 'isIsolatedBaseBorrowable')
+                    isolatedQuote = self.safe_string(market, 'isIsolatedQuotedBorrowable')
+                    isolated = (isolatedBase == 'YES') or (isolatedQuote == 'YES')
+                    maxCrossLeverage = self.safe_string(market, 'maxCrossedLeverage')
+                    cross = (maxCrossLeverage != '0')
+                    marginModes = {
+                        'cross': cross,
+                        'isolated': isolated,
+                    }
+                    isMarginTradingAllowed = True
+            else:
+                if symbolType == 'perpetual':
+                    type = 'swap'
+                    swap = True
+                    symbol = symbol + ':' + settle
+                elif symbolType == 'delivery':
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    expiryParts = expiryDatetime.split('-')
+                    yearPart = self.safe_string(expiryParts, 0)
+                    dayPart = self.safe_string(expiryParts, 2)
+                    year = yearPart[2:4]
+                    month = self.safe_string(expiryParts, 1)
+                    day = dayPart[0:2]
+                    expiryString = year + month + day
+                    type = 'future'
+                    future = True
+                    symbol = symbol + ':' + settle + '-' + expiryString
+                contract = True
+                inverse = (base == settle)
+                linear = not inverse
+                marginModes = {
+                    'cross': True,
+                    'isolated': True,
+                }
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
-            hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
-            hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
-            marginModes = {
-                'cross': hasCrossMargin,
-                'isolated': hasIsolatedMargin,
-            }
-            isMarginTradingAllowed = hasCrossMargin or hasCrossMargin
-        else:
-            if symbolType == 'perpetual':
-                type = 'swap'
-                swap = True
-                symbol = symbol + ':' + settle
-            elif symbolType == 'delivery':
-                expiry = self.safe_integer(market, 'deliveryTime')
-                expiryDatetime = self.iso8601(expiry)
-                expiryParts = expiryDatetime.split('-')
-                yearPart = self.safe_string(expiryParts, 0)
-                dayPart = self.safe_string(expiryParts, 2)
-                year = yearPart[2:4]
-                month = self.safe_string(expiryParts, 1)
-                day = dayPart[0:2]
-                expiryString = year + month + day
-                type = 'future'
-                future = True
-                symbol = symbol + ':' + settle + '-' + expiryString
-            contract = True
-            inverse = (base == settle)
-            linear = not inverse
-            priceDecimals = self.safe_integer(market, 'pricePlace')
-            amountDecimals = self.safe_integer(market, 'volumePlace')
-            priceStep = self.safe_string(market, 'priceEndStep')
-            amountStep = self.safe_string(market, 'sizeMultiplier')
-            precise = Precise(priceStep)
-            precise.decimals = max(precise.decimals, priceDecimals)
-            precise.reduce()
-            priceString = str(precise)
-            pricePrecision = self.parse_number(priceString)
-            preciseAmount = Precise(amountStep)
-            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
-            preciseAmount.reduce()
-            amountString = str(preciseAmount)
-            amountPrecision = self.parse_number(amountString)
-            marginModes = {
-                'cross': True,
-                'isolated': True,
-            }
-        status = self.safe_string_2(market, 'status', 'symbolStatus')
-        active = None
-        if status is not None:
-            active = ((status == 'online') or (status == 'normal'))
-        minCost = None
-        if quote == 'USDT':
-            minCost = self.safe_number(market, 'minTradeUSDT')
-        contractSize = 1 if contract else None
-        return {
-            'id': marketId,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': settle,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
-            'type': type,
-            'spot': spot,
-            'margin': spot and isMarginTradingAllowed,
-            'marginModes': marginModes,
-            'swap': swap,
-            'future': future,
-            'option': False,
-            'active': active,
-            'contract': contract,
-            'linear': linear,
-            'inverse': inverse,
-            'taker': self.safe_number(market, 'takerFeeRate'),
-            'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': contractSize,
-            'expiry': expiry,
-            'expiryDatetime': expiryDatetime,
-            'strike': None,
-            'optionType': None,
-            'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            },
-            'limits': {
-                'leverage': {
-                    'min': self.safe_number(market, 'minLever'),
-                    'max': self.safe_number(market, 'maxLever'),
+            status = self.safe_string(market, 'status')
+            active = None
+            if status is not None:
+                active = ((status == 'online') or (status == 'normal'))
+            contractSize = 1 if contract else None
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': spot and isMarginTradingAllowed,
+                'marginModes': marginModes,
+                'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
-                'amount': {
-                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
-                    'max': self.safe_number(market, 'maxTradeAmount'),
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_number(market, 'minLeverage'),
+                        'max': self.safe_number(market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderQty'),
+                        'max': self.safe_number(market, 'maxOrderQty'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': None,
-                },
-            },
-            'created': self.safe_integer(market, 'launchTime'),
-            'info': market,
-        }
+                'created': self.safe_integer(market, 'launchTime'),
+                'info': market,
+            }))
+        return result
 
     def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -2058,6 +2382,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         result: dict = {}
         data = self.safe_value(response, 'data', [])
+        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
         for i in range(0, len(data)):
             entry = data[i]
             id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
@@ -2068,8 +2393,7 @@ class bitget(Exchange, ImplicitAPI):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                if network is not None:
-                    network = network.upper()
+                network = network.upper()
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2090,12 +2414,13 @@ class bitget(Exchange, ImplicitAPI):
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
                 }
+            isFiat = self.in_array(code, fiatCurrencies)
             result[code] = self.safe_currency_structure({
                 'info': entry,
                 'id': id,
                 'code': code,
                 'networks': networks,
-                'type': None,
+                'type': 'fiat' if isFiat else 'crypto',
                 'name': None,
                 'active': None,
                 'deposit': None,
@@ -2367,7 +2692,7 @@ class bitget(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': self.currency_to_precision(code, amount, networkCode),
             'transferType': 'on_chain',
         }
         if tag is not None:
@@ -2391,8 +2716,6 @@ class bitget(Exchange, ImplicitAPI):
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             result['currency'] = code
-            result['timestamp'] = self.milliseconds()
-            result['datetime'] = self.iso8601(self.milliseconds())
             result['amount'] = amount
             result['tag'] = tag
             result['address'] = address
@@ -2510,7 +2833,9 @@ class bitget(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status')
         tag = self.safe_string(transaction, 'tag')
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCostAbsString = Precise.string_abs(feeCostString)
+        feeCostAbsString = None
+        if feeCostString is not None:
+            feeCostAbsString = Precise.string_abs(feeCostString)
         fee = None
         amountString = self.safe_string(transaction, 'size')
         if feeCostAbsString is not None:
@@ -3403,6 +3728,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
+        :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -3411,11 +3737,13 @@ class bitget(Exchange, ImplicitAPI):
         defaultLimit = 100  # default 100, max 1000
         maxLimitForRecentEndpoint = 1000
         maxLimitForHistoryEndpoint = 200  # note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+        useHistoryEndpointForPagination = self.safe_bool(params, 'useHistoryEndpointForPagination', True)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint)
-        useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
+            limitForPagination = maxLimitForHistoryEndpoint if useHistoryEndpointForPagination else maxLimitForRecentEndpoint
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination)
         market = self.market(symbol)
         marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
@@ -3783,82 +4111,35 @@ class bitget(Exchange, ImplicitAPI):
         #         "result": "success"
         #     }
         #
-        # spot: fetchOrder
-        #
-        #     {
-        #         "userId": "7264631750",
-        #         "symbol": "BTCUSDT",
-        #         "orderId": "1111461743123927040",
-        #         "clientOid": "63f95110-93b5-4309-8f77-46339f1bcf3c",
-        #         "price": "25000.0000000000000000",
-        #         "size": "0.0002000000000000",
-        #         "orderType": "limit",
-        #         "side": "buy",
-        #         "status": "live",
-        #         "priceAvg": "0",
-        #         "baseVolume": "0.0000000000000000",
-        #         "quoteVolume": "0.0000000000000000",
-        #         "enterPointSource": "API",
-        #         "feeDetail": "",
-        #         "orderSource": "normal",
-        #         "cTime": "1700719050198",
-        #         "uTime": "1700719050198"
-        #     }
-        #
-        # swap and future: fetchOrder
-        #
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "size": "0.001",
-        #         "orderId": "1111465253393825792",
-        #         "clientOid": "1111465253431574529",
-        #         "baseVolume": "0",
-        #         "fee": "0",
-        #         "price": "27000",
-        #         "priceAvg": "",
-        #         "state": "live",
-        #         "side": "buy",
-        #         "force": "gtc",
-        #         "totalProfits": "0",
-        #         "posSide": "long",
-        #         "marginCoin": "USDT",
-        #         "presetStopSurplusPrice": "",
-        #         "presetStopLossPrice": "",
-        #         "quoteVolume": "0",
-        #         "orderType": "limit",
-        #         "leverage": "20",
-        #         "marginMode": "crossed",
-        #         "reduceOnly": "NO",
-        #         "enterPointSource": "API",
-        #         "tradeSide": "open",
-        #         "posMode": "hedge_mode",
-        #         "orderSource": "normal",
-        #         "cTime": "1700719887120",
-        #         "uTime": "1700719887120"
-        #     }
-        #
-        # spot: fetchOpenOrders
+        # spot: fetchOrder, fetchOpenOrders, fetchCanceledAndClosedOrders
         #
         #     {
         #         "userId": "7264631750",
         #         "symbol": "BTCUSDT",
         #         "orderId": "1111499608327360513",
         #         "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
-        #         "priceAvg": "25000.0000000000000000",
-        #         "size": "0.0002000000000000",
+        #         "size": "0.0002000000000000",  # COST for 'buy market' order! AMOUNT in all other cases
+        #         "price": "0",  # in fetchOrder: 0 for market order, otherwise limit price(field not present in fetchOpenOrders
         #         "orderType": "limit",
         #         "side": "buy",
         #         "status": "live",
         #         "basePrice": "0",
-        #         "baseVolume": "0.0000000000000000",
-        #         "quoteVolume": "0.0000000000000000",
+        #         "priceAvg": "25000.0000000000000000",   # 0 if nothing filled
+        #         "baseVolume": "0.0000000000000000",     # 0 if nothing filled
+        #         "quoteVolume": "0.0000000000000000",    # 0 if nothing filled
         #         "enterPointSource": "WEB",
         #         "orderSource": "normal",
         #         "cTime": "1700728077966",
         #         "uTime": "1700728077966"
+        #         "feeDetail": "{\\"newFees\\":{\\"c\\":0,\\"d\\":0,\\"deduction\\":false,\\"r\\":-0.0064699886,\\"t\\":-0.0064699886,\\"totalDeductionFee\\":0},\\"USDT\\":{\\"deduction\\":false,\\"feeCoinCode\\":\\"USDT\\",\\"totalDeductionFee\\":0,\\"totalFee\\":-0.0064699886000000}}",  # might not be present in fetchOpenOrders
+        #         "triggerPrice": null,
+        #         "tpslType": "normal",
+        #         "quoteCoin": "USDT",  # not present in fetchOpenOrders
+        #         "baseCoin": "DOT",    # not present in fetchOpenOrders
+        #         "cancelReason": "",   # not present in fetchOpenOrders
         #     }
         #
-        # spot stop: fetchOpenOrders, fetchCanceledAndClosedOrders
+        # spot trigger: fetchOpenOrders, fetchCanceledAndClosedOrders
         #
         #     {
         #         "orderId": "1111503385931620352",
@@ -3899,18 +4180,19 @@ class bitget(Exchange, ImplicitAPI):
         #         "uTime": "1700729691866"
         #     }
         #
-        # swap: fetchOpenOrders, fetchCanceledAndClosedOrders
+        # swap and future: fetchOrder, fetchOpenOrders, fetchCanceledAndClosedOrders
         #
         #     {
         #         "symbol": "BTCUSDT",
-        #         "size": "0.002",
-        #         "orderId": "1111488897767604224",
-        #         "clientOid": "1111488897805352960",
+        #         "size": "0.001",
+        #         "orderId": "1111465253393825792",
+        #         "clientOid": "1111465253431574529",
         #         "baseVolume": "0",
         #         "fee": "0",
-        #         "price": "25000",
+        #         "price": "27000",
         #         "priceAvg": "",
-        #         "status": "live",
+        #         "state": "live",
+        #         # "status": "live",  # key for fetchOpenOrders, fetchClosedOrders
         #         "side": "buy",
         #         "force": "gtc",
         #         "totalProfits": "0",
@@ -3919,7 +4201,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "quoteVolume": "0",
         #         "leverage": "20",
         #         "marginMode": "crossed",
-        #         "enterPointSource": "web",
+        #         "enterPointSource": "API",
         #         "tradeSide": "open",
         #         "posMode": "hedge_mode",
         #         "orderType": "limit",
@@ -3927,94 +4209,22 @@ class bitget(Exchange, ImplicitAPI):
         #         "presetStopSurplusPrice": "",
         #         "presetStopLossPrice": "",
         #         "reduceOnly": "NO",
-        #         "cTime": "1700725524378",
-        #         "uTime": "1700725524378"
-        #     }
+        #         "cTime": "1700719887120",
+        #         "uTime": "1700719887120"
         #
-        # swap stop: fetchOpenOrders
+        #     for swap trigger order, the additional below fields are present:
         #
-        #     {
         #         "planType": "normal_plan",
-        #         "symbol": "BTCUSDT",
-        #         "size": "0.001",
-        #         "orderId": "1111491399869075457",
-        #         "clientOid": "1111491399869075456",
-        #         "price": "27000",
         #         "callbackRatio": "",
         #         "triggerPrice": "24000",
         #         "triggerType": "mark_price",
         #         "planStatus": "live",
-        #         "side": "buy",
-        #         "posSide": "long",
-        #         "marginCoin": "USDT",
-        #         "marginMode": "crossed",
-        #         "enterPointSource": "API",
-        #         "tradeSide": "open",
-        #         "posMode": "hedge_mode",
-        #         "orderType": "limit",
         #         "stopSurplusTriggerPrice": "",
         #         "stopSurplusExecutePrice": "",
         #         "stopSurplusTriggerType": "fill_price",
         #         "stopLossTriggerPrice": "",
         #         "stopLossExecutePrice": "",
         #         "stopLossTriggerType": "fill_price",
-        #         "cTime": "1700726120917",
-        #         "uTime": "1700726120917"
-        #     }
-        #
-        # spot: fetchCanceledAndClosedOrders
-        #
-        #     {
-        #         "userId": "7264631750",
-        #         "symbol": "BTCUSDT",
-        #         "orderId": "1111499608327360513",
-        #         "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
-        #         "price": "25000.0000000000000000",
-        #         "size": "0.0002000000000000",
-        #         "orderType": "limit",
-        #         "side": "buy",
-        #         "status": "cancelled",
-        #         "priceAvg": "0",
-        #         "baseVolume": "0.0000000000000000",
-        #         "quoteVolume": "0.0000000000000000",
-        #         "enterPointSource": "WEB",
-        #         "feeDetail": "",
-        #         "orderSource": "normal",
-        #         "cTime": "1700728077966",
-        #         "uTime": "1700728911471"
-        #     }
-        #
-        # swap stop: fetchCanceledAndClosedOrders
-        #
-        #     {
-        #         "planType": "normal_plan",
-        #         "symbol": "BTCUSDT",
-        #         "size": "0.001",
-        #         "orderId": "1111491399869075457",
-        #         "clientOid": "1111491399869075456",
-        #         "planStatus": "cancelled",
-        #         "price": "27000",
-        #         "feeDetail": null,
-        #         "baseVolume": "0",
-        #         "callbackRatio": "",
-        #         "triggerPrice": "24000",
-        #         "triggerType": "mark_price",
-        #         "side": "buy",
-        #         "posSide": "long",
-        #         "marginCoin": "USDT",
-        #         "marginMode": "crossed",
-        #         "enterPointSource": "API",
-        #         "tradeSide": "open",
-        #         "posMode": "hedge_mode",
-        #         "orderType": "limit",
-        #         "stopSurplusTriggerPrice": "",
-        #         "stopSurplusExecutePrice": "",
-        #         "stopSurplusTriggerType": "fill_price",
-        #         "stopLossTriggerPrice": "",
-        #         "stopLossExecutePrice": "",
-        #         "stopLossTriggerType": "fill_price",
-        #         "cTime": "1700726120917",
-        #         "uTime": "1700727879652"
         #     }
         #
         errorMessage = self.safe_string(order, 'errorMsg')
@@ -4034,6 +4244,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(order, 'cTime', 'ctime')
         updateTimestamp = self.safe_integer(order, 'uTime')
         rawStatus = self.safe_string_2(order, 'status', 'state')
+        rawStatus = self.safe_string(order, 'planStatus', rawStatus)
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
@@ -4091,6 +4302,11 @@ class bitget(Exchange, ImplicitAPI):
             side = 'sell' if (side == 'buy') else 'buy'
             # on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
             # so the side of the reduceOnly order is inversed
+        orderType = self.safe_string(order, 'orderType')
+        isBuyMarket = (side == 'buy') and (orderType == 'market')
+        if market['spot'] and isBuyMarket:
+            # in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
+            size = self.safe_string(order, 'baseVolume')
         return self.safe_order({
             'info': order,
             'id': self.safe_string_2(order, 'orderId', 'data'),
@@ -4100,7 +4316,7 @@ class bitget(Exchange, ImplicitAPI):
             'lastTradeTimestamp': updateTimestamp,
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
-            'type': self.safe_string(order, 'orderType'),
+            'type': orderType,
             'side': side,
             'price': price,
             'amount': size,

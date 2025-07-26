@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class coinmetro extends Exchange {
@@ -213,6 +214,7 @@ class coinmetro extends Exchange {
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
                 'currencyIdsListForParseMarket' => array( 'QRDO' ),
+                'skippedMarkets' => array( 'VXVUSDT' ), // broken markets which do not have enough info in API
             ),
             'features' => array(
                 'spot' => array(
@@ -382,24 +384,38 @@ class coinmetro extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'symbol');
                 $code = $this->safe_currency_code($id);
-                $withdraw = $this->safe_value($currency, 'canWithdraw');
-                $deposit = $this->safe_value($currency, 'canDeposit');
-                $canTrade = $this->safe_value($currency, 'canTrade');
-                $active = $canTrade ? $withdraw : true;
-                $minAmount = $this->safe_number($currency, 'minQty');
+                $typeRaw = $this->safe_string($currency, 'type');
+                $type = null;
+                if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20') {
+                    $type = 'crypto';
+                } elseif ($typeRaw === 'fiat') {
+                    $type = 'fiat';
+                }
+                $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
+                if ($code === 'RENDER') {
+                    // RENDER is an exception (with broken info)
+                    $precisionDigits = '4';
+                }
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'name' => $code,
+                    'type' => $type,
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => $this->safe_bool($currency, 'canTrade'),
+                    'deposit' => $this->safe_bool($currency, 'canDeposit'),
+                    'withdraw' => $this->safe_bool($currency, 'canWithdraw'),
                     'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'digits'))),
+                    'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
                     'limits' => array(
-                        'amount' => array( 'min' => $minAmount, 'max' => null ),
-                        'withdraw' => array( 'min' => null, 'max' => null ),
+                        'amount' => array(
+                            'min' => $this->safe_number($currency, 'minQty'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
                     'networks' => array(),
                 ));
@@ -426,12 +442,15 @@ class coinmetro extends Exchange {
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
+             * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetMarkets ($params));
+            $promises = array();
+            $promises[] = $this->publicGetMarkets ($params);
             if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-                Async\await($this->fetch_currencies());
+                $promises[] = $this->fetch_currencies();
             }
+            $responses = Async\await(Promise\all($promises));
+            $response = $responses[0];
             //
             //     array(
             //         array(
@@ -447,7 +466,16 @@ class coinmetro extends Exchange {
             //         ...
             //     )
             //
-            return $this->parse_markets($response);
+            $skippedMarkets = $this->safe_list($this->options, 'skippedMarkets', array());
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $market = $this->parse_market($response[$i]);
+                if ($this->in_array($market['id'], $skippedMarkets)) {
+                    continue;
+                }
+                $result[] = $market;
+            }
+            return $result;
         }) ();
     }
 

@@ -751,6 +751,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method',  # maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status',  # maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ]
         config = ','.join(labels)
         request: dict = {
@@ -833,40 +834,81 @@ class bitfinex(Exchange, ImplicitAPI):
         #             ["ABS",[0,131.3]],
         #             ["ADA",[0,0.3]],
         #         ],
+        #         # deposit/withdrawal data
+        #         [
+        #           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        #           ...
+        #         ]
         #     ]
         #
         indexed: dict = {
-            'sym': self.index_by(self.safe_value(response, 1, []), 0),
-            'label': self.index_by(self.safe_value(response, 2, []), 0),
-            'unit': self.index_by(self.safe_value(response, 3, []), 0),
-            'undl': self.index_by(self.safe_value(response, 4, []), 0),
-            'pool': self.index_by(self.safe_value(response, 5, []), 0),
-            'explorer': self.index_by(self.safe_value(response, 6, []), 0),
-            'fees': self.index_by(self.safe_value(response, 7, []), 0),
+            'sym': self.index_by(self.safe_list(response, 1, []), 0),
+            'label': self.index_by(self.safe_list(response, 2, []), 0),
+            'unit': self.index_by(self.safe_list(response, 3, []), 0),
+            'undl': self.index_by(self.safe_list(response, 4, []), 0),
+            'pool': self.index_by(self.safe_list(response, 5, []), 0),
+            'explorer': self.index_by(self.safe_list(response, 6, []), 0),
+            'fees': self.index_by(self.safe_list(response, 7, []), 0),
+            'networks': self.safe_list(response, 8, []),
+            'statuses': self.index_by(self.safe_list(response, 9, []), 0),
         }
-        ids = self.safe_value(response, 0, [])
+        indexedNetworks: dict = {}
+        for i in range(0, len(indexed['networks'])):
+            networkObj = indexed['networks'][i]
+            networkId = self.safe_string(networkObj, 0)
+            valuesList = self.safe_list(networkObj, 1)
+            networkName = self.safe_string(valuesList, 0)
+            # for GOlang transpiler, do with "safe" method
+            networksList = self.safe_list(indexedNetworks, networkName, [])
+            networksList.append(networkId)
+            indexedNetworks[networkName] = networksList
+        ids = self.safe_list(response, 0, [])
         result: dict = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            if id.find('F0') >= 0:
+            if id.endswith('F0'):
                 # we get a lot of F0 currencies, skip those
                 continue
             code = self.safe_currency_code(id)
-            label = self.safe_value(indexed['label'], id, [])
+            label = self.safe_list(indexed['label'], id, [])
             name = self.safe_string(label, 1)
-            pool = self.safe_value(indexed['pool'], id, [])
+            pool = self.safe_list(indexed['pool'], id, [])
             rawType = self.safe_string(pool, 1)
             isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
             type = None
             if isCryptoCoin:
                 type = 'crypto'
-            feeValues = self.safe_value(indexed['fees'], id, [])
-            fees = self.safe_value(feeValues, 1, [])
+            feeValues = self.safe_list(indexed['fees'], id, [])
+            fees = self.safe_list(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
-            undl = self.safe_value(indexed['undl'], id, [])
+            undl = self.safe_list(indexed['undl'], id, [])
             precision = '8'  # default precision, todo: fix "magic constants"
             fid = 'f' + id
-            result[code] = {
+            dwStatuses = self.safe_list(indexed['statuses'], id, [])
+            depositEnabled = self.safe_integer(dwStatuses, 1) == 1
+            withdrawEnabled = self.safe_integer(dwStatuses, 2) == 1
+            networks: dict = {}
+            netwokIds = self.safe_list(indexedNetworks, id, [])
+            for j in range(0, len(netwokIds)):
+                networkId = netwokIds[j]
+                network = self.network_id_to_code(networkId)
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.lower(),
+                    'network': networkId,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': fid,
                 'uppercaseId': id,
                 'code': code,
@@ -874,8 +916,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 'type': type,
                 'name': name,
                 'active': True,
-                'deposit': None,
-                'withdraw': None,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {
@@ -888,37 +930,8 @@ class bitfinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
-            }
-            networks: dict = {}
-            currencyNetworks = self.safe_value(response, 8, [])
-            cleanId = id.replace('F0', '')
-            for j in range(0, len(currencyNetworks)):
-                pair = currencyNetworks[j]
-                networkId = self.safe_string(pair, 0)
-                currencyId = self.safe_string(self.safe_value(pair, 1, []), 0)
-                if currencyId == cleanId:
-                    network = self.network_id_to_code(networkId)
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.lower(),
-                        'network': networkId,
-                        'active': None,
-                        'deposit': None,
-                        'withdraw': None,
-                        'fee': None,
-                        'precision': None,
-                        'limits': {
-                            'withdraw': {
-                                'min': None,
-                                'max': None,
-                            },
-                        },
-                    }
-            keysNetworks = list(networks.keys())
-            networksLength = len(keysNetworks)
-            if networksLength > 0:
-                result[code]['networks'] = networks
+                'networks': networks,
+            })
         return result
 
     def fetch_balance(self, params={}) -> Balances:

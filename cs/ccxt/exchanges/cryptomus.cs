@@ -23,11 +23,15 @@ public partial class cryptomus : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", false },
                 { "cancelAllOrdersAfter", false },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "cancelWithdraw", false },
+                { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createConvertTrade", false },
                 { "createDepositAddress", false },
@@ -37,6 +41,8 @@ public partial class cryptomus : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
                 { "createStopLossOrder", false },
@@ -48,6 +54,12 @@ public partial class cryptomus : Exchange
                 { "createTriggerOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrder", false },
@@ -56,27 +68,48 @@ public partial class cryptomus : Exchange
                 { "fetchConvertQuote", false },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", false },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", false },
                 { "fetchOHLCV", false },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -87,7 +120,9 @@ public partial class cryptomus : Exchange
                 { "fetchPositions", false },
                 { "fetchPositionsForSymbol", false },
                 { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
                 { "fetchTicker", false },
                 { "fetchTickers", true },
@@ -97,11 +132,16 @@ public partial class cryptomus : Exchange
                 { "fetchTradingFees", true },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "sandbox", false },
                 { "setLeverage", false },
                 { "setMargin", false },
+                { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
                 { "withdraw", false },
@@ -361,123 +401,47 @@ public partial class cryptomus : Exchange
         //     }
         //
         object coins = this.safeList(response, "result");
+        object groupedById = this.groupBy(coins, "currency_code");
+        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object currency = getValue(coins, i);
-            object currencyId = this.safeString(currency, "currency_code");
-            object code = this.safeCurrencyCode(currencyId);
-            object allowWithdraw = this.safeBool(currency, "can_withdraw");
-            object allowDeposit = this.safeBool(currency, "can_deposit");
-            object isActive = isTrue(allowWithdraw) && isTrue(allowDeposit);
-            object networkId = this.safeString(currency, "network_code");
-            object networksById = this.safeDict(this.options, "networksById");
-            object networkName = this.safeString(networksById, networkId, networkId);
-            object minWithdraw = this.safeNumber(currency, "min_withdraw");
-            object maxWithdraw = this.safeNumber(currency, "max_withdraw");
-            object minDeposit = this.safeNumber(currency, "min_deposit");
-            object maxDeposit = this.safeNumber(currency, "max_deposit");
-            object network = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkName },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", maxWithdraw },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", maxDeposit },
-                    } },
-                } },
-                { "active", isActive },
-                { "deposit", allowDeposit },
-                { "withdraw", allowWithdraw },
-                { "fee", null },
-                { "precision", null },
-                { "info", currency },
-            };
+            object id = getValue(keys, i);
+            object code = this.safeCurrencyCode(id);
             object networks = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)networks)[(string)networkName] = network;
-            if (!isTrue((inOp(result, code))))
+            object networkEntries = getValue(groupedById, id);
+            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", currencyId },
-                    { "code", code },
-                    { "precision", null },
-                    { "type", null },
-                    { "name", null },
-                    { "active", isActive },
-                    { "deposit", allowDeposit },
-                    { "withdraw", allowWithdraw },
-                    { "fee", null },
+                object networkEntry = getValue(networkEntries, j);
+                object networkId = this.safeString(networkEntry, "network_code");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdraw },
-                            { "max", maxWithdraw },
+                            { "min", this.safeNumber(networkEntry, "min_withdraw") },
+                            { "max", this.safeNumber(networkEntry, "max_withdraw") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
-                            { "max", maxDeposit },
+                            { "min", this.safeNumber(networkEntry, "min_deposit") },
+                            { "max", this.safeNumber(networkEntry, "max_deposit") },
                         } },
                     } },
-                    { "networks", networks },
-                    { "info", currency },
+                    { "active", null },
+                    { "deposit", this.safeBool(networkEntry, "can_withdraw") },
+                    { "withdraw", this.safeBool(networkEntry, "can_deposit") },
+                    { "fee", null },
+                    { "precision", null },
+                    { "info", networkEntry },
                 };
-            } else
-            {
-                object parsed = getValue(result, code);
-                object parsedNetworks = this.safeDict(parsed, "networks");
-                ((IDictionary<string,object>)parsed)["networks"] = this.extend(parsedNetworks, networks);
-                if (isTrue(isActive))
-                {
-                    ((IDictionary<string,object>)parsed)["active"] = true;
-                    ((IDictionary<string,object>)parsed)["deposit"] = true;
-                    ((IDictionary<string,object>)parsed)["withdraw"] = true;
-                } else
-                {
-                    if (isTrue(allowWithdraw))
-                    {
-                        ((IDictionary<string,object>)parsed)["withdraw"] = true;
-                    }
-                    if (isTrue(allowDeposit))
-                    {
-                        ((IDictionary<string,object>)parsed)["deposit"] = true;
-                    }
-                }
-                object parsedLimits = this.safeDict(parsed, "limits");
-                object withdrawLimits = new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                };
-                object parsedWithdrawLimits = this.safeDict(parsedLimits, "withdraw", withdrawLimits);
-                object depositLimits = new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                };
-                object parsedDepositLimits = this.safeDict(parsedLimits, "deposit", depositLimits);
-                if (isTrue(minWithdraw))
-                {
-                    ((IDictionary<string,object>)withdrawLimits)["min"] = ((bool) isTrue(getValue(parsedWithdrawLimits, "min"))) ? mathMin(getValue(parsedWithdrawLimits, "min"), minWithdraw) : minWithdraw;
-                }
-                if (isTrue(maxWithdraw))
-                {
-                    ((IDictionary<string,object>)withdrawLimits)["max"] = ((bool) isTrue(getValue(parsedWithdrawLimits, "max"))) ? mathMax(getValue(parsedWithdrawLimits, "max"), maxWithdraw) : maxWithdraw;
-                }
-                if (isTrue(minDeposit))
-                {
-                    ((IDictionary<string,object>)depositLimits)["min"] = ((bool) isTrue(getValue(parsedDepositLimits, "min"))) ? mathMin(getValue(parsedDepositLimits, "min"), minDeposit) : minDeposit;
-                }
-                if (isTrue(maxDeposit))
-                {
-                    ((IDictionary<string,object>)depositLimits)["max"] = ((bool) isTrue(getValue(parsedDepositLimits, "max"))) ? mathMax(getValue(parsedDepositLimits, "max"), maxDeposit) : maxDeposit;
-                }
-                object limits = new Dictionary<string, object>() {
-                    { "withdraw", withdrawLimits },
-                    { "deposit", depositLimits },
-                };
-                ((IDictionary<string,object>)parsed)["limits"] = limits;
             }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "networks", networks },
+                { "info", networkEntries },
+            });
         }
         return result;
     }
@@ -518,7 +482,7 @@ public partial class cryptomus : Exchange
         //
         //     {
         //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829771",
+        //         "last_price": "158.04829772",
         //         "base_volume": "0.35185785",
         //         "quote_volume": "55.523761128544"
         //     }
@@ -835,7 +799,9 @@ public partial class cryptomus : Exchange
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**

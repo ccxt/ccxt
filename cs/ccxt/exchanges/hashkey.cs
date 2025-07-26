@@ -23,11 +23,15 @@ public partial class hashkey : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", false },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "cancelWithdraw", false },
+                { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createConvertTrade", false },
                 { "createDepositAddress", false },
@@ -47,7 +51,14 @@ public partial class hashkey : Exchange
                 { "createTrailingPercentOrder", false },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", true },
@@ -56,6 +67,8 @@ public partial class hashkey : Exchange
                 { "fetchConvertQuote", false },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", false },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -63,23 +76,42 @@ public partial class hashkey : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -90,7 +122,9 @@ public partial class hashkey : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", true },
                 { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -100,11 +134,16 @@ public partial class hashkey : Exchange
                 { "fetchTradingFees", true },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", false },
                 { "setLeverage", true },
                 { "setMargin", false },
+                { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", true },
                 { "withdraw", true },
@@ -1115,49 +1154,45 @@ public partial class hashkey : Exchange
             object currecy = getValue(coins, i);
             object currencyId = this.safeString(currecy, "coinId");
             object code = this.safeCurrencyCode(currencyId);
-            object allowWithdraw = this.safeBool(currecy, "allowWithdraw");
-            object allowDeposit = this.safeBool(currecy, "allowDeposit");
             object networks = this.safeList(currecy, "chainTypes");
-            object networksById = this.safeDict(this.options, "networksById");
             object parsedNetworks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
             {
                 object network = getValue(networks, j);
                 object networkId = this.safeString(network, "chainType");
-                object networkName = this.safeString(networksById, networkId, networkId);
-                object maxWithdrawQuantity = this.omitZero(this.safeString(network, "maxWithdrawQuantity"));
-                object networkDeposit = this.safeBool(network, "allowDeposit");
-                object networkWithdraw = this.safeBool(network, "allowWithdraw");
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkName] = new Dictionary<string, object>() {
+                object networkCode = this.networkCodeToId(networkId);
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkName },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(network, "minWithdrawQuantity") },
-                            { "max", this.parseNumber(maxWithdrawQuantity) },
+                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maxWithdrawQuantity"))) },
                         } },
                         { "deposit", new Dictionary<string, object>() {
                             { "min", this.safeNumber(network, "minDepositQuantity") },
                             { "max", null },
                         } },
                     } },
-                    { "active", isTrue(networkDeposit) && isTrue(networkWithdraw) },
-                    { "deposit", networkDeposit },
-                    { "withdraw", networkWithdraw },
+                    { "active", null },
+                    { "deposit", this.safeBool(network, "allowDeposit") },
+                    { "withdraw", this.safeBool(network, "allowWithdraw") },
                     { "fee", this.safeNumber(network, "withdrawFee") },
                     { "precision", null },
                     { "info", network },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object rawType = this.safeString(currecy, "tokenType");
+            object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
                 { "precision", null },
-                { "type", this.parseCurrencyType(this.safeString(currecy, "tokenType")) },
+                { "type", type },
                 { "name", this.safeString(currecy, "coinFullName") },
-                { "active", isTrue(allowWithdraw) && isTrue(allowDeposit) },
-                { "deposit", allowDeposit },
-                { "withdraw", allowWithdraw },
+                { "active", null },
+                { "deposit", this.safeBool(currecy, "allowDeposit") },
+                { "withdraw", this.safeBool(currecy, "allowWithdraw") },
                 { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
@@ -1171,20 +1206,9 @@ public partial class hashkey : Exchange
                 } },
                 { "networks", parsedNetworks },
                 { "info", currecy },
-            };
+            });
         }
         return result;
-    }
-
-    public virtual object parseCurrencyType(object type)
-    {
-        object types = new Dictionary<string, object>() {
-            { "CHAIN_TOKEN", "crypto" },
-            { "ERC20_TOKEN", "crypto" },
-            { "BSC_TOKEN", "crypto" },
-            { "REAL_MONEY", "fiat" },
-        };
-        return this.safeString(types, type);
     }
 
     /**

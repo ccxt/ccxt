@@ -1957,5 +1957,16 @@
                 }
             }
         }
+    },
+    "TUSD": {
+        "id": "TUSD",
+        "code": "TUSD",
+        "precision": 0.000001,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": {},
+          "withdraw": {}
+        }
     }
 }

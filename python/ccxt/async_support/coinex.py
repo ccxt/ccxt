@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
@@ -671,6 +672,7 @@ class coinex(Exchange, ImplicitAPI):
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         })
@@ -734,33 +736,7 @@ class coinex(Exchange, ImplicitAPI):
             canWithdraw = self.safe_bool(asset, 'withdraw_enabled')
             firstChain = self.safe_dict(chains, 0, {})
             firstPrecisionString = self.parse_precision(self.safe_string(firstChain, 'withdrawal_precision'))
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': None,
-                'active': canDeposit and canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': None,
-                'precision': self.parse_number(firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': coin,
-            }
+            networks: dict = {}
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -797,9 +773,34 @@ class coinex(Exchange, ImplicitAPI):
                     },
                     'info': chain,
                 }
-                networks = self.safe_dict(result[code], 'networks', {})
                 networks[networkId] = network
-                result[code]['networks'] = networks
+            result[code] = self.safe_currency_structure({
+                'id': currencyId,
+                'code': code,
+                'name': None,
+                'active': canDeposit and canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': None,
+                'precision': self.parse_number(firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'networks': networks,
+                'type': 'crypto',
+                'info': coin,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -828,17 +829,19 @@ class coinex(Exchange, ImplicitAPI):
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "base_ccy": "SORA",
-        #                 "base_ccy_precision": 8,
-        #                 "is_amm_available": True,
-        #                 "is_margin_available": False,
-        #                 "maker_fee_rate": "0.003",
-        #                 "market": "SORAUSDT",
-        #                 "min_amount": "500",
+        #                 "market": "BTCUSDT",
+        #                 "taker_fee_rate": "0.002",
+        #                 "maker_fee_rate": "0.002",
+        #                 "min_amount": "0.0005",
+        #                 "base_ccy": "BTC",
         #                 "quote_ccy": "USDT",
-        #                 "quote_ccy_precision": 6,
-        #                 "taker_fee_rate": "0.003"
-        #             },
+        #                 "base_ccy_precision": 8,
+        #                 "quote_ccy_precision": 2,
+        #                 "is_amm_available": True,
+        #                 "is_margin_available": True,
+        #                 "is_pre_trading_available": True,
+        #                 "is_api_trading_available": True
+        #             }
         #         ],
         #         "message": "OK"
         #     }
@@ -864,11 +867,11 @@ class coinex(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': self.safe_bool(market, 'is_margin_available'),
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': None,
+                'active': self.safe_bool(market, 'is_api_trading_available'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,

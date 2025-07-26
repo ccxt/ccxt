@@ -638,6 +638,7 @@ public partial class coinex : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
                     { "service too busy", typeof(ExchangeNotAvailable) },
+                    { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
         });
@@ -707,33 +708,7 @@ public partial class coinex : Exchange
             object canWithdraw = this.safeBool(asset, "withdraw_enabled");
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "name", null },
-                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
-                { "fee", null },
-                { "precision", this.parseNumber(firstPrecisionString) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-                { "info", coin },
-            };
+            object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -773,10 +748,35 @@ public partial class coinex : Exchange
                     } },
                     { "info", chain },
                 };
-                object networks = this.safeDict(getValue(result, code), "networks", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkId] = network;
-                ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
             }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", currencyId },
+                { "code", code },
+                { "name", null },
+                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
+                { "deposit", canDeposit },
+                { "withdraw", canWithdraw },
+                { "fee", null },
+                { "precision", this.parseNumber(firstPrecisionString) },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", networks },
+                { "type", "crypto" },
+                { "info", coin },
+            });
         }
         return result;
     }
@@ -808,17 +808,19 @@ public partial class coinex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -845,11 +847,11 @@ public partial class coinex : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", this.safeBool(market, "is_margin_available") },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", null },
+                { "active", this.safeBool(market, "is_api_trading_available") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },

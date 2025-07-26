@@ -26,7 +26,8 @@ function test_fetch_currencies($exchange, $skipped_properties) {
             assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
             $currencies_length = count($values);
             // ensure exchange returns enough length of currencies
-            assert($currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
+            $skip_amount = (is_array($skipped_properties) && array_key_exists('amountOfCurrencies', $skipped_properties));
+            assert($skip_amount || $currencies_length > 5, $exchange->id . ' ' . $method . ' must return at least several currencies, but it returned ' . ((string) $currencies_length));
             // allow skipped exchanges
             $skip_active = (is_array($skipped_properties) && array_key_exists('activeCurrenciesQuota', $skipped_properties));
             $skip_major_currency_check = (is_array($skipped_properties) && array_key_exists('activeMajorCurrencies', $skipped_properties));

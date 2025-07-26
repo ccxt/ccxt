@@ -1,7 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
-        "code": "BTC",
         "info": {
             "symbol": "BTC",
             "name": "Bitcoin",
@@ -14,20 +12,30 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": null,
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-8,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDT": {
-        "id": "USDT",
-        "code": "USDT",
         "info": {
             "symbol": "USDT",
             "name": "USD Tether",
@@ -40,20 +48,30 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": null,
         "name": "USD Tether",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.000001,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USD": {
-        "id": "USD",
-        "code": "USD",
         "info": {
             "symbol": "USD",
             "name": "US Dollar",
@@ -66,20 +84,30 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "USD",
+        "numericId": null,
+        "code": "USD",
+        "precision": 0.01,
+        "type": null,
         "name": "US Dollar",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.01,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "LTC": {
-        "id": "LTC",
-        "code": "LTC",
         "info": {
             "symbol": "LTC",
             "name": "Litecoin",
@@ -87,25 +115,35 @@
             "decimals": "8",
             "tradeDecimals": "20",
             "fiatSymbol": "LTC",
-            "depositEnabled": true,
+            "depositEnabled": false,
             "withdrawalEnabled": true,
             "transferEnabled": true,
             "active": true
         },
+        "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": null,
         "name": "Litecoin",
         "active": true,
-        "deposit": true,
+        "deposit": false,
         "withdraw": true,
-        "precision": 1e-8,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "ETH": {
-        "id": "ETH",
-        "code": "ETH",
         "info": {
             "symbol": "ETH",
             "name": "Ethereum",
@@ -118,20 +156,30 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-18,
+        "type": null,
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-18,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "XRP": {
-        "id": "XRP",
-        "code": "XRP",
         "info": {
             "symbol": "XRP",
             "name": "Ripple",
@@ -144,20 +192,30 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.000001,
+        "type": null,
         "name": "Ripple",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.000001,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDC": {
-        "id": "USDC",
-        "code": "USDC",
         "info": {
             "symbol": "USDC",
             "name": "USD Coin",
@@ -170,15 +228,27 @@
             "transferEnabled": true,
             "active": true
         },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": null,
         "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.000001,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "withdraw": {},
-            "amount": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

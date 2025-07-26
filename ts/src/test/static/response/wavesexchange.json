@@ -4,6 +4,469 @@
     "methods": {
         "fetchTrades": [
             {
+                "description": "with limit",
+                "method": "fetchTrades",
+                "input": [
+                    "WAVES/USDT",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "__type": "list",
+                    "isLastPage": false,
+                    "lastCursor": "NDc4MDAzOTAwMDAwOjpkZXNj",
+                    "data": [
+                        {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "82W44LVMb8XH2bbE5jCWCvKPiEeESnHuboGRPmJouw6n",
+                                "timestamp": "2025-07-10T08:14:01.163Z",
+                                "height": "4780045",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "LVATgTfBsDSFxm8a9Vo3DcfdAgSaiMjtBUyCtaaz7Rpy6ephSm7ZZjxTLvSafFJTsGGr7dZQQzK22QM7pFQAWr2",
+                                "proofs": [
+                                    "LVATgTfBsDSFxm8a9Vo3DcfdAgSaiMjtBUyCtaaz7Rpy6ephSm7ZZjxTLvSafFJTsGGr7dZQQzK22QM7pFQAWr2"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0.01",
+                                "sellMatcherFee": "0.01",
+                                "price": "1.033614",
+                                "amount": "1",
+                                "order1": {
+                                    "id": "5zHTd9Vhe3Sj9AgUprWArGFkJYktEhZBMPqxRn8pTHPz",
+                                    "version": "4",
+                                    "senderPublicKey": "CGKmrxjwFSUNQzmFCnZf8PYEPLnnANYPWF4Ndvm4QWGX",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.033614",
+                                    "sender": "3PPXtNKg9vgVgAutvF2rUfASF3aTyRuTnNs",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:14:01.035Z",
+                                    "expiration": "2025-08-07T08:14:01.035Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "MxKz2x6bjXiwZ8eQd6f23jsT57txexS6jsTaZQboN7WpwqTwBdQRzuim7SQnQC5Uq3A4rtjZ5r3iPyRLwaf5nxa",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                },
+                                "order2": {
+                                    "id": "8rt7fjnc1yFfS9ECkq7qs9PUYYN3792zphq6BTy9gmXF",
+                                    "version": "4",
+                                    "senderPublicKey": "J3JoKQpx8j8YPcWpYzDmFFiSf3DrB72e7md8aGzHB4n7",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.033614",
+                                    "sender": "3PHfCSDqdRNBf4LeiT7663XszLRLufM3JKh",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:14:01.034Z",
+                                    "expiration": "2025-08-07T08:14:01.034Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "67k4q2R4GY5mdcrDTiPiNrMLB3tFPVjat3ErPtHn3JnPSdd1Q1yVFGq6xqsjw9qrxPyoYpUSNL4fnXZGT462mryg",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                }
+                            }
+                        },
+                        {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "G1hctvwKxvSVqSs3eTYCcVnoXjFP11yBx7DB2E5bkRvE",
+                                "timestamp": "2025-07-10T08:08:51.781Z",
+                                "height": "4780040",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "55uiNTA4C4cBt8dk6ALFgvwT3DK4MLYGyQWM1hvFmFhty4ZSGKn4M63bgKkZAL9Cn6CqqL5CSDCwJqXH7MhTWZNd",
+                                "proofs": [
+                                    "55uiNTA4C4cBt8dk6ALFgvwT3DK4MLYGyQWM1hvFmFhty4ZSGKn4M63bgKkZAL9Cn6CqqL5CSDCwJqXH7MhTWZNd"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0.01",
+                                "sellMatcherFee": "0.01",
+                                "price": "1.031006",
+                                "amount": "1",
+                                "order1": {
+                                    "id": "fxx2qdu133e2yrBs6K2asr3dmcDFet3dajmPfe7y4TL",
+                                    "version": "4",
+                                    "senderPublicKey": "CGKmrxjwFSUNQzmFCnZf8PYEPLnnANYPWF4Ndvm4QWGX",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.031006",
+                                    "sender": "3PPXtNKg9vgVgAutvF2rUfASF3aTyRuTnNs",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:08:51.648Z",
+                                    "expiration": "2025-08-07T08:08:51.648Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "2UfjdDSJXEQytePSPHdz27b7QZ6joMJh1QNw3Cbn44KpkwvHrzZpzchVU92bxHUkbDuAghEZwH8gdiDDr5p96BJY",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                },
+                                "order2": {
+                                    "id": "DcJoahdtC8g3NHpm7AdpTpZ7VCe2wmnoCcv8u46vtCdd",
+                                    "version": "4",
+                                    "senderPublicKey": "J3JoKQpx8j8YPcWpYzDmFFiSf3DrB72e7md8aGzHB4n7",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.031006",
+                                    "sender": "3PHfCSDqdRNBf4LeiT7663XszLRLufM3JKh",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:08:51.648Z",
+                                    "expiration": "2025-08-07T08:08:51.648Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "2WW4exxdtQTd8eQBHB8JxSZQ4hpNVnpWbMc6u2PTWpVeV7CMJL5VyyCnkKD74Kh5pRhc3ovwjyRPVwFcuc7wHWPW",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                }
+                            }
+                        },
+                        {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "BaW9DsuC2Go5vjT9stfgV3g7FTfLnQB8M3a18GsgvREB",
+                                "timestamp": "2025-07-10T08:08:14.071Z",
+                                "height": "4780039",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "5wcN7SfZSTbBquYKJmmA5tqCeaGdLoq2JpLkf6zwTnFgyUjjUwdX6BTe2qPgfagufgMBGeC1XABicvGtHe7iDGc9",
+                                "proofs": [
+                                    "5wcN7SfZSTbBquYKJmmA5tqCeaGdLoq2JpLkf6zwTnFgyUjjUwdX6BTe2qPgfagufgMBGeC1XABicvGtHe7iDGc9"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0",
+                                "sellMatcherFee": "0.33089999",
+                                "price": "1.030826",
+                                "amount": "330.89999962",
+                                "order1": {
+                                    "id": "D4YVuMn2VFD4fb1g5ZqRmfwARrDtXtCMkiBk2KyWzfcL",
+                                    "version": "3",
+                                    "senderPublicKey": "CSdttQrjyFaLSxJ2F6GA9YHCX46vSDq6dHzcgipAvtYd",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.030826",
+                                    "sender": "3PMtGVdjrQYQxTx3BpFysyeEJVo7t1fB6Xk",
+                                    "amount": "548.50342541",
+                                    "timestamp": "2025-07-10T08:04:36.012Z",
+                                    "expiration": "2025-08-08T08:04:36.012Z",
+                                    "matcherFee": "0.54850343",
+                                    "signature": "29Pe5kEy2sDPy3k2opMovan4uFz9tA453Mohk8A95uF8bTCLewHu3bZ7PuRxxAeNQwHZ78GhBzv5io35q5KPNqyh",
+                                    "matcherFeeAssetId": null
+                                },
+                                "order2": {
+                                    "id": "B4ZBcCa5Ep6cNroi6PMGfZtBvVoDUJdgxw5LaychELKe",
+                                    "version": "3",
+                                    "senderPublicKey": "F3UBAND9W3Yh1LSgN1tS9Zv5zTGck6QuRtaiGxUGNQei",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.030821",
+                                    "sender": "3PBPbrUEug67jWGrf2cCATWhfvvaNu7HvFd",
+                                    "amount": "330.89999999",
+                                    "timestamp": "2025-07-10T08:08:13.911Z",
+                                    "expiration": "2025-07-11T08:08:13.911Z",
+                                    "matcherFee": "0.34082699",
+                                    "signature": "5oxiGgqf2Z7CWv23yfcpfkuQ16bKtjWG3W78pLC9w6xuG68U46tod1ekuQK4P1yd7GsjdenfZnaMRFdrx7ctNFdG",
+                                    "matcherFeeAssetId": null
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "BaW9DsuC2Go5vjT9stfgV3g7FTfLnQB8M3a18GsgvREB",
+                                "timestamp": "2025-07-10T08:08:14.071Z",
+                                "height": "4780039",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "5wcN7SfZSTbBquYKJmmA5tqCeaGdLoq2JpLkf6zwTnFgyUjjUwdX6BTe2qPgfagufgMBGeC1XABicvGtHe7iDGc9",
+                                "proofs": [
+                                    "5wcN7SfZSTbBquYKJmmA5tqCeaGdLoq2JpLkf6zwTnFgyUjjUwdX6BTe2qPgfagufgMBGeC1XABicvGtHe7iDGc9"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0",
+                                "sellMatcherFee": "0.33089999",
+                                "price": "1.030826",
+                                "amount": "330.89999962",
+                                "order1": {
+                                    "id": "D4YVuMn2VFD4fb1g5ZqRmfwARrDtXtCMkiBk2KyWzfcL",
+                                    "version": "3",
+                                    "senderPublicKey": "CSdttQrjyFaLSxJ2F6GA9YHCX46vSDq6dHzcgipAvtYd",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.030826",
+                                    "sender": "3PMtGVdjrQYQxTx3BpFysyeEJVo7t1fB6Xk",
+                                    "amount": "548.50342541",
+                                    "timestamp": "2025-07-10T08:04:36.012Z",
+                                    "expiration": "2025-08-08T08:04:36.012Z",
+                                    "matcherFee": "0.54850343",
+                                    "signature": "29Pe5kEy2sDPy3k2opMovan4uFz9tA453Mohk8A95uF8bTCLewHu3bZ7PuRxxAeNQwHZ78GhBzv5io35q5KPNqyh",
+                                    "matcherFeeAssetId": null
+                                },
+                                "order2": {
+                                    "id": "B4ZBcCa5Ep6cNroi6PMGfZtBvVoDUJdgxw5LaychELKe",
+                                    "version": "3",
+                                    "senderPublicKey": "F3UBAND9W3Yh1LSgN1tS9Zv5zTGck6QuRtaiGxUGNQei",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.030821",
+                                    "sender": "3PBPbrUEug67jWGrf2cCATWhfvvaNu7HvFd",
+                                    "amount": "330.89999999",
+                                    "timestamp": "2025-07-10T08:08:13.911Z",
+                                    "expiration": "2025-07-11T08:08:13.911Z",
+                                    "matcherFee": "0.34082699",
+                                    "signature": "5oxiGgqf2Z7CWv23yfcpfkuQ16bKtjWG3W78pLC9w6xuG68U46tod1ekuQK4P1yd7GsjdenfZnaMRFdrx7ctNFdG",
+                                    "matcherFeeAssetId": null
+                                }
+                            }
+                        },
+                        "timestamp": 1752134894071,
+                        "datetime": "2025-07-10T08:08:14.071Z",
+                        "symbol": "WAVES/USDT",
+                        "id": "BaW9DsuC2Go5vjT9stfgV3g7FTfLnQB8M3a18GsgvREB",
+                        "order": "B4ZBcCa5Ep6cNroi6PMGfZtBvVoDUJdgxw5LaychELKe",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 1.030826,
+                        "amount": 330.89999962,
+                        "cost": 341.1003230082861,
+                        "fee": {
+                            "currency": "WAVES",
+                            "cost": 0.34082699
+                        },
+                        "fees": [
+                            {
+                                "currency": "WAVES",
+                                "cost": 0.34082699
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "G1hctvwKxvSVqSs3eTYCcVnoXjFP11yBx7DB2E5bkRvE",
+                                "timestamp": "2025-07-10T08:08:51.781Z",
+                                "height": "4780040",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "55uiNTA4C4cBt8dk6ALFgvwT3DK4MLYGyQWM1hvFmFhty4ZSGKn4M63bgKkZAL9Cn6CqqL5CSDCwJqXH7MhTWZNd",
+                                "proofs": [
+                                    "55uiNTA4C4cBt8dk6ALFgvwT3DK4MLYGyQWM1hvFmFhty4ZSGKn4M63bgKkZAL9Cn6CqqL5CSDCwJqXH7MhTWZNd"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0.01",
+                                "sellMatcherFee": "0.01",
+                                "price": "1.031006",
+                                "amount": "1",
+                                "order1": {
+                                    "id": "fxx2qdu133e2yrBs6K2asr3dmcDFet3dajmPfe7y4TL",
+                                    "version": "4",
+                                    "senderPublicKey": "CGKmrxjwFSUNQzmFCnZf8PYEPLnnANYPWF4Ndvm4QWGX",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.031006",
+                                    "sender": "3PPXtNKg9vgVgAutvF2rUfASF3aTyRuTnNs",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:08:51.648Z",
+                                    "expiration": "2025-08-07T08:08:51.648Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "2UfjdDSJXEQytePSPHdz27b7QZ6joMJh1QNw3Cbn44KpkwvHrzZpzchVU92bxHUkbDuAghEZwH8gdiDDr5p96BJY",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                },
+                                "order2": {
+                                    "id": "DcJoahdtC8g3NHpm7AdpTpZ7VCe2wmnoCcv8u46vtCdd",
+                                    "version": "4",
+                                    "senderPublicKey": "J3JoKQpx8j8YPcWpYzDmFFiSf3DrB72e7md8aGzHB4n7",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.031006",
+                                    "sender": "3PHfCSDqdRNBf4LeiT7663XszLRLufM3JKh",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:08:51.648Z",
+                                    "expiration": "2025-08-07T08:08:51.648Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "2WW4exxdtQTd8eQBHB8JxSZQ4hpNVnpWbMc6u2PTWpVeV7CMJL5VyyCnkKD74Kh5pRhc3ovwjyRPVwFcuc7wHWPW",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                }
+                            }
+                        },
+                        "timestamp": 1752134931781,
+                        "datetime": "2025-07-10T08:08:51.781Z",
+                        "symbol": "WAVES/USDT",
+                        "id": "G1hctvwKxvSVqSs3eTYCcVnoXjFP11yBx7DB2E5bkRvE",
+                        "order": "DcJoahdtC8g3NHpm7AdpTpZ7VCe2wmnoCcv8u46vtCdd",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 1.031006,
+                        "amount": 1,
+                        "cost": 1.031006,
+                        "fee": {
+                            "currency": "WAVES",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "WAVES",
+                                "cost": 0.01
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "__type": "transaction",
+                            "data": {
+                                "id": "82W44LVMb8XH2bbE5jCWCvKPiEeESnHuboGRPmJouw6n",
+                                "timestamp": "2025-07-10T08:14:01.163Z",
+                                "height": "4780045",
+                                "type": "7",
+                                "version": "3",
+                                "signature": "LVATgTfBsDSFxm8a9Vo3DcfdAgSaiMjtBUyCtaaz7Rpy6ephSm7ZZjxTLvSafFJTsGGr7dZQQzK22QM7pFQAWr2",
+                                "proofs": [
+                                    "LVATgTfBsDSFxm8a9Vo3DcfdAgSaiMjtBUyCtaaz7Rpy6ephSm7ZZjxTLvSafFJTsGGr7dZQQzK22QM7pFQAWr2"
+                                ],
+                                "fee": "0.003",
+                                "applicationStatus": "succeeded",
+                                "sender": "3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+                                "senderPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                "buyMatcherFee": "0.01",
+                                "sellMatcherFee": "0.01",
+                                "price": "1.033614",
+                                "amount": "1",
+                                "order1": {
+                                    "id": "5zHTd9Vhe3Sj9AgUprWArGFkJYktEhZBMPqxRn8pTHPz",
+                                    "version": "4",
+                                    "senderPublicKey": "CGKmrxjwFSUNQzmFCnZf8PYEPLnnANYPWF4Ndvm4QWGX",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "buy",
+                                    "price": "1.033614",
+                                    "sender": "3PPXtNKg9vgVgAutvF2rUfASF3aTyRuTnNs",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:14:01.035Z",
+                                    "expiration": "2025-08-07T08:14:01.035Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "MxKz2x6bjXiwZ8eQd6f23jsT57txexS6jsTaZQboN7WpwqTwBdQRzuim7SQnQC5Uq3A4rtjZ5r3iPyRLwaf5nxa",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                },
+                                "order2": {
+                                    "id": "8rt7fjnc1yFfS9ECkq7qs9PUYYN3792zphq6BTy9gmXF",
+                                    "version": "4",
+                                    "senderPublicKey": "J3JoKQpx8j8YPcWpYzDmFFiSf3DrB72e7md8aGzHB4n7",
+                                    "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+                                    "assetPair": {
+                                        "amountAsset": "WAVES",
+                                        "priceAsset": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC"
+                                    },
+                                    "orderType": "sell",
+                                    "price": "1.033614",
+                                    "sender": "3PHfCSDqdRNBf4LeiT7663XszLRLufM3JKh",
+                                    "amount": "1",
+                                    "timestamp": "2025-07-10T08:14:01.034Z",
+                                    "expiration": "2025-08-07T08:14:01.034Z",
+                                    "matcherFee": "0.01",
+                                    "signature": "67k4q2R4GY5mdcrDTiPiNrMLB3tFPVjat3ErPtHn3JnPSdd1Q1yVFGq6xqsjw9qrxPyoYpUSNL4fnXZGT462mryg",
+                                    "matcherFeeAssetId": null,
+                                    "priceMode": "assetDecimals",
+                                    "eip712Signature": null
+                                }
+                            }
+                        },
+                        "timestamp": 1752135241163,
+                        "datetime": "2025-07-10T08:14:01.163Z",
+                        "symbol": "WAVES/USDT",
+                        "id": "82W44LVMb8XH2bbE5jCWCvKPiEeESnHuboGRPmJouw6n",
+                        "order": "5zHTd9Vhe3Sj9AgUprWArGFkJYktEhZBMPqxRn8pTHPz",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1.033614,
+                        "amount": 1,
+                        "cost": 1.033614,
+                        "fee": {
+                            "currency": "WAVES",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "WAVES",
+                                "cost": 0.01
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "one trade",
                 "method": "fetchTrades",
                 "disabled": true,

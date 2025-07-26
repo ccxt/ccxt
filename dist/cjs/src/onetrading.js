@@ -392,9 +392,12 @@ class onetrading extends onetrading$1 {
         //
         //     [
         //         {
-        //             "code":"BEST",
-        //             "precision":8
-        //         }
+        //             "code": "USDT",
+        //             "precision": 6,
+        //             "unified_cryptoasset_id": 825,
+        //             "name": "Tether USDt",
+        //             "collateral_percentage": 0
+        //         },
         //     ]
         //
         const result = {};
@@ -402,10 +405,10 @@ class onetrading extends onetrading$1 {
             const currency = response[i];
             const id = this.safeString(currency, 'code');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
-                'name': undefined,
+                'name': this.safeString(currency, 'name'),
                 'info': currency,
                 'active': undefined,
                 'fee': undefined,
@@ -417,7 +420,7 @@ class onetrading extends onetrading$1 {
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }
@@ -1332,7 +1335,7 @@ class onetrading extends onetrading$1 {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

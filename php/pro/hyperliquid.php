@@ -107,7 +107,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             Async\await($this->load_markets());
             list($order, $globalParams) = $this->parseCreateEditOrderArgs (null, $symbol, $type, $side, $amount, $price, $params);
             $orders = Async\await($this->create_orders_ws(array( $order ), $globalParams));
-            return $orders[0];
+            $parsedOrder = $orders[0];
+            $orderInfo = $this->safe_dict($parsedOrder, 'info');
+            // handle potential error here
+            $this->handle_errors(null, null, null, null, null, $this->json($orderInfo), $orderInfo, null, null);
+            return $parsedOrder;
         }) ();
     }
 
@@ -146,7 +150,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $dataObject = $this->safe_dict($responseObject, 'data', array());
             $statuses = $this->safe_list($dataObject, 'statuses', array());
             $first = $this->safe_dict($statuses, 0, array());
-            return $this->parse_order($first, $market);
+            $parsedOrder = $this->parse_order($first, $market);
+            $orderInfo = $this->safe_dict($parsedOrder, 'info');
+            // handle potential error here
+            $this->handle_errors(null, null, null, null, null, $this->json($orderInfo), $orderInfo, null, null);
+            return $parsedOrder;
         }) ();
     }
 
@@ -171,7 +179,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -203,7 +211,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -533,7 +541,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -566,7 +574,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -698,7 +706,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );
@@ -732,7 +740,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );

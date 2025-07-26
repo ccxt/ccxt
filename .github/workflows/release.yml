@@ -15,6 +15,7 @@ permissions:
 jobs:
   manual-job:
     runs-on: ubuntu-latest
+    environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
@@ -27,10 +28,12 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
+          fetch-tags: true
       - uses: actions/checkout@v4
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
+          fetch-tags: true
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
@@ -48,7 +51,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
@@ -103,7 +106,7 @@ jobs:
         run: git status
       - name: cleanup old tags
         run: npm run cleanup-old-tags --limit
-      - name: Create GH Release and git-tag-version and push
+      - name: Generate Release Notes
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
           GH_TOKEN: ${{ github.token }}
@@ -112,14 +115,21 @@ jobs:
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
                git config --global user.name "github-actions[bot]"
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-               git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
-               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
-               git push origin --tags HEAD:master
-               echo "Creating github release..."
-               gh release create "${VERSION}" --generate-notes --verify-tag
-               git push
+               git push origin HEAD:master
+               git fetch --tags --depth=1
+               PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
+               echo "Previous tag: ${PREVIOUS_TAG}"
 
+
+               git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
+               git push origin "go/${VERSION}"
+
+               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+               git push origin "${VERSION}"
+
+               echo "Creating GitHub release from ${VERSION}…"
+               gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}
@@ -131,16 +141,15 @@ jobs:
         run: npm run buildCSRelease
       - name: Deploy C#
         env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
         run: cd python && ./deploy.sh && cd ..;
       - uses: JS-DevTools/npm-publish@v3
         with:
-          token: ${{ secrets.NPM_TOKEN }}
-
+          token: ${{ secrets.NPM_PROD }}
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest
