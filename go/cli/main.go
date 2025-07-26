@@ -475,7 +475,7 @@ func main() {
 
 	exchange := ccxt.Exchange{}
 	cmdSettings := InitOptions(flags)
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	instance, suc := ccxt.DynamicallyCreateInstance(ccxt.Capitalize(exchangeName) + "Core", exchange.DeepExtend(cmdSettings, exchangeSettings))
 
 	if !suc {
 		panic(suc)
