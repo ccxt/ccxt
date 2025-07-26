@@ -1775,27 +1775,34 @@ class Exchange {
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
-        if ($countingMode === TICK_SIZE) {
-            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits) || is_string($numPrecisionDigits) ))
-                throw new BaseError('Precision must be an integer or float or string for TICK_SIZE');
-        } else {
-            if (!is_int($numPrecisionDigits)) {
-                throw new BaseError('Precision must be an integer');
-            }
-        }
-
+        assert($numPrecisionDigits !== null, 'numPrecisionDigits should not be null');
+        
         if (is_string($numPrecisionDigits)) {
             $numPrecisionDigits = (float) $numPrecisionDigits;
         }
+        assert(is_numeric($numPrecisionDigits), 'numPrecisionDigits has an invalid number');
 
-        if (!is_numeric($x)) {
-            throw new BaseError('Invalid number');
+        if ($countingMode === TICK_SIZE) {
+            assert($numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
+        } else {
+            assert(is_int($numPrecisionDigits), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode');
         }
 
-        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE));
+        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE), 'invalid roundingMode provided');
+        assert($countingMode === DECIMAL_PLACES || $countingMode === SIGNIFICANT_DIGITS || $countingMode === TICK_SIZE, 'invalid countingMode provided');
+        assert($paddingMode === NO_PADDING || $paddingMode === PAD_WITH_ZERO, 'invalid paddingMode provided');
+        // end of checks
 
+        // remove any leading zeros (eg. '01234'=> '1234')
         $result = '';
-
+        if (is_string($x)) {
+            $x = ltrim($x, '0');
+            if ($x === '' || $x === '.') {
+                $x = '0';
+            } elseif ($x[0] === '.') {
+                $x = '0' . $x;
+            }
+        }
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
             if ($countingMode === TICK_SIZE) {
@@ -1812,10 +1819,36 @@ class Exchange {
         }
 
         if ($countingMode === TICK_SIZE) {
-            $precisionDigitsString = static::decimal_to_precision($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
+            $precisionDigitsString = static::decimal_to_precision($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES);
             $newNumPrecisionDigits = static::precisionFromString($precisionDigitsString);
+
+            if ($roundingMode === TRUNCATE) {
+                $xStr = static::number_to_string($x);
+                $dotIndex = strpos($xStr, '.');
+                if ($dotIndex && $newNumPrecisionDigits >= 0) {
+                    list($before, $after) = explode('.', $xStr);
+                    $truncatedX = $before . '.' . substr($after, 0, max(0, $newNumPrecisionDigits));
+                } else {
+                    $truncatedX = $xStr;
+                }
+                $scale = pow(10, $newNumPrecisionDigits);
+                $xScaled = round(floatval($truncatedX) * $scale);
+                $tickScaled = round($numPrecisionDigits * $scale);
+                $ticks = intval($xScaled / $tickScaled); // PHP's intval truncates towards zero
+                $x = ($ticks * $tickScaled) / $scale;
+                if ($paddingMode === NO_PADDING) {
+                    $formatted = number_format($x, $newNumPrecisionDigits, '.', '');
+                    // Only remove trailing zeros after decimal point
+                    if (strpos($formatted, '.') !== false) {
+                        $formatted = rtrim($formatted, '0');
+                        $formatted = rtrim($formatted, '.');
+                    }
+                    return $formatted;
+                }
+                return static::decimal_to_precision($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
+            }
             $missing = fmod($x, $numPrecisionDigits);
-            $missing = floatval(static::decimal_to_precision($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+            $missing = floatval(static::decimal_to_precision($missing, ROUND, 8, DECIMAL_PLACES));
             // See: https://github.com/ccxt/ccxt/pull/6486
             $fpError = static::decimal_to_precision($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if(static::precisionFromString($fpError) !== 0) {
@@ -1833,13 +1866,10 @@ class Exchange {
                             $x = $x - $missing - $numPrecisionDigits;
                         }
                     }
-                } elseif (TRUNCATE === $roundingMode) {
-                    $x = $x - $missing;
                 }
             }
             return static::decimal_to_precision($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
         }
-
 
         if ($roundingMode === ROUND) {
             if ($countingMode === DECIMAL_PLACES) {
@@ -1847,11 +1877,24 @@ class Exchange {
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-                $significantPosition = ((int) log( abs($x), 10)) % 10;
-                if ($x >= 1) {
-                    ++$significantPosition;
+                if ($x == 0) {
+                    $result = '0';
+                } else {
+                    // Calculate the position of the most significant digit
+                    $significantPosition = floor(log10(abs($x)));
+                    
+                    // Calculate decimal places needed for the desired significant digits
+                    $decimalPlaces = $numPrecisionDigits - $significantPosition - 1;
+                    
+                    if ($decimalPlaces < 0) {
+                        // Need to round to a power of 10
+                        $factor = pow(10, -$decimalPlaces);
+                        $result = static::number_to_string(round($x / $factor) * $factor);
+                    } else {
+                        // Normal rounding with decimal places
+                        $result = static::number_to_string(round($x, $decimalPlaces));
+                    }
                 }
-                $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
@@ -1867,19 +1910,58 @@ class Exchange {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
-                $significantPosition = (int) log(abs($x), 10);
-                $start = $dotPosition - $significantPosition;
-                $end = $start + $numPrecisionDigits;
-                if ($dotPosition >= $end) {
-                    --$end;
+                
+                $str = (string) $x;
+                $negative = ($str[0] === '-');
+                if ($negative) {
+                    $str = substr($str, 1);
                 }
-                if ($numPrecisionDigits >= (strlen($x) - ($dotPosition ? 1 : 0))) {
-                    $result = (string) $x;
-                } else {
-                    if ($significantPosition < 0) {
-                        ++$end;
+                
+                // Find first significant digit and dot position
+                $firstSigDigit = strcspn($str, '123456789');
+                $dotPos = strpos($str, '.');
+                $totalLen = strlen($str);
+                
+                if ($firstSigDigit === $totalLen) {
+                    return '0'; // No significant digits
+                }
+                
+                // Count significant digits we need
+                $sigCount = 0;
+                $resultLen = 0;
+                
+                for ($i = $firstSigDigit; $i < $totalLen && $sigCount < $numPrecisionDigits; $i++) {
+                    if ($str[$i] !== '.') {
+                        $sigCount++;
                     }
-                    $result = str_pad(substr($x, 0, $end), $dotPosition, '0');
+                    $resultLen = $i + 1;
+                }
+                
+                // Extract the significant part
+                $result = substr($str, 0, $resultLen);
+                
+                // If we have a decimal point
+                if ($dotPos !== false) {
+                    // If we stopped before the decimal, pad to the decimal
+                    if ($resultLen <= $dotPos) {
+                        $result = str_pad($result, $dotPos, '0');
+                    }
+                } else {
+                    // No decimal point - if we stopped early, pad with zeros to maintain magnitude
+                    if ($resultLen < $totalLen) {
+                        // Replace remaining digits with zeros
+                        $result = str_pad($result, $totalLen, '0');
+                    }
+                }
+                
+                // Handle trailing dot
+                if (substr($result, -1) === '.') {
+                    $result = substr($result, 0, -1);
+                }
+                
+                // Add negative sign back if needed
+                if ($negative && $result !== '0') {
+                    $result = '-' . $result;
                 }
             }
             $result = rtrim($result, '.');
