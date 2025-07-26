@@ -5,7 +5,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,8 +67,8 @@ export default class cryptocom extends cryptocomRest {
         try {
             await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
         } catch (e) {
-            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
-            client.reset (error);
+            const err = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (err);
         }
     }
 
@@ -523,7 +523,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'nonce': id,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -671,7 +671,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'nonce': id,
         };
-        const newTickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -1225,7 +1225,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         const message = this.deepExtend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}, subExtend = {}) {
@@ -1276,7 +1276,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "id": 0,

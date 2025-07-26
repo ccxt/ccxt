@@ -3,7 +3,7 @@
 
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
@@ -244,7 +244,7 @@ export default class apex extends apexRest {
             'args': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     handleOrderBook (client: Client, message) {
@@ -868,7 +868,7 @@ export default class apex extends apexRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //   {
         //       "success": false,
@@ -933,16 +933,16 @@ export default class apex extends apexRest {
                 }
             }
             return false;
-        } catch (error) {
-            if (error instanceof AuthenticationError) {
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
                 const messageHash = this.safeString (message, 'reqId');
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
             }
             return true;
         }
@@ -1042,8 +1042,8 @@ export default class apex extends apexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

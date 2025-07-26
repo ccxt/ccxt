@@ -520,6 +520,21 @@ export default class cryptocom extends Exchange {
         });
     }
 
+    async getCurrencyNetworks (params = {}): Promise<any> {
+        try {
+            return await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
+        } catch (e) {
+            if (e instanceof ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return undefined;
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
+    }
+
     /**
      * @method
      * @name cryptocom#fetchCurrencies
@@ -539,19 +554,7 @@ export default class cryptocom extends Exchange {
             // sub-accounts can't access this endpoint
             return undefined;
         }
-        let response = {};
-        try {
-            response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
-        } catch (e) {
-            if (e instanceof ExchangeError) {
-                // sub-accounts can't access this endpoint
-                // {"code":"10001","msg":"SYS_ERROR"}
-                return undefined;
-            }
-            throw e;
-            // do nothing
-            // sub-accounts can't access this endpoint
-        }
+        const response = await this.getCurrencyNetworks (params);
         //
         //    {
         //        "id": "1747502328559",

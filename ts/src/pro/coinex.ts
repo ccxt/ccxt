@@ -677,7 +677,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return result;
         }
@@ -740,7 +740,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return trades;
         }
@@ -801,7 +801,7 @@ export default class coinex extends coinexRest {
         };
         const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
-        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return orderbooks;
         }
@@ -1262,7 +1262,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return result;
         }
@@ -1321,9 +1321,9 @@ export default class coinex extends coinexRest {
 
     handleMessage (client: Client, message) {
         const method = this.safeString (message, 'method');
-        const error = this.safeString (message, 'message');
-        if (error !== undefined) {
-            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (error), message, undefined, undefined);
+        const err = this.safeString (message, 'message');
+        if (err !== undefined) {
+            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (err), message, undefined, undefined);
         }
         const handlers: Dict = {
             'state.update': this.handleTicker,
@@ -1390,8 +1390,8 @@ export default class coinex extends coinexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
@@ -1414,8 +1414,8 @@ export default class coinex extends coinexRest {
     async authenticate (type: string) {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
-        const time = this.milliseconds ();
-        const timestamp = time.toString ();
+        const now = this.milliseconds ();
+        const timestamp = now.toString ();
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -1434,7 +1434,7 @@ export default class coinex extends coinexRest {
             'params': {
                 'access_id': this.apiKey,
                 'signed_str': hmac.toLowerCase (),
-                'timestamp': time,
+                'timestamp': now,
             },
         };
         this.watch (url, messageHash, request, requestId, subscribe);

@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -294,7 +294,7 @@ export default class whitebit extends whitebitRest {
             'method': method,
             'params': args,
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
@@ -890,7 +890,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -898,9 +898,9 @@ export default class whitebit extends whitebitRest {
         //         "id": 1656090882
         //     }
         //
-        const error = this.safeValue (message, 'error');
+        const err = this.safeValue (message, 'error');
         try {
-            if (error !== undefined) {
+            if (err !== undefined) {
                 const code = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);

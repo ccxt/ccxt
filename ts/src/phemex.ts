@@ -3241,18 +3241,18 @@ export default class phemex extends Exchange {
             } else {
                 response = await this.privateGetSpotOrders (this.extend (request, params));
             }
+            const data = this.safeValue (response, 'data', {});
+            if (Array.isArray (data)) {
+                return this.parseOrders (data, market, since, limit);
+            } else {
+                const rows = this.safeList (data, 'rows', []);
+                return this.parseOrders (rows, market, since, limit);
+            }
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
             }
             throw e;
-        }
-        const data = this.safeValue (response, 'data', {});
-        if (Array.isArray (data)) {
-            return this.parseOrders (data, market, since, limit);
-        } else {
-            const rows = this.safeList (data, 'rows', []);
-            return this.parseOrders (rows, market, since, limit);
         }
     }
 
@@ -5298,9 +5298,9 @@ export default class phemex extends Exchange {
         //     {"code":412,"msg":"Missing parameter - to","data":null}
         //     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
         //
-        const error = this.safeValue (response, 'error', response);
-        const errorCode = this.safeString (error, 'code');
-        const message = this.safeString (error, 'msg');
+        const err = this.safeValue (response, 'error', response);
+        const errorCode = this.safeString (err, 'code');
+        const message = this.safeString (err, 'msg');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

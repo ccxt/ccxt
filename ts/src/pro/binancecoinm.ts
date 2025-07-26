@@ -9,7 +9,7 @@ import binancecoinmRest from '../binancecoinm.js';
 export default class binancecoinm extends binance {
     describe (): any {
         // eslint-disable-next-line new-cap
-        const restInstance = new binancecoinmRest ();
+        const restInstance = new binancecoinmRest ({});
         const restDescribe = restInstance.describe ();
         const extended = this.deepExtend (super.describe (), restDescribe);
         return this.deepExtend (extended, {

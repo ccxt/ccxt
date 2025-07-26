@@ -937,7 +937,7 @@ export default class deribit extends deribitRest {
         if (jsonedText.length >= maxMessageByteLimit) {
             throw new ExchangeError (this.id + ' requested subscription length over limit, try to reduce symbols amount');
         }
-        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
+        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions, undefined);
     }
 
     handleMessage (client: Client, message) {
@@ -1000,9 +1000,9 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const error = this.safeValue (message, 'error');
-        if (error !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (error));
+        const err = this.safeValue (message, 'error');
+        if (err !== undefined) {
+            throw new ExchangeError (this.id + ' ' + this.json (err));
         }
         const params = this.safeValue (message, 'params');
         const channel = this.safeString (params, 'channel');
@@ -1062,8 +1062,8 @@ export default class deribit extends deribitRest {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const time = this.milliseconds ();
-        const timeString = this.numberToString (time);
+        const now = this.milliseconds ();
+        const timeString = this.numberToString (now);
         const nonce = timeString;
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -1078,7 +1078,7 @@ export default class deribit extends deribitRest {
                 'params': {
                     'grant_type': 'client_signature',
                     'client_id': this.apiKey,
-                    'timestamp': time,
+                    'timestamp': now,
                     'signature': signature,
                     'nonce': nonce,
                     'data': '',

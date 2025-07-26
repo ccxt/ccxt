@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -123,7 +123,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             subscribe['product_ids'] = productIds;
         }
         if (symbolsLength > 1) {
-            return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
+            return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes, undefined);
         }
         return await this.watch (url, messageHash, this.extend (subscribe, params), messageHash);
     }
@@ -170,7 +170,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'passphrase': this.password,
             'signature': signature,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes, undefined);
     }
 
     /**
@@ -769,7 +769,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        message: 'Failed to subscribe',

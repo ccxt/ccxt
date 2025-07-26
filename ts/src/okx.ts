@@ -7679,8 +7679,8 @@ export default class okx extends Exchange {
         //
         const id = this.safeString (interest, 'instId');
         market = this.safeMarket (id, market);
-        const time = this.safeInteger (interest, 'ts');
-        const timestamp = this.safeInteger (interest, 0, time);
+        const ts = this.safeInteger (interest, 'ts');
+        const timestamp = this.safeInteger (interest, 0, ts);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         let openInterestAmount = undefined;
@@ -8758,9 +8758,9 @@ export default class okx extends Exchange {
             const feedback = this.id + ' ' + body;
             const data = this.safeList (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const error = data[i];
-                const errorCode = this.safeString (error, 'sCode');
-                const message = this.safeString (error, 'sMsg');
+                const err = data[i];
+                const errorCode = this.safeString (err, 'sCode');
+                const message = this.safeString (err, 'sMsg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }

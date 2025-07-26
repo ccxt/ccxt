@@ -5,7 +5,7 @@ import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -110,7 +110,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**
@@ -230,7 +230,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @method
      * @name coinbaseexchange#watchMyTradesForSymbols
      * @description watches information on multiple trades made by the user
-     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {string[]} [symbols] unified symbol of the market to fetch trades for
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -261,7 +261,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
@@ -643,11 +643,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         if (previousOrder['trades'] === undefined) {
                             previousOrder['trades'] = [];
                         }
-                        previousOrder['trades'].push (trade);
+                        const trades = previousOrder['trades'];
+                        trades.push (trade);
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                         let totalCost = 0;
                         let totalAmount = 0;
-                        const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
                             const tradeEntry = trades[i];
                             totalCost = this.sum (totalCost, tradeEntry['cost']);
@@ -925,7 +925,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "type": "error",
@@ -949,8 +949,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             } else {
                 throw new ExchangeError (this.id + ' ' + reason);
             }
-        } catch (error) {
-            client.reject (error);
+        } catch (e) {
+            client.reject (e);
             return true;
         }
     }

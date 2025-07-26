@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -528,8 +528,8 @@ export default class gate extends gateRest {
             delete this.orderbooks[symbol];
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                client.reject (error, messageHash);
+                const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (err, messageHash);
             }
         }
         client.resolve (storedOrderBook, messageHash);
@@ -1464,7 +1464,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
@@ -1614,7 +1614,7 @@ export default class gate extends gateRest {
         });
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "time": 1647274664,
@@ -1668,15 +1668,15 @@ export default class gate extends gateRest {
         //
         const data = this.safeDict (message, 'data');
         const errs = this.safeDict (data, 'errs');
-        const error = this.safeDict (message, 'error', errs);
-        const code = this.safeString2 (error, 'code', 'label');
+        const err = this.safeDict (message, 'error', errs);
+        const code = this.safeString2 (err, 'code', 'label');
         const id = this.safeStringN (message, [ 'id', 'requestId', 'request_id' ]);
-        if (error !== undefined) {
+        if (err !== undefined) {
             const messageHash = this.safeString (client.subscriptions, id);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, this.json (message));
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, this.json (errs));
-                const errorMessage = this.safeString (error, 'message', this.safeString (errs, 'message'));
+                const errorMessage = this.safeString (err, 'message', this.safeString (errs, 'message'));
                 this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], errorMessage, this.json (message));
                 throw new ExchangeError (this.json (message));
             } catch (e) {
@@ -2002,10 +2002,10 @@ export default class gate extends gateRest {
 
     async subscribePublic (url, messageHash, payload, channel, params = {}, subscription = undefined) {
         const requestId = this.requestId ();
-        const time = this.seconds ();
+        const now = this.seconds ();
         const request: Dict = {
             'id': requestId,
-            'time': time,
+            'time': now,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
@@ -2023,24 +2023,24 @@ export default class gate extends gateRest {
 
     async subscribePublicMultiple (url, messageHashes, payload, channel, params = {}) {
         const requestId = this.requestId ();
-        const time = this.seconds ();
+        const now = this.seconds ();
         const request: Dict = {
             'id': requestId,
-            'time': time,
+            'time': now,
             'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async unSubscribePublicMultiple (url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params = {}) {
         const requestId = this.requestId ();
-        const time = this.seconds ();
+        const now = this.seconds ();
         const request: Dict = {
             'id': requestId,
-            'time': time,
+            'time': now,
             'channel': channel,
             'event': 'unsubscribe',
             'payload': payload,
@@ -2084,13 +2084,13 @@ export default class gate extends gateRest {
             requestId = reqId.toString ();
         }
         const messageHash = requestId;
-        const time = this.seconds ();
+        const now = this.seconds ();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
-        const signatureString = [ event, channel, this.json (reqParams), time.toString () ].join ("\n"); // eslint-disable-line quotes
+        const signatureString = [ event, channel, this.json (reqParams), now.toString () ].join ("\n"); // eslint-disable-line quotes
         const signature = this.hmac (this.encode (signatureString), this.encode (this.secret), sha512, 'hex');
         const payload: Dict = {
             'req_id': requestId,
-            'timestamp': time.toString (),
+            'timestamp': now.toString (),
             'api_key': this.apiKey,
             'signature': signature,
             'req_param': reqParams,
@@ -2102,7 +2102,7 @@ export default class gate extends gateRest {
         }
         const request: Dict = {
             'id': requestId,
-            'time': time,
+            'time': now,
             'channel': channel,
             'event': event,
             'payload': payload,
@@ -2124,9 +2124,9 @@ export default class gate extends gateRest {
                 payload = this.arrayConcat (idArray, payload);
             }
         }
-        const time = this.seconds ();
+        const now = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + now.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), sha512, 'hex');
         const auth: Dict = {
             'method': 'api_key',
@@ -2136,7 +2136,7 @@ export default class gate extends gateRest {
         const requestId = this.requestId ();
         const request: Dict = {
             'id': requestId,
-            'time': time,
+            'time': now,
             'channel': channel,
             'event': event,
             'auth': auth,

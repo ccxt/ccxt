@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -233,7 +233,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -326,7 +326,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolById (undefined);
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'positions', []);
@@ -730,11 +730,11 @@ export default class krakenfutures extends krakenfuturesRest {
                 if (previousOrder['trades'] === undefined) {
                     previousOrder['trades'] = [];
                 }
-                previousOrder['trades'].push (trade);
+                const trades = previousOrder['trades'];
+                trades.push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                 let totalCost = '0';
                 let totalAmount = '0';
-                const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
                     totalCost = Precise.stringAdd (totalCost, this.numberToString (currentTrade['cost']));
@@ -1530,7 +1530,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return messageHash;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        event: 'alert',
@@ -1540,8 +1540,9 @@ export default class krakenfutures extends krakenfuturesRest {
         const errMsg = this.safeString (message, 'message');
         try {
             throw new ExchangeError (this.id + ' ' + errMsg);
-        } catch (error) {
-            client.reject (error);
+        } catch (e) {
+            client.reject (e);
+            return false;
         }
     }
 
@@ -1604,8 +1605,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

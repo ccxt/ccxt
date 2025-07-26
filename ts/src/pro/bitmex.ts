@@ -5,7 +5,7 @@ import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -108,7 +108,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': rawSubscriptions,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -411,7 +411,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': subscriptionHashes,
         };
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -728,8 +728,8 @@ export default class bitmex extends bitmexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
@@ -1334,7 +1334,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics, undefined);
         return orderbook.limit ();
     }
 
@@ -1368,7 +1368,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1672,7 +1672,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // generic error format
         //
@@ -1689,20 +1689,20 @@ export default class bitmex extends bitmexRest {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeString (message, 'error');
-        if (error !== undefined) {
+        const err = this.safeString (message, 'error');
+        if (err !== undefined) {
             const request = this.safeValue (message, 'request', {});
             const args = this.safeValue (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, error);
+                const broadKey = this.findBroadlyMatchedKey (broad, err);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError ((error as string)); // c# requirement for now
+                    exception = new ExchangeError ((err as string)); // c# requirement for now
                 } else {
-                    exception = new broad[broadKey] (error);
+                    exception = new broad[broadKey] (err);
                 }
                 client.reject (exception, messageHash);
                 return false;

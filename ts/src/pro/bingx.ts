@@ -295,7 +295,7 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             const newDict: Dict = {};
             newDict[result['symbol']] = result;
@@ -1217,7 +1217,7 @@ export default class bingx extends bingxRest {
         }
         try {
             await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
-        } catch (error) {
+        } catch (e) {
             const types = [ 'spot', 'linear', 'inverse' ];
             for (let i = 0; i < types.length; i++) {
                 const type = types[i];
@@ -1226,7 +1226,7 @@ export default class bingx extends bingxRest {
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const messageHash = messageHashes[j];
-                    client.reject (error, messageHash);
+                    client.reject (e, messageHash);
                 }
             }
             this.options['listenKey'] = undefined;
@@ -1239,13 +1239,13 @@ export default class bingx extends bingxRest {
     }
 
     async authenticate (params = {}) {
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if (now - lastAuthenticatedTime > listenKeyRefreshRate) {
             const response = await this.userAuthPrivatePostUserDataStream ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            this.options['lastAuthenticatedTime'] = now;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
@@ -1265,15 +1265,15 @@ export default class bingx extends bingxRest {
                 await client.send ('Pong');
             } else {
                 const ping = this.safeString (message, 'ping');
-                const time = this.safeString (message, 'time');
+                const timestamp = this.safeString (message, 'time');
                 await client.send ({
                     'pong': ping,
-                    'time': time,
+                    'time': timestamp,
                 });
             }
         } catch (e) {
-            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
-            client.reset (error);
+            const err = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            client.reset (err);
         }
     }
 

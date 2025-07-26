@@ -165,7 +165,7 @@ export default class coincatch extends coincatchRest {
             'args': args,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes, undefined);
     }
 
     handleAuthenticate (client: Client, message) {
@@ -184,7 +184,7 @@ export default class coincatch extends coincatchRest {
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes, undefined);
     }
 
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
@@ -690,8 +690,8 @@ export default class coincatch extends coincatchRest {
 
     async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
-        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-        client.reject (error, messageHash);
+        const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (err, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -1391,7 +1391,7 @@ export default class coincatch extends coincatchRest {
         });
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    { event: "error", code: 30001, msg: "Channel does not exist" }
         //
@@ -1524,8 +1524,8 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' orderbook ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -1547,8 +1547,8 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' trades ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -1570,8 +1570,8 @@ export default class coincatch extends coincatchRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' ticker ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 

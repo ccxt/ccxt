@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -104,7 +104,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     /**
@@ -1375,8 +1375,8 @@ export default class bitvavo extends bitvavoRest {
             // we resolve the future here permanently so authentication only happens once
             client.resolve (message, messageHash);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -1384,7 +1384,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1400,21 +1400,23 @@ export default class bitvavo extends bitvavoRest {
         //        error: 'You do not have sufficient balance to complete this operation.'
         //    }
         //
-        const error = this.safeString (message, 'error');
-        const code = this.safeInteger (error, 'errorCode');
+        const err = this.safeString (message, 'error');
+        const code = this.safeInteger (err, 'errorCode');
         const action = this.safeString (message, 'action');
         const buildMessage = this.buildMessageHash (action, message);
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors (code, err, client.url, undefined, undefined, err, message, undefined, undefined);
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);
         }
         if (!rejected) {
             client.reject (message, messageHash);
+            return true;
         }
+        return undefined;
     }
 
     handleMessage (client: Client, message) {
@@ -1461,8 +1463,8 @@ export default class bitvavo extends bitvavoRest {
         //         "authenticated": true
         //     }
         //
-        const error = this.safeString (message, 'error');
-        if (error !== undefined) {
+        const err = this.safeString (message, 'error');
+        if (err !== undefined) {
             this.handleErrorMessage (client, message);
         }
         const methods: Dict = {

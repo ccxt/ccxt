@@ -631,7 +631,7 @@ export default class Exchange {
         return encodeURIComponent (...args)
     }
 
-    checkRequiredVersion (requiredVersion, error = true) {
+    checkRequiredVersion (requiredVersion, err = true) {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
@@ -652,10 +652,10 @@ export default class Exchange {
             }
         }
         if (!result) {
-            if (error) {
+            if (err) {
                 throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
             } else {
-                return error
+                return err
             }
         }
         return result
@@ -2463,7 +2463,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }
 
-    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
     }
 
@@ -2498,7 +2498,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchTradesForSymbols() is not supported yet');
     }
 
-    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
     }
 
@@ -7264,7 +7264,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
-        const until = this.safeInteger2 (params, 'untill', 'till'); // do not omit it from params here
+        const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
@@ -7367,8 +7367,8 @@ export default class Exchange {
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
         const tasks = [];
-        const time = this.parseTimeframe (timeframe) * 1000;
-        const step = time * maxEntriesPerRequest;
+        const timestamp = this.parseTimeframe (timeframe) * 1000;
+        const step = timestamp * maxEntriesPerRequest;
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);
@@ -7409,12 +7409,11 @@ export default class Exchange {
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let cursorValue = undefined;
-        let i = 0;
         let errors = 0;
         let result = [];
         const timeframe = this.safeString (params, 'timeframe');
         params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
-        while (i < maxCalls) {
+        for (let i = 0; i < maxCalls; i++) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
@@ -7470,7 +7469,6 @@ export default class Exchange {
                     throw e;
                 }
             }
-            i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
@@ -7483,10 +7481,9 @@ export default class Exchange {
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
-        let i = 0;
         let errors = 0;
         let result = [];
-        while (i < maxCalls) {
+        for (let i = 0; i < maxCalls; i++) {
             try {
                 params[pageKey] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
@@ -7507,7 +7504,6 @@ export default class Exchange {
                     throw e;
                 }
             }
-            i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
@@ -7899,8 +7895,8 @@ export default class Exchange {
                 delete client.subscriptions[subHash];
             }
             if (subHash in client.futures) {
-                const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, subHash);
+                const err = new UnsubscribeError (this.id + ' ' + subHash);
+                client.reject (err, subHash);
             }
         } else {
             const clientSubscriptions = Object.keys (client.subscriptions);
@@ -7914,8 +7910,8 @@ export default class Exchange {
             for (let i = 0; i < clientFutures.length; i++) {
                 const future = clientFutures[i];
                 if (future.startsWith (subHash)) {
-                    const error = new UnsubscribeError (this.id + ' ' + future);
-                    client.reject (error, future);
+                    const err = new UnsubscribeError (this.id + ' ' + future);
+                    client.reject (err, future);
                 }
             }
         }

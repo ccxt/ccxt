@@ -576,7 +576,7 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -1528,8 +1528,8 @@ export default class phemex extends phemexRest {
         if (status === 'success') {
             client.resolve (message, messageHash);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
