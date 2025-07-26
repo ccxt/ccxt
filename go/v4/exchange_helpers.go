@@ -122,7 +122,7 @@ func EvalTruthy(val interface{}) bool {
 		// }
 	}
 
-	return true // Consider non-nil complex types as truthy
+	// return true // Consider non-nil complex types as truthy
 }
 
 // func IsInteger(value interface{}) bool {
@@ -1172,19 +1172,19 @@ func IsDictionary(v interface{}) bool {
 		return false
 	}
 	switch v.(type) {
-	case map[string]interface{}:
-		return true
-	case *sync.Map:
-		if v == nil {
+		case map[string]interface{}:
+			return true
+		case *sync.Map:
+			if v == nil {  // TODO: we already know v's type is *sync.Map, why is this here
+				return false
+			}
+			return true
+		case Dict:
+			return true
+		case map[interface{}]interface{}:
+			return true
+		default:
 			return false
-		}
-		return true
-	case Dict:
-		return true
-	case map[interface{}]interface{}:
-		return true
-	default:
-		return false
 	}
 	// return reflect.TypeOf(v).Kind() == reflect.Map
 }

@@ -1520,10 +1520,9 @@ ${constStatements.join('\n')}
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
-        default:
-            return nil, false
+    default:
+        return nil, false
     }
-    return nil, false
 }
 `
         const file = [
