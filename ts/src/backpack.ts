@@ -23,12 +23,12 @@ export default class backpack extends Exchange {
             'rateLimit': 50, // 20 times per second
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
-                'margin': false,
-                'swap': false,
+                'spot': true,
+                'margin': true,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -38,29 +38,27 @@ export default class backpack extends Exchange {
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
-                'createConvertTrade': false,
+                'createConvertTrade': false, // todo
                 'createDepositAddress': false,
-                'createLimitBuyOrder': false,
-                'createLimitSellOrder': false,
-                'createMarketBuyOrder': false,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrder': false,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrder': false,
-                'createMarketSellOrderWithCost': false,
-                'createOrder': false,
-                'createOrders': false,
-                'createOrderWithTakeProfitAndStopLoss': false,
-                'createPostOnlyOrder': false,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrder': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrder': true,
+                'createMarketSellOrderWithCost': true,
+                'createOrder': true,
+                'createOrders': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLossOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
                 'createTakeProfitOrder': false,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': false,
+                'createTriggerOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
@@ -301,6 +299,10 @@ export default class backpack extends Exchange {
             'exceptions': {
                 'exact': {},
                 // {"code":"INVALID_ORDER","message":"Order with client ID already exists: 123456739"}
+                // Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
+                // {"code":"INVALID_CLIENT_REQUEST","message":"Market orders must specify a `quantity` or `quoteQuantity`"}
+                // {"code":"INVALID_ORDER","message":"Invalid order"}
+                // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
                 'broad': {},
             },
         });
@@ -1334,6 +1336,13 @@ export default class backpack extends Exchange {
      * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
      * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
      * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
+     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+     * @param {object} [params.takeProfit] *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
+     * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1341,12 +1350,7 @@ export default class backpack extends Exchange {
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV1Order (orderRequest);
-        const postOnly = this.safeBool (orderRequest, 'postOnly', false);
-        const parsedOrder = this.parseOrder (response, market);
-        if (postOnly) {
-            parsedOrder['postOnly'] = postOnly; // exchange does not return postOnly in the response
-        }
-        return parsedOrder;
+        return this.parseOrder (response, market);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1356,21 +1360,43 @@ export default class backpack extends Exchange {
             'side': this.encodeOrderSide (side),
             'orderType': this.capitalize (type),
         };
-        const cost = this.safeNumber2 (params, 'cost', 'quoteQuantity');
+        let cost = this.safeString2 (params, 'cost', 'quoteQuantity');
+        if (price !== undefined) {
+            if (type === 'market') {
+                if (price === 1 && cost === undefined) {
+                    cost = amount.toString (); // market orders with price 1 are used to calculate cost
+                }
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        if (isTriggerOrder) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, 'triggerPrice');
+        }
         if (cost !== undefined) {
+            if (type === 'limit') {
+                throw new BadRequest (this.id + ' createOrder() does not support cost parameter for limit orders, use amount argument instead');
+            }
+            if (isTriggerOrder) {
+                throw new BadRequest (this.id + ' createOrder() does not support cost parameter for trigger orders, use amount argument instead');
+            }
             params = this.omit (params, [ 'cost', 'quoteQuantity' ]);
             request['quoteQuantity'] = this.costToPrecision (symbol, cost);
         } else if (amount !== undefined) {
-            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (isTriggerOrder) {
+                request['triggerQuantity'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
         } else if (type === 'market') {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument or a cost parameter for market orders');
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument for limit orders');
         }
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        const clientOrderId = this.safeInteger (params, 'clientOrderId'); // the exchange requires uint
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
@@ -1379,6 +1405,30 @@ export default class backpack extends Exchange {
         [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (postOnly) {
             params['postOnly'] = true;
+        }
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        if (takeProfit !== undefined) {
+            const takeProfitTriggerPrice = this.safeString (takeProfit, 'triggerPrice');
+            if (takeProfitTriggerPrice !== undefined) {
+                request['takeProfitTriggerPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+            }
+            const takeProfitPrice = this.safeString (takeProfit, 'price');
+            if (takeProfitPrice !== undefined) {
+                request['takeProfitLimitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+            params = this.omit (params, 'takeProfit');
+        }
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        if (stopLoss !== undefined) {
+            const stopLossTriggerPrice = this.safeString (stopLoss, 'triggerPrice');
+            if (stopLossTriggerPrice !== undefined) {
+                request['stopLossTriggerPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+            }
+            const stopLossPrice = this.safeString (stopLoss, 'price');
+            if (stopLossPrice !== undefined) {
+                request['stopLossLimitPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            }
+            params = this.omit (params, 'stopLoss');
         }
         return this.extend (request, params);
     }
@@ -1429,14 +1479,15 @@ export default class backpack extends Exchange {
         const type = this.safeStringLower (order, 'orderType');
         const timeInForce = this.safeString (order, 'timeInForce');
         const side = this.parseOrderSide (this.safeString (order, 'side'));
-        const amount = this.safeString (order, 'quantity');
+        const amount = this.safeString2 (order, 'quantity', 'triggerQuantity');
         const cost = this.safeString (order, 'executedQuoteQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
         const filled = this.safeString (order, 'executedQuantity');
-        const reduceOnly = this.safeBool (order, 'reduceOnly', false); // todo check
-        const stopLossPrice = this.safeString (order, 'stopLossLimitPrice');
-        const takeProfitPrice = this.safeString (order, 'takeProfitLimitPrice');
+        const reduceOnly = this.safeBool (order, 'reduceOnly');
+        const postOnly = this.safeBool (order, 'postOnly');
+        const stopLossPrice = this.safeString2 (order, 'stopLossLimitPrice', 'stopLossTriggerPrice');
+        const takeProfitPrice = this.safeString2 (order, 'takeProfitLimitPrice', 'takeProfitTriggerPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1447,7 +1498,7 @@ export default class backpack extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': undefined,
@@ -1497,6 +1548,7 @@ export default class backpack extends Exchange {
             }
         }
         if (api === 'private') {
+            this.checkRequiredCredentials ();
             const ts = this.milliseconds ().toString ();
             const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
             const instruction = this.getInstruction (path, method);
