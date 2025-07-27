@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import tradeogreRest from '../tradeogre.js';
-import type { Dict, Int, OrderBook, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Strings, Trade } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -179,7 +179,7 @@ export default class tradeogre extends tradeogreRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const messageHashes = [];
