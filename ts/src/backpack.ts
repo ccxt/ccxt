@@ -300,6 +300,7 @@ export default class backpack extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {},
+                // {"code":"INVALID_ORDER","message":"Order with client ID already exists: 123456739"}
                 'broad': {},
             },
         });
@@ -1294,6 +1295,24 @@ export default class backpack extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+        //
+        //     {
+        //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        return {
+            'info': depositAddress,
+            'currency': currency['code'],
+            'network': undefined, // network is not returned by the API
+            'address': address,
+            'tag': undefined,
+        } as DepositAddress;
+    }
+
     /**
      * @method
      * @name backpack#createOrder
@@ -1306,7 +1325,7 @@ export default class backpack extends Exchange {
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
-     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.clientOrderId] a unique id for the order
      * @param {boolean} [params.postOnly] true to place a post only order
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
@@ -1322,7 +1341,12 @@ export default class backpack extends Exchange {
         const market = this.market (symbol);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV1Order (orderRequest);
-        return this.parseOrder (response, market);
+        const postOnly = this.safeBool (orderRequest, 'postOnly', false);
+        const parsedOrder = this.parseOrder (response, market);
+        if (postOnly) {
+            parsedOrder['postOnly'] = postOnly; // exchange does not return postOnly in the response
+        }
+        return parsedOrder;
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1330,7 +1354,7 @@ export default class backpack extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             'side': this.encodeOrderSide (side),
-            'type': this.capitalize (type),
+            'orderType': this.capitalize (type),
         };
         const cost = this.safeNumber2 (params, 'cost', 'quoteQuantity');
         if (cost !== undefined) {
@@ -1346,7 +1370,7 @@ export default class backpack extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeInteger (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
@@ -1367,22 +1391,99 @@ export default class backpack extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
-        //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
+        //         "clientId": null,
+        //         "createdAt": 1753624283415,
+        //         "executedQuantity": "0.001",
+        //         "executedQuoteQuantity": "3.81428",
+        //         "id": "4227701917",
+        //         "orderType": "Market",
+        //         "quantity": "0.001",
+        //         "quoteQuantity": "3.82",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "Filled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
         //     }
         //
-        const address = this.safeString (depositAddress, 'address');
-        const currencyId = this.safeString (depositAddress, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
-        return {
-            'info': depositAddress,
-            'currency': currency['code'],
-            'network': undefined, // network is not returned by the API
-            'address': address,
-            'tag': undefined,
-        } as DepositAddress;
+        const timestamp = this.safeInteger (order, 'createdAt');
+        const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'clientId');
+        const symbol = this.safeSymbol (this.safeString (order, 'symbol'), market);
+        const type = this.safeStringLower (order, 'orderType');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
+        const amount = this.safeString (order, 'quantity');
+        const cost = this.safeString (order, 'executedQuoteQuantity');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const triggerPrice = this.safeString (order, 'triggerPrice');
+        const filled = this.safeString (order, 'executedQuantity');
+        const reduceOnly = this.safeBool (order, 'reduceOnly', false); // todo check
+        const stopLossPrice = this.safeString (order, 'stopLossLimitPrice');
+        const takeProfitPrice = this.safeString (order, 'takeProfitLimitPrice');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'reduceOnly': reduceOnly,
+            'side': side,
+            'price': undefined,
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': amount,
+            'cost': cost,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'New': 'open',
+            'Filled': 'closed',
+            'Cancelled': 'canceled',
+            'Expired': 'canceled',
+            'PartiallyFilled': 'open',
+            'TriggerPending': 'open',
+            'TriggerFailed': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderSide (side: Str) {
+        const sides: Dict = {
+            'Bid': 'buy',
+            'Ask': 'sell',
+        };
+        return this.safeString (sides, side, side);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1415,6 +1516,7 @@ export default class backpack extends Exchange {
             };
             if (method !== 'GET') {
                 body = this.json (sortedParams);
+                headers['Content-Type'] = 'application/json';
             }
         }
         url += endpoint;
