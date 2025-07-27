@@ -749,7 +749,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
@@ -779,7 +779,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    async unWatchTradesForSymbols (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
@@ -1464,7 +1464,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchMyLiquidationsForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
