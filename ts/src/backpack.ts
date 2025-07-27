@@ -3,7 +3,8 @@
 
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -223,6 +224,7 @@ export default class backpack extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'recvWindow': 5000, // default is 5000, max is 60000
                 'brokerId': '',
@@ -507,11 +509,11 @@ export default class backpack extends Exchange {
         const priceFilter = this.safeDict (filters, 'price', {});
         const maxPrice = this.safeNumber (priceFilter, 'maxPrice');
         const minPrice = this.safeNumber (priceFilter, 'minPrice');
-        const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (priceFilter, 'tickSize')));
+        const pricePrecision = this.safeNumber (priceFilter, 'tickSize');
         const quantityFilter = this.safeDict (filters, 'quantity', {});
         const maxQuantity = this.safeNumber (quantityFilter, 'maxQuantity');
         const minQuantity = this.safeNumber (quantityFilter, 'minQuantity');
-        const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (quantityFilter, 'stepSize')));
+        const amountPrecision = this.safeNumber (quantityFilter, 'stepSize');
         let type: MarketType;
         const typeOfMarket = this.parseMarketType (this.safeString (market, 'marketType'));
         let linear: Bool = undefined;
@@ -531,7 +533,7 @@ export default class backpack extends Exchange {
             contractSize = 1; // todo check contract size
         }
         const orderBookState = this.safeString (market, 'orderBookState');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -542,7 +544,7 @@ export default class backpack extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': type === 'spot',
-            'margin': false,
+            'margin': type === 'spot', // todo check if margin is supported for all markets
             'swap': type === 'swap',
             'future': false,
             'option': false,
@@ -581,7 +583,7 @@ export default class backpack extends Exchange {
             },
             'created': this.parse8601 (this.safeString (market, 'createdAt')),
             'info': market,
-        };
+        });
     }
 
     parseMarketType (type) {
@@ -1290,6 +1292,79 @@ export default class backpack extends Exchange {
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, params));
         return this.parseDepositAddress (response, currency);
+    }
+
+    /**
+     * @method
+     * @name backpack#createOrder
+     * @description create a trade order
+     * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {boolean} [params.postOnly] true to place a post only order
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+     * @param {string} [params.selfTradePrevention] 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+     * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
+     * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
+     * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
+     * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostApiV1Order (orderRequest);
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': this.encodeOrderSide (side),
+            'type': this.capitalize (type),
+        };
+        const cost = this.safeNumber2 (params, 'cost', 'quoteQuantity');
+        if (cost !== undefined) {
+            params = this.omit (params, [ 'cost', 'quoteQuantity' ]);
+            request['quoteQuantity'] = this.costToPrecision (symbol, cost);
+        } else if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument or a cost parameter for market orders');
+        } else {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument for limit orders');
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (postOnly) {
+            params['postOnly'] = true;
+        }
+        return this.extend (request, params);
+    }
+
+    encodeOrderSide (side) {
+        const sides: Dict = {
+            'buy': 'Bid',
+            'sell': 'Ask',
+        };
+        return this.safeString (sides, side, side);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
