@@ -2,12 +2,10 @@ import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from '../../../../ccxt.js';
 
-async function createOrderAfterDelay (exchange: Exchange, delay: number) {
-    await exchange.sleep (delay);
+async function createOrderAfterDelay (exchange: Exchange) {
+    await exchange.sleep (3000);
     await exchange.createOrder ('BTC/USDT:USDT', 'market', 'buy', 0.001);
 }
-
-// Test is currently not running in CI, but you can manually add exchange and run
 
 async function testUnwatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchPositions';
@@ -19,7 +17,7 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
         // First call uses snapshot
         positionsSubscription = await exchange.watchPositions ();
         // trigger a position update
-        exchange.spawn (createOrderAfterDelay, exchange, 3000);
+        exchange.spawn (createOrderAfterDelay, exchange);
         // Second call uses subscription
         positionsSubscription = await exchange.watchPositions ();
     } catch (e) {
@@ -36,7 +34,7 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
     // Assert unWatchPositions for one symbol is not supported
     let errorResponse = undefined;
     try {
-        errorResponse = await exchange.unWatchPositions ([symbol]);
+        errorResponse = await exchange.unWatchPositions ([ symbol ]);
     } catch (e) {
         errorResponse = e;
     }
@@ -60,14 +58,14 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
     let resubscribeResponse = undefined;
     try {
         resubscribeResponse = await exchange.watchPositions ();
-        exchange.spawn (createOrderAfterDelay, exchange, 3000);
+        exchange.spawn (createOrderAfterDelay, exchange);
         resubscribeResponse = await exchange.watchPositions ();
     } catch (e) {
         if (!testSharedMethods.isTemporaryFailure (e)) {
             throw e;
         }
         // If resubscription fails, it might indicate the unwatch didn't work properly
-        throw new Error (exchange.id + ' ' + method + ' failed to resubscribe after unwatch, indicating potential cleanup issues: ' + e.message);
+        throw new Error (exchange.id + ' ' + method + ' failed to resubscribe after unwatch, indicating potential cleanup issues');
     }
 
     // Verify resubscription works
@@ -75,3 +73,4 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
 }
 
 export default testUnwatchPositions;
+
