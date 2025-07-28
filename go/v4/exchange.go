@@ -139,10 +139,12 @@ type Exchange struct {
 	Twofa interface{}
 
 	// WS
+	Clients    interface{}
 	Ohlcvs     interface{}
 	Trades     interface{}
 	Tickers    interface{}
 	Orders     interface{}
+	Positions  interface{}
 	MyTrades   interface{}
 	Orderbooks interface{}
 
