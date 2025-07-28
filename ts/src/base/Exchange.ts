@@ -7981,7 +7981,7 @@ export default class Exchange {
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
                     const futures = this.safeDict (client, 'futures');
-                    if ('fetchPositionsSnapshot' in futures) {
+                    if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }
                 }
