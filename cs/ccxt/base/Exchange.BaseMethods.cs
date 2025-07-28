@@ -6966,7 +6966,7 @@ public partial class Exchange
         object calls = 0;
         object result = new List<object>() {};
         object errors = 0;
-        object until = this.safeInteger2(parameters, "untill", "till"); // do not omit it from params here
+        object until = this.safeIntegerN(parameters, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
         var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
