@@ -2543,5 +2543,4 @@ export default class bybit extends bybitRest {
         }
         return message;
     }
-
 }
