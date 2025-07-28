@@ -30,13 +30,15 @@ export default class arkm extends Exchange {
                 'future': false,
                 'option': false,
                 'sandbox': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
                 'fetchTime': true,
+                //
+                'fetchOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -79,6 +81,9 @@ export default class arkm extends Exchange {
                         },
                     },
                     'private': {
+                        'get': {
+                            'orders': 7.5, // spot 20/s, todo: perp 40/s
+                        },
                         'post': {
                         },
                     },
@@ -98,6 +103,7 @@ export default class arkm extends Exchange {
                     'AVAXC': 'AVAX',
                     'ARBONE': 'ARB',
                 },
+                'requestExpiration': 5000, // 5 seconds
             },
             'features': {
                 // 'default': {
@@ -308,6 +314,7 @@ export default class arkm extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        return [];
         const response = await this.v1PublicGetPairs (params);
         //
         //    [
@@ -760,17 +767,76 @@ export default class arkm extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name arkm#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://arkm.com/docs#get/orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetOrders (this.extend ({}, params));
+        //
+        //     [
+        //         {
+        //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+        //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+        //           "created_at": "2023-11-17T04:21:42.234579Z",
+        //           "updated_at": "2023-11-17T04:22:34.442765Z",
+        //           "submitted_at": "2023-11-17T04:21:42.233357Z",
+        //           "filled_at": null,
+        //           "expired_at": null,
+        //           "canceled_at": "2023-11-17T04:22:34.399019Z",
+        //           "failed_at": null,
+        //           "replaced_at": null,
+        //           "replaced_by": null,
+        //           "replaces": null,
+        //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+        //           "symbol": "LTC/USDT",
+        //           "asset_class": "crypto",
+        //           "notional": null,
+        //           "qty": "0.001",
+        //           "filled_qty": "0",
+        //           "filled_avg_price": null,
+        //           "order_class": "",
+        //           "order_type": "limit",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "time_in_force": "gtc",
+        //           "limit_price": "1000",
+        //           "stop_price": null,
+        //           "status": "canceled",
+        //           "extended_hours": false,
+        //           "legs": null,
+        //           "trail_percent": null,
+        //           "trail_price": null,
+        //           "hwm": null,
+        //           "subtag": null,
+        //           "source": "access_key"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][type] + '/' + access + '/' + path;
+        const accessPart = (access === 'public') ? access + '/' : '';
+        let url = this.urls['api'][type] + '/' + accessPart + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            // this.checkRequiredCredentials ();
+            this.checkRequiredCredentials ();
             // const nonce = this.nonce ().toString ();
             // const requestParams = this.extend ({}, params);
             // const paramsKeys = Object.keys (requestParams);
@@ -788,6 +854,34 @@ export default class arkm extends Exchange {
             // headers = {
             //     'Content-Type': 'application/json',
             // };
+            const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
+            const requestData = {
+                'API_KEY': this.apiKey,
+                'API_SECRET': this.secret,
+                'BASE_URL': 'https://arkm.com/api',
+                'METHOD': method,
+                'REQUEST_PATH': '/' + path,
+                'BODY': '',
+            };
+            const payload1 = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path;
+            const payload = this.stringToBase64 (payload1);
+            const secretDecoded = this.decode (this.secret);
+            const hmac = this.hmac (this.encode (payload1), this.encode (this.secret), sha256, 'base64');
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Arkham-Api-Key': this.apiKey,
+                'Arkham-Expires': expires,
+                'Arkham-Signature': this.stringToBase64 (hmac),
+            };
+            // if (method === 'GET') {
+            //     if (Object.keys (params).length) {
+            //         url += '?' + this.urlencode (params);
+            //     }
+            // } else {
+            //     headers['Content-Type'] = 'application/json';
+            //     body = this.json (params);
+            // }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
