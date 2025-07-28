@@ -983,7 +983,7 @@ export default class exmo extends Exchange {
             request['from'] = to - (limit * duration) - 1;
             request['to'] = to;
         } else {
-            request['from'] = this.parseToInt (since / 1000) - 1;
+            request['from'] = this.parseToInt (since / 1000);
             if (untilIsDefined) {
                 request['to'] = Math.min (until, now);
             } else {
