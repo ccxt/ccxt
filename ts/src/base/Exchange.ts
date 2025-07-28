@@ -1924,6 +1924,17 @@ export default class Exchange {
                 'watchLiquidations': undefined,
                 'watchLiquidationsForSymbols': undefined,
                 'watchMyLiquidations': undefined,
+                'unWatchOrders': undefined,
+                'unWatchTrades': undefined,
+                'unWatchTradesForSymbols': undefined,
+                'unWatchOHLCVForSymbols': undefined,
+                'unWatchOrderBookForSymbols': undefined,
+                'unWatchPositions': undefined,
+                'unWatchOrderBook': undefined,
+                'unWatchTickers': undefined,
+                'unWatchMyTrades': undefined,
+                'unWatchTicker': undefined,
+                'unWatchOHLCV': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
@@ -2520,6 +2531,10 @@ export default class Exchange {
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchOrderBookForSymbols() is not supported yet');
+    }
+
+    async unWatchPositions (symbol: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchPositions() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
@@ -7960,6 +7975,16 @@ export default class Exchange {
                 this.myTrades = undefined;
             } else if (topic === 'orders' && (this.orders !== undefined)) {
                 this.orders = undefined;
+            } else if (topic === 'positions' && (this.positions !== undefined)) {
+                this.positions = undefined;
+                const clients = Object.values (this.clients);
+                for (let i = 0; i < clients.length; i++) {
+                    const client = clients[i];
+                    const futures = client['futures'];
+                    if ('fetchPositionsSnapshot' in futures) {
+                        delete futures['fetchPositionsSnapshot'];
+                    }
+                }
             } else if (topic === 'ticker' && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys (this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
