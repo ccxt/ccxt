@@ -8637,7 +8637,7 @@ func  (this *Exchange) FetchPaginatedCallDynamic(method interface{}, optionalArg
             var calls interface{} = 0
             var result interface{} = []interface{}{}
             var errors interface{} = 0
-            var until interface{} = this.SafeInteger2(params, "untill", "till") // do not omit it from params here
+            var until interface{} = this.SafeIntegerN(params, []interface{}{"until", "untill", "till"}) // do not omit it from params here
             maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
             maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable,0);
             params = GetValue(maxEntriesPerRequestparamsVariable,1)
