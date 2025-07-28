@@ -5132,7 +5132,6 @@ export default class coincatch extends Exchange {
     safeMarketCustom (marketId: Str, market: Market = undefined, settleId: Str = undefined): Market {
         try {
             market = this.safeMarket (marketId, market);
-            return market;
         } catch (e) {
             // dmcbl markets have the same id and market type but different settleId
             // so we need to resolve the market by settleId
@@ -5148,8 +5147,8 @@ export default class coincatch extends Exchange {
                     }
                 }
             }
-            return market;
         }
+        return market;
     }
 
     /**

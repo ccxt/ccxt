@@ -3241,18 +3241,18 @@ export default class phemex extends Exchange {
             } else {
                 response = await this.privateGetSpotOrders (this.extend (request, params));
             }
-            const data = this.safeValue (response, 'data', {});
-            if (Array.isArray (data)) {
-                return this.parseOrders (data, market, since, limit);
-            } else {
-                const rows = this.safeList (data, 'rows', []);
-                return this.parseOrders (rows, market, since, limit);
-            }
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
             }
             throw e;
+        }
+        const data = this.safeValue (response, 'data', {});
+        if (Array.isArray (data)) {
+            return this.parseOrders (data, market, since, limit);
+        } else {
+            const rows = this.safeList (data, 'rows', []);
+            return this.parseOrders (rows, market, since, limit);
         }
     }
 

@@ -1418,25 +1418,6 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    getUnresolvedContractPromises (params = {}): any[] {
-        try {
-            const p1 = this.extend (params, { 'product_type': 'FUTURE' });
-            const p2 = this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' });
-            return [ this.v3PublicGetBrokerageMarketProducts (p1), this.v3PublicGetBrokerageMarketProducts (p2) ];
-        } catch (e) {
-            return []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
-        }
-    }
-
-    async getContractPromises (unresolvedContractPromises): Promise<any[]> {
-        try {
-            const promises = await Promise.all (unresolvedContractPromises);
-            return promises; // some users don't have access to contracts
-        } catch (e) {
-            return [];
-        }
-    }
-
     async fetchMarketsV3 (params = {}): Promise<Market[]> {
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
@@ -1517,9 +1498,22 @@ export default class coinbase extends Exchange {
         //        has_promo_fee: false
         //    }
         //
-        const unresolvedContractPromises = this.getUnresolvedContractPromises (params);
+        let unresolvedContractPromises = [];
+        try {
+            unresolvedContractPromises = [
+                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
+                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+            ];
+        } catch (e) {
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+        }
         const promises = await Promise.all (spotUnresolvedPromises);
-        const contractPromises = await this.getContractPromises (unresolvedContractPromises);
+        let contractPromises = undefined;
+        try {
+            contractPromises = await Promise.all (unresolvedContractPromises); // some users don't have access to contracts
+        } catch (e) {
+            contractPromises = [];
+        }
         const spot = this.safeDict (promises, 0, {});
         const fees = this.safeDict (promises, 1, {});
         const expiringFutures = this.safeDict (contractPromises, 0, {});

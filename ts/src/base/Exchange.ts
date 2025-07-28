@@ -7264,7 +7264,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
-        const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
+        const until = this.safeInteger2 (params, 'untill', 'till'); // do not omit it from params here
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
@@ -7409,11 +7409,12 @@ export default class Exchange {
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let cursorValue = undefined;
+        let i = 0;
         let errors = 0;
         let result = [];
         const timeframe = this.safeString (params, 'timeframe');
         params = this.omit (params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
-        for (let i = 0; i < maxCalls; i++) {
+        while (i < maxCalls) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
@@ -7469,6 +7470,7 @@ export default class Exchange {
                     throw e;
                 }
             }
+            i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
@@ -7481,9 +7483,10 @@ export default class Exchange {
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        let i = 0;
         let errors = 0;
         let result = [];
-        for (let i = 0; i < maxCalls; i++) {
+        while (i < maxCalls) {
             try {
                 params[pageKey] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
@@ -7504,6 +7507,7 @@ export default class Exchange {
                     throw e;
                 }
             }
+            i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
