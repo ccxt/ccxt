@@ -711,9 +711,6 @@ export default class arkm extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request['before'] = since * 1000;
-        }
         const response = await this.v1PublicGetTrades (this.extend (request, params));
         //
         //    [
