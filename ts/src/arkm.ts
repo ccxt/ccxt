@@ -789,16 +789,15 @@ export default class arkm extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        params = this.omit (params, 'clientOrderId' );
+        params = this.omit (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a clientOrderId string for order instead of "id"');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a clientOrderId for order instead of "id"');
         }
         const request: Dict = {
-            'id': clientOrderId,
+            'clientOrderId': clientOrderId,
         };
-        const response = await this.v1PrivateGetOrdersOrder (this.extend (request, params));
+        const response = await this.v1PrivateGetOrdersByClientOrderId (this.extend (request, params));
         //
         //    {
         //        "orderId": "3690478767430",
@@ -831,8 +830,7 @@ export default class arkm extends Exchange {
         //        "lastArkmFee": "0"
         //    }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (response);
     }
 
     /**
@@ -1215,15 +1213,21 @@ export default class arkm extends Exchange {
         const accessPart = (access === 'public') ? access + '/' : '';
         let url = this.urls['api'][type] + '/' + accessPart + path;
         const query = this.omit (params, this.extractParams (path));
-        if (access === 'public') {
+        let queryString = '';
+        if (method === 'GET') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                queryString = this.urlencode (query);
+                url += '?' + queryString;
             }
-        } else {
+        }
+        if (access === 'private') {
             this.checkRequiredCredentials ();
             const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
             if (method === 'POST') {
                 body = this.json (params);
+            }
+            if (queryString !== '') {
+                path = path + '?' + queryString;
             }
             const bodyStr = body !== undefined ? body : '';
             const payload = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path + bodyStr;
