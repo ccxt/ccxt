@@ -90,10 +90,12 @@ export default class arkm extends Exchange {
                             'orders': 7.5,
                             'orders/by-client-order-id': 7.5,
                             'orders/history': 7.5,
+                            'orders/history_offset': 7.5,
                         },
                         'post': {
                             'orders/cancel': 7.5,
                             'orders/cancel/all': 7.5,
+                            'orders/new': 7.5,
                         },
                     },
                 },
@@ -996,6 +998,95 @@ export default class arkm extends Exchange {
         return this.parseOrders (response, undefined);
     }
 
+    /**
+     * @method
+     * @name arkm#createOrder
+     * @description create a trade order on the exchange
+     * @see https://arkm.com/docs#post/orders/new
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} type "limit" or "market"
+     * @param {string} side "buy" or "sell"
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.v1PrivatePostOrdersNew (request);
+        //
+        //    {
+        //        "orderId": "3694872060678",
+        //        "clientOrderId": "test123",
+        //        "symbol": "SOL_USDT",
+        //        "subaccountId": "0",
+        //        "side": "buy",
+        //        "type": "limitGtc",
+        //        "size": "0.05",
+        //        "price": "170",
+        //        "time": "1753710501474043"
+        //    }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name ascendex#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly] true or false
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side,
+            'size': this.amountToPrecision (symbol, amount),
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        const isMarketOrder = (type === 'market');
+        const isLimitOrder = (type === 'limit');
+        const isLimitExchangeSpecific = this.inArray (type, [ 'limitGtc', 'limitIoc', 'limitFok' ]);
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (isLimitOrder || isLimitExchangeSpecific) {
+            request['price'] = this.priceToPrecision (symbol, price);
+            //
+            if (timeInForce === 'IOC') {
+                request['type'] = 'limitIoc';
+            } else if (timeInForce === 'FOK') {
+                request['type'] = 'limitFok';
+            } else {
+                request['type'] = 'limitGtc';
+            }
+        } else if (isMarketOrder) {
+            request['type'] = 'market';
+        }
+        // we don't need to manually handle `reduceOnly` here as exchange-specific keyname & bool matches
+        return this.extend (request, params);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
@@ -1031,6 +1122,19 @@ export default class arkm extends Exchange {
         //        "lastArkmFee": "0"
         //    }
         //
+        // createOrder
+        //
+        //    {
+        //        "orderId": "3694872060678",
+        //        "clientOrderId": "test123",
+        //        "symbol": "SOL_USDT",
+        //        "subaccountId": "0",
+        //        "side": "buy",
+        //        "type": "limitGtc",
+        //        "size": "0.05",
+        //        "price": "170",
+        //        "time": "1753710501474043"
+        //    }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const isPostOnly = this.safeBool (order, 'postOnly');
