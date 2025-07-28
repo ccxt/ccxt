@@ -34,7 +34,7 @@ export default class backpack extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
@@ -213,7 +213,7 @@ export default class backpack extends Exchange {
                         'api/v1/rfq/quote': 1,
                     },
                     'delete': {
-                        'api/v1/order': 1,
+                        'api/v1/order': 1, // done
                         'api/v1/orders': 1,
                     },
                 },
@@ -1486,6 +1486,30 @@ export default class backpack extends Exchange {
             'orderId': id,
         };
         const response = await this.privateGetApiV1Order (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name backpack#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteApiV1Order (this.extend (request, params));
         return this.parseOrder (response);
     }
 
