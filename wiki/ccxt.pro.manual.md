@@ -56,7 +56,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 ## Exchanges
 <!--- init list -->The CCXT Pro library currently supports the following 65 cryptocurrency exchange markets and WebSocket trading APIs:
 
-|logo                                                                                                                                                                                          |id                     |name                                                                                          |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                           |
+| logo                                                                                                                                                                                         | id                    | name                                                                                         | ver                                                                                                                                              | type                                                                                                   | certified                                                                                                                   | pro                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | [![alpaca](https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b)](https://alpaca.markets)                                                                         | alpaca                | [Alpaca](https://alpaca.markets)                                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![apex](https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00)](https://omni.apex.exchange/trade)                                                                 | apex                  | [Apex](https://omni.apex.exchange/trade)                                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs.pro.apex.exchange)                                                 | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -209,8 +209,16 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
 - unWatch (stops background subscription for `watch`-ed methods)
   - `unWatchOrderBook`
   - `unWatchOrderBooksForSymbols`
-  - `unwatchTrades`
-  - etc ...
+  - `unWatchTrades`
+  - `unWatchTradesForSymbols`
+  - `unWatchOHLCVForSymbols`
+  - `unWatchOrderBookForSymbols`
+  - `unWatchPositions`
+  - `unWatchTickers`
+  - `unWatchMyTrades`
+  - `unWatchTicker`
+  - `unWatchOHLCV`
+  - `unWatchOrders`
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
