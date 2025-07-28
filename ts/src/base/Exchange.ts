@@ -2533,7 +2533,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchOrderBookForSymbols() is not supported yet');
     }
 
-    async unWatchPositions (symbol: Strings = undefined, params = {}): Promise<any> {
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchPositions() is not supported yet');
     }
 
@@ -7980,7 +7980,7 @@ export default class Exchange {
                 const clients = Object.values (this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = client.futures;
+                    const futures = this.safeDict (client, 'futures');
                     if ('fetchPositionsSnapshot' in futures) {
                         delete futures['fetchPositionsSnapshot'];
                     }
