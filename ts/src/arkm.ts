@@ -39,6 +39,7 @@ export default class arkm extends Exchange {
                 'fetchTime': true,
                 //
                 'cancelOrder': true,
+                'cancelAllOrders': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
             },
@@ -89,6 +90,7 @@ export default class arkm extends Exchange {
                         },
                         'post': {
                             'orders/cancel': 7.5,
+                            'orders/cancel/all': 7.5,
                         },
                     },
                 },
@@ -908,6 +910,26 @@ export default class arkm extends Exchange {
         // {"orderId":3691703758327}
         //
         return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name arkm#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://arkm.com/docs#post/orders/cancel/all
+     * @param {string} symbol cancel alls open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new BadRequest (this.id + ' cancelAllOrders() does not support a symbol argument, use cancelOrder() or fetchOpenOrders() instead');
+        }
+        const response = await this.v1PrivatePostOrdersCancelAll (params);
+        //
+        // []  returns an empty array, even when successfully cancels orders
+        //
+        return this.parseOrders (response, undefined);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
