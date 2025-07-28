@@ -88,6 +88,7 @@ export default class arkm extends Exchange {
                         // for orders: spot 20/s, todo: perp 40/s
                         'get': {
                             'orders': 7.5,
+                            'orders/id': 7.5,
                             'orders/by-client-order-id': 7.5,
                             'orders/history': 7.5,
                             'orders/history_offset': 7.5,
@@ -118,37 +119,30 @@ export default class arkm extends Exchange {
             },
             'features': {
                 'default': {
-                //     'sandbox': true,
-                //     'createOrder': {
-                //         'marginMode': true,
-                //         'triggerPrice': true,
-                //         // todo: implementation fix
-                //         'triggerPriceType': {
-                //             'last': true,
-                //             'mark': true,
-                //             'index': true,
-                //         },
-                //         'triggerDirection': false,
-                //         'stopLossPrice': true,
-                //         'takeProfitPrice': true,
-                //         'attachedStopLossTakeProfit': undefined,
-                //         'timeInForce': {
-                //             'IOC': true,
-                //             'FOK': true,
-                //             'PO': true,
-                //             'GTD': false,
-                //         },
-                //         'hedged': false,
-                //         'selfTradePrevention': true, // todo: implement
-                //         'trailing': false,
-                //         'iceberg': false,
-                //         'leverage': false,
-                //         'marketBuyByCost': true,
-                //         'marketBuyRequiresPrice': true,
-                //     },
-                //     'createOrders': {
-                //         'max': 10,
-                //     },
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
                 //     'fetchMyTrades': {
                 //         'marginMode': false,
                 //         'limit': 100,
@@ -169,15 +163,7 @@ export default class arkm extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    // 'fetchOrders': {
-                    //     'marginMode': false,
-                    //     'limit': 100,
-                    //     'daysBack': 99999,
-                    //     'untilDays': undefined,
-                    //     'trigger': false,
-                    //     'trailing': false,
-                    //     'symbolRequired': false,
-                    // },
+                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -188,34 +174,29 @@ export default class arkm extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                //     'fetchOHLCV': {
-                //         'limit': 365,
-                //     },
+                    'fetchOHLCV': {
+                        'limit': 365,
+                    },
                 },
-                // 'spot': {
-                //     'extends': 'default',
-                // },
-                // 'swap': {
-                //     'linear': {
-                //         'extends': 'default',
-                //     },
-                //     'inverse': {
-                //         'extends': 'default',
-                //     },
-                // },
-                // 'future': {
-                //     'linear': {
-                //         'extends': 'default',
-                //     },
-                //     'inverse': {
-                //         'extends': 'default',
-                //     },
-                // },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {
-                },
+                'exact': {},
                 'broad': {},
             },
         });
@@ -791,13 +772,15 @@ export default class arkm extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         params = this.omit (params, 'clientOrderId');
-        if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a clientOrderId for order instead of "id"');
+        const request: Dict = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+            response = await this.v1PrivateGetOrdersByClientOrderId (this.extend (request, params));
+        } else {
+            request['id'] = parseInt (id);
+            response = await this.v1PrivateGetOrdersById (this.extend (request, params));
         }
-        const request: Dict = {
-            'clientOrderId': clientOrderId,
-        };
-        const response = await this.v1PrivateGetOrdersByClientOrderId (this.extend (request, params));
         //
         //    {
         //        "orderId": "3690478767430",
