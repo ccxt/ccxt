@@ -238,6 +238,17 @@ public partial class Exchange
                 { "watchLiquidations", null },
                 { "watchLiquidationsForSymbols", null },
                 { "watchMyLiquidations", null },
+                { "unWatchOrders", null },
+                { "unWatchTrades", null },
+                { "unWatchTradesForSymbols", null },
+                { "unWatchOHLCVForSymbols", null },
+                { "unWatchOrderBookForSymbols", null },
+                { "unWatchPositions", null },
+                { "unWatchOrderBook", null },
+                { "unWatchTickers", null },
+                { "unWatchMyTrades", null },
+                { "unWatchTicker", null },
+                { "unWatchOHLCV", null },
                 { "watchMyLiquidationsForSymbols", null },
                 { "withdraw", null },
                 { "ws", null },
@@ -984,6 +995,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchPositions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
@@ -7849,6 +7866,19 @@ public partial class Exchange
             } else if (isTrue(isTrue(isEqual(topic, "orders")) && isTrue((!isEqual(this.orders, null)))))
             {
                 this.orders = null;
+            } else if (isTrue(isTrue(isEqual(topic, "positions")) && isTrue((!isEqual(this.positions, null)))))
+            {
+                this.positions = null;
+                object clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
+                for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
+                {
+                    object client = getValue(clients, i);
+                    object futures = this.safeDict(client, "futures");
+                    if (isTrue(isTrue((!isEqual(futures, null))) && isTrue((inOp(futures, "fetchPositionsSnapshot")))))
+                    {
+                        ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
+                    }
+                }
             } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
