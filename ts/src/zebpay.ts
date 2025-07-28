@@ -1007,7 +1007,7 @@ export default class zebpay extends Exchange {
     orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopPrice', undefined);
-        const quoteOrderQty = this.safeString (params, 'quoteOrderQty');
+        const quoteOrderQty = this.safeString (params, 'quoteOrderQty', undefined);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'stopPrice', 'quoteOrderQty', 'timeInForce', 'clientOrderId' ]);
@@ -1018,7 +1018,12 @@ export default class zebpay extends Exchange {
             if (quoteOrderQty === undefined) {
                 throw new ExchangeError (this.id + ' market createOrder() requires quoteOrderQty as params');
             }
-            request['quoteOrderAmount'] = quoteOrderQty;
+            if (quoteOrderQty !== undefined) {
+                request['quoteOrderAmount'] = quoteOrderQty;
+            }
+            if (amount !== undefined) {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
         } else {
             if (triggerPrice !== undefined) {
                 request['stopPrice'] = triggerPrice;
