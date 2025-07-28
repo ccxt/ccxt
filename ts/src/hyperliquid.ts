@@ -3140,10 +3140,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString (amount);
-            let vaultAddress = undefined;
-            [ vaultAddress, params ] = this.handleOptionAndParams (params, 'transfer', 'vaultAddress');
-            vaultAddress = this.formatVaultAddress (vaultAddress);
+            let vaultAddress = this.safeString2 (params, 'vaultAddress', 'subAccountAddress');
             if (vaultAddress !== undefined) {
+                vaultAddress = this.formatVaultAddress (vaultAddress);
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
