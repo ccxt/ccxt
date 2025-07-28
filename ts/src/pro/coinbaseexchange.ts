@@ -183,9 +183,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.isEmpty (symbols)) {
             throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
@@ -311,9 +310,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async watchOrderBookForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.isEmpty (symbols)) {
             throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const name = 'level2';
@@ -321,7 +319,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const messageHashes = [];
-        for (let i = 0; i < symbolsLength; i++) {
+        for (let i = 0; i < symbols.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push (name + ':' + marketId);
         }

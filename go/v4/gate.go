@@ -4509,7 +4509,7 @@ func  (this *gate) FetchWithdrawals(optionalArgs ...interface{}) <- chan interfa
                 AddElementToObject(request, "from", start)
                 AddElementToObject(request, "to", this.Sum(start, Multiply(Multiply(Multiply(30, 24), 60), 60)))
             }
-            requestparamsVariable := this.HandleUntilOption("to", request, params);
+            requestparamsVariable := this.HandleUntilOption("to", request, params, 0.001);
             request = GetValue(requestparamsVariable,0);
             params = GetValue(requestparamsVariable,1)
         

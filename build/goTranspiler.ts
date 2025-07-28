@@ -820,6 +820,9 @@ class NewTranspiler {
         if (wrappedType === 'Strings') {
             return addTaskIfNeeded('[]string')
         }
+        if (wrappedType === 'StringsDoubleArray') {
+            return addTaskIfNeeded('[][]string')
+        }
         if (goReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(goReplacements[wrappedType]);
         }

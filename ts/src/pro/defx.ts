@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances, Str, Order, Position } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances, Str, Order, Position, StringsDoubleArray } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -130,9 +130,8 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: StringsDoubleArray = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.isEmpty (symbolsAndTimeframes)) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
@@ -164,9 +163,8 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
-        const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: StringsDoubleArray = undefined, params = {}): Promise<any> {
+        if (this.isEmpty (symbolsAndTimeframes)) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         await this.loadMarkets ();
@@ -439,13 +437,12 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.isEmpty (symbols)) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -472,13 +469,12 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async unWatchTradesForSymbols (symbols: Strings = undefined, params = {}): Promise<any> {
+        if (this.isEmpty (symbols)) {
             throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -556,12 +552,11 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async watchOrderBookForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.isEmpty (symbols)) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
+        await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
@@ -584,12 +579,11 @@ export default class defx extends defxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
+    async unWatchOrderBookForSymbols (symbols: Strings = undefined, params = {}): Promise<any> {
+        if (this.isEmpty (symbols)) {
             throw new ArgumentsRequired (this.id + ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
         }
+        await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];

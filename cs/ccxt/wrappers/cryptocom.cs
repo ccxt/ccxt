@@ -847,6 +847,26 @@ public partial class cryptocom
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetches historical funding rates
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations"/>  <br/>
+    /// <list type="table">
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest funding rate to fetch
