@@ -3678,6 +3678,21 @@ class Exchange(object):
         trade['cost'] = self.parse_number(cost)
         return trade
 
+    def create_ccxt_trade_id(self, timestamp=None, side=None, amount=None, price=None, takerOrMaker=None):
+        # self approach is being used by multiple exchanges(mexc, woo, coinsbit, dydx, ...)
+        id = None
+        if timestamp is not None:
+            id = self.number_to_string(timestamp)
+            if side is not None:
+                id += '-' + side
+            if amount is not None:
+                id += '-' + self.number_to_string(amount)
+            if price is not None:
+                id += '-' + self.number_to_string(price)
+            if takerOrMaker is not None:
+                id += '-' + takerOrMaker
+        return id
+
     def parsed_fee_and_fees(self, container: Any):
         fee = self.safe_dict(container, 'fee')
         fees = self.safe_list(container, 'fees')
