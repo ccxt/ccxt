@@ -30,7 +30,7 @@ export default class arkm extends Exchange {
                 'future': false,
                 'option': false,
                 'sandbox': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -314,7 +314,6 @@ export default class arkm extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        return [];
         const response = await this.v1PublicGetPairs (params);
         //
         //    [
@@ -781,6 +780,7 @@ export default class arkm extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const response = await this.v1PrivateGetOrders (this.extend ({}, params));
         //
         //     [
@@ -837,42 +837,17 @@ export default class arkm extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            // const nonce = this.nonce ().toString ();
-            // const requestParams = this.extend ({}, params);
-            // const paramsKeys = Object.keys (requestParams);
-            // const strSortKey = this.paramsToString (requestParams, 0);
-            // const payload = path + nonce + this.apiKey + strSortKey + nonce;
-            // const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-            // body = this.json ({
-            //     'id': nonce,
-            //     'method': path,
-            //     'params': params,
-            //     'api_key': this.apiKey,
-            //     'sig': signature,
-            //     'nonce': nonce,
-            // });
-            // headers = {
-            //     'Content-Type': 'application/json',
-            // };
             const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
-            const requestData = {
-                'API_KEY': this.apiKey,
-                'API_SECRET': this.secret,
-                'BASE_URL': 'https://arkm.com/api',
-                'METHOD': method,
-                'REQUEST_PATH': '/' + path,
-                'BODY': '',
-            };
-            const payload1 = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path;
-            const payload = this.stringToBase64 (payload1);
-            const secretDecoded = this.decode (this.secret);
-            const hmac = this.hmac (this.encode (payload1), this.encode (this.secret), sha256, 'base64');
+            const bodyStr = body !== undefined ? this.json (body) : '';
+            const payload = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path + bodyStr;
+            const decodedSecret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (this.encode (payload), decodedSecret, sha256, 'base64');
             headers = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Arkham-Api-Key': this.apiKey,
                 'Arkham-Expires': expires,
-                'Arkham-Signature': this.stringToBase64 (hmac),
+                'Arkham-Signature': signature,
             };
             // if (method === 'GET') {
             //     if (Object.keys (params).length) {
