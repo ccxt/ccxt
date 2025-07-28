@@ -88,7 +88,7 @@ export default class arkm extends Exchange {
                         // for orders: spot 20/s, todo: perp 40/s
                         'get': {
                             'orders': 7.5,
-                            'orders/id': 7.5,
+                            'orders/{id}': 7.5,
                             'orders/by-client-order-id': 7.5,
                             'orders/history': 7.5,
                             'orders/history_offset': 7.5,
@@ -779,7 +779,7 @@ export default class arkm extends Exchange {
             response = await this.v1PrivateGetOrdersByClientOrderId (this.extend (request, params));
         } else {
             request['id'] = parseInt (id);
-            response = await this.v1PrivateGetOrdersById (this.extend (request, params));
+            response = await this.v1PrivateGetOrdersId (this.extend (request, params));
         }
         //
         //    {
@@ -1194,8 +1194,9 @@ export default class arkm extends Exchange {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         const accessPart = (access === 'public') ? access + '/' : '';
-        let url = this.urls['api'][type] + '/' + accessPart + path;
         const query = this.omit (params, this.extractParams (path));
+        path = this.implodeParams (path, params);
+        let url = this.urls['api'][type] + '/' + accessPart + path;
         let queryString = '';
         if (method === 'GET') {
             if (Object.keys (query).length) {
