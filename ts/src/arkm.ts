@@ -38,6 +38,7 @@ export default class arkm extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTime': true,
                 //
+                'cancelOrder': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
             },
@@ -84,9 +85,10 @@ export default class arkm extends Exchange {
                     'private': {
                         'get': {
                             'orders': 7.5, // spot 20/s, todo: perp 40/s
-                            'orders/by-client-order-id': 7.5, // spot 20/s, todo: perp 40/s
+                            'orders/by-client-order-id': 7.5,
                         },
                         'post': {
+                            'orders/cancel': 7.5,
                         },
                     },
                 },
@@ -781,11 +783,47 @@ export default class arkm extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        params = this.omit (params, [ 'clientOrderId' ]);
-        request['id'] = (clientOrderId !== undefined) ? clientOrderId : id;
-        const response = await this.v1PrivateGetOrder (this.extend (request, params));
+        params = this.omit (params, 'clientOrderId' );
+        if (clientOrderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a clientOrderId string for order instead of "id"');
+        }
+        const request: Dict = {
+            'id': clientOrderId,
+        };
+        const response = await this.v1PrivateGetOrdersOrder (this.extend (request, params));
+        //
+        //    {
+        //        "orderId": "3690478767430",
+        //        "userId": "2959123",
+        //        "subaccountId": "0",
+        //        "symbol": "SOL_USDT",
+        //        "time": "1753696843913970",
+        //        "side": "sell",
+        //        "type": "limitGtc",
+        //        "size": "0.066",
+        //        "price": "293.2",
+        //        "postOnly": false,
+        //        "reduceOnly": false,
+        //        "executedSize": "0",
+        //        "status": "booked",
+        //        "avgPrice": "0",
+        //        "executedNotional": "0",
+        //        "creditFeePaid": "0",
+        //        "marginBonusFeePaid": "0",
+        //        "quoteFeePaid": "0",
+        //        "arkmFeePaid": "0",
+        //        "revisionId": "887956326",
+        //        "lastTime": "1753696843914830",
+        //        "clientOrderId": "",
+        //        "lastSize": "0",
+        //        "lastPrice": "0",
+        //        "lastCreditFee": "0",
+        //        "lastMarginBonusFee": "0",
+        //        "lastQuoteFee": "0",
+        //        "lastArkmFee": "0"
+        //    }
+        //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
     }
@@ -804,7 +842,10 @@ export default class arkm extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const response = await this.v1PrivateGetOrders (this.extend ({}, params));
         //
         // [
@@ -841,6 +882,32 @@ export default class arkm extends Exchange {
         // ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name arkm#cancelOrder
+     * @description cancels an open order
+     * @see https://arkm.com/docs#post/orders/cancel
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const request: Dict = {};
+        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['clientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = parseInt (id);
+        }
+        const response = await this.v1PrivatePostOrdersCancel (this.extend (request, params));
+        //
+        // {"orderId":3691703758327}
+        //
+        return this.parseOrder (response);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -965,7 +1032,10 @@ export default class arkm extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
-            const bodyStr = body !== undefined ? this.json (body) : '';
+            if (method === 'POST') {
+                body = this.json (params);
+            }
+            const bodyStr = body !== undefined ? body : '';
             const payload = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path + bodyStr;
             const decodedSecret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (payload), decodedSecret, sha256, 'base64');
@@ -976,14 +1046,6 @@ export default class arkm extends Exchange {
                 'Arkham-Expires': expires,
                 'Arkham-Signature': signature,
             };
-            // if (method === 'GET') {
-            //     if (Object.keys (params).length) {
-            //         url += '?' + this.urlencode (params);
-            //     }
-            // } else {
-            //     headers['Content-Type'] = 'application/json';
-            //     body = this.json (params);
-            // }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
