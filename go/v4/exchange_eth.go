@@ -54,10 +54,10 @@ type OrderHyperliquid struct {
 }
 
 type OrderMessage struct {
-	Type       string             `mapstructure:"type" msgpack:"type"`
-	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
-	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+	Type     string                 `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
+	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder"`
 }
 
 // cancel
