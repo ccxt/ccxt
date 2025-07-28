@@ -4398,6 +4398,27 @@ class Exchange {
         return $trade;
     }
 
+    public function create_ccxt_trade_id($timestamp = null, $side = null, $amount = null, $price = null, $takerOrMaker = null) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        $id = null;
+        if ($timestamp !== null) {
+            $id = $this->number_to_string($timestamp);
+            if ($side !== null) {
+                $id .= '-' . $side;
+            }
+            if ($amount !== null) {
+                $id .= '-' . $this->number_to_string($amount);
+            }
+            if ($price !== null) {
+                $id .= '-' . $this->number_to_string($price);
+            }
+            if ($takerOrMaker !== null) {
+                $id .= '-' . $takerOrMaker;
+            }
+        }
+        return $id;
+    }
+
     public function parsed_fee_and_fees(mixed $container) {
         $fee = $this->safe_dict($container, 'fee');
         $fees = $this->safe_list($container, 'fees');
