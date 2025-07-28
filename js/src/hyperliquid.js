@@ -3089,10 +3089,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
-            let vaultAddress = undefined;
-            [vaultAddress, params] = this.handleOptionAndParams(params, 'transfer', 'vaultAddress');
-            vaultAddress = this.formatVaultAddress(vaultAddress);
+            let vaultAddress = this.safeString2(params, 'vaultAddress', 'subAccountAddress');
             if (vaultAddress !== undefined) {
+                vaultAddress = this.formatVaultAddress(vaultAddress);
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
@@ -3122,12 +3121,6 @@ export default class hyperliquid extends Exchange {
             return transferResponse;
         }
         // transfer between main account and subaccount
-        if (code !== undefined) {
-            code = code.toUpperCase();
-            if (code !== 'USDC') {
-                throw new NotSupported(this.id + ' transfer() only support USDC');
-            }
-        }
         let isDeposit = false;
         let subAccountAddress = undefined;
         if (fromAccount === 'main') {
@@ -3141,24 +3134,46 @@ export default class hyperliquid extends Exchange {
             throw new NotSupported(this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress(subAccountAddress);
-        const usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), '1000000'));
-        const action = {
-            'type': 'subAccountTransfer',
-            'subAccountUser': subAccountAddress,
-            'isDeposit': isDeposit,
-            'usd': usd,
-        };
-        const sig = this.signL1Action(action, nonce);
-        const request = {
-            'action': action,
-            'nonce': nonce,
-            'signature': sig,
-        };
-        const response = await this.privatePostExchange(request);
-        //
-        // {'response': {'type': 'default'}, 'status': 'ok'}
-        //
-        return this.parseTransfer(response);
+        if (code === undefined || code.toUpperCase() === 'USDC') {
+            // Transfer USDC with subAccountTransfer
+            const usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), '1000000'));
+            const action = {
+                'type': 'subAccountTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'usd': usd,
+            };
+            const sig = this.signL1Action(action, nonce);
+            const request = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            };
+            const response = await this.privatePostExchange(request);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return this.parseTransfer(response);
+        }
+        else {
+            // Transfer non-USDC with subAccountSpotTransfer
+            const symbol = this.symbol(code);
+            const action = {
+                'type': 'subAccountSpotTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'token': symbol,
+                'amount': this.numberToString(amount),
+            };
+            const sig = this.signL1Action(action, nonce);
+            const request = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            };
+            const response = await this.privatePostExchange(request);
+            return this.parseTransfer(response);
+        }
     }
     parseTransfer(transfer, currency = undefined) {
         //
