@@ -32,7 +32,7 @@ export default class backpack extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -214,7 +214,7 @@ export default class backpack extends Exchange {
                     },
                     'delete': {
                         'api/v1/order': 1, // done
-                        'api/v1/orders': 1,
+                        'api/v1/orders': 1, // done
                     },
                 },
             },
@@ -1511,6 +1511,28 @@ export default class backpack extends Exchange {
         };
         const response = await this.privateDeleteApiV1Order (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name backpack#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteApiV1Orders (this.extend (request, params));
+        return this.parseOrders (response, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
