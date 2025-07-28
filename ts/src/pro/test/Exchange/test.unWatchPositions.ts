@@ -7,6 +7,8 @@ async function createOrderAfterDelay (exchange: Exchange, delay: number) {
     await exchange.createOrder ('BTC/USDT:USDT', 'market', 'buy', 0.001);
 }
 
+// Test is currently not running in CI, but you can manually add exchange and run
+
 async function testUnwatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchPositions';
     exchange.setSandboxMode (true);
