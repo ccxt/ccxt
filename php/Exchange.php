@@ -2536,6 +2536,17 @@ class Exchange {
                 'watchLiquidations' => null,
                 'watchLiquidationsForSymbols' => null,
                 'watchMyLiquidations' => null,
+                'unWatchOrders' => null,
+                'unWatchTrades' => null,
+                'unWatchTradesForSymbols' => null,
+                'unWatchOHLCVForSymbols' => null,
+                'unWatchOrderBookForSymbols' => null,
+                'unWatchPositions' => null,
+                'unWatchOrderBook' => null,
+                'unWatchTickers' => null,
+                'unWatchMyTrades' => null,
+                'unWatchTicker' => null,
+                'unWatchOHLCV' => null,
                 'watchMyLiquidationsForSymbols' => null,
                 'withdraw' => null,
                 'ws' => null,
@@ -3121,6 +3132,10 @@ class Exchange {
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function un_watch_positions(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -8502,6 +8517,16 @@ class Exchange {
                 $this->myTrades = null;
             } elseif ($topic === 'orders' && ($this->orders !== null)) {
                 $this->orders = null;
+            } elseif ($topic === 'positions' && ($this->positions !== null)) {
+                $this->positions = null;
+                $clients = is_array($this->clients) ? array_values($this->clients) : array();
+                for ($i = 0; $i < count($clients); $i++) {
+                    $client = $clients[$i];
+                    $futures = $this->safe_dict($client, 'futures');
+                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
+                        unset($futures['fetchPositionsSnapshot']);
+                    }
+                }
             } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
