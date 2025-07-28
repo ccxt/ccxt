@@ -4,7 +4,8 @@
 import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -99,7 +100,7 @@ export default class backpack extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -184,7 +185,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/capital/deposits': 1, // done
                         'wapi/v1/capital/deposit/address': 1, // done
                         'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/position': 1,
+                        'api/v1/position': 1, // done but todo check if all is right
                         'wapi/v1/history/borrowLend': 1,
                         'wapi/v1/history/interest': 1,
                         'wapi/v1/history/borrowLend/positions': 1,
@@ -1661,6 +1662,101 @@ export default class backpack extends Exchange {
             'Ask': 'sell',
         };
         return this.safeString (sides, side, side);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1Position (params);
+        const positions = this.parsePositions (response);
+        if (this.isEmpty (symbols)) {
+            return positions;
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "breakEvenPrice": "3831.3630555555555555555555556",
+        //         "cumulativeFundingPayment": "-0.009218",
+        //         "cumulativeInterest": "0",
+        //         "entryPrice": "3826.8888888888888888888888889",
+        //         "estLiquidationPrice": "0",
+        //         "imf": "0.02",
+        //         "imfFunction": {
+        //             "base": "0.02",
+        //             "factor": "0.0000935",
+        //             "type": "sqrt"
+        //         },
+        //         "markPrice": "3787.46813304",
+        //         "mmf": "0.0125",
+        //         "mmfFunction": {
+        //             "base": "0.0125",
+        //             "factor": "0.0000561",
+        //             "type": "sqrt"
+        //         },
+        //         "netCost": "13.7768",
+        //         "netExposureNotional": "13.634885278944",
+        //         "netExposureQuantity": "0.0036",
+        //         "netQuantity": "0.0036",
+        //         "pnlRealized": "0",
+        //         "pnlUnrealized": "-0.141914",
+        //         "positionId": "4238420454",
+        //         "subaccountId": null,
+        //         "symbol": "ETH_USDC_PERP",
+        //         "userId":1813870
+        //     }
+        //
+        const id = this.safeString (position, 'positionId');
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const entryPrice = this.safeString (position, 'entryPrice');
+        const markPrice = this.safeString (position, 'markPrice');
+        const notionalString = Precise.stringAbs (this.safeString (position, 'netExposureNotional'));
+        const notional = this.parseNumber (notionalString);
+        const maintenanceMargin = this.safeString (position, 'mmf');
+        const unrealizedPnl = this.safeString (position, 'pnlUnrealized');
+        const liquidationPrice = this.safeString (position, 'estLiquidationPrice');
+        return this.safePosition ({
+            'info': position,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'hedged': undefined,
+            'side': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'entryPrice': entryPrice,
+            'markPrice': markPrice,
+            'lastPrice': undefined,
+            'notional': notional,
+            'leverage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': unrealizedPnl,
+            'liquidationPrice': liquidationPrice,
+            'marginMode': undefined,
+            'marginRatio': undefined,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
