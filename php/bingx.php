@@ -5275,7 +5275,7 @@ class bingx extends Exchange {
         $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag');
-        $timestamp = $this->safe_integer($transaction, 'insertTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
             $datetime = $this->safe_string($transaction, 'applyTime');
