@@ -3364,6 +3364,26 @@ class Exchange {
         trade['cost'] = this.parseNumber(cost);
         return trade;
     }
+    createCcxtTradeId(timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        let id = undefined;
+        if (timestamp !== undefined) {
+            id = this.numberToString(timestamp);
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString(amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString(price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+        }
+        return id;
+    }
     parsedFeeAndFees(container) {
         let fee = this.safeDict(container, 'fee');
         let fees = this.safeList(container, 'fees');

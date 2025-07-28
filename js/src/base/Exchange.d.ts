@@ -581,6 +581,7 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
+    createCcxtTradeId(timestamp?: any, side?: any, amount?: any, price?: any, takerOrMaker?: any): any;
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
