@@ -5,6 +5,87 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "without args",
+                "method": "fetchClosedOrders",
+                "url": "https://arkm.com/api/orders/history",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "without args",
+                "method": "fetchOpenOrders",
+                "url": "https://arkm.com/api/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "with id",
+                "method": "cancelOrder",
+                "url": "https://arkm.com/api/orders/cancel",
+                "input": [
+                    "3696995236595"
+                ],
+                "output": "{\"orderId\":3696995236595}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "with id",
+                "method": "fetchOrder",
+                "url": "https://arkm.com/api/orders/3696995236595",
+                "input": [
+                    "3696995236595"
+                ],
+                "output": null
+            },
+            {
+                "description": "with id numeric",
+                "method": "fetchOrder",
+                "url": "https://arkm.com/api/orders/3696995236595",
+                "input": [
+                    3696995236595
+                ],
+                "output": null
+            },
+            {
+                "description": "with cId",
+                "method": "fetchOrder",
+                "url": "https://arkm.com/api/orders/by-client-order-id?clientOrderId=test123",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "clientOrderId": "test123"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "with args & params",
+                "method": "createOrder",
+                "url": "https://arkm.com/api/orders/new",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "timeInForce": "FOK",
+                        "clientOrderId": "test123"
+                    }
+                ],
+                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"buy\",\"size\":\"0.05\",\"clientOrderId\":\"test123\",\"price\":\"180\",\"type\":\"limitFok\"}"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

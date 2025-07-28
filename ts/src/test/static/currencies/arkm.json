@@ -107,7 +107,7 @@
         "fee": 2,
         "fees": {},
         "networks": {
-            "ERC20": {
+            "ETH": {
                 "info": {
                     "symbol": "ETH",
                     "assetSymbol": "ETH",
@@ -117,7 +117,7 @@
                     "blockTime": "12000000"
                 },
                 "id": "ETH",
-                "network": "ERC20",
+                "network": "ETH",
                 "title": "Ethereum",
                 "active": null,
                 "deposit": null,
@@ -143,6 +143,80 @@
             },
             "deposit": {
                 "min": 5,
+                "max": null
+            }
+        }
+    },
+    "SOL": {
+        "info": {
+            "symbol": "SOL",
+            "name": "Solana",
+            "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+            "stablecoin": false,
+            "featuredPair": "SOL_USDT",
+            "chains": [
+                {
+                    "symbol": "SOL",
+                    "assetSymbol": "SOL",
+                    "name": "Solana",
+                    "type": "4",
+                    "confirmations": "32",
+                    "blockTime": "400000"
+                }
+            ],
+            "status": "listed",
+            "minDeposit": "0.05",
+            "minWithdrawal": "0.05",
+            "withdrawalFee": "0.02"
+        },
+        "id": "SOL",
+        "numericId": null,
+        "code": "SOL",
+        "precision": null,
+        "type": "crypto",
+        "name": "Solana",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.02,
+        "fees": {},
+        "networks": {
+            "SOL": {
+                "info": {
+                    "symbol": "SOL",
+                    "assetSymbol": "SOL",
+                    "name": "Solana",
+                    "type": "4",
+                    "confirmations": "32",
+                    "blockTime": "400000"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "title": "Solana",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.05,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.05,
                 "max": null
             }
         }

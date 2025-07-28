@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/arkm.js';
-import { Precise } from './base/Precise.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+// import { Precise } from './base/Precise.js';
+import { ExchangeError, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int } from './base/types.js';
 
 /**
  * @class arkm
@@ -43,6 +43,7 @@ export default class arkm extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'createOrder': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -143,13 +144,13 @@ export default class arkm extends Exchange {
                         'marketBuyRequiresPrice': false,
                     },
                     'createOrders': undefined,
-                //     'fetchMyTrades': {
-                //         'marginMode': false,
-                //         'limit': 100,
-                //         'daysBack': undefined,
-                //         'untilDays': 1,
-                //         'symbolRequired': false,
-                //     },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                        'symbolRequired': false,
+                    },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
