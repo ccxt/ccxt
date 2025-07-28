@@ -5439,7 +5439,7 @@ func  (this *bingx) ParseTransaction(transaction interface{}, optionalArgs ...in
     var id interface{} = this.SafeString(transaction, "id", dataId)
     var address interface{} = this.SafeString(transaction, "address")
     var tag interface{} = this.SafeString(transaction, "addressTag")
-    var timestamp interface{} = this.SafeInteger(transaction, "insertTime")
+    var timestamp interface{} = this.SafeInteger2(transaction, "insertTime", "timestamp")
     var datetime interface{} = this.Iso8601(timestamp)
     if IsTrue(IsEqual(timestamp, nil)) {
         datetime = this.SafeString(transaction, "applyTime")
