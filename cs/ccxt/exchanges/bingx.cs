@@ -5021,7 +5021,7 @@ public partial class bingx : Exchange
         object id = this.safeString(transaction, "id", dataId);
         object address = this.safeString(transaction, "address");
         object tag = this.safeString(transaction, "addressTag");
-        object timestamp = this.safeInteger(transaction, "insertTime");
+        object timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
         object datetime = this.iso8601(timestamp);
         if (isTrue(isEqual(timestamp, null)))
         {
