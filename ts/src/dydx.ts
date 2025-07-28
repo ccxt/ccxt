@@ -57,7 +57,7 @@ export default class dydx extends Exchange {
                 'fetchBalance': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
@@ -85,7 +85,7 @@ export default class dydx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': true,
@@ -149,7 +149,7 @@ export default class dydx extends Exchange {
                     'get': {
                         'addresses/{address}': 1,
                         'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccount_number}': 1,
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
                         'assetPositions': 1,
                         'assetPositions/parentSubaccountNumber': 1,
                         'candles/perpetualMarkets/{market}': 1,
@@ -167,7 +167,7 @@ export default class dydx extends Exchange {
                         'orderbooks/perpetualMarket/{market}': 1,
                         'orders': 1,
                         'orders/parentSubaccountNumber': 1,
-                        'orders/{order_id}': 1,
+                        'orders/{orderId}': 1,
                         'perpetualMarkets': 1,
                         'perpetualPositions': 1,
                         'perpetualPositions/parentSubaccountNumber': 1,
@@ -189,11 +189,9 @@ export default class dydx extends Exchange {
                         'historicalFunding/{ticker}': 1,
                         'candles/{ticker}/{resolution}': 1,
                         'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'orders/{orderId}': 1,
                         'fills/parentSubaccount': 1,
                         'historical-pnl/parentSubaccount': 1,
                     },
@@ -877,6 +875,46 @@ export default class dydx extends Exchange {
         // ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status': 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status': 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     nonce () {
