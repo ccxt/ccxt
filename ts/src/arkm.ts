@@ -42,6 +42,7 @@ export default class arkm extends Exchange {
                 'cancelAllOrders': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -84,9 +85,11 @@ export default class arkm extends Exchange {
                         },
                     },
                     'private': {
+                        // for orders: spot 20/s, todo: perp 40/s
                         'get': {
-                            'orders': 7.5, // spot 20/s, todo: perp 40/s
+                            'orders': 7.5,
                             'orders/by-client-order-id': 7.5,
+                            'orders/history': 7.5,
                         },
                         'post': {
                             'orders/cancel': 7.5,
@@ -164,25 +167,25 @@ export default class arkm extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                //     'fetchOrders': {
-                //         'marginMode': false,
-                //         'limit': 100,
-                //         'daysBack': undefined,
-                //         'untilDays': 1,
-                //         'trigger': false,
-                //         'trailing': false,
-                //         'symbolRequired': false,
-                //     },
-                //     'fetchClosedOrders': {
-                //         'marginMode': false,
-                //         'limit': 100,
-                //         'daysBack': undefined,
-                //         'daysBackCanceled': undefined,
-                //         'untilDays': 1,
-                //         'trigger': false,
-                //         'trailing': false,
-                //         'symbolRequired': false,
-                //     },
+                    // 'fetchOrders': {
+                    //     'marginMode': false,
+                    //     'limit': 100,
+                    //     'daysBack': 99999,
+                    //     'untilDays': undefined,
+                    //     'trigger': false,
+                    //     'trailing': false,
+                    //     'symbolRequired': false,
+                    // },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                 //     'fetchOHLCV': {
                 //         'limit': 365,
                 //     },
@@ -832,6 +835,67 @@ export default class arkm extends Exchange {
 
     /**
      * @method
+     * @name arkm#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://arkm.com/docs#get/orders/history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // note, API does not work for this param
+        }
+        const response = await this.v1PrivateGetOrdersHistory (this.extend (request, params));
+        //
+        //     [
+        //        {
+        //            "orderId": "3690478767430",
+        //            "userId": "2959123",
+        //            "subaccountId": "0",
+        //            "symbol": "SOL_USDT",
+        //            "time": "1753696843913970",
+        //            "side": "sell",
+        //            "type": "limitGtc",
+        //            "size": "0.066",
+        //            "price": "293.2",
+        //            "postOnly": false,
+        //            "reduceOnly": false,
+        //            "executedSize": "0",
+        //            "status": "closed",
+        //            "avgPrice": "0",
+        //            "executedNotional": "0",
+        //            "creditFeePaid": "0",
+        //            "marginBonusFeePaid": "0",
+        //            "quoteFeePaid": "0",
+        //            "arkmFeePaid": "0",
+        //            "revisionId": "888084076",
+        //            "lastTime": "1753701350088305",
+        //            "clientOrderId": "",
+        //            "lastSize": "0",
+        //            "lastPrice": "0",
+        //            "lastCreditFee": "0",
+        //            "lastMarginBonusFee": "0",
+        //            "lastQuoteFee": "0",
+        //            "lastArkmFee": "0"
+        //        }
+        //    ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name arkm#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://arkm.com/docs#get/orders
@@ -934,7 +998,7 @@ export default class arkm extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchOrder, fetchOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //    {
         //        "orderId": "3690478767430",
