@@ -524,6 +524,8 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
+            [/GetDescribeForExtendedWsExchange\(([^,]+),/g, 'GetDescribeForExtendedWsExchange(&$1, &'],
+            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
             
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
             
@@ -1463,6 +1465,7 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
+        baseClass = baseClass.replace (/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange');
 
         // --- WebSocket related fixes specific to **Go** ----------------------
         // 1) Access the strongly-typed field instead of dynamic lookup.
