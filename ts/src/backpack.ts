@@ -90,7 +90,7 @@ export default class backpack extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -197,7 +197,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/quote': 1,
                         'wapi/v1/history/settlement': 1,
                         'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1,
+                        'api/v1/order': 1, // done
                         'api/v1/orders': 1, // done
                     },
                     'post': {
@@ -303,6 +303,7 @@ export default class backpack extends Exchange {
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Market orders must specify a `quantity` or `quoteQuantity`"}
                 // {"code":"INVALID_ORDER","message":"Invalid order"}
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
+                // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify either `clientId` or `orderId`"}
                 'broad': {},
             },
         });
@@ -1462,6 +1463,30 @@ export default class backpack extends Exchange {
         }
         const response = await this.privateGetApiV1Orders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOpenOrder
+     * @description fetch an open order by it's id
+     * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
+     * @param {string} id order id
+     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        const response = await this.privateGetApiV1Order (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
