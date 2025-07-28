@@ -86,7 +86,7 @@ export default class dydx extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
@@ -810,6 +810,25 @@ export default class dydx extends Exchange {
             'TRAILING_STOP': 'MARKET',
         };
         return this.safeStringUpper (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.dydx.xyz/indexer-client/http#get-order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        const order = await this.indexerGetOrdersOrderId (this.extend (request, params));
+        return this.parseOrder (order);
     }
 
     /**
