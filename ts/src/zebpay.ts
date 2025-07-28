@@ -946,7 +946,7 @@ export default class zebpay extends Exchange {
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const orderType = this.safeString (params, 'orderType');
         const positionId = this.safeString (params, 'positionId', undefined);
-        params = this.omit (params, [ 'marginAsset', 'leverage', 'formType', 'positionId', 'takeProfitPrice', 'stopLossPrice' ]);
+        params = this.omit (params, [ 'marginAsset', 'leverage', 'formType', 'positionId', 'takeProfitPrice' ]);
         params['defaultType'] = market['type'];
         let request: Dict = {};
         let response = undefined;
@@ -958,6 +958,7 @@ export default class zebpay extends Exchange {
             [ request, params ] = this.orderRequest (symbol, type, amount, request, price, params);
             response = await this.privateSpotPostExOrders (this.extend (request, params));
         } else {
+            params = this.omit (params, [ 'stopLossPrice' ]);
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a leverage parameter argument');
             }
@@ -1006,11 +1007,11 @@ export default class zebpay extends Exchange {
 
     orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
-        const triggerPrice = this.safeString (params, 'stopPrice', undefined);
+        const triggerPrice = this.safeString (params, 'stopLossPrice', undefined);
         const quoteOrderQty = this.safeString (params, 'quoteOrderQty', undefined);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
-        params = this.omit (params, [ 'stopPrice', 'quoteOrderQty', 'timeInForce', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'quoteOrderQty', 'timeInForce', 'clientOrderId' ]);
         request['type'] = upperCaseType;
         request['clientOrderId'] = clientOrderId;
         request['timeInForce'] = timeInForce;
@@ -1026,7 +1027,7 @@ export default class zebpay extends Exchange {
             }
         } else {
             if (triggerPrice !== undefined) {
-                request['stopPrice'] = triggerPrice;
+                request['stopLossPrice'] = triggerPrice;
             }
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
