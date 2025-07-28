@@ -2551,6 +2551,33 @@ public partial class Exchange
         return trade;
     }
 
+    public virtual object createCcxtTradeId(object timestamp = null, object side = null, object amount = null, object price = null, object takerOrMaker = null)
+    {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        object id = null;
+        if (isTrue(!isEqual(timestamp, null)))
+        {
+            id = this.numberToString(timestamp);
+            if (isTrue(!isEqual(side, null)))
+            {
+                id = add(id, add("-", side));
+            }
+            if (isTrue(!isEqual(amount, null)))
+            {
+                id = add(id, add("-", this.numberToString(amount)));
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                id = add(id, add("-", this.numberToString(price)));
+            }
+            if (isTrue(!isEqual(takerOrMaker, null)))
+            {
+                id = add(id, add("-", takerOrMaker));
+            }
+        }
+        return id;
+    }
+
     public virtual object parsedFeeAndFees(object container)
     {
         object fee = this.safeDict(container, "fee");
