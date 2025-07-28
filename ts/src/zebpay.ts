@@ -114,7 +114,7 @@ export default class zebpay extends Exchange {
                         'get': {
                             'ex/orders': 10,
                             'account/balance': 10,
-                            'ex/fee/{symbol}': 10,
+                            'ex/tradefee': 10,
                             'ex/order': 10,
                             'ex/order/fills': 10,
                         },
@@ -443,15 +443,11 @@ export default class zebpay extends Exchange {
         const side = this.safeString (params, 'side', undefined);
         let response = undefined;
         let data;
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
         params['defaultType'] = market['type'];
         if (market['spot']) {
-            if (side !== undefined) {
-                request['side'] = side;
-            }
-            response = await this.privateSpotGetExFeeSymbol (this.extend (request, params));
+            params['symbol'] = market['id'];
+            response = await this.privateSpotGetExTradefee (this.extend (request, params));
             //
             // {
             //     "statusDescription": "Success",
@@ -466,6 +462,7 @@ export default class zebpay extends Exchange {
             // }
             data = this.safeDict (response, 'data', {});
         } else {
+            request['symbol'] = market['id'];
             response = await this.publicFutureGetExchangeTradefee (this.extend (request, params));
             //
             // {
@@ -1009,7 +1006,7 @@ export default class zebpay extends Exchange {
 
     orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
-        const triggerPrice = this.safeString (params, 'stopPrice');
+        const triggerPrice = this.safeString (params, 'stopPrice', undefined);
         const quoteOrderQty = this.safeString (params, 'quoteOrderQty');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
@@ -1021,10 +1018,12 @@ export default class zebpay extends Exchange {
             if (quoteOrderQty === undefined) {
                 throw new ExchangeError (this.id + ' market createOrder() requires quoteOrderQty as params');
             }
-            request['quoteOrderQty'] = quoteOrderQty;
+            request['quoteOrderAmount'] = quoteOrderQty;
         } else {
-            request['stopPrice'] = triggerPrice;
-            request['quantity'] = this.amountToPrecision (symbol, amount);
+            if (triggerPrice !== undefined) {
+                request['stopPrice'] = triggerPrice;
+            }
+            request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
         return [ request, params ];
