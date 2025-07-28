@@ -271,31 +271,31 @@ type ICoreExchange interface {
 	FetchWithdrawalsWs(optionalArgs ...interface{}) <-chan interface{}
 	UnWatchOrders(optionalArgs ...interface{}) <- chan interface{}
 	UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <- chan interface{}
+	UnWatchTradesForSymbols(optionalArgs ...interface{}) <- chan interface{}
+	UnWatchOHLCVForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
 	UnWatchTickers(optionalArgs ...interface{}) <- chan interface{}
-	UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
+	UnWatchOrderBookForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	WatchBalance(optionalArgs ...interface{}) <-chan interface{}
 	WatchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
 	WatchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchLiquidationsForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	WatchMyLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchMyLiquidationsForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	WatchMyTrades(optionalArgs ...interface{}) <-chan interface{}
 	WatchMyTradesForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	WatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOHLCVForSymbols(optionalArgs ...interface{}) <-chan interface{}
 	WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOrderBookForSymbols(optionalArgs ...interface{}) <-chan interface{}
 	WatchOrders(optionalArgs ...interface{}) <-chan interface{}
-	WatchOrdersForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchOrdersForSymbols(optionalArgs ...interface{}) <-chan interface{}
 	WatchPosition(optionalArgs ...interface{}) <-chan interface{}
 	WatchPositions(optionalArgs ...interface{}) <-chan interface{}
 	WatchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchTickers(optionalArgs ...interface{}) <-chan interface{}
 	WatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchTradesForSymbols(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
@@ -368,6 +368,6 @@ type IDerivedExchange interface {
 	CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{}
 	WatchPositions(optionalArgs ...interface{}) <- chan interface{}
 	FetchTickersWs(optionalArgs ...interface{}) <- chan interface{}
-	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
+	WatchMyLiquidationsForSymbols(optionalArgs ...interface{}) <- chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <- chan interface{}
 }
