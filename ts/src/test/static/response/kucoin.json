@@ -1814,7 +1814,7 @@
                                     }
                                 }
                             },
-                            "OP": {
+                            "OPTIMISM": {
                                 "info": {
                                     "chainName": "OPTIMISM",
                                     "withdrawalMinSize": "3",
@@ -1834,7 +1834,7 @@
                                 },
                                 "id": "optimism",
                                 "name": "OPTIMISM",
-                                "code": "OP",
+                                "code": "OPTIMISM",
                                 "active": true,
                                 "fee": 1,
                                 "deposit": true,
