@@ -4,7 +4,7 @@
 import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ export default class dydx extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -725,6 +725,158 @@ export default class dydx extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // {
+        //     "id": "dad46410-3444-5566-a129-19a619300fb7",
+        //     "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //     "clientId": "716238006",
+        //     "clobPairId": "0",
+        //     "side": "BUY",
+        //     "size": "0.001",
+        //     "totalFilled": "0.001",
+        //     "price": "400000",
+        //     "type": "LIMIT",
+        //     "status": "FILLED",
+        //     "timeInForce": "GTT",
+        //     "reduceOnly": false,
+        //     "orderFlags": "64",
+        //     "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
+        //     "createdAtHeight": "45058325",
+        //     "clientMetadata": "2",
+        //     "updatedAt": "2025-07-28T12:06:35.330Z",
+        //     "updatedAtHeight": "45058326",
+        //     "postOnly": false,
+        //     "ticker": "BTC-USD",
+        //     "subaccountNumber": 0
+        // }
+        //
+        const status = this.parseOrderStatus (this.safeStringUpper (order, 'status'));
+        const marketId = this.safeString (order, 'ticker');
+        const symbol = this.safeSymbol (marketId, market);
+        const filled = this.safeString (order, 'totalFilled');
+        const timestamp = this.parse8601 (this.safeString (order, 'updatedAt'));
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const type = this.parseOrderType (this.safeStringUpper (order, 'type'));
+        const side = this.safeStringLower (order, 'side');
+        const timeInForce = this.safeStringUpper (order, 'timeInForce');
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': side,
+            'price': price,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'UNTRIGGERED': 'open',
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'BEST_EFFORT_CANCELED': 'canceling',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'LIMIT': 'LIMIT',
+            'STOP_LIMIT': 'LIMIT',
+            'TAKE_PROFIT_LIMIT': 'LIMIT',
+            'MARKET': 'MARKET',
+            'STOP_MARKET': 'MARKET',
+            'TAKE_PROFIT_MARKET': 'MARKET',
+            'TRAILING_STOP': 'MARKET',
+        };
+        return this.safeStringUpper (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.dydx.xyz/indexer-client/http#list-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let userAddress = undefined;
+        let subAccountNumber = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'address': userAddress,
+            'subaccountNumber': subAccountNumber,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['ticker'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.indexerGetOrders (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "dad46410-3444-5566-a129-19a619300fb7",
+        //         "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+        //         "clientId": "716238006",
+        //         "clobPairId": "0",
+        //         "side": "BUY",
+        //         "size": "0.001",
+        //         "totalFilled": "0.001",
+        //         "price": "400000",
+        //         "type": "LIMIT",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTT",
+        //         "reduceOnly": false,
+        //         "orderFlags": "64",
+        //         "goodTilBlockTime": "2025-07-28T12:07:33.000Z",
+        //         "createdAtHeight": "45058325",
+        //         "clientMetadata": "2",
+        //         "updatedAt": "2025-07-28T12:06:35.330Z",
+        //         "updatedAtHeight": "45058326",
+        //         "postOnly": false,
+        //         "ticker": "BTC-USD",
+        //         "subaccountNumber": 0
+        //     }
+        // ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     nonce () {
