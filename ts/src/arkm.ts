@@ -38,7 +38,7 @@ export default class arkm extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTime': true,
                 //
-                'fetchOrders': true,
+                'fetchOpenOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -106,7 +106,7 @@ export default class arkm extends Exchange {
                 'requestExpiration': 5000, // 5 seconds
             },
             'features': {
-                // 'default': {
+                'default': {
                 //     'sandbox': true,
                 //     'createOrder': {
                 //         'marginMode': true,
@@ -151,13 +151,13 @@ export default class arkm extends Exchange {
                 //         'trailing': false,
                 //         'symbolRequired': false,
                 //     },
-                //     'fetchOpenOrders': {
-                //         'marginMode': true,
-                //         'limit': 100,
-                //         'trigger': false,
-                //         'trailing': false,
-                //         'symbolRequired': false,
-                //     },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                 //     'fetchOrders': {
                 //         'marginMode': false,
                 //         'limit': 100,
@@ -768,8 +768,8 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @name arkm#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
      * @see https://arkm.com/docs#get/orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -778,7 +778,7 @@ export default class arkm extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.v1PrivateGetOrders (this.extend ({}, params));
@@ -823,6 +823,115 @@ export default class arkm extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // fetchOrders
+        //
+        //    {
+        //        "orderId": "3690478767430",
+        //        "userId": "2959123",
+        //        "subaccountId": "0",
+        //        "symbol": "SOL_USDT",
+        //        "time": "1753696843913970",
+        //        "side": "sell",
+        //        "type": "limitGtc",
+        //        "size": "0.066",
+        //        "price": "293.2",
+        //        "postOnly": false,
+        //        "reduceOnly": false,
+        //        "executedSize": "0",
+        //        "status": "booked",
+        //        "avgPrice": "0",
+        //        "executedNotional": "0",
+        //        "creditFeePaid": "0",
+        //        "marginBonusFeePaid": "0",
+        //        "quoteFeePaid": "0",
+        //        "arkmFeePaid": "0",
+        //        "revisionId": "887956326",
+        //        "lastTime": "1753696843914830",
+        //        "clientOrderId": "",
+        //        "lastSize": "0",
+        //        "lastPrice": "0",
+        //        "lastCreditFee": "0",
+        //        "lastMarginBonusFee": "0",
+        //        "lastQuoteFee": "0",
+        //        "lastArkmFee": "0"
+        //    }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const isPostOnly = this.safeBool (order, 'postOnly');
+        const typeRaw = this.safeString (order, 'type');
+        const orderType = isPostOnly ? 'limit' : this.parseOrderType (typeRaw);
+        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (typeRaw);
+        const feeValue = this.safeString (order, 'commission');
+        let fee = undefined;
+        if (feeValue !== undefined) {
+            fee = {
+                'cost': feeValue,
+                'currency': 'USD',
+            };
+        }
+        const timestamp = this.safeIntegerProduct (order, 'time', 0.001);
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, ''),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimeStamp': undefined,
+            'lastUpdateTimestamp': this.safeIntegerProduct (order, 'lastTime', 0.001),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': market['symbol'],
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'side'),
+            'price': this.safeNumber (order, 'price'),
+            'triggerPrice': undefined,
+            'cost': this.safeNumber (order, 'executedNotional'),
+            'average': this.safeNumber (order, 'avgPrice'),
+            'amount': this.safeNumber (order, 'size'),
+            'filled': this.safeNumber (order, ''),
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'info': order,
+        }, market);
+    }
+
+    parseOrderType (type: Str): Str {
+        const types: Dict = {
+            'limitGtc': 'limit',
+            'limitIoc': 'limit',
+            'limitFok': 'limit',
+            'market': 'market',
+        };
+        return this.safeStringUpper (types, type, type);
+    }
+
+    parseTimeInForce (type: Str): Str {
+        const types: Dict = {
+            'limitGtc': 'GTC',
+            'limitIoc': 'IOC',
+            'limitFok': 'FOK',
+            'market': 'IOC',
+        };
+        return this.safeStringUpper (types, type, type);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'new': 'pending',
+            'booked': 'open',
+            'taker': 'closed',
+            'maker': 'closed',
+            'cancelled': 'canceled',
+            'closed': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
