@@ -91,7 +91,7 @@ export default class backpack extends Exchange {
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -198,7 +198,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/settlement': 1,
                         'wapi/v1/history/strategies': 1,
                         'api/v1/order': 1,
-                        'api/v1/orders': 1,
+                        'api/v1/orders': 1, // done
                     },
                     'post': {
                         'api/v1/account/convertDust': 1,
@@ -1441,6 +1441,29 @@ export default class backpack extends Exchange {
         return this.safeString (sides, side, side);
     }
 
+    /**
+     * @method
+     * @name backpack#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetApiV1Orders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
@@ -1472,6 +1495,37 @@ export default class backpack extends Exchange {
         //         "triggeredAt": null
         //     }
         //
+        // fetchOpenOrders
+        //     {
+        //         "clientId": 123456789,
+        //         "createdAt": 1753626206762,
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "id": "4228978330",
+        //         "orderType": "Limit",
+        //         "postOnly": true,
+        //         "price": "3000",
+        //         "quantity": "0.001",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "New",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
+        //     }
+        //
         const timestamp = this.safeInteger (order, 'createdAt');
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'clientId');
@@ -1480,6 +1534,7 @@ export default class backpack extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const side = this.parseOrderSide (this.safeString (order, 'side'));
         const amount = this.safeString2 (order, 'quantity', 'triggerQuantity');
+        const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'executedQuoteQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
@@ -1501,7 +1556,7 @@ export default class backpack extends Exchange {
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
-            'price': undefined,
+            'price': price,
             'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
