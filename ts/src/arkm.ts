@@ -38,6 +38,7 @@ export default class arkm extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTime': true,
                 //
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
             },
             'timeframes': {
@@ -83,6 +84,7 @@ export default class arkm extends Exchange {
                     'private': {
                         'get': {
                             'orders': 7.5, // spot 20/s, todo: perp 40/s
+                            'orders/by-client-order-id': 7.5, // spot 20/s, todo: perp 40/s
                         },
                         'post': {
                         },
@@ -145,12 +147,12 @@ export default class arkm extends Exchange {
                 //         'untilDays': 1,
                 //         'symbolRequired': false,
                 //     },
-                //     'fetchOrder': {
-                //         'marginMode': false,
-                //         'trigger': false,
-                //         'trailing': false,
-                //         'symbolRequired': false,
-                //     },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': true,
                         'limit': undefined,
@@ -180,7 +182,7 @@ export default class arkm extends Exchange {
                 //     'fetchOHLCV': {
                 //         'limit': 365,
                 //     },
-                // },
+                },
                 // 'spot': {
                 //     'extends': 'default',
                 // },
@@ -768,6 +770,28 @@ export default class arkm extends Exchange {
 
     /**
      * @method
+     * @name arkmm#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://arkm.com/docs#get/orders/by-client-order-id
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId' ]);
+        request['id'] = (clientOrderId !== undefined) ? clientOrderId : id;
+        const response = await this.v1PrivateGetOrder (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
+    /**
+     * @method
      * @name arkm#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://arkm.com/docs#get/orders
@@ -783,51 +807,45 @@ export default class arkm extends Exchange {
         const market = this.market (symbol);
         const response = await this.v1PrivateGetOrders (this.extend ({}, params));
         //
-        //     [
-        //         {
-        //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
-        //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
-        //           "created_at": "2023-11-17T04:21:42.234579Z",
-        //           "updated_at": "2023-11-17T04:22:34.442765Z",
-        //           "submitted_at": "2023-11-17T04:21:42.233357Z",
-        //           "filled_at": null,
-        //           "expired_at": null,
-        //           "canceled_at": "2023-11-17T04:22:34.399019Z",
-        //           "failed_at": null,
-        //           "replaced_at": null,
-        //           "replaced_by": null,
-        //           "replaces": null,
-        //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
-        //           "symbol": "LTC/USDT",
-        //           "asset_class": "crypto",
-        //           "notional": null,
-        //           "qty": "0.001",
-        //           "filled_qty": "0",
-        //           "filled_avg_price": null,
-        //           "order_class": "",
-        //           "order_type": "limit",
-        //           "type": "limit",
-        //           "side": "sell",
-        //           "time_in_force": "gtc",
-        //           "limit_price": "1000",
-        //           "stop_price": null,
-        //           "status": "canceled",
-        //           "extended_hours": false,
-        //           "legs": null,
-        //           "trail_percent": null,
-        //           "trail_price": null,
-        //           "hwm": null,
-        //           "subtag": null,
-        //           "source": "access_key"
-        //         }
-        //     ]
+        // [
+        //    {
+        //        "orderId": "3690478767430",
+        //        "userId": "2959123",
+        //        "subaccountId": "0",
+        //        "symbol": "SOL_USDT",
+        //        "time": "1753696843913970",
+        //        "side": "sell",
+        //        "type": "limitGtc",
+        //        "size": "0.066",
+        //        "price": "293.2",
+        //        "postOnly": false,
+        //        "reduceOnly": false,
+        //        "executedSize": "0",
+        //        "status": "booked",
+        //        "avgPrice": "0",
+        //        "executedNotional": "0",
+        //        "creditFeePaid": "0",
+        //        "marginBonusFeePaid": "0",
+        //        "quoteFeePaid": "0",
+        //        "arkmFeePaid": "0",
+        //        "revisionId": "887956326",
+        //        "lastTime": "1753696843914830",
+        //        "clientOrderId": "",
+        //        "lastSize": "0",
+        //        "lastPrice": "0",
+        //        "lastCreditFee": "0",
+        //        "lastMarginBonusFee": "0",
+        //        "lastQuoteFee": "0",
+        //        "lastArkmFee": "0"
+        //    }
+        // ]
         //
         return this.parseOrders (response, market, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // fetchOrders
+        // fetchOrder, fetchOrders
         //
         //    {
         //        "orderId": "3690478767430",
@@ -877,7 +895,7 @@ export default class arkm extends Exchange {
         const timestamp = this.safeIntegerProduct (order, 'time', 0.001);
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
-            'clientOrderId': this.safeString (order, ''),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimeStamp': undefined,
