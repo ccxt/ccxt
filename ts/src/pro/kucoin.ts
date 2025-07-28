@@ -518,8 +518,9 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        if (this.isEmpty (symbols)) {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
@@ -553,7 +554,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: Strings = undefined, params = {}): Promise<any> {
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const marketIds = this.marketIds (symbols);
@@ -687,8 +688,9 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        if (this.isEmpty (symbols)) {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         if (limit !== undefined) {
@@ -739,7 +741,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBookForSymbols (symbols: Strings = undefined, params = {}): Promise<any> {
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
         await this.loadMarkets ();

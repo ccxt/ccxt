@@ -392,9 +392,6 @@ class NewTranspiler {
         if (wrappedType === 'Strings') {
             return addTaskIfNeeded('List<String>')
         }
-        if (wrappedType === 'StringsDoubleArray') {
-            return addTaskIfNeeded('List<List<String>>')
-        }
         if (csharpReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(csharpReplacements[wrappedType]);
         }

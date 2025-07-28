@@ -4,7 +4,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict, StringsDoubleArray } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -314,12 +314,13 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
         let firstMarket = undefined;
         let marketType = undefined;
         let subType = undefined;
-        if (!this.isEmpty (symbols)) {
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
@@ -337,7 +338,7 @@ export default class bingx extends bingxRest {
         const channelName = 'depth' + limit.toString () + '@' + interval.toString () + 'ms';
         const subscriptionHash = 'all@' + channelName;
         const messageHashes = [];
-        if (!this.isEmpty (symbols)) {
+        if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -376,8 +377,9 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: StringsDoubleArray = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.isEmpty (symbolsAndTimeframes)) {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength !== 0 && !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]");
         }
         await this.loadMarkets ();
@@ -386,9 +388,11 @@ export default class bingx extends bingxRest {
         let subType = undefined;
         let chosenTimeframe = undefined;
         let firstMarket = undefined;
-        let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
-        symbols = this.marketSymbols (symbols, undefined, true, true, false);
-        firstMarket = this.market (symbols[0]);
+        if (symbolsLength !== 0) {
+            let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+            symbols = this.marketSymbols (symbols, undefined, true, true, false);
+            firstMarket = this.market (symbols[0]);
+        }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCVForSymbols', firstMarket, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCVForSymbols', firstMarket, params, 'linear');
         if (marketType === 'spot') {

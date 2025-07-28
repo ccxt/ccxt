@@ -713,14 +713,15 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const subscribedSymbols = [];
         const messageHashes = [];
         let market = undefined;
         let callerMethodName = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
-        if (!this.isEmpty (symbols)) {
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 market = this.market (symbol);
@@ -757,7 +758,7 @@ export default class coinex extends coinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const watchOrderBookSubscriptions: Dict = {};
         const messageHashes = [];
@@ -781,7 +782,8 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols() aggregation must be one of ' + aggregations.join (', '));
         }
         params = this.omit (params, 'aggregation');
-        if (!this.isEmpty (symbols)) {
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 market = this.market (symbol);
