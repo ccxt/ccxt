@@ -6013,7 +6013,7 @@ class Exchange extends \ccxt\Exchange {
             $calls = 0;
             $result = array();
             $errors = 0;
-            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
+            $until = $this->safe_integer_n($params, array( 'until', 'untill', 'till' )); // do not omit it from $params here
             list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
             if (($paginationDirection === 'forward')) {
                 if ($since === null) {
