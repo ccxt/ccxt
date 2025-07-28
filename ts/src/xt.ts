@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position, int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -3945,7 +3945,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4078,7 +4078,7 @@ export default class xt extends Exchange {
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

@@ -2387,7 +2387,7 @@ export default class paradex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
