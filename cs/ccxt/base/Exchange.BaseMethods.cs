@@ -2422,20 +2422,8 @@ public partial class Exchange
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
-    public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public virtual object calculateFeeWithRate(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object feeRate = null, object parameters = null)
     {
-        /**
-        * @method
-        * @description calculates the presumptive fee that would be charged for an order
-        * @param {string} symbol unified market symbol
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-        * @param {float} price the price for the order to be filled at, in units of the quote currency
-        * @param {string} takerOrMaker 'taker' or 'maker'
-        * @param {object} params
-        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-        */
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(takerOrMaker, "maker"))))
@@ -2479,7 +2467,7 @@ public partial class Exchange
         {
             takerOrMaker = "taker";
         }
-        object rate = this.safeString(market, takerOrMaker);
+        object rate = ((bool) isTrue((!isEqual(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
@@ -2487,6 +2475,25 @@ public partial class Exchange
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
+    }
+
+    public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @description calculates the presumptive fee that would be charged for an order
+        * @param {string} symbol unified market symbol
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        * @param {float} price the price for the order to be filled at, in units of the quote currency
+        * @param {string} takerOrMaker 'taker' or 'maker'
+        * @param {object} params
+        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        */
+        takerOrMaker ??= "taker";
+        parameters ??= new Dictionary<string, object>();
+        return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, null, parameters);
     }
 
     public virtual object safeLiquidation(object liquidation, object market = null)
@@ -2687,7 +2694,7 @@ public partial class Exchange
         {
             object fee = getValue(fees, i);
             object code = this.safeString(fee, "currency");
-            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(code, null)))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");
@@ -5457,13 +5464,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDeposits(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchWithdrawals(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;

@@ -8,225 +8,57 @@
 package ccxt
 
 func (this *tradeogre) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
 func (this *tradeogre) PublicGetOrdersMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrdersMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrdersMarket", args...)
 }
 
 func (this *tradeogre) PublicGetTickerMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTickerMarket", args...)
 }
 
 func (this *tradeogre) PublicGetHistoryMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistoryMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetHistoryMarket", args...)
 }
 
 func (this *tradeogre) PublicGetChartIntervalMarketTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarketTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetChartIntervalMarketTimestamp", args...)
 }
 
 func (this *tradeogre) PublicGetChartIntervalMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChartIntervalMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetChartIntervalMarket", args...)
 }
 
 func (this *tradeogre) PrivateGetAccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountBalances", args...)
 }
 
 func (this *tradeogre) PrivateGetAccountOrderUuid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountOrderUuid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetAccountOrderUuid", args...)
 }
 
 func (this *tradeogre) PrivatePostOrderBuy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderBuy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrderBuy", args...)
 }
 
 func (this *tradeogre) PrivatePostOrderSell (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderSell", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrderSell", args...)
 }
 
 func (this *tradeogre) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
 func (this *tradeogre) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrders", args...)
 }
 
 func (this *tradeogre) PrivatePostAccountOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountOrders", args...)
 }
 
 func (this *tradeogre) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostAccountBalance", args...)
 }

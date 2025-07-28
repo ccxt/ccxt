@@ -8,369 +8,93 @@
 package ccxt
 
 func (this *oceanex) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
 func (this *oceanex) PublicGetTickersPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickersPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTickersPair", args...)
 }
 
 func (this *oceanex) PublicGetTickersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTickersMulti", args...)
 }
 
 func (this *oceanex) PublicGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
 func (this *oceanex) PublicGetOrderBookMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBookMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetOrderBookMulti", args...)
 }
 
 func (this *oceanex) PublicGetFeesTrading (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFeesTrading", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetFeesTrading", args...)
 }
 
 func (this *oceanex) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 func (this *oceanex) PublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTimestamp", args...)
 }
 
 func (this *oceanex) PublicPostK (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostK", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicPostK", args...)
 }
 
 func (this *oceanex) PrivateGetKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetKey", args...)
 }
 
 func (this *oceanex) PrivateGetMembersMe (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMembersMe", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetMembersMe", args...)
 }
 
 func (this *oceanex) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 func (this *oceanex) PrivateGetOrdersFilter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersFilter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetOrdersFilter", args...)
 }
 
 func (this *oceanex) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrders", args...)
 }
 
 func (this *oceanex) PrivatePostOrdersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrdersMulti", args...)
 }
 
 func (this *oceanex) PrivatePostOrderDelete (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderDelete", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrderDelete", args...)
 }
 
 func (this *oceanex) PrivatePostOrderDeleteMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderDeleteMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrderDeleteMulti", args...)
 }
 
 func (this *oceanex) PrivatePostOrdersClear (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersClear", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOrdersClear", args...)
 }
 
 func (this *oceanex) PrivatePostWithdrawsSpecialNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawsSpecialNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostWithdrawsSpecialNew", args...)
 }
 
 func (this *oceanex) PrivatePostDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostDepositAddress", args...)
 }
 
 func (this *oceanex) PrivatePostDepositAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostDepositAddresses", args...)
 }
 
 func (this *oceanex) PrivatePostDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostDepositHistory", args...)
 }
 
 func (this *oceanex) PrivatePostWithdrawHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostWithdrawHistory", args...)
 }

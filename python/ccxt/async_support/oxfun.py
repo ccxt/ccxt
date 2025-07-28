@@ -2585,7 +2585,8 @@ class oxfun(Exchange, ImplicitAPI):
         #         "data": {"notice": "No working orders found"}
         #     }
         #
-        return await self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        response = await self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """

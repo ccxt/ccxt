@@ -2084,9 +2084,9 @@ func  (this *woofipro) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             //     }
             // }
             //
-        ch <- []interface{}{map[string]interface{} {
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
             "info": response,
-        }}
+        })}
             return nil
         
             }()

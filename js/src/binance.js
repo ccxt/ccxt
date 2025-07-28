@@ -1268,12 +1268,14 @@ export default class binance extends Exchange {
             'options': {
                 'sandboxMode': false,
                 'fetchMargins': true,
-                'fetchMarkets': [
-                    'spot',
-                    'linear',
-                    'inverse', // allows CORS in browsers
-                    // 'option', // does not allow CORS, enable outside of the browser only
-                ],
+                'fetchMarkets': {
+                    'types': [
+                        'spot',
+                        'linear',
+                        'inverse', // allows CORS in browsers
+                        // 'option', // does not allow CORS, enable outside of the browser only
+                    ],
+                },
                 'loadAllOptions': false,
                 'fetchCurrencies': true,
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
@@ -3040,7 +3042,16 @@ export default class binance extends Exchange {
      */
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
-        const rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        let rawFetchMarkets = undefined;
+        const defaultTypes = ['spot', 'linear', 'inverse'];
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            rawFetchMarkets = this.safeList(fetchMarketsOptions, 'types', defaultTypes);
+        }
+        else {
+            // for backward-compatibility
+            rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', defaultTypes);
+        }
         // handle loadAllOptions option
         const loadAllOptions = this.safeBool(this.options, 'loadAllOptions', false);
         if (loadAllOptions) {

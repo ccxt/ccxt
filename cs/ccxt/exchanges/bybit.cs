@@ -956,7 +956,9 @@ public partial class bybit : Exchange
             { "options", new Dictionary<string, object>() {
                 { "usePrivateInstrumentsInfo", false },
                 { "enableDemoTrading", false },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse", "option"} },
+                } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
                 { "unifiedMarginStatus", null },
@@ -1693,10 +1695,20 @@ public partial class bybit : Exchange
             await this.loadTimeDifference();
         }
         object promisesUnresolved = new List<object>() {};
-        object fetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
-        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        object types = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse", "option"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
         {
-            object marketType = getValue(fetchMarkets, i);
+            types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            types = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        {
+            object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesUnresolved).Add(this.fetchSpotMarkets(parameters));
@@ -5088,7 +5100,9 @@ public partial class bybit : Exchange
         object orders = this.safeList(result, "list");
         if (!isTrue(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
         return this.parseOrders(orders, market);
     }
@@ -9181,7 +9195,7 @@ public partial class bybit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", this.safeString(income, "execId") },
-            { "amount", this.safeNumber(income, "execQty") },
+            { "amount", this.safeNumber(income, "execFee") },
             { "rate", this.safeNumber(income, "feeRate") },
         };
     }

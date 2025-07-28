@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchTickers(exchange ccxt.IExchange, skippedProperties interface{}, symbol interface{}) <- chan interface{} {
+    func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties interface{}, symbol interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -23,7 +23,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func TestFetchTickersHelper(exchange ccxt.IExchange, skippedProperties interface{}, argSymbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
+    func TestFetchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties interface{}, argSymbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -53,7 +53,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func TestFetchTickersAmounts(exchange ccxt.IExchange, skippedProperties interface{}, tickers interface{})  {
+    func TestFetchTickersAmounts(exchange ccxt.ICoreExchange, skippedProperties interface{}, tickers interface{})  {
         var tickersValues interface{} = ObjectValues(tickers)
         if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
             //

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.94'
+__version__ = '4.4.96'
 
 # -----------------------------------------------------------------------------
 
@@ -119,6 +119,7 @@ from ccxt.async_support.digifinex import digifinex                              
 from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
+from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
@@ -226,6 +227,7 @@ exchanges = [
     'ellipx',
     'exmo',
     'fmfwio',
+    'foxbit',
     'gate',
     'gateio',
     'gemini',

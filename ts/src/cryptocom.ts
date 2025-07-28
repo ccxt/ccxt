@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position, FundingRate } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -62,7 +62,7 @@ export default class cryptocom extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
@@ -1698,7 +1698,8 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
+        const response = await this.v1PrivatePostPrivateCancelAllOrders (this.extend (request, params));
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2990,6 +2991,83 @@ export default class cryptocom extends Exchange {
             result.push (this.parseSettlement (settlements[i], market));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'valuation_type': 'estimated_funding_rate',
+            'count': 1,
+        };
+        const response = await this.v1PublicGetPublicGetValuations (this.extend (request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'data', []);
+        const entry = this.safeDict (data, 0, {});
+        return this.parseFundingRate (entry, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //
+        const timestamp = this.safeInteger (contract, 't');
+        let fundingTimestamp = undefined;
+        if (timestamp !== undefined) {
+            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+        }
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'v'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
+        } as FundingRate;
     }
 
     /**

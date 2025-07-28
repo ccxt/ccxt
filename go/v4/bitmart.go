@@ -3364,7 +3364,9 @@ func  (this *bitmart) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             //
             if IsTrue(GetValue(market, "swap")) {
         
-                ch <- response
+                ch <- this.SafeOrder(map[string]interface{} {
+                    "info": response,
+                })
                 return nil
             }
             var data interface{} = this.SafeValue(response, "data")
@@ -3548,7 +3550,9 @@ func  (this *bitmart) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
             //     }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

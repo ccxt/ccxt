@@ -2816,7 +2816,10 @@ public partial class oxfun : Exchange
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        return await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        object response = await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

@@ -165,6 +165,7 @@ export default class hyperliquid extends Exchange {
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1729,7 +1730,7 @@ export default class hyperliquid extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**
@@ -1899,7 +1900,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -3836,7 +3837,7 @@ export default class hyperliquid extends Exchange {
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
         }
-        return coin + '/USDC:USDC';
+        return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

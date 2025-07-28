@@ -50,6 +50,7 @@ export default class Exchange {
             'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
         };
         this.headers = {};
+        this.returnResponseHeaders = false;
         this.origin = '*'; // CORS origin
         this.MAX_VALUE = Number.MAX_VALUE;
         //
@@ -707,6 +708,9 @@ export default class Exchange {
             const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody);
             if (!skipFurtherErrorHandling) {
                 this.handleHttpStatusCode(response.status, response.statusText, url, method, responseBody);
+            }
+            if (json && !Array.isArray(json) && this.returnResponseHeaders) {
+                json['responseHeaders'] = responseHeaders;
             }
             return json || responseBody;
         });
@@ -3239,19 +3243,7 @@ export default class Exchange {
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
-    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        /**
-         * @method
-         * @description calculates the presumptive fee that would be charged for an order
-         * @param {string} symbol unified market symbol
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-         * @param {float} price the price for the order to be filled at, in units of the quote currency
-         * @param {string} takerOrMaker 'taker' or 'maker'
-         * @param {object} params
-         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-         */
+    calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker = 'taker', feeRate = undefined, params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired(this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3288,7 +3280,7 @@ export default class Exchange {
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
-        const rate = this.safeString(market, takerOrMaker);
+        const rate = (feeRate !== undefined) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return {
             'type': takerOrMaker,
@@ -3296,6 +3288,21 @@ export default class Exchange {
             'rate': this.parseNumber(rate),
             'cost': this.parseNumber(cost),
         };
+    }
+    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
+        return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, undefined, params);
     }
     safeLiquidation(liquidation, market = undefined) {
         const contracts = this.safeString(liquidation, 'contracts');
@@ -3462,7 +3469,7 @@ export default class Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const code = this.safeString(fee, 'currency');
-            const feeCurrencyCode = code !== undefined ? code : i.toString();
+            const feeCurrencyCode = (code !== undefined) ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString(fee, 'rate');
                 const cost = this.safeString(fee, 'cost');
@@ -5498,10 +5505,10 @@ export default class Exchange {
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
-    async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDeposits() is not supported yet');
     }
-    async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
     }
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {

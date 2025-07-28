@@ -2646,7 +2646,7 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateDeleteHfOrders(self.extend(request, query))
         else:
             response = self.privateDeleteOrders(self.extend(request, query))
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

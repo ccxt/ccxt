@@ -173,6 +173,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1809,7 +1810,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -3599,7 +3600,7 @@ class hyperliquid(Exchange, ImplicitAPI):
     def coin_to_market_id(self, coin: Str):
         if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
-        return coin + '/USDC:USDC'
+        return self.safe_currency_code(coin) + '/USDC:USDC'
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:

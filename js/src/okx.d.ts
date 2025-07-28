@@ -297,7 +297,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseIds(ids: any): any;
     /**
      * @method

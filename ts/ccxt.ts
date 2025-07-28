@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.94';
+const version = '4.4.96';
 
 (Exchange as any).ccxtVersion = version
 
@@ -102,6 +102,7 @@ import digifinex from  './src/digifinex.js'
 import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
+import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
@@ -285,6 +286,7 @@ const exchanges = {
     'ellipx':                 ellipx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
+    'foxbit':                 foxbit,
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
@@ -609,6 +611,7 @@ export {
     ellipx,
     exmo,
     fmfwio,
+    foxbit,
     gate,
     gateio,
     gemini,

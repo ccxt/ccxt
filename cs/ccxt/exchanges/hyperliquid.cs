@@ -155,6 +155,7 @@ public partial class hyperliquid : Exchange
                                 { "orderStatus", 2 },
                                 { "spotClearinghouseState", 2 },
                                 { "exchangeStatus", 2 },
+                                { "candleSnapshot", 4 },
                             } },
                         } },
                     } },
@@ -2046,7 +2047,9 @@ public partial class hyperliquid : Exchange
         //         }
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -4175,7 +4178,7 @@ public partial class hyperliquid : Exchange
         {
             return coin;  // spot
         }
-        return add(coin, "/USDC:USDC");
+        return add(this.safeCurrencyCode(coin), "/USDC:USDC");
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

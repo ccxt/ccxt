@@ -1821,9 +1821,9 @@ export default class woofipro extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**
