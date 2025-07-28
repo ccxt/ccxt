@@ -670,6 +670,9 @@ class Exchange(BaseExchange):
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
 
+    async def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
+
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 

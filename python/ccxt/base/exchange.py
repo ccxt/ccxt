@@ -2133,6 +2133,17 @@ class Exchange(object):
                 'watchLiquidations': None,
                 'watchLiquidationsForSymbols': None,
                 'watchMyLiquidations': None,
+                'unWatchOrders': None,
+                'unWatchTrades': None,
+                'unWatchTradesForSymbols': None,
+                'unWatchOHLCVForSymbols': None,
+                'unWatchOrderBookForSymbols': None,
+                'unWatchPositions': None,
+                'unWatchOrderBook': None,
+                'unWatchTickers': None,
+                'unWatchMyTrades': None,
+                'unWatchTicker': None,
+                'unWatchOHLCV': None,
                 'watchMyLiquidationsForSymbols': None,
                 'withdraw': None,
                 'ws': None,
@@ -2618,6 +2629,9 @@ class Exchange(object):
 
     def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
+
+    def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -7009,6 +7023,14 @@ class Exchange(object):
                 self.myTrades = None
             elif topic == 'orders' and (self.orders is not None):
                 self.orders = None
+            elif topic == 'positions' and (self.positions is not None):
+                self.positions = None
+                clients = list(self.clients.values())
+                for i in range(0, len(clients)):
+                    client = clients[i]
+                    futures = self.safe_dict(client, 'futures')
+                    if (futures is not None) and ('fetchPositionsSnapshot' in futures):
+                        del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
