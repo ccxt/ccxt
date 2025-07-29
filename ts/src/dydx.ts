@@ -91,7 +91,7 @@ export default class dydx extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
@@ -996,12 +996,29 @@ export default class dydx extends Exchange {
 
     /**
      * @method
+     * @name dydx#fetchPosition
+     * @description fetch data on an open position
+     * @see https://docs.dydx.xyz/indexer-client/http#list-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}) {
+        const positions = await this.fetchPositions ([ symbol ], params);
+        return this.safeDict (positions, 0, {}) as Position;
+    }
+
+    /**
+     * @method
      * @name dydx#fetchPositions
      * @description fetch all open positions
      * @see https://docs.dydx.xyz/indexer-client/http#list-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
