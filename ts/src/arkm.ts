@@ -994,41 +994,69 @@ export default class arkm extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.v1PrivateGetOrders (this.extend ({}, params));
-        //
-        // [
-        //    {
-        //        "orderId": "3690478767430",
-        //        "userId": "2959123",
-        //        "subaccountId": "0",
-        //        "symbol": "SOL_USDT",
-        //        "time": "1753696843913970",
-        //        "side": "sell",
-        //        "type": "limitGtc",
-        //        "size": "0.066",
-        //        "price": "293.2",
-        //        "postOnly": false,
-        //        "reduceOnly": false,
-        //        "executedSize": "0",
-        //        "status": "booked",
-        //        "avgPrice": "0",
-        //        "executedNotional": "0",
-        //        "creditFeePaid": "0",
-        //        "marginBonusFeePaid": "0",
-        //        "quoteFeePaid": "0",
-        //        "arkmFeePaid": "0",
-        //        "revisionId": "887956326",
-        //        "lastTime": "1753696843914830",
-        //        "clientOrderId": "",
-        //        "lastSize": "0",
-        //        "lastPrice": "0",
-        //        "lastCreditFee": "0",
-        //        "lastMarginBonusFee": "0",
-        //        "lastQuoteFee": "0",
-        //        "lastArkmFee": "0"
-        //    }
-        // ]
-        //
+        const isTriggerOrder = this.safeBool (params, 'trigger');
+        params = this.omit (params, 'trigger');
+        let response = undefined;
+        if (isTriggerOrder) {
+            response = await this.v1PrivateGetTriggerOrders (this.extend ({}, params));
+            //
+            //    [
+            //        {
+            //            "subaccountId": "0",
+            //            "symbol": "SOL_USDT",
+            //            "side": "sell",
+            //            "type": "market",
+            //            "size": "0.045",
+            //            "price": "99.9",
+            //            "postOnly": false,
+            //            "reduceOnly": false,
+            //            "time": "1753768103780063",
+            //            "triggerOrderId": "3715847222127",
+            //            "triggerType": "stopLoss",
+            //            "triggerPriceType": "last",
+            //            "triggerPrice": "111",
+            //            "clientOrderId": "",
+            //            "status": "staged"
+            //        },
+            //    ]
+            //
+        } else {
+            response = await this.v1PrivateGetOrders (this.extend ({}, params));
+            //
+            // [
+            //    {
+            //        "orderId": "3690478767430",
+            //        "userId": "2959123",
+            //        "subaccountId": "0",
+            //        "symbol": "SOL_USDT",
+            //        "time": "1753696843913970",
+            //        "side": "sell",
+            //        "type": "limitGtc",
+            //        "size": "0.066",
+            //        "price": "293.2",
+            //        "postOnly": false,
+            //        "reduceOnly": false,
+            //        "executedSize": "0",
+            //        "status": "booked",
+            //        "avgPrice": "0",
+            //        "executedNotional": "0",
+            //        "creditFeePaid": "0",
+            //        "marginBonusFeePaid": "0",
+            //        "quoteFeePaid": "0",
+            //        "arkmFeePaid": "0",
+            //        "revisionId": "887956326",
+            //        "lastTime": "1753696843914830",
+            //        "clientOrderId": "",
+            //        "lastSize": "0",
+            //        "lastPrice": "0",
+            //        "lastCreditFee": "0",
+            //        "lastMarginBonusFee": "0",
+            //        "lastQuoteFee": "0",
+            //        "lastArkmFee": "0"
+            //    }
+            // ]
+            //
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1043,15 +1071,26 @@ export default class arkm extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const isTriggerOrder = this.safeBool (params, 'trigger');
+        params = this.omit (params, 'trigger');
+        let response = undefined;
         const request: Dict = {};
         const clientOrderId = this.safeInteger (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['clientOrderId'] = clientOrderId;
         } else {
-            request['orderId'] = parseInt (id);
+            if (isTriggerOrder) {
+                request['triggerOrderId'] = parseInt (id);
+            } else {
+                request['orderId'] = parseInt (id);
+            }
         }
-        const response = await this.v1PrivatePostOrdersCancel (this.extend (request, params));
+        if (isTriggerOrder) {
+            response = await this.v1PrivatePostTriggerOrdersCancel (this.extend (request, params));
+        } else {
+            response = await this.v1PrivatePostOrdersCancel (this.extend (request, params));
+        }
         //
         // {"orderId":3691703758327}
         //
@@ -1071,7 +1110,14 @@ export default class arkm extends Exchange {
         if (symbol !== undefined) {
             throw new BadRequest (this.id + ' cancelAllOrders() does not support a symbol argument, use cancelOrder() or fetchOpenOrders() instead');
         }
-        const response = await this.v1PrivatePostOrdersCancelAll (params);
+        const isTriggerOrder = this.safeBool (params, 'trigger');
+        params = this.omit (params, 'trigger');
+        let response = undefined;
+        if (isTriggerOrder) {
+            response = await this.v1PrivatePostTriggerOrdersCancelAll (params);
+        } else {
+            response = await this.v1PrivatePostOrdersCancelAll (params);
+        }
         //
         // []  returns an empty array, even when successfully cancels orders
         //
@@ -1236,6 +1282,27 @@ export default class arkm extends Exchange {
         //        "price": "170",
         //        "time": "1753710501474043"
         //    }
+        //
+        // trigger-orders - fetchOpenOrders
+        //
+        //    {
+        //            "subaccountId": "0",
+        //            "symbol": "SOL_USDT",
+        //            "side": "sell",
+        //            "type": "market",
+        //            "size": "0.045",
+        //            "price": "99.9",
+        //            "postOnly": false,
+        //            "reduceOnly": false,
+        //            "time": "1753768103780063",
+        //            "triggerOrderId": "3715847222127",
+        //            "triggerType": "stopLoss",
+        //            "triggerPriceType": "last",
+        //            "triggerPrice": "111",
+        //            "clientOrderId": "",
+        //            "status": "staged"
+        //    }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const isPostOnly = this.safeBool (order, 'postOnly');
@@ -1252,7 +1319,7 @@ export default class arkm extends Exchange {
         }
         const timestamp = this.safeIntegerProduct (order, 'time', 0.001);
         return this.safeOrder ({
-            'id': this.safeString (order, 'orderId'),
+            'id': this.safeString2 (order, 'orderId', 'triggerOrderId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1301,6 +1368,7 @@ export default class arkm extends Exchange {
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'new': 'pending',
+            'staged': 'open',
             'booked': 'open',
             'taker': 'closed',
             'maker': 'closed',
