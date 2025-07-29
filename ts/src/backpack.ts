@@ -95,7 +95,7 @@ export default class backpack extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -192,7 +192,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/dust': 1,
                         'wapi/v1/history/fills': 1,
                         'wapi/v1/history/funding': 1,
-                        'wapi/v1/history/orders': 1,
+                        'wapi/v1/history/orders': 1, // done
                         'wapi/v1/history/pnl': 1,
                         'wapi/v1/history/rfq': 1,
                         'wapi/v1/history/quote': 1,
@@ -1541,6 +1541,32 @@ export default class backpack extends Exchange {
         return this.parseOrders (response, market);
     }
 
+    /**
+     * @method
+     * @name backpack#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWapiV1HistoryOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
@@ -1603,7 +1629,43 @@ export default class backpack extends Exchange {
         //         "triggeredAt": null
         //     }
         //
-        const timestamp = this.safeInteger (order, 'createdAt');
+        // fetchOrders
+        //     {
+        //         "clientId": null,
+        //         "createdAt": "2025-07-27T18:05:40.897",
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "expiryReason": null,
+        //         "id": "4239996998",
+        //         "orderType": "Limit",
+        //         "postOnly": false,
+        //         "price": "4500",
+        //         "quantity": null,
+        //         "quoteQuantity": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Ask",
+        //         "status": "Cancelled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": "4300",
+        //         "triggerQuantity": "0.001"
+        //     }
+
+        //
+        let timestamp = this.safeInteger (order, 'createdAt');
+        const timestamp2 = this.parse8601 (this.safeString (order, 'createdAt'));
+        if (timestamp2 !== undefined) {
+            timestamp = timestamp2;
+        }
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'clientId');
         const symbol = this.safeSymbol (this.safeString (order, 'symbol'), market);
