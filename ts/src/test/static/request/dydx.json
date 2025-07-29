@@ -1,0 +1,115 @@
+{
+    "exchange": "dydx",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/time",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/perpetualMarkets",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/trades/perpetualMarket/BTC-USD?limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/candles/perpetualMarkets/BTC-USD?fromIso=2023-11-24T01%3A57%3A02.001Z&limit=1&resolution=1MIN",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/historicalFunding/BTC-USD?limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders/66390c15-ebad-53f8-86ad-99b3dfedbc85",
+                "input": [
+                    "66390c15-ebad-53f8-86ad-99b3dfedbc85"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&status=OPEN&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orders?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&limit=1&status=FILLED&subaccountNumber=0&ticker=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
+        ]
+    }
+}
