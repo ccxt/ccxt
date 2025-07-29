@@ -4408,7 +4408,7 @@ export default class binance extends Exchange {
                     'symbols': this.json (this.marketIds (symbols)),
                 };
                 response = await this.publicGetTicker (this.extend (request, params));
-                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom
+                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
                 return this.parseTickersForRolling (response, symbols);
             } else {
                 const request: Dict = {};
