@@ -458,6 +458,7 @@ public partial class binance : Exchange
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
                         { "portfolio/pmloan-history", 5 },
+                        { "portfolio/earn-asset-balance", 150 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -602,6 +603,7 @@ public partial class binance : Exchange
                         { "portfolio/repay-futures-negative-balance", 150 },
                         { "portfolio/mint", 20 },
                         { "portfolio/redeem", 20 },
+                        { "portfolio/earn-asset-transfer", 150 },
                         { "lending/auto-invest/plan/add", 0.1 },
                         { "lending/auto-invest/plan/edit", 0.1 },
                         { "lending/auto-invest/plan/edit-status", 0.1 },
@@ -858,6 +860,7 @@ public partial class binance : Exchange
                         } },
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
+                        { "insuranceBalance", 1 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
