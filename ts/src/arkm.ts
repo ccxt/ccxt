@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/arkm.js';
 // import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int } from './base/types.js';
@@ -157,19 +157,6 @@ export default class arkm extends Exchange {
                             'competitions/opt-in-status': 7.5,
                             'rewards/info': 7.5,
                             'rewards/vouchers': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
-                            'xxxxxxxxxx': 7.5,
                         },
                         'post': {
                             'orders/new': 7.5,
@@ -237,11 +224,15 @@ export default class arkm extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
-                        'triggerPriceType': undefined,
-                        'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'mark': true,
+                            'index': true,
+                            'last': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -1104,8 +1095,14 @@ export default class arkm extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const isTriggerOrder = this.safeNumberN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]) !== undefined;
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.v1PrivatePostOrdersNew (request);
+        let response = undefined;
+        if (isTriggerOrder) {
+            response = await this.v1PrivatePostTriggerOrdersNew (request);
+        } else {
+            response = await this.v1PrivatePostOrdersNew (request);
+        }
         //
         //    {
         //        "orderId": "3694872060678",
@@ -1146,16 +1143,31 @@ export default class arkm extends Exchange {
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
         };
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
+        const isBuy = (side === 'buy');
+        const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const triggerPriceAny = this.safeNumberN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const triggerDirection = this.safeString (params, 'triggerDirection');
+        if (triggerPrice !== undefined && triggerDirection === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
+        }
+        if (triggerPriceAny !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPriceAny);
+            if (triggerDirection !== undefined) {
+                request['triggerType'] = (triggerDirection === 'ascending') ? 'takeProfit' : 'stopLoss';
+            } else if (stopLossPrice !== undefined) {
+                request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
+            } else if (takeProfitPrice !== undefined) {
+                request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
+            }
         }
         const isMarketOrder = (type === 'market');
         const isLimitOrder = (type === 'limit');
         const isLimitExchangeSpecific = this.inArray (type, [ 'limitGtc', 'limitIoc', 'limitFok' ]);
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const timeInForce = this.safeString (params, 'timeInForce');
-        params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerDirection' ]);
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -1172,7 +1184,7 @@ export default class arkm extends Exchange {
         } else if (isMarketOrder) {
             request['type'] = 'market';
         }
-        // we don't need to manually handle `reduceOnly` here as exchange-specific keyname & bool matches
+        // we don't need to manually handle `reduceOnly`, `clientOrderId`, `triggerPriceType` here as exchange-specific keyname & bool matches
         return this.extend (request, params);
     }
 
