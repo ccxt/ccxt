@@ -2,6 +2,95 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "without args",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "subaccountId": "0",
+                        "symbol": "USDT",
+                        "balance": "19.66494694",
+                        "free": "14.10759514",
+                        "priceUSDT": "1",
+                        "balanceUSDT": "19.66494694",
+                        "freeUSDT": "14.10759514",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753773952039342",
+                        "lastUpdateId": "248507437",
+                        "lastUpdateAmount": "7.77252"
+                    },
+                    {
+                        "subaccountId": "0",
+                        "symbol": "SOL",
+                        "balance": "0",
+                        "free": "0",
+                        "priceUSDT": "185.964853614",
+                        "balanceUSDT": "0",
+                        "freeUSDT": "0",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753773952039342",
+                        "lastUpdateId": "248507435",
+                        "lastUpdateAmount": "-0.042"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "subaccountId": "0",
+                            "symbol": "USDT",
+                            "balance": "19.66494694",
+                            "free": "14.10759514",
+                            "priceUSDT": "1",
+                            "balanceUSDT": "19.66494694",
+                            "freeUSDT": "14.10759514",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753773952039342",
+                            "lastUpdateId": "248507437",
+                            "lastUpdateAmount": "7.77252"
+                        },
+                        {
+                            "subaccountId": "0",
+                            "symbol": "SOL",
+                            "balance": "0",
+                            "free": "0",
+                            "priceUSDT": "185.964853614",
+                            "balanceUSDT": "0",
+                            "freeUSDT": "0",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753773952039342",
+                            "lastUpdateId": "248507435",
+                            "lastUpdateAmount": "-0.042"
+                        }
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDT": {
+                        "free": 14.10759514,
+                        "used": 5.5573518,
+                        "total": 19.66494694
+                    },
+                    "SOL": {
+                        "free": 0,
+                        "used": 0,
+                        "total": 0
+                    },
+                    "free": {
+                        "USDT": 14.10759514,
+                        "SOL": 0
+                    },
+                    "used": {
+                        "USDT": 5.5573518,
+                        "SOL": 0
+                    },
+                    "total": {
+                        "USDT": 19.66494694,
+                        "SOL": 0
+                    }
+                }
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "without args",

@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "without args",
+                "method": "fetchBalance",
+                "url": "https://arkm.com/api/account/balances",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "without args",
