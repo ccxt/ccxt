@@ -5,6 +5,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "without code",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://arkm.com/api/account/deposit/addresses?chain=SOL",
+                "input": [
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "without args",

@@ -2,6 +2,32 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "without code",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "addresses": [
+                        "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
+                    ]
+                },
+                "parsedResponse": {
+                    "SOL": {
+                        "info": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "currency": null,
+                        "network": "SOL",
+                        "address": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "tag": null
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "without args",
