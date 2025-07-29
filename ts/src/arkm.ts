@@ -7,7 +7,6 @@ import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 /**
  * @class arkm
@@ -1497,6 +1496,91 @@ export default class arkm extends Exchange {
         //        ...
         //
         return this.parseTrades (response, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
+     * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let accountId = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'accountId');
+        if (accountId !== undefined) {
+            request['subAccountId'] = accountId;
+        }
+        const response = await this.v1PrivateGetUser (this.extend (request, params));
+        //
+        //    {
+        //        "id": "2959123",
+        //        "email": "xyz@gmail.com",
+        //        "username": "t.123",
+        //        "requireMFA": true,
+        //        "kycVerifiedAt": "1753434515850673",
+        //        "pmm": false,
+        //        "dmm": false,
+        //        "becameVipAt": "0",
+        //        "subaccounts": [
+        //            {
+        //                "id": "0",
+        //                "name": "Primary",
+        //                "pinned": true,
+        //                "isLsp": false,
+        //                "futuresEnabled": true,
+        //                "payFeesInArkm": false,
+        //                "lspSettings": []
+        //            }
+        //        ],
+        //        "settings": {
+        //            "autogenDepositAddresses": false,
+        //            "hideBalances": false,
+        //            "confirmBeforePlaceOrder": false,
+        //            "tickerTapeScroll": true,
+        //            "updatesFlash": true,
+        //            "notifyOrderFills": false,
+        //            "notifyAnnouncements": false,
+        //            "notifyMarginUsage": false,
+        //            "marginUsageThreshold": "0.5",
+        //            "notifyWithdrawals": true,
+        //            "notifyDeposits": true,
+        //            "notifySendEmail": true,
+        //            "notifyRebates": true,
+        //            "notifyCommissions": true,
+        //            "allowSequenceEmails": true,
+        //            "language": "en"
+        //        },
+        //        "airdropKycAt": null
+        //    }
+        //
+        const subAccounts = this.safeList (response, 'subaccounts', []);
+        return this.parseAccounts (subAccounts, params);
+    }
+
+    parseAccount (account) {
+        //
+        //            {
+        //                "id": "0",
+        //                "name": "Primary",
+        //                "pinned": true,
+        //                "isLsp": false,
+        //                "futuresEnabled": true,
+        //                "payFeesInArkm": false,
+        //                "lspSettings": []
+        //            }
+        //
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': undefined,
+            'code': undefined,
+            'info': account,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
