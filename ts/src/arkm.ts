@@ -6,7 +6,7 @@ import Exchange from './abstract/arkm.js';
 import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account } from './base/types.js';
 
 /**
  * @class arkm
@@ -1644,6 +1644,51 @@ export default class arkm extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchDepositAddressesByNetwork
+     * @description fetch the deposit addresses for a currency associated with this account
+     * @see https://arkm.com/docs#get/account/deposit/addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+     */
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a "network" param');
+        }
+        const request: Dict = {
+            'chain': networkCode,
+        };
+        const response = await this.v1PrivateGetAccountDepositAddresses (this.extend (request, params));
+        //
+        //    {
+        //        "addresses": [
+        //            "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
+        //        ]
+        //    }
+        //
+        const data = this.safeList (response, 'addresses');
+        const parsed = this.parseDepositAddresses (data, undefined, false, { 'network': networkCode });
+        return this.indexBy (parsed, 'network') as DepositAddress[];
+    }
+
+    parseDepositAddress (entry, currency: Currency = undefined): DepositAddress {
+        //
+        //     "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
+        //
+        return {
+            'info': entry,
+            'currency': this.safeString (currency, 'code'),
+            'network': undefined,
+            'address': entry,
+            'tag': undefined,
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
