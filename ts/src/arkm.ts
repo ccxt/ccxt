@@ -1088,6 +1088,11 @@ export default class arkm extends Exchange {
             }
         }
         if (isTriggerOrder) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for trigger orders');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
             response = await this.v1PrivatePostTriggerOrdersCancel (this.extend (request, params));
         } else {
             response = await this.v1PrivatePostOrdersCancel (this.extend (request, params));

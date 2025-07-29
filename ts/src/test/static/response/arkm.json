@@ -631,6 +631,246 @@
         ],
         "createOrder": [
             {
+                "description": "trigger sell desc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716782007035",
+                    "symbol": "SOL_USDT",
+                    "side": "sell",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716782007035",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716782007035",
+                        "symbol": "SOL_USDT",
+                        "side": "sell",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger sell asc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "sell",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716778018289",
+                    "symbol": "SOL_USDT",
+                    "side": "sell",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716778018289",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716778018289",
+                        "symbol": "SOL_USDT",
+                        "side": "sell",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger buy desc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716768198885",
+                    "symbol": "SOL_USDT",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716768198885",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716768198885",
+                        "symbol": "SOL_USDT",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "trigger buy asc",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    180,
+                    {
+                        "triggerPrice": 170,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "triggerOrderId": "3716762169546",
+                    "symbol": "SOL_USDT",
+                    "side": "buy",
+                    "type": "limitGtc",
+                    "size": "0.05",
+                    "price": "180"
+                },
+                "parsedResponse": {
+                    "id": "3716762169546",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "SOL/USDT",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 180,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.05,
+                    "filled": null,
+                    "remaining": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": null,
+                    "info": {
+                        "triggerOrderId": "3716762169546",
+                        "symbol": "SOL_USDT",
+                        "side": "buy",
+                        "type": "limitGtc",
+                        "size": "0.05",
+                        "price": "180"
+                    },
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "with args & params",
                 "method": "createOrder",
                 "input": [
