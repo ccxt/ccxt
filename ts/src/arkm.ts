@@ -1648,7 +1648,36 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name bingx#fetchDepositAddressesByNetwork
+     * @name arkm#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://arkm.com/docs#post/account/deposit/addresses/new
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress() requires a "network" param');
+        }
+        const request: Dict = {
+            'chain': networkCode,
+        };
+        const response = await this.v1PrivatePostAccountDepositAddressesNew (this.extend (request, params));
+        //
+        //    {
+        //        "addresses": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
+        //    }
+        //
+        const address = this.safeString (response, 'addresses');
+        return this.parseDepositAddress (address, this.currency (code));
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchDepositAddressesByNetwork
      * @description fetch the deposit addresses for a currency associated with this account
      * @see https://arkm.com/docs#get/account/deposit/addresses
      * @param {string} code unified currency code
