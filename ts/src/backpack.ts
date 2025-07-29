@@ -87,7 +87,7 @@ export default class backpack extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
@@ -190,7 +190,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/interest': 1,
                         'wapi/v1/history/borrowLend/positions': 1,
                         'wapi/v1/history/dust': 1,
-                        'wapi/v1/history/fills': 1,
+                        'wapi/v1/history/fills': 1, // done
                         'wapi/v1/history/funding': 1,
                         'wapi/v1/history/orders': 1, // done
                         'wapi/v1/history/pnl': 1,
@@ -740,7 +740,7 @@ export default class backpack extends Exchange {
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the bitteam api endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -981,39 +981,105 @@ export default class backpack extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name backpack#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['to'] = until;
+        }
+        const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
-        //     [
-        //         {
-        //             "id": 8721564,
-        //             "isBuyerMaker": false,
-        //             "price": "117427.6",
-        //             "quantity": "0.00016",
-        //             "quoteQuantity": "18.788416",
-        //             "timestamp": 1753123916818
-        //         }, ...
-        //     ]
+        // fetchTrades
+        //     {
+        //         "id": 8721564,
+        //         "isBuyerMaker": false,
+        //         "price": "117427.6",
+        //         "quantity": "0.00016",
+        //         "quoteQuantity": "18.788416",
+        //         "timestamp": 1753123916818
+        //     }
         //
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const id = this.safeInteger (trade, 'id');
+        // fetchMyTrades
+        //     {
+        //         "clientId": null,
+        //         "fee": "0.004974",
+        //         "feeSymbol": "USDC",
+        //         "isMaker": false,
+        //         "orderId": "4238907375",
+        //         "price": "3826.15",
+        //         "quantity": "0.0026",
+        //         "side": "Bid",
+        //         "symbol": "ETH_USDC_PERP",
+        //         "systemOrderType": null,
+        //         "timestamp": "2025-07-27T17:39:00.092",
+        //         "tradeId": 9748827
+        //     }
+        //
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp2 = this.parse8601 (this.safeString (trade, 'timestamp'));
+        if (timestamp2 !== undefined) {
+            timestamp = timestamp2;
+        }
+        const id = this.safeInteger2 (trade, 'id', 'tradeId');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
-        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        const isBuyerMaker = this.safeBool2 (trade, 'isBuyerMaker', 'isMaker');
         const takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+        const orderId = this.safeString (trade, 'orderId');
+        const side = this.parseOrderSide (this.safeString (trade, 'side'));
+        let fee = undefined;
+        const feeAmount = this.safeString (trade, 'fee');
+        const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
+        if (feeAmount !== undefined) {
+            fee = {
+                'cost': feeAmount,
+                'currency': feeSymbol,
+                'rate': undefined,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
