@@ -623,6 +623,86 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "positions": [
+                        {
+                            "market": "BTC-USD",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-0.407",
+                            "maxSize": "-0.009",
+                            "entryPrice": "118692.04840909090909090909",
+                            "exitPrice": "119526.565625",
+                            "realizedPnl": "476.42665909090909090909088",
+                            "unrealizedPnl": "-57.26681734000000000000037",
+                            "createdAt": "2025-07-14T07:53:55.631Z",
+                            "createdAtHeight": "44140908",
+                            "closedAt": null,
+                            "sumOpen": "0.44",
+                            "sumClose": "0.032",
+                            "netFunding": "503.13121",
+                            "subaccountNumber": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market": "BTC-USD",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-0.407",
+                            "maxSize": "-0.009",
+                            "entryPrice": "118692.04840909090909090909",
+                            "exitPrice": "119526.565625",
+                            "realizedPnl": "476.42665909090909090909088",
+                            "unrealizedPnl": "-57.26681734000000000000037",
+                            "createdAt": "2025-07-14T07:53:55.631Z",
+                            "createdAtHeight": "44140908",
+                            "closedAt": null,
+                            "sumOpen": "0.44",
+                            "sumClose": "0.032",
+                            "netFunding": "503.13121",
+                            "subaccountNumber": 0
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "entryPrice": 118692.04840909092,
+                        "markPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": -57.26681734,
+                        "side": "short",
+                        "contracts": 0.407,
+                        "contractSize": null,
+                        "timestamp": 1752479635631,
+                        "datetime": "2025-07-14T07:53:55.631Z",
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
         ]
     }
 }

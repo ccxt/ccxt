@@ -4,7 +4,8 @@
 import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order } from './base/types.js';
+import Precise from './base/Precise.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ export default class dydx extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -934,6 +935,116 @@ export default class dydx extends Exchange {
             'status': 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // {
+        //     "market": "BTC-USD",
+        //     "status": "OPEN",
+        //     "side": "SHORT",
+        //     "size": "-0.407",
+        //     "maxSize": "-0.009",
+        //     "entryPrice": "118692.04840909090909090909",
+        //     "exitPrice": "119526.565625",
+        //     "realizedPnl": "476.42665909090909090909088",
+        //     "unrealizedPnl": "-57.26681734000000000000037",
+        //     "createdAt": "2025-07-14T07:53:55.631Z",
+        //     "createdAtHeight": "44140908",
+        //     "closedAt": null,
+        //     "sumOpen": "0.44",
+        //     "sumClose": "0.032",
+        //     "netFunding": "503.13121",
+        //     "subaccountNumber": 0
+        // }
+        //
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (position, 'side');
+        let quantity = this.safeString (position, 'size');
+        if (side !== 'long') {
+            quantity = Precise.stringMul ('-1', quantity);
+        }
+        const timestamp = this.parse8601 (this.safeString (position, 'createdAt'));
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'markPrice': undefined,
+            'notional': undefined,
+            'collateral': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.dydx.xyz/indexer-client/http#list-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        let userAddress = undefined;
+        let subAccountNumber = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'address': userAddress,
+            'subaccountNumber': subAccountNumber,
+            'status': 'OPEN', // ['OPEN', 'CLOSED', 'LIQUIDATED']
+        };
+        const response = await this.indexerGetPerpetualPositions (this.extend (request, params));
+        //
+        // {
+        //     "positions": [
+        //         {
+        //             "market": "BTC-USD",
+        //             "status": "OPEN",
+        //             "side": "SHORT",
+        //             "size": "-0.407",
+        //             "maxSize": "-0.009",
+        //             "entryPrice": "118692.04840909090909090909",
+        //             "exitPrice": "119526.565625",
+        //             "realizedPnl": "476.42665909090909090909088",
+        //             "unrealizedPnl": "-57.26681734000000000000037",
+        //             "createdAt": "2025-07-14T07:53:55.631Z",
+        //             "createdAtHeight": "44140908",
+        //             "closedAt": null,
+        //             "sumOpen": "0.44",
+        //             "sumClose": "0.032",
+        //             "netFunding": "503.13121",
+        //             "subaccountNumber": 0
+        //         }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'positions', []);
+        return this.parsePositions (rows, symbols);
     }
 
     nonce () {

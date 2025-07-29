@@ -110,6 +110,21 @@
                     }
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/perpetualPositions?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0&status=OPEN",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
         ]
     }
 }
