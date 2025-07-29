@@ -846,9 +846,39 @@ export default class arkm extends Exchange {
         //            "time": "1753439710374047"
         //        }
         //
+        // fetchMyTrades
+        //
+        //        {
+        //            "symbol": "SOL_USDT",
+        //            "revisionId": "891839406",
+        //            "size": "0.042",
+        //            "price": "185.06",
+        //            "takerSide": "sell",
+        //            "time": "1753773952039342",
+        //            "orderId": "3717304929194",
+        //            "userSide": "sell",
+        //            "quoteFee": "0.00777252",
+        //            "arkmFee": "0",
+        //            "clientOrderId": ""
+        //        }
+        //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
+        const quoteFee = this.safeNumber (trade, 'quoteFee');
+        const arkmFee = this.safeNumber (trade, 'arkmFee');
+        let fee = undefined;
+        if (quoteFee !== undefined) {
+            fee = {
+                'cost': quoteFee,
+                'currency': market['quote'],
+            };
+        } else if (arkmFee !== undefined) {
+            fee = {
+                'cost': arkmFee,
+                'currency': 'ARKM',
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'revisionId'),
@@ -856,12 +886,13 @@ export default class arkm extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': this.safeString (trade, 'takerSide'),
+            'side': this.safeString2 (trade, 'userSide', 'takerSide'), // priority to userSide
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'size'),
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
+            'order': this.safeString (trade, 'orderId'),
         }, market);
     }
 
@@ -1411,6 +1442,59 @@ export default class arkm extends Exchange {
             'closed': 'closed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://arkm.com/docs#get/trades/time
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        let request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        // exchange needs to obtain some `from & to` values, otherwise it does not return any result
+        if (since !== undefined) {
+            request['from'] = since * 1000; // convert ms to microseconds
+        } else {
+            request['from'] = (this.milliseconds () - 24 * 60 * 60 * 1000) * 1000; // default to last 24 hours
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['to'] = until * 1000; // convert ms to microseconds
+        } else {
+            request['to'] = this.milliseconds () * 1000; // default to now
+        }
+        [ request, params ] = this.handleUntilOption ('until', request, params);
+        const response = await this.v1PrivateGetTradesTime (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "symbol": "SOL_USDT",
+        //            "revisionId": "891839406",
+        //            "size": "0.042",
+        //            "price": "185.06",
+        //            "takerSide": "sell",
+        //            "time": "1753773952039342",
+        //            "orderId": "3717304929194",
+        //            "userSide": "sell",
+        //            "quoteFee": "0.00777252",
+        //            "arkmFee": "0",
+        //            "clientOrderId": ""
+        //        },
+        //        ...
+        //
+        return this.parseTrades (response, undefined, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
