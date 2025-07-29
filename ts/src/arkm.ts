@@ -7,6 +7,7 @@ import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 /**
  * @class arkm
@@ -1146,22 +1147,32 @@ export default class arkm extends Exchange {
         let response = undefined;
         if (isTriggerOrder) {
             response = await this.v1PrivatePostTriggerOrdersNew (request);
+            //
+            //    {
+            //        "triggerOrderId": "3716436645573",
+            //        "symbol": "SOL_USDT_PERP",
+            //        "side": "buy",
+            //        "type": "limitGtc",
+            //        "size": "0.05",
+            //        "price": "150"
+            //    }
+            //
         } else {
             response = await this.v1PrivatePostOrdersNew (request);
+            //
+            //    {
+            //        "orderId": "3694872060678",
+            //        "clientOrderId": "test123",
+            //        "symbol": "SOL_USDT",
+            //        "subaccountId": "0",
+            //        "side": "buy",
+            //        "type": "limitGtc",
+            //        "size": "0.05",
+            //        "price": "170",
+            //        "time": "1753710501474043"
+            //    }
+            //
         }
-        //
-        //    {
-        //        "orderId": "3694872060678",
-        //        "clientOrderId": "test123",
-        //        "symbol": "SOL_USDT",
-        //        "subaccountId": "0",
-        //        "side": "buy",
-        //        "type": "limitGtc",
-        //        "size": "0.05",
-        //        "price": "170",
-        //        "time": "1753710501474043"
-        //    }
-        //
         return this.parseOrder (response, market);
     }
 
@@ -1200,12 +1211,20 @@ export default class arkm extends Exchange {
         }
         if (triggerPriceAny !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPriceAny);
-            if (triggerDirection !== undefined) {
-                request['triggerType'] = (triggerDirection === 'ascending') ? 'takeProfit' : 'stopLoss';
-            } else if (stopLossPrice !== undefined) {
+            if (stopLossPrice !== undefined) {
                 request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
             } else if (takeProfitPrice !== undefined) {
                 request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
+            } else if (triggerDirection !== undefined) {
+                if (triggerDirection === 'ascending') {
+                    request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
+                } else if (triggerDirection === 'descending') {
+                    request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
+                }
+            }
+            // mandatory triggerPriceType
+            if (this.safeString (params, 'triggerPriceType') === undefined) {
+                request['triggerPriceType'] = 'last'; // default
             }
         }
         const isMarketOrder = (type === 'market');
@@ -1230,11 +1249,25 @@ export default class arkm extends Exchange {
         } else if (isMarketOrder) {
             request['type'] = 'market';
         }
-        // we don't need to manually handle `reduceOnly`, `clientOrderId`, `triggerPriceType` here as exchange-specific keyname & bool matches
+        // we don't need to manually handle `reduceOnly`, `clientOrderId`, `triggerPriceType` here as exchange-specific keyname& values matches
         return this.extend (request, params);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder
+        //
+        //    {
+        //        "orderId": "3694872060678",
+        //        "clientOrderId": "test123",
+        //        "symbol": "SOL_USDT",
+        //        "subaccountId": "0",
+        //        "side": "buy",
+        //        "type": "limitGtc",
+        //        "size": "0.05",
+        //        "price": "170",
+        //        "time": "1753710501474043"
+        //    }
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1269,21 +1302,18 @@ export default class arkm extends Exchange {
         //        "lastArkmFee": "0"
         //    }
         //
-        // createOrder
+        // trigger-orders: createOrder
         //
         //    {
-        //        "orderId": "3694872060678",
-        //        "clientOrderId": "test123",
-        //        "symbol": "SOL_USDT",
-        //        "subaccountId": "0",
+        //        "triggerOrderId": "3716436645573",
+        //        "symbol": "SOL_USDT_PERP",
         //        "side": "buy",
         //        "type": "limitGtc",
         //        "size": "0.05",
-        //        "price": "170",
-        //        "time": "1753710501474043"
+        //        "price": "150"
         //    }
         //
-        // trigger-orders - fetchOpenOrders
+        // trigger-orders: fetchOpenOrders
         //
         //    {
         //            "subaccountId": "0",
