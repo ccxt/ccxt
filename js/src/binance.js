@@ -485,6 +485,7 @@ export default class binance extends Exchange {
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
                         'portfolio/pmloan-history': 5,
+                        'portfolio/earn-asset-balance': 150,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -643,6 +644,7 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-negative-balance': 150,
                         'portfolio/mint': 20,
                         'portfolio/redeem': 20,
+                        'portfolio/earn-asset-transfer': 150,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -831,6 +833,7 @@ export default class binance extends Exchange {
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
                         'convert/exchangeInfo': 4,
+                        'insuranceBalance': 1,
                     },
                 },
                 'fapiData': {
