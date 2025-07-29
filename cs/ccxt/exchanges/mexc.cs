@@ -423,6 +423,7 @@ public partial class mexc : Exchange
                         } },
                     } },
                 } },
+                { "useCcxtTradeId", true },
                 { "timeframes", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "1m", "1m" },
@@ -1553,9 +1554,9 @@ public partial class mexc : Exchange
                 }
             }
         }
-        if (isTrue(isEqual(id, null)))
+        if (isTrue(isTrue(isEqual(id, null)) && isTrue(this.safeBool(this.options, "useCcxtTradeId", true))))
         {
-            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1572,37 +1573,6 @@ public partial class mexc : Exchange
             { "fee", fee },
             { "info", trade },
         }, market);
-    }
-
-    public virtual object syntheticTradeId(object market = null, object timestamp = null, object side = null, object amount = null, object price = null, object orderType = null, object takerOrMaker = null)
-    {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        object id = "";
-        if (isTrue(!isEqual(timestamp, null)))
-        {
-            id = add(add(this.numberToString(timestamp), "-"), this.safeString(market, "id", "_"));
-            if (isTrue(!isEqual(side, null)))
-            {
-                id = add(id, add("-", side));
-            }
-            if (isTrue(!isEqual(amount, null)))
-            {
-                id = add(id, add("-", this.numberToString(amount)));
-            }
-            if (isTrue(!isEqual(price, null)))
-            {
-                id = add(id, add("-", this.numberToString(price)));
-            }
-            if (isTrue(!isEqual(takerOrMaker, null)))
-            {
-                id = add(id, add("-", takerOrMaker));
-            }
-            if (isTrue(!isEqual(orderType, null)))
-            {
-                id = add(id, add("-", orderType));
-            }
-        }
-        return id;
     }
 
     /**

@@ -5057,7 +5057,7 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(transaction, 'id', dataId)
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
-        timestamp = self.safe_integer(transaction, 'insertTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'timestamp')
         datetime = self.iso8601(timestamp)
         if timestamp is None:
             datetime = self.safe_string(transaction, 'applyTime')

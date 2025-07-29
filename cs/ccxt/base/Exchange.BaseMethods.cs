@@ -238,6 +238,17 @@ public partial class Exchange
                 { "watchLiquidations", null },
                 { "watchLiquidationsForSymbols", null },
                 { "watchMyLiquidations", null },
+                { "unWatchOrders", null },
+                { "unWatchTrades", null },
+                { "unWatchTradesForSymbols", null },
+                { "unWatchOHLCVForSymbols", null },
+                { "unWatchOrderBookForSymbols", null },
+                { "unWatchPositions", null },
+                { "unWatchOrderBook", null },
+                { "unWatchTickers", null },
+                { "unWatchMyTrades", null },
+                { "unWatchTicker", null },
+                { "unWatchOHLCV", null },
                 { "watchMyLiquidationsForSymbols", null },
                 { "withdraw", null },
                 { "ws", null },
@@ -984,6 +995,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchPositions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
@@ -2549,6 +2566,33 @@ public partial class Exchange
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
         return trade;
+    }
+
+    public virtual object createCcxtTradeId(object timestamp = null, object side = null, object amount = null, object price = null, object takerOrMaker = null)
+    {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        object id = null;
+        if (isTrue(!isEqual(timestamp, null)))
+        {
+            id = this.numberToString(timestamp);
+            if (isTrue(!isEqual(side, null)))
+            {
+                id = add(id, add("-", side));
+            }
+            if (isTrue(!isEqual(amount, null)))
+            {
+                id = add(id, add("-", this.numberToString(amount)));
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                id = add(id, add("-", this.numberToString(price)));
+            }
+            if (isTrue(!isEqual(takerOrMaker, null)))
+            {
+                id = add(id, add("-", takerOrMaker));
+            }
+        }
+        return id;
     }
 
     public virtual object parsedFeeAndFees(object container)
@@ -6966,7 +7010,7 @@ public partial class Exchange
         object calls = 0;
         object result = new List<object>() {};
         object errors = 0;
-        object until = this.safeInteger2(parameters, "untill", "till"); // do not omit it from params here
+        object until = this.safeIntegerN(parameters, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
         var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
@@ -7822,6 +7866,19 @@ public partial class Exchange
             } else if (isTrue(isTrue(isEqual(topic, "orders")) && isTrue((!isEqual(this.orders, null)))))
             {
                 this.orders = null;
+            } else if (isTrue(isTrue(isEqual(topic, "positions")) && isTrue((!isEqual(this.positions, null)))))
+            {
+                this.positions = null;
+                object clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
+                for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
+                {
+                    object client = getValue(clients, i);
+                    object futures = this.safeDict(client, "futures");
+                    if (isTrue(isTrue((!isEqual(futures, null))) && isTrue((inOp(futures, "fetchPositionsSnapshot")))))
+                    {
+                        ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
+                    }
+                }
             } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);

@@ -49,6 +49,17 @@ class bybit(ccxt.async_support.bybit):
                 'watchTrades': True,
                 'watchPositions': True,
                 'watchTradesForSymbols': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': True,
+                'unWatchOrders': True,
+                'unWatchPositions': True,
             },
             'urls': {
                 'api': {
@@ -1484,6 +1495,27 @@ class bybit(ccxt.async_support.bybit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches all open positions
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/position
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: status of the unwatch request
+        """
+        await self.load_markets()
+        method = 'watchPositions'
+        messageHash = 'unsubscribe:positions'
+        subHash = 'positions'
+        if not self.is_empty(symbols):
+            raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
+        url = await self.get_url_by_market_type(None, True, method, params)
+        await self.authenticate(url)
+        topics = ['position']
+        return await self.un_watch_topics(url, 'positions', symbols, [messageHash], [subHash], topics, params)
+
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -2083,7 +2115,7 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
         reqId = self.request_id()
         request: dict = {
             'op': 'unsubscribe',

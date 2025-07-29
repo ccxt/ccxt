@@ -3114,10 +3114,9 @@ class hyperliquid extends Exchange {
                 throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
             }
             $strAmount = $this->number_to_string($amount);
-            $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'transfer', 'vaultAddress');
-            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $vaultAddress = $this->safe_string_2($params, 'vaultAddress', 'subAccountAddress');
             if ($vaultAddress !== null) {
+                $vaultAddress = $this->format_vault_address($vaultAddress);
                 $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
             }
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
@@ -3147,12 +3146,6 @@ class hyperliquid extends Exchange {
             return $transferResponse;
         }
         // transfer between main account and subaccount
-        if ($code !== null) {
-            $code = strtoupper($code);
-            if ($code !== 'USDC') {
-                throw new NotSupported($this->id . ' transfer() only support USDC');
-            }
-        }
         $isDeposit = false;
         $subAccountAddress = null;
         if ($fromAccount === 'main') {
@@ -3164,24 +3157,45 @@ class hyperliquid extends Exchange {
             throw new NotSupported($this->id . ' transfer() only support main <> subaccount transfer');
         }
         $this->check_address($subAccountAddress);
-        $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
-        $action = array(
-            'type' => 'subAccountTransfer',
-            'subAccountUser' => $subAccountAddress,
-            'isDeposit' => $isDeposit,
-            'usd' => $usd,
-        );
-        $sig = $this->sign_l1_action($action, $nonce);
-        $request = array(
-            'action' => $action,
-            'nonce' => $nonce,
-            'signature' => $sig,
-        );
-        $response = $this->privatePostExchange ($request);
-        //
-        // array('response' => array('type' => 'default'), 'status' => 'ok')
-        //
-        return $this->parse_transfer($response);
+        if ($code === null || strtoupper($code) === 'USDC') {
+            // Transfer USDC with subAccountTransfer
+            $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
+            $action = array(
+                'type' => 'subAccountTransfer',
+                'subAccountUser' => $subAccountAddress,
+                'isDeposit' => $isDeposit,
+                'usd' => $usd,
+            );
+            $sig = $this->sign_l1_action($action, $nonce);
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $sig,
+            );
+            $response = $this->privatePostExchange ($request);
+            //
+            // array('response' => array('type' => 'default'), 'status' => 'ok')
+            //
+            return $this->parse_transfer($response);
+        } else {
+            // Transfer non-USDC with subAccountSpotTransfer
+            $symbol = $this->symbol($code);
+            $action = array(
+                'type' => 'subAccountSpotTransfer',
+                'subAccountUser' => $subAccountAddress,
+                'isDeposit' => $isDeposit,
+                'token' => $symbol,
+                'amount' => $this->number_to_string($amount),
+            );
+            $sig = $this->sign_l1_action($action, $nonce);
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $sig,
+            );
+            $response = $this->privatePostExchange ($request);
+            return $this->parse_transfer($response);
+        }
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {

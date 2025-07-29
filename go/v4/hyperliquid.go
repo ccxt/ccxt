@@ -3776,12 +3776,9 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
                     panic(NotSupported(Add(this.Id, " transfer() only support spot <> swap transfer")))
                 }
                 var strAmount interface{} = this.NumberToString(amount)
-                var vaultAddress interface{} = nil
-                vaultAddressparamsVariable := this.HandleOptionAndParams(params, "transfer", "vaultAddress");
-                vaultAddress = GetValue(vaultAddressparamsVariable,0);
-                params = GetValue(vaultAddressparamsVariable,1)
-                vaultAddress = this.FormatVaultAddress(vaultAddress)
+                var vaultAddress interface{} = this.SafeString2(params, "vaultAddress", "subAccountAddress")
                 if IsTrue(!IsEqual(vaultAddress, nil)) {
+                    vaultAddress = this.FormatVaultAddress(vaultAddress)
                     strAmount = Add(Add(strAmount, " subaccount:"), vaultAddress)
                 }
                 var toPerp interface{} = IsTrue((IsEqual(toAccount, "perp"))) || IsTrue((IsEqual(toAccount, "swap")))
@@ -3815,12 +3812,6 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
                 return nil
             }
             // transfer between main account and subaccount
-            if IsTrue(!IsEqual(code, nil)) {
-                code = ToUpper(code)
-                if IsTrue(!IsEqual(code, "USDC")) {
-                    panic(NotSupported(Add(this.Id, " transfer() only support USDC")))
-                }
-            }
             var isDeposit interface{} = false
             var subAccountAddress interface{} = nil
             if IsTrue(IsEqual(fromAccount, "main")) {
@@ -3832,29 +3823,54 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
                 panic(NotSupported(Add(this.Id, " transfer() only support main <> subaccount transfer")))
             }
             this.CheckAddress(subAccountAddress)
-            var usd interface{} = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
-            var action interface{} = map[string]interface{} {
-                "type": "subAccountTransfer",
-                "subAccountUser": subAccountAddress,
-                "isDeposit": isDeposit,
-                "usd": usd,
-            }
-            var sig interface{} = this.SignL1Action(action, nonce)
-            var request interface{} = map[string]interface{} {
-                "action": action,
-                "nonce": nonce,
-                "signature": sig,
-            }
+            if IsTrue(IsTrue(IsEqual(code, nil)) || IsTrue(IsEqual(ToUpper(code), "USDC"))) {
+                // Transfer USDC with subAccountTransfer
+                var usd interface{} = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
+                var action interface{} = map[string]interface{} {
+                    "type": "subAccountTransfer",
+                    "subAccountUser": subAccountAddress,
+                    "isDeposit": isDeposit,
+                    "usd": usd,
+                }
+                var sig interface{} = this.SignL1Action(action, nonce)
+                var request interface{} = map[string]interface{} {
+                    "action": action,
+                    "nonce": nonce,
+                    "signature": sig,
+                }
         
-            response:= (<-this.PrivatePostExchange(request))
-            PanicOnError(response)
+                response:= (<-this.PrivatePostExchange(request))
+                PanicOnError(response)
         
+                        //
+                // {'response': {'type': 'default'}, 'status': 'ok'}
                 //
-            // {'response': {'type': 'default'}, 'status': 'ok'}
-            //
         ch <- this.ParseTransfer(response)
-            return nil
+                return nil
+            } else {
+                // Transfer non-USDC with subAccountSpotTransfer
+                var symbol interface{} = this.Symbol(code)
+                var action interface{} = map[string]interface{} {
+                    "type": "subAccountSpotTransfer",
+                    "subAccountUser": subAccountAddress,
+                    "isDeposit": isDeposit,
+                    "token": symbol,
+                    "amount": this.NumberToString(amount),
+                }
+                var sig interface{} = this.SignL1Action(action, nonce)
+                var request interface{} = map[string]interface{} {
+                    "action": action,
+                    "nonce": nonce,
+                    "signature": sig,
+                }
         
+                response:= (<-this.PrivatePostExchange(request))
+                PanicOnError(response)
+        
+                ch <- this.ParseTransfer(response)
+                return nil
+            }
+                return nil
             }()
             return ch
         }
@@ -3901,8 +3917,8 @@ func  (this *hyperliquid) Withdraw(code interface{}, amount interface{}, address
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes32458 := (<-this.LoadMarkets())
-            PanicOnError(retRes32458)
+            retRes32598 := (<-this.LoadMarkets())
+            PanicOnError(retRes32598)
             this.CheckAddress(address)
             if IsTrue(!IsEqual(code, nil)) {
                 code = ToUpper(code)
@@ -4033,8 +4049,8 @@ func  (this *hyperliquid) FetchTradingFee(symbol interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes33608 := (<-this.LoadMarkets())
-            PanicOnError(retRes33608)
+            retRes33748 := (<-this.LoadMarkets())
+            PanicOnError(retRes33748)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchTradingFee", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -4167,8 +4183,8 @@ func  (this *hyperliquid) FetchLedger(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes34718 := (<-this.LoadMarkets())
-            PanicOnError(retRes34718)
+            retRes34858 := (<-this.LoadMarkets())
+            PanicOnError(retRes34858)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchLedger", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -4285,8 +4301,8 @@ func  (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes35678 := (<-this.LoadMarkets())
-            PanicOnError(retRes35678)
+            retRes35818 := (<-this.LoadMarkets())
+            PanicOnError(retRes35818)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -4354,8 +4370,8 @@ func  (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes36148 := (<-this.LoadMarkets())
-            PanicOnError(retRes36148)
+            retRes36288 := (<-this.LoadMarkets())
+            PanicOnError(retRes36288)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params);
             userAddress = GetValue(userAddressparamsVariable,0);
@@ -4415,8 +4431,8 @@ func  (this *hyperliquid) FetchOpenInterests(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes36578 := (<-this.LoadMarkets())
-            PanicOnError(retRes36578)
+            retRes36718 := (<-this.LoadMarkets())
+            PanicOnError(retRes36718)
             symbols = this.MarketSymbols(symbols)
         
             swapMarkets:= (<-this.FetchSwapMarkets())
@@ -4445,8 +4461,8 @@ func  (this *hyperliquid) FetchOpenInterest(symbol interface{}, optionalArgs ...
             _ = params
             symbol = this.Symbol(symbol)
         
-            retRes36738 := (<-this.LoadMarkets())
-            PanicOnError(retRes36738)
+            retRes36878 := (<-this.LoadMarkets())
+            PanicOnError(retRes36878)
         
             ois:= (<-this.FetchOpenInterests([]interface{}{symbol}, params))
             PanicOnError(ois)
@@ -4518,8 +4534,8 @@ func  (this *hyperliquid) FetchFundingHistory(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes37258 := (<-this.LoadMarkets())
-            PanicOnError(retRes37258)
+            retRes37398 := (<-this.LoadMarkets())
+            PanicOnError(retRes37398)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)

@@ -9,7 +9,7 @@ func TestDecimalToPrecision()  {
         "id": "regirock",
     }, map[string]interface{}{}, exchange)
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionTruncationToNDigitsAfterDot
+    // Truncate To N Digits After Dot
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456000", TRUNCATE, 100, DECIMAL_PLACES), "12.3456"))
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456", TRUNCATE, 100, DECIMAL_PLACES), "12.3456"))
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456", TRUNCATE, 4, DECIMAL_PLACES), "12.3456"))
@@ -33,7 +33,7 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("0", TRUNCATE, 0, DECIMAL_PLACES), "0"))
     Assert(IsEqual(exchange.DecimalToPrecision("-0.9", TRUNCATE, 0, DECIMAL_PLACES), "0"))
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionTruncationToNSignificantDigits
+    // Truncate To N Significant Digits
     Assert(IsEqual(exchange.DecimalToPrecision("0.000123456700", TRUNCATE, 100, SIGNIFICANT_DIGITS), "0.0001234567"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", TRUNCATE, 100, SIGNIFICANT_DIGITS), "0.0001234567"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", TRUNCATE, 7, SIGNIFICANT_DIGITS), "0.0001234567"))
@@ -59,7 +59,7 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("1234.69", TRUNCATE, 0, SIGNIFICANT_DIGITS), "0"))
     Assert(IsEqual(exchange.DecimalToPrecision("1234.69", TRUNCATE, 0, SIGNIFICANT_DIGITS, PAD_WITH_ZERO), "0"))
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToNDigitsAfterDot
+    // Round To N Digits After Dot
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456000", ROUND, 100, DECIMAL_PLACES), "12.3456"))
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456", ROUND, 100, DECIMAL_PLACES), "12.3456"))
     Assert(IsEqual(exchange.DecimalToPrecision("12.3456", ROUND, 4, DECIMAL_PLACES), "12.3456"))
@@ -91,7 +91,7 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("99.999", ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), "100.00"))
     Assert(IsEqual(exchange.DecimalToPrecision("-99.999", ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), "-100.00"))
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToNSignificantDigits
+    // Round To N Significant Digits
     Assert(IsEqual(exchange.DecimalToPrecision("0.000123456700", ROUND, 100, SIGNIFICANT_DIGITS), "0.0001234567"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", ROUND, 100, SIGNIFICANT_DIGITS), "0.0001234567"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", ROUND, 7, SIGNIFICANT_DIGITS), "0.0001234567"))
@@ -126,7 +126,7 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("1114.5", ROUND, 5, SIGNIFICANT_DIGITS), "1114.5"))
     Assert(IsEqual(exchange.DecimalToPrecision("1115.5", ROUND, 5, SIGNIFICANT_DIGITS), "1115.5"))
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToTickSize
+    // Round To Tick Size
     Assert(IsEqual(exchange.DecimalToPrecision("0.000123456700", ROUND, 0.00012, TICK_SIZE), "0.00012"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", ROUND, 0.00013, TICK_SIZE), "0.00013"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.0001234567", TRUNCATE, 0.00013, TICK_SIZE), "0"))
@@ -163,12 +163,13 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("-44.00000001", ROUND, 4.4, TICK_SIZE), "-44"))
     // https://github.com/ccxt/ccxt/issues/6731
     Assert(IsEqual(exchange.DecimalToPrecision("20", TRUNCATE, 1e-8, TICK_SIZE), "20"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.000123456789", TRUNCATE, 1e-8, TICK_SIZE), "0.00012345"))
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionNegativeNumbers
+    // Negative Numbers
     Assert(IsEqual(exchange.DecimalToPrecision("-0.123456", TRUNCATE, 5, DECIMAL_PLACES), "-0.12345"))
     Assert(IsEqual(exchange.DecimalToPrecision("-0.123456", ROUND, 5, DECIMAL_PLACES), "-0.12346"))
     // ----------------------------------------------------------------------------
-    // decimalToPrecision: without dot / trailing dot
+    // without dot / trailing dot
     Assert(IsEqual(exchange.DecimalToPrecision("123", TRUNCATE, 0), "123"))
     Assert(IsEqual(exchange.DecimalToPrecision("123", TRUNCATE, 5, DECIMAL_PLACES), "123"))
     Assert(IsEqual(exchange.DecimalToPrecision("123", TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), "123.00000"))
@@ -177,7 +178,7 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("0.", TRUNCATE, 0), "0"))
     Assert(IsEqual(exchange.DecimalToPrecision("0.", TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), "0.00000"))
     // ----------------------------------------------------------------------------
-    // decimalToPrecision: rounding for equidistant digits
+    // rounding for equidistant digits
     Assert(IsEqual(exchange.DecimalToPrecision("1.44", ROUND, 1, DECIMAL_PLACES), "1.4"))
     Assert(IsEqual(exchange.DecimalToPrecision("1.45", ROUND, 1, DECIMAL_PLACES), "1.5"))
     Assert(IsEqual(exchange.DecimalToPrecision("1.45", ROUND, 0, DECIMAL_PLACES), "1")) // not 2
@@ -198,9 +199,110 @@ func TestDecimalToPrecision()  {
     Assert(IsEqual(exchange.DecimalToPrecision("69.3", TRUNCATE, OpNeg(2), SIGNIFICANT_DIGITS), "0"))
     Assert(IsEqual(exchange.DecimalToPrecision("1602000000000000000000", TRUNCATE, 3, SIGNIFICANT_DIGITS), "1600000000000000000000"))
     // ----------------------------------------------------------------------------
-    // decimal_to_precision: stringified precision
+    // stringified precision
     Assert(IsEqual(exchange.DecimalToPrecision("-0.000123456789", ROUND, "0.00000012", TICK_SIZE), "-0.00012348"))
     Assert(IsEqual(exchange.DecimalToPrecision("-0.000123456789", TRUNCATE, "0.00000012", TICK_SIZE), "-0.00012336"))
     Assert(IsEqual(exchange.DecimalToPrecision("-165", TRUNCATE, "110", TICK_SIZE), "-110"))
     Assert(IsEqual(exchange.DecimalToPrecision("-165", ROUND, "110", TICK_SIZE), "-220"))
+    // ----------------------------------------------------------------------------
+    // testDecimalToPrecisionErrorHandling (todo)
+    //
+    // throws (() =>
+    //     decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES),
+    //         'negative precision is not yet supported')
+    //
+    // throws (() =>
+    //     decimalToPrecision ('foo'),
+    //         "invalid number (contains an illegal character 'f')")
+    //
+    // throws (() =>
+    //     decimalToPrecision ('0.01', TRUNCATE, -1, TICK_SIZE),
+    //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+    // ----------------------------------------------------------------------------
+    // Additional Edge Cases
+    // Zero handling variations
+    Assert(IsEqual(exchange.DecimalToPrecision("0.0", TRUNCATE, 2, DECIMAL_PLACES), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.00", ROUND, 3, DECIMAL_PLACES, PAD_WITH_ZERO), "0.000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-0.0", TRUNCATE, 2, DECIMAL_PLACES), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-0.00", ROUND, 1, DECIMAL_PLACES), "0"))
+    // Very small numbers close to zero
+    Assert(IsEqual(exchange.DecimalToPrecision("0.0000000001", TRUNCATE, 8, DECIMAL_PLACES), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.0000000001", ROUND, 8, DECIMAL_PLACES), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.0000000001", TRUNCATE, 10, DECIMAL_PLACES), "0.0000000001"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.00000000009", ROUND, 10, DECIMAL_PLACES), "0.0000000001"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.00000000015", ROUND, 10, DECIMAL_PLACES), "0.0000000002"))
+    // Very large numbers
+    Assert(IsEqual(exchange.DecimalToPrecision("99999999999999.99999", TRUNCATE, 2, DECIMAL_PLACES), "99999999999999.99"))
+    Assert(IsEqual(exchange.DecimalToPrecision("99999999999999.99999", ROUND, 2, DECIMAL_PLACES), "100000000000000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456789012345", TRUNCATE, 3, SIGNIFICANT_DIGITS), "123000000000000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456789012345", ROUND, 3, SIGNIFICANT_DIGITS), "123000000000000"))
+    // Numbers with leading zeros
+    Assert(IsEqual(exchange.DecimalToPrecision("000123.456", TRUNCATE, 2, DECIMAL_PLACES), "123.45"))
+    Assert(IsEqual(exchange.DecimalToPrecision("000123.456", ROUND, 2, DECIMAL_PLACES), "123.46"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0000.123", TRUNCATE, 2, DECIMAL_PLACES), "0.12"))
+    // Boundary rounding cases (exactly at 0.5)
+    Assert(IsEqual(exchange.DecimalToPrecision("1.5", ROUND, 0, DECIMAL_PLACES), "2"))
+    Assert(IsEqual(exchange.DecimalToPrecision("2.5", ROUND, 0, DECIMAL_PLACES), "3"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-1.5", ROUND, 0, DECIMAL_PLACES), "-2"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-2.5", ROUND, 0, DECIMAL_PLACES), "-3"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.25", ROUND, 1, DECIMAL_PLACES), "1.3"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.35", ROUND, 1, DECIMAL_PLACES), "1.4"))
+    // Carry-over in rounding (cascading effects)
+    Assert(IsEqual(exchange.DecimalToPrecision("9.999999", ROUND, 0, DECIMAL_PLACES), "10"))
+    Assert(IsEqual(exchange.DecimalToPrecision("99.999999", ROUND, 0, DECIMAL_PLACES), "100"))
+    Assert(IsEqual(exchange.DecimalToPrecision("999.999999", ROUND, 0, DECIMAL_PLACES), "1000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("9.999999", ROUND, 1, DECIMAL_PLACES), "10"))
+    Assert(IsEqual(exchange.DecimalToPrecision("9.999999", ROUND, 2, DECIMAL_PLACES), "10"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-9.999999", ROUND, 0, DECIMAL_PLACES), "-10"))
+    Assert(IsEqual(exchange.DecimalToPrecision("-99.999999", ROUND, 0, DECIMAL_PLACES), "-100"))
+    // Edge cases for TICK_SIZE with very small ticks
+    Assert(IsEqual(exchange.DecimalToPrecision("1.2345", ROUND, 0.0001, TICK_SIZE), "1.2345"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.23456", ROUND, 0.0001, TICK_SIZE), "1.2346"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.23454", ROUND, 0.0001, TICK_SIZE), "1.2345"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.23444", TRUNCATE, 0.0001, TICK_SIZE), "1.2344"))
+    // TICK_SIZE with numbers smaller than tick
+    Assert(IsEqual(exchange.DecimalToPrecision("0.05", ROUND, 0.1, TICK_SIZE), "0.1"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.04", ROUND, 0.1, TICK_SIZE), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.04", TRUNCATE, 0.1, TICK_SIZE), "0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.049999", ROUND, 0.1, TICK_SIZE), "0"))
+    // SIGNIFICANT_DIGITS edge cases
+    Assert(IsEqual(exchange.DecimalToPrecision("10000000", TRUNCATE, 1, SIGNIFICANT_DIGITS), "10000000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("10000001", TRUNCATE, 1, SIGNIFICANT_DIGITS), "10000000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("19999999", TRUNCATE, 1, SIGNIFICANT_DIGITS), "10000000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("19999999", ROUND, 1, SIGNIFICANT_DIGITS), "20000000"))
+    // Precision with PAD_WITH_ZERO edge cases
+    Assert(IsEqual(exchange.DecimalToPrecision("1", TRUNCATE, 0, DECIMAL_PLACES, PAD_WITH_ZERO), "1"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.0", TRUNCATE, 0, DECIMAL_PLACES, PAD_WITH_ZERO), "1"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1", TRUNCATE, 3, DECIMAL_PLACES, PAD_WITH_ZERO), "1.000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.1", TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), "1.10000"))
+    // Numbers that are exactly multiples of precision
+    Assert(IsEqual(exchange.DecimalToPrecision("1.2", TRUNCATE, 0.1, TICK_SIZE), "1.2"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.2", ROUND, 0.1, TICK_SIZE), "1.2"))
+    Assert(IsEqual(exchange.DecimalToPrecision("12", TRUNCATE, 4, TICK_SIZE), "12"))
+    Assert(IsEqual(exchange.DecimalToPrecision("12", ROUND, 4, TICK_SIZE), "12"))
+    // Very high precision values
+    Assert(IsEqual(exchange.DecimalToPrecision("1.123456789012345", TRUNCATE, 15, DECIMAL_PLACES), "1.123456789012345"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.123456789012345", TRUNCATE, 10, DECIMAL_PLACES), "1.123456789"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1.123456789012345", TRUNCATE, 10, DECIMAL_PLACES, PAD_WITH_ZERO), "1.1234567890"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.123456789012345", TRUNCATE, 15, SIGNIFICANT_DIGITS), "0.123456789012345"))
+    // Mixed large and small components
+    Assert(IsEqual(exchange.DecimalToPrecision("1000000.000001", TRUNCATE, 6, DECIMAL_PLACES), "1000000.000001"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1000000.000001", TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), "1000000.00000"))
+    Assert(IsEqual(exchange.DecimalToPrecision("1000000.000001", ROUND, 5, DECIMAL_PLACES, PAD_WITH_ZERO), "1000000.00000"))
+    // Edge cases around 1.0 boundary for significant digits
+    Assert(IsEqual(exchange.DecimalToPrecision("0.999999", ROUND, 1, SIGNIFICANT_DIGITS), "1"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.999999", ROUND, 2, SIGNIFICANT_DIGITS, PAD_WITH_ZERO), "1.0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.999999", ROUND, 3, SIGNIFICANT_DIGITS, PAD_WITH_ZERO), "1.00"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.999949", ROUND, 4, SIGNIFICANT_DIGITS), "0.9999"))
+    Assert(IsEqual(exchange.DecimalToPrecision("0.999951", ROUND, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO), "1.000"))
+    // ----------------------------------------------------------------------------
+    // https://github.com/ccxt/ccxt/issues/11765
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.12345678912", TRUNCATE, 1e-8, TICK_SIZE), "123456.12345678"))
+    // todo: not sure about below
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.12345674999", TRUNCATE, 5e-8, TICK_SIZE), "123456.1234567"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.12345674999", TRUNCATE, 5e-8, TICK_SIZE, PAD_WITH_ZERO), "123456.12345670"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.12345675001", TRUNCATE, 5e-8, TICK_SIZE), "123456.12345675"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.50000000001", TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO), "123456.5"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.49999999999", TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO), "123456.0"))
+    Assert(IsEqual(exchange.DecimalToPrecision("123456.12345678912", TRUNCATE, "0.00000001", TICK_SIZE), "123456.12345678"))
 }

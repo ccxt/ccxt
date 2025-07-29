@@ -437,6 +437,7 @@ export default class mexc extends Exchange {
                         },
                     },
                 },
+                'useCcxtTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -1717,8 +1718,8 @@ export default class mexc extends Exchange {
                 }
             }
         }
-        if (id === undefined) {
-            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
+        if (id === undefined && this.safeBool(this.options, 'useCcxtTradeId', true)) {
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade({
             'id': id,
@@ -1735,29 +1736,6 @@ export default class mexc extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
-    }
-    syntheticTradeId(market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        let id = '';
-        if (timestamp !== undefined) {
-            id = this.numberToString(timestamp) + '-' + this.safeString(market, 'id', '_');
-            if (side !== undefined) {
-                id += '-' + side;
-            }
-            if (amount !== undefined) {
-                id += '-' + this.numberToString(amount);
-            }
-            if (price !== undefined) {
-                id += '-' + this.numberToString(price);
-            }
-            if (takerOrMaker !== undefined) {
-                id += '-' + takerOrMaker;
-            }
-            if (orderType !== undefined) {
-                id += '-' + orderType;
-            }
-        }
-        return id;
     }
     /**
      * @method

@@ -150,18 +150,18 @@ type Exchange struct {
 	Twofa interface{}
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs     interface{} // map[string]map[string]*ArrayCacheByTimestamp
-	Trades     interface{} // map[string]*ArrayCache
-	Tickers    *sync.Map
-	Orders     interface{}  // *ArrayCache  // cache object, not a map
-	MyTrades   interface{}  // *ArrayCache  // cache object, not a map
-	Orderbooks *sync.Map
-	Liquidations *sync.Map
-	FundingRates interface{}
-	Bidsasks interface{}
-	TriggerOrders interface{} // *ArrayCache
-	Transactions *sync.Map
-	MyLiquidations *sync.Map
+	Ohlcvs     				interface{} // map[string]map[string]*ArrayCacheByTimestamp
+	Trades     				interface{} // map[string]*ArrayCache
+	Tickers    				*sync.Map
+	Orders     				interface{}  // *ArrayCache  // cache object, not a map
+	MyTrades   				interface{}  // *ArrayCache  // cache object, not a map
+	Orderbooks 				*sync.Map
+	Liquidations 			*sync.Map
+	FundingRates 			interface{}
+	Bidsasks 				interface{}
+	TriggerOrders 			interface{} // *ArrayCache
+	Transactions 			*sync.Map
+	MyLiquidations			*sync.Map
 
 	PaddingMode int
 

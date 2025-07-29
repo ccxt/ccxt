@@ -1924,6 +1924,17 @@ export default class Exchange {
                 'watchLiquidations': undefined,
                 'watchLiquidationsForSymbols': undefined,
                 'watchMyLiquidations': undefined,
+                'unWatchOrders': undefined,
+                'unWatchTrades': undefined,
+                'unWatchTradesForSymbols': undefined,
+                'unWatchOHLCVForSymbols': undefined,
+                'unWatchOrderBookForSymbols': undefined,
+                'unWatchPositions': undefined,
+                'unWatchOrderBook': undefined,
+                'unWatchTickers': undefined,
+                'unWatchMyTrades': undefined,
+                'unWatchTicker': undefined,
+                'unWatchOHLCV': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
@@ -2520,6 +2531,10 @@ export default class Exchange {
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchOrderBookForSymbols() is not supported yet');
+    }
+
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchPositions() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
@@ -3798,6 +3813,27 @@ export default class Exchange {
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
         return trade as Trade;
+    }
+
+    createCcxtTradeId (timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        let id = undefined;
+        if (timestamp !== undefined) {
+            id = this.numberToString (timestamp);
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString (amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString (price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+        }
+        return id;
     }
 
     parsedFeeAndFees (container:any) {
@@ -7264,7 +7300,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
-        const until = this.safeInteger2 (params, 'untill', 'till'); // do not omit it from params here
+        const until = this.safeIntegerN (params, [ 'until', 'untill', 'till' ]); // do not omit it from params here
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
@@ -7960,6 +7996,16 @@ export default class Exchange {
                 this.myTrades = undefined;
             } else if (topic === 'orders' && (this.orders !== undefined)) {
                 this.orders = undefined;
+            } else if (topic === 'positions' && (this.positions !== undefined)) {
+                this.positions = undefined;
+                const clients = Object.values (this.clients);
+                for (let i = 0; i < clients.length; i++) {
+                    const client = clients[i];
+                    const futures = this.safeDict (client, 'futures');
+                    if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
+                        delete futures['fetchPositionsSnapshot'];
+                    }
+                }
             } else if (topic === 'ticker' && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys (this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
