@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchAccounts": [
+            {
+                "description": "without args",
+                "method": "fetchAccounts",
+                "url": "https://arkm.com/api/user",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "using since",

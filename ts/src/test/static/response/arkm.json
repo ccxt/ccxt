@@ -2,6 +2,69 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchAccounts": [
+            {
+                "description": "without args",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "id": "2959123",
+                    "email": "xyz@gmail.com",
+                    "username": "t.695",
+                    "requireMFA": true,
+                    "kycVerifiedAt": "1753434515850673",
+                    "pmm": false,
+                    "dmm": false,
+                    "becameVipAt": "0",
+                    "subaccounts": [
+                        {
+                            "id": "0",
+                            "name": "Primary",
+                            "pinned": true,
+                            "isLsp": false,
+                            "futuresEnabled": true,
+                            "payFeesInArkm": false,
+                            "lspSettings": []
+                        }
+                    ],
+                    "settings": {
+                        "autogenDepositAddresses": false,
+                        "hideBalances": false,
+                        "confirmBeforePlaceOrder": false,
+                        "tickerTapeScroll": true,
+                        "updatesFlash": true,
+                        "notifyOrderFills": false,
+                        "notifyAnnouncements": false,
+                        "notifyMarginUsage": false,
+                        "marginUsageThreshold": "0.5",
+                        "notifyWithdrawals": true,
+                        "notifyDeposits": true,
+                        "notifySendEmail": true,
+                        "notifyRebates": true,
+                        "notifyCommissions": true,
+                        "allowSequenceEmails": true,
+                        "language": "en"
+                    },
+                    "airdropKycAt": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0",
+                        "type": null,
+                        "code": null,
+                        "info": {
+                            "id": "0",
+                            "name": "Primary",
+                            "pinned": true,
+                            "isLsp": false,
+                            "futuresEnabled": true,
+                            "payFeesInArkm": false,
+                            "lspSettings": []
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "using since",
@@ -122,7 +185,7 @@
                 "httpResponse": [
                     {
                         "orderId": "3697114271287",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714263841103",
@@ -152,7 +215,7 @@
                     },
                     {
                         "orderId": "3696995236595",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714016555541",
@@ -207,7 +270,7 @@
                         "reduceOnly": false,
                         "info": {
                             "orderId": "3696995236595",
-                            "userId": "2959880",
+                            "userId": "2959123",
                             "subaccountId": "0",
                             "symbol": "SOL_USDT",
                             "time": "1753714016555541",
@@ -266,7 +329,7 @@
                         "reduceOnly": false,
                         "info": {
                             "orderId": "3697114271287",
-                            "userId": "2959880",
+                            "userId": "2959123",
                             "subaccountId": "0",
                             "symbol": "SOL_USDT",
                             "time": "1753714263841103",
@@ -311,7 +374,7 @@
                 "httpResponse": [
                     {
                         "orderId": "3697346296818",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714765793962",
@@ -366,7 +429,7 @@
                         "reduceOnly": false,
                         "info": {
                             "orderId": "3697346296818",
-                            "userId": "2959880",
+                            "userId": "2959123",
                             "subaccountId": "0",
                             "symbol": "SOL_USDT",
                             "time": "1753714765793962",
@@ -456,7 +519,7 @@
                 ],
                 "httpResponse": {
                     "orderId": "3696995236595",
-                    "userId": "2959880",
+                    "userId": "2959123",
                     "subaccountId": "0",
                     "symbol": "SOL_USDT",
                     "time": "1753714016555541",
@@ -509,7 +572,7 @@
                     "reduceOnly": false,
                     "info": {
                         "orderId": "3696995236595",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714016555541",
@@ -552,7 +615,7 @@
                 ],
                 "httpResponse": {
                     "orderId": "3696995236595",
-                    "userId": "2959880",
+                    "userId": "2959123",
                     "subaccountId": "0",
                     "symbol": "SOL_USDT",
                     "time": "1753714016555541",
@@ -605,7 +668,7 @@
                     "reduceOnly": false,
                     "info": {
                         "orderId": "3696995236595",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714016555541",
@@ -652,7 +715,7 @@
                 ],
                 "httpResponse": {
                     "orderId": "3696995236595",
-                    "userId": "2959880",
+                    "userId": "2959123",
                     "subaccountId": "0",
                     "symbol": "SOL_USDT",
                     "time": "1753714016555541",
@@ -705,7 +768,7 @@
                     "reduceOnly": false,
                     "info": {
                         "orderId": "3696995236595",
-                        "userId": "2959880",
+                        "userId": "2959123",
                         "subaccountId": "0",
                         "symbol": "SOL_USDT",
                         "time": "1753714016555541",
