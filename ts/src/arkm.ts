@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/arkm.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction } from './base/types.js';
 
 /**
  * @class arkm
@@ -44,6 +44,13 @@ export default class arkm extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'createOrder': true,
+                'fetchMyTrades': true,
+                'fetchBalance': true,
+                'fetchAccount': true,
+                'fetchDepositAddress': false,
+                'fetchDepositAddressesByNetwork': true,
+                'createDepositAddress': true,
+                'fetchDeposits': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1502,10 +1509,8 @@ export default class arkm extends Exchange {
      * @method
      * @name arkm#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
-     * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+     * @see https://arkm.com/docs#get/user
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
@@ -1718,6 +1723,93 @@ export default class arkm extends Exchange {
             'address': entry,
             'tag': undefined,
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://arkm.com/docs#get/account/deposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetAccountDeposits (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "238644",
+        //            "symbol": "SOL",
+        //            "amount": "0.104",
+        //            "time": "1753436404000000",
+        //            "confirmed": true,
+        //            "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+        //            "chain": "Solana",
+        //            "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+        //            "price": "180.322010164"
+        //        }
+        //    ]
+        //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //        {
+        //            "id": "238644",
+        //            "symbol": "SOL",
+        //            "amount": "0.104",
+        //            "time": "1753436404000000",
+        //            "confirmed": true,
+        //            "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+        //            "chain": "Solana",
+        //            "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+        //            "price": "180.322010164"
+        //        }
+        //
+        const address = this.safeString (transaction, 'depositAddress');
+        const timestamp = this.safeIntegerProduct (transaction, 'time', 0.001);
+        const confirmd = this.safeBool (transaction, 'confirmed');
+        let status = undefined;
+        if (confirmd) {
+            status = 'ok';
+        }
+        const currencyId = this.safeString (transaction, 'symbol');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'type': undefined,
+            'currency': code,
+            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'internal': false,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
