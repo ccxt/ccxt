@@ -6,7 +6,7 @@ import Exchange from './abstract/arkm.js';
 import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances } from './base/types.js';
 
 /**
  * @class arkm
@@ -1581,6 +1581,69 @@ export default class arkm extends Exchange {
             'code': undefined,
             'info': account,
         };
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchBalance
+     * @description query for account info
+     * @see https://arkm.com/docs#get/account/balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetAccountBalances (params);
+        //
+        //    [
+        //        {
+        //            "subaccountId": "0",
+        //            "symbol": "USDT",
+        //            "balance": "19.66494694",
+        //            "free": "19.66494694",
+        //            "priceUSDT": "1",
+        //            "balanceUSDT": "19.66494694",
+        //            "freeUSDT": "19.66494694",
+        //            "lastUpdateReason": "orderFill",
+        //            "lastUpdateTime": "1753773952039342",
+        //            "lastUpdateId": "248507437",
+        //            "lastUpdateAmount": "7.77252"
+        //        },
+        //        {
+        //            "subaccountId": "0",
+        //            "symbol": "SOL",
+        //            "balance": "0",
+        //            "free": "0",
+        //            "priceUSDT": "186.025584673",
+        //            "balanceUSDT": "0",
+        //            "freeUSDT": "0",
+        //            "lastUpdateReason": "orderFill",
+        //            "lastUpdateTime": "1753773952039342",
+        //            "lastUpdateId": "248507435",
+        //            "lastUpdateAmount": "-0.042"
+        //        }
+        //    ]
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const timestamp = this.safeIntegerProduct (response, 'lastUpdateTime', 0.001);
+        const result: Dict = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const symbol = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (symbol);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'free');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
