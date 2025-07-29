@@ -2,6 +2,60 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchDeposits": [
+            {
+                "description": "without args",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "238644",
+                        "symbol": "SOL",
+                        "amount": "0.104",
+                        "time": "1753436404000000",
+                        "confirmed": true,
+                        "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                        "chain": "Solana",
+                        "depositAddress": "72MUuJ26TUT9aYkEft7YdePJJDRMGbiBrMVoTVUvBCrv",
+                        "price": "180.322010164"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "238644",
+                            "symbol": "SOL",
+                            "amount": "0.104",
+                            "time": "1753436404000000",
+                            "confirmed": true,
+                            "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                            "chain": "Solana",
+                            "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                            "price": "180.322010164"
+                        },
+                        "id": "238644",
+                        "txid": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
+                        "type": null,
+                        "currency": "SOL",
+                        "network": "Solana",
+                        "amount": 0.104,
+                        "status": "ok",
+                        "timestamp": 1753436404000,
+                        "datetime": "2025-07-25T09:40:04.000Z",
+                        "address": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "addressFrom": null,
+                        "addressTo": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "updated": null,
+                        "comment": null,
+                        "fee": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
         "createDepositAddress": [
             {
                 "description": "with network",

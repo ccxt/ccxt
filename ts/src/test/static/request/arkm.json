@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDeposits": [
+            {
+                "description": "without args",
+                "method": "fetchDeposits",
+                "url": "https://arkm.com/api/account/deposits",
+                "input": [],
+                "output": null
+            }
+        ],
         "createDepositAddress": [
             {
                 "description": "with network",
