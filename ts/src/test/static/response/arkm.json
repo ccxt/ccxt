@@ -2,6 +2,118 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "using since",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    1753772400000
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "SOL_USDT",
+                        "revisionId": "891839406",
+                        "size": "0.042",
+                        "price": "185.06",
+                        "takerSide": "sell",
+                        "time": "1753773952039342",
+                        "orderId": "3717304929194",
+                        "userSide": "sell",
+                        "quoteFee": "0.00777252",
+                        "arkmFee": "0",
+                        "clientOrderId": ""
+                    },
+                    {
+                        "symbol": "SOL_USDT",
+                        "revisionId": "891831453",
+                        "size": "0.042",
+                        "price": "185.24",
+                        "takerSide": "buy",
+                        "time": "1753773732074248",
+                        "orderId": "3717248468018",
+                        "userSide": "buy",
+                        "quoteFee": "0.00778008",
+                        "arkmFee": "0",
+                        "clientOrderId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "SOL_USDT",
+                            "revisionId": "891831453",
+                            "size": "0.042",
+                            "price": "185.24",
+                            "takerSide": "buy",
+                            "time": "1753773732074248",
+                            "orderId": "3717248468018",
+                            "userSide": "buy",
+                            "quoteFee": "0.00778008",
+                            "arkmFee": "0",
+                            "clientOrderId": ""
+                        },
+                        "id": "891831453",
+                        "timestamp": 1753773732074,
+                        "datetime": "2025-07-29T07:22:12.074Z",
+                        "symbol": "SOL/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 185.24,
+                        "amount": 0.042,
+                        "cost": 7.78008,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00778008
+                        },
+                        "order": "3717248468018",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00778008
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "symbol": "SOL_USDT",
+                            "revisionId": "891839406",
+                            "size": "0.042",
+                            "price": "185.06",
+                            "takerSide": "sell",
+                            "time": "1753773952039342",
+                            "orderId": "3717304929194",
+                            "userSide": "sell",
+                            "quoteFee": "0.00777252",
+                            "arkmFee": "0",
+                            "clientOrderId": ""
+                        },
+                        "id": "891839406",
+                        "timestamp": 1753773952039,
+                        "datetime": "2025-07-29T07:25:52.039Z",
+                        "symbol": "SOL/USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 185.06,
+                        "amount": 0.042,
+                        "cost": 7.77252,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00777252
+                        },
+                        "order": "3717304929194",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00777252
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "without args",

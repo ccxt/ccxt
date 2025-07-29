@@ -863,7 +863,7 @@ export default class arkm extends Exchange {
         //        }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
         const quoteFee = this.safeNumber (trade, 'quoteFee');
         const arkmFee = this.safeNumber (trade, 'arkmFee');
@@ -884,7 +884,7 @@ export default class arkm extends Exchange {
             'id': this.safeString (trade, 'revisionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': this.safeString2 (trade, 'userSide', 'takerSide'), // priority to userSide
             'takerOrMaker': undefined,
@@ -1458,22 +1458,24 @@ export default class arkm extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
         let request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         // exchange needs to obtain some `from & to` values, otherwise it does not return any result
+        const defaultRange = 24 * 60 * 60 * 1000; // default to last 24 hours
         if (since !== undefined) {
             request['from'] = since * 1000; // convert ms to microseconds
         } else {
-            request['from'] = (this.milliseconds () - 24 * 60 * 60 * 1000) * 1000; // default to last 24 hours
+            request['from'] = (this.milliseconds () - defaultRange) * 1000; // default to last 24 hours
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
             request['to'] = until * 1000; // convert ms to microseconds
         } else {
-            request['to'] = this.milliseconds () * 1000; // default to now
+            request['to'] = request['from'] + defaultRange * 1000;
         }
         [ request, params ] = this.handleUntilOption ('until', request, params);
         const response = await this.v1PrivateGetTradesTime (this.extend (request, params));

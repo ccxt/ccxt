@@ -5,6 +5,18 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "using since",
+                "method": "fetchMyTrades",
+                "url": "https://arkm.com/api/trades/time?from=1753772400000000&to=1753858800000000",
+                "input": [
+                    null,
+                    1753772400000
+                ],
+                "output": null
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "trigger",
