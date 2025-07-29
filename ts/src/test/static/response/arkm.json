@@ -2,6 +2,28 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "createDepositAddress": [
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0x6a0da5b895242f57da7eee7cbe92b5b85b402126"
+                },
+                "parsedResponse": {
+                    "info": null,
+                    "currency": "USDT",
+                    "network": null,
+                    "address": null,
+                    "tag": null
+                }
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
                 "description": "without code",

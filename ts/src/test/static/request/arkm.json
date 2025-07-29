@@ -5,6 +5,24 @@
     ],
     "outputType": "json",
     "methods": {
+        "createDepositAddress": [
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "url": "https://arkm.com/api/account/deposit/addresses/new",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    },
+                    "--",
+                    "--request",
+                    "--name",
+                    "with network"
+                ],
+                "output": "{\"chain\":\"ETH\"}"
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
                 "description": "without code",
