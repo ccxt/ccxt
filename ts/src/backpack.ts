@@ -229,6 +229,8 @@ export default class backpack extends Exchange {
                 'brokerId': '',
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
+                'timeDifference': 0, // the difference between system clock and the exchange server clock in milliseconds
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'Solana': 'SOL',
                     'solana': 'SOL',
@@ -411,6 +413,9 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const response = await this.publicGetApiV1Markets (params);
         return this.parseMarkets (response);
     }
@@ -1759,6 +1764,10 @@ export default class backpack extends Exchange {
         });
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
         let url = this.urls['api'][api];
@@ -1771,7 +1780,7 @@ export default class backpack extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const ts = this.milliseconds ().toString ();
+            const ts = this.nonce ().toString ();
             const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
             const instruction = this.getInstruction (path, method);
             let queryString = query;
