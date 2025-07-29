@@ -1053,7 +1053,7 @@ func  (this *exmo) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
                 AddElementToObject(request, "from", Subtract(Subtract(to, (Multiply(limit, duration))), 1))
                 AddElementToObject(request, "to", to)
             } else {
-                AddElementToObject(request, "from", Subtract(this.ParseToInt(Divide(since, 1000)), 1))
+                AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
                 if IsTrue(untilIsDefined) {
                     AddElementToObject(request, "to", mathMin(until, now))
                 } else {
