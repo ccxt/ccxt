@@ -419,6 +419,10 @@ const INTERFACE_METHODS = [
 	'watchTradesForSymbols',
 ]
 
+const piscina = new Piscina({
+    filename: resolve(__dirname, 'go-worker.js')
+});
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
@@ -447,42 +451,40 @@ class NewTranspiler {
             // --- Generic fixes for WS transpilation (Go) ---
             // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
             [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
-
+            
             // await-style return (C#) → channel read in Go (return await foo; -> return <-$1)
             [/return await (\w+);/g, 'return <-$1'],
-
+            
             // new getValue(a, b)(c)  →  this.NewException(GetValue(a, b), c)
             [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
-
+            
             // Casted access to subscriptions/futures/clients → exported Go field/prop
             [/client\.subscriptions/g, 'client.(*WSClient).Subscriptions'],
             [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
-
+            
             // OrderBook & OrderBookSide casts → plain method/field access with proper capitalisation
             [/(orderbook)(\.reset)/g, '$1.(OrderBookInterface).Reset'],
             [/(\w+)(\.cache)/g, '$1.Cache'],
             [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
             [/(countedBookSide)\.store\(/g, '$1.Store('],
-            [/(\w+)\.store\(/g, '$1.Store('],
-            [/(\w+)\.storeArray\(/g, '$1.StoreArray('],
-
+            [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
+            
             // DynamicInvoker from C# → callDynamically helper in Go
             [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
-
+            
             // .limit() on order book variable should be capitalised
             [/(\w+)\.limit\(\)/g, '$1.Limit()'],
-
+            
             // Future/Client Resolve/Reject casts
             [/future\.resolve/g, 'future.(*Future).Resolve'],
-            [/(\w+)\.resolve/g, '$1.Resolve'],
-            [/(\w+)\.reject/g, '$1.Reject'],
-
+            [/(\w+)\.(resolve|reject)/g, '$1.$2'],
+            
             // spawn/delay helpers – convert additional params array creation to variadic list
             [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
-
+            
             // callDynamically array wrapper removal
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
@@ -490,7 +492,7 @@ class NewTranspiler {
             
             [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
-
+            
             [/\.Append\(/g, '.(Appender).Append('],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             [/stored := NewArrayCache\(limit\)/g, 'var stored interface{} = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
@@ -525,7 +527,7 @@ class NewTranspiler {
             [/NewNotSupported/g, 'NotSupported'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
             [/GetDescribeForExtendedWsExchange\(([^,]+),/g, 'GetDescribeForExtendedWsExchange(&$1, &'],
-            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
+            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],              
             
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
             
@@ -928,7 +930,7 @@ class NewTranspiler {
         // const allowedPrefixesWs = [
         //     ''
         // ]
-        const blacklistMethods = [
+        const blacklistMethods = new Set ([
             'fetch',
             'setSandBoxMode',
             'loadOrderBook',
@@ -952,13 +954,13 @@ class NewTranspiler {
             'createVault',
             'fetchCurrenciesWs',
             'fetchMarketsWs',
-        ] // improve this later
+        ]); // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
                 return false;
             }
         }
-        const isBlackListed = blacklistMethods.includes(methodName);
+        const isBlackListed = blacklistMethods.has (methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
     }
@@ -1246,8 +1248,8 @@ class NewTranspiler {
     }
 
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
-        const methodsList = wrappers.map(wrapper => wrapper.name);
-        const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.includes(method));
+        const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
+        const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
 
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
 
@@ -1418,7 +1420,7 @@ ${constStatements.join('\n')}
         // const delimited = tsContent.split (delimiter)
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
-        this.transpiler.goTranspiler.wrapCallMethods = Object.keys(baseMethods);
+        this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
         const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
@@ -1452,46 +1454,42 @@ ${constStatements.join('\n')}
 
 
         // custom transformations needed for go
-        baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
-        // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
-        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.CallDynamically(') //fix this on the transpiler
-        baseClass = baseClass.replaceAll(/throwDynamicException\(/gm, 'ThrowDynamicException(') //fix this on the transpiler
-        baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
-        baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
-        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client *Client,");
-        baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
-        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
-        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
-        baseClass = baseClass.replace (/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange');
-
-        // --- WebSocket related fixes specific to **Go** ----------------------
-        // 1) Access the strongly-typed field instead of dynamic lookup.
-        baseClass = baseClass.replaceAll("client.futures", "client.Futures");
-
-        // 2) Remove unresolved C# artefacts concerning `number` typing – the
-        //    Go layer already normalises this earlier to a literal string.
-        baseClass = baseClass.replace("((object)this).number = String;", "this.Number = \"string\"");
-        baseClass = baseClass.replace("((object)this).number = float;", "this.Number = 0");
-
-        // 3) Promise-style resolver calls don't exist in Go – comment them.
-        baseClass = baseClass.replaceAll("client.resolve", "// client.resolve");
-        baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
-        baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= NewList<Task<List<object?>>> {");
-
-        // 4) Translate the C# `throw new …` syntax into the helper used by Go.
-        baseClass = baseClass.replace("throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message);");
-        baseClass = baseClass.replace("throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message);");
-        baseClass = baseClass.replace("throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message);");
-
-        // 5) Fix error constructors - remove "New" prefix
-        baseClass = baseClass.replace(/NewUnsubscribeError/g, 'UnsubscribeError');
-        baseClass = baseClass.replace(/NewNotSupported/g, 'NotSupported');
-        baseClass = baseClass.replace(/NewInvalidNonce/g, 'InvalidNonce');
-
-        // WS fixes
-        baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
-        baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
-        baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
+        baseClass = this.regexAll (baseClass, [
+            [/\=\snew\s/gm, "= "],
+            // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+            [/callDynamically\(/gm, 'this.CallDynamically('], //fix this on the transpiler
+            [/throwDynamicException\(/gm, 'ThrowDynamicException('], //fix this on the transpiler
+            [/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,"],
+            [/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,"],
+            [/client interface\{\},/g, "client *Client,"],
+            [/this.Number = String/g, 'this.Number = "string"'],
+            [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
+            [/ch <- nil\s+\/\/.+/g, ''],
+            [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
+            // --- WebSocket related fixes specific to **Go** ----------------------
+            // 1) Access the strongly-typed field instead of dynamic lookup.
+            ["client.futures", "client.Futures"],
+            // 2) Remove unresolved C# artefacts concerning `number` typing – the
+            //    Go layer already normalises this earlier to a literal string.
+            ["((object)this).number = String;", "this.Number = \"string\""],
+            ["((object)this).number = float;", "this.Number = 0"],
+            // 3) Promise-style resolver calls don't exist in Go – comment them.
+            ["client.resolve", "// client.resolve"],
+            ["this.number = Number;", "this.number = typeof(float);"], // tmp fix for c#
+            ["= new List<Task<List<object>>> {", "= NewList<Task<List<object?>>> {"],
+            // 4) Translate the C# `throw new …` syntax into the helper used by Go.
+            ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message);"],
+            ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message);"],
+            ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message);"],
+            // 5) Fix error constructors - remove "New" prefix
+            [/NewUnsubscribeError/g, 'UnsubscribeError'],
+            [/NewNotSupported/g, 'NotSupported'],
+            [/NewInvalidNonce/g, 'InvalidNonce'],
+            // WS fixes
+            [/\(object client,/gm, '(WebSocketClient client,'],
+            [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
+            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
+        ]);
 
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
@@ -1717,9 +1715,6 @@ type IExchange interface {
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'go-worker.js')
-        });
 
         const chunkSize = 20;
         const promises: any = [];
@@ -1896,49 +1891,43 @@ type IExchange interface {
         // content = content.replace(/func\sNew(\w+)\(\)/g, 'func New$1Core()');
         if (!ws) {
             // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
-            content = content.replace(/base\.(\w+)\(/gm, "this.Exchange.$1(");
-            content = content.replace(/base\.Describe/gm, "this.Exchange.Describe");
-            content = content.replace(/"\0"/gm, '"\/\/\" + "0"'); // check this later in bl3p
-            content = content.replace(/new Precise/gm, "NewPrecise");
-            content = content.replace(/var precise interface\{\} = /gm, "precise := ");
-            content = content.replace(/var preciseAmount interface\{\} = /gm, "preciseAmount := ");
-            content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
-            content = content.replace(/ToString\(precise\)/gm, 'precise.ToString()')
-            content = content.replace(/ToString\((precise\w*)\)/gm, '$1.ToString()')
-            content = content.replace(/<\-callDynamically/gm, '<-this.CallDynamically') //fix this on the transpiler
-            content = content.replace(/toFixed/gm, 'ToFixed');
+            content = this.regexAll(content, [
+                [/base\.(\w+)\(/gm, "this.Exchange.$1("],
+                [/base\.Describe/gm, "this.Exchange.Describe"],
+                [/"\0"/gm, '"\/\/\" + "0"'], // check this later in bl3p
+                [/new Precise/gm, "NewPrecise"],
+                [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
+                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
+                [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
+                [/<\-callDynamically/gm, '<-this.CallDynamically'], //fix this on the transpiler
+                [/toFixed/gm, 'ToFixed'],
+                [/throwDynamicException/gm, 'ThrowDynamicException'],
+            ])
         } else {
             content = content.replace(new RegExp(`this\\.${exchangeName}Rest\\.`, 'g'), `this.${exchangeName}.`);                       // Removes 'Rest' suffix
             content = content.replace(/([^a-zA-Z0-9])base\.([A-Za-z0-9]+)\(/g, `$1this.base.$2(`);                                      // changes 'base' to 'this.base'
             const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
             content = content.replace(/type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n`);      // adds 'base exchangeName'
             content = content.replace(/(p \:\= &.*$)/gm, `$1\n\tbase := &${coreName}{}\n\tp.base = base\n\tp.${baseClass} = base`);  // could go in ast-transpiler if there is always a parameter named base
-        }
-        // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
-        // WS fixes
-        if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
             content = this.replaceImportedRestClasses (content, goVersion.imports);
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
             // TODO: should be fixed earlier in the pipeline without a regex
-            content = content.replace(/ccxt.setDefaults/gm, 'ccxt.SetDefaults');
-            content = content.replace(/ccxt.promiseAll/gm, 'ccxt.PromiseAll');
-            content = content.replace(/ccxt.sha256/gm, 'ccxt.Sha256');
-            content = content.replace(/ccxt.sha384/gm, 'ccxt.Sha384');
-            content = content.replace(/ccxt.sha512/gm, 'ccxt.Sha512');
-            content = content.replace(/ccxt.mathMin/gm, 'ccxt.MathMin');
-            content = content.replace(/ccxt.mathMax/gm, 'ccxt.MathMax');
-            content = content.replace(/ccxt.keccak/gm, 'ccxt.Keccak');
-            content = content.replace(/ccxt.secp256k1/gm, 'ccxt.Secp256k1');
-            content = content.replace(/ccxt.throwDynamicException/gm, 'ccxt.ThrowDynamicException');
-            content = content.replace(/throwDynamicException/gm, 'ccxt.ThrowDynamicException');
-            content = content.replace(/ccxt.ed25519/gm, 'ccxt.Ed25519');
-            content = content.replace(/ccxt.toFixed/gm, 'ccxt.ToFixed');
-            content = content.replace(/toFixed/gm, 'ccxt.ToFixed');
-            content = content.replace(/ccxt.md5/gm, 'ccxt.Md5');
-        } else {
-            content = content.replace(/throwDynamicException/gm, 'ThrowDynamicException');
+            content = this.regexAll(content, [
+                [/ccxt.setDefaults/gm, 'ccxt.SetDefaults'],
+                [/ccxt.promiseAll/gm, 'ccxt.PromiseAll'],
+                [/ccxt\.sha(256|384|512)/gm, 'ccxt.Sha$1'],
+                [/ccxt\.math(Min|Max)/gm, 'ccxt.Math$1'],
+                [/ccxt.keccak/gm, 'ccxt.Keccak'],
+                [/ccxt.secp256k1/gm, 'ccxt.Secp256k1'],
+                [/ccxt.throwDynamicException/gm, 'ccxt.ThrowDynamicException'],
+                [/ccxt.ed25519/gm, 'ccxt.Ed25519'],
+                [/ccxt.toFixed/gm, 'ccxt.ToFixed'],
+                [/ccxt.md5/gm, 'ccxt.Md5'],
+                [/throwDynamicException/gm, 'ccxt.ThrowDynamicException'],
+                [/toFixed/gm, 'ccxt.ToFixed'],
+            ]);
         }
 
 
@@ -2237,10 +2226,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [/var exchange interface{} =/g,'var exchange ccxt.ICoreExchange ='],
-            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.ICoreExchange ='],
-            [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
-            [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
+            [/var (mockedExchange|exchange) interface{} =/g, 'var $1 ccxt.ICoreExchange ='],
+            [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
@@ -2335,17 +2322,15 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [/exchange \:\= &ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange := ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange interface\{\},/g, 'exchange ccxt.ICoreExchange,'],
-                [/exchange interface\{\}\)/g, 'exchange ccxt.ICoreExchange)'],
+                [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 [/testSharedMethods\./g, ''],
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
-                [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
-                [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
+                [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''] // remove equals
+
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
