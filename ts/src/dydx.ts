@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ export default class dydx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
@@ -1098,6 +1098,129 @@ export default class dydx extends Exchange {
         // }
         //
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        // {
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        // }
+        //
+        const currencyId = this.safeString (item, 'symbol');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
+        const type = this.safeStringUpper (item, 'type');
+        let direction = undefined;
+        if (type !== undefined) {
+            if (type === 'TRANSFER_IN' || type === 'DEPOSIT') {
+                direction = 'in';
+            } else if (type === 'TRANSFER_OUT' || type === 'WITHDRAWAL') {
+                direction = 'out';
+            }
+        }
+        const amount = this.safeString (item, 'size');
+        const timestamp = this.parse8601 (this.safeString (item, 'createdAt'));
+        const sender = this.safeDict (item, 'sender');
+        const recipient = this.safeDict (item, 'recipient');
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'direction': direction,
+            'account': this.safeString (sender, 'address'),
+            'referenceAccount': this.safeString (recipient, 'address'),
+            'referenceId': this.safeString (item, 'transactionHash'),
+            'type': this.parseLedgerEntryType (type),
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType: Dict = {
+            'TRANSFERIN': 'transfer',
+            'TRANSFEROUT': 'transfer',
+            'DEPOSIT': 'deposit',
+            'WITHDRAWAL': 'withdrawal',
+        };
+        return this.safeString (ledgerType, type, type);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        let userAddress = undefined;
+        let subAccountNumber = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {
+            'address': userAddress,
+            'subaccountNumber': subAccountNumber,
+        };
+        const response = await this.indexerGetTransfers (this.extend (request, params));
+        //
+        // {
+        //     "transfers": [
+        //         {
+        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender": {
+        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "recipient": {
+        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber": 1
+        //             },
+        //             "size": "0.000001",
+        //             "createdAt": "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight": "45116125",
+        //             "symbol": "USDC",
+        //             "type": "TRANSFER_OUT",
+        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //         }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'transfers', []);
+        return this.parseLedger (rows, currency, since, limit, params);
     }
 
     nonce () {
