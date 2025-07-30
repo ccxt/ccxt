@@ -107,7 +107,7 @@
         "fee": 2,
         "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "info": {
                     "symbol": "ETH",
                     "assetSymbol": "ETH",
@@ -117,7 +117,7 @@
                     "blockTime": "12000000"
                 },
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "title": "Ethereum",
                 "active": null,
                 "deposit": null,

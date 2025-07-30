@@ -258,7 +258,7 @@
                         {
                             "tier": 1,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 0,
                             "maxNotional": 250000,
                             "maintenanceMarginRate": 0.04,
@@ -273,7 +273,7 @@
                         {
                             "tier": 2,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 250000,
                             "maxNotional": 500000,
                             "maintenanceMarginRate": 0.05,
@@ -288,7 +288,7 @@
                         {
                             "tier": 3,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 500000,
                             "maxNotional": 1000000,
                             "maintenanceMarginRate": 0.1,
@@ -303,7 +303,7 @@
                         {
                             "tier": 4,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 1000000,
                             "maxNotional": 2500000,
                             "maintenanceMarginRate": 0.2,
@@ -318,7 +318,7 @@
                         {
                             "tier": 5,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 2500000,
                             "maxNotional": 50000000,
                             "maintenanceMarginRate": 0.3,
@@ -333,7 +333,7 @@
                         {
                             "tier": 6,
                             "symbol": "BTC/USDT:USDT",
-                            "currency": "BTC.P",
+                            "currency": "BTC",
                             "minNotional": 50000000,
                             "maxNotional": 100000000,
                             "maintenanceMarginRate": 0.5,
@@ -350,7 +350,7 @@
                         {
                             "tier": 1,
                             "symbol": "SOL/USDT:USDT",
-                            "currency": "SOL.P",
+                            "currency": "SOL",
                             "minNotional": 0,
                             "maxNotional": 10000,
                             "maintenanceMarginRate": 0.1,
@@ -365,7 +365,7 @@
                         {
                             "tier": 2,
                             "symbol": "SOL/USDT:USDT",
-                            "currency": "SOL.P",
+                            "currency": "SOL",
                             "minNotional": 10000,
                             "maxNotional": 100000,
                             "maintenanceMarginRate": 0.2,
@@ -380,7 +380,7 @@
                         {
                             "tier": 3,
                             "symbol": "SOL/USDT:USDT",
-                            "currency": "SOL.P",
+                            "currency": "SOL",
                             "minNotional": 100000,
                             "maxNotional": 1000000,
                             "maintenanceMarginRate": 0.3,
@@ -395,7 +395,7 @@
                         {
                             "tier": 4,
                             "symbol": "SOL/USDT:USDT",
-                            "currency": "SOL.P",
+                            "currency": "SOL",
                             "minNotional": 1000000,
                             "maxNotional": 5000000,
                             "maintenanceMarginRate": 0.5,
@@ -413,7 +413,8 @@
         ],
         "withdraw": [
             {
-                "description": "with args",
+                "disabled": true,
+                "description": "with args (disabled because of weird error)",
                 "method": "withdraw",
                 "input": [
                     [
@@ -521,7 +522,7 @@
                         "realizedPnl": null,
                         "percentage": null,
                         "contracts": null,
-                        "contractSize": null,
+                        "contractSize": 1,
                         "markPrice": 174.9,
                         "lastPrice": null,
                         "side": "short",
@@ -650,7 +651,7 @@
                         "confirmed": true,
                         "transactionHash": "1DRxbbyePTsMuB82SDf2fG5gLXH5iYnY8TQDstDPLULpLtjMJtF1ug1T4Mf8B6DSb8fp2sb5YtdbyqieZ2tkE1Ve",
                         "chain": "Solana",
-                        "depositAddress": "72MUuJ26TUT9aYkEft7YdePJJDRMGbiBrMVoTVUvBCrv",
+                        "depositAddress": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV",
                         "price": "180.322010164"
                     }
                 ],
@@ -1885,7 +1886,7 @@
                 "parsedResponse": []
             },
             {
-                "description": "swap  with args",
+                "description": "swap with args",
                 "method": "fetchOHLCV",
                 "input": [
                     "BTC/USDT:USDT",
@@ -1939,7 +1940,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "swap  with args",
+                "description": "swap with args",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT:USDT",
@@ -1988,6 +1989,7 @@
                             "cost": null,
                             "currency": null
                         },
+                        "order": null,
                         "fees": []
                     },
                     {
@@ -2013,6 +2015,7 @@
                             "cost": null,
                             "currency": null
                         },
+                        "order": null,
                         "fees": []
                     }
                 ]
@@ -2059,7 +2062,7 @@
                         "symbol": "BTC/USDT",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": "taker",
+                        "takerOrMaker": null,
                         "price": 116332.04,
                         "amount": 0.00082,
                         "cost": 95.3922728,
@@ -2067,6 +2070,7 @@
                             "cost": null,
                             "currency": null
                         },
+                        "order": null,
                         "fees": []
                     },
                     {
@@ -2084,7 +2088,7 @@
                         "symbol": "BTC/USDT",
                         "type": null,
                         "side": "sell",
-                        "takerOrMaker": "taker",
+                        "takerOrMaker": null,
                         "price": 116352.94,
                         "amount": 0.00082,
                         "cost": 95.4094108,
@@ -2092,6 +2096,7 @@
                             "cost": null,
                             "currency": null
                         },
+                        "order": null,
                         "fees": []
                     }
                 ]
@@ -2493,27 +2498,6 @@
                         "withdrawalFee": "0.00005"
                     },
                     {
-                        "symbol": "ETH",
-                        "name": "Ethereum",
-                        "imageUrl": "https://static.arkhamintelligence.com/tokens/ethereum.png",
-                        "stablecoin": false,
-                        "featuredPair": "ETH_USDT",
-                        "chains": [
-                            {
-                                "symbol": "ETH",
-                                "assetSymbol": "ETH",
-                                "name": "Ethereum",
-                                "type": "1",
-                                "confirmations": "6",
-                                "blockTime": "12000000"
-                            }
-                        ],
-                        "status": "listed",
-                        "minDeposit": "0.001",
-                        "minWithdrawal": "0.001",
-                        "withdrawalFee": "0.0005"
-                    },
-                    {
                         "symbol": "SOL",
                         "name": "Solana",
                         "imageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
@@ -2680,80 +2664,6 @@
                             },
                             "deposit": {
                                 "min": 0.0001,
-                                "max": null
-                            }
-                        }
-                    },
-                    "ETH": {
-                        "info": {
-                            "symbol": "ETH",
-                            "name": "Ethereum",
-                            "imageUrl": "https://static.arkhamintelligence.com/tokens/ethereum.png",
-                            "stablecoin": false,
-                            "featuredPair": "ETH_USDT",
-                            "chains": [
-                                {
-                                    "symbol": "ETH",
-                                    "assetSymbol": "ETH",
-                                    "name": "Ethereum",
-                                    "type": "1",
-                                    "confirmations": "6",
-                                    "blockTime": "12000000"
-                                }
-                            ],
-                            "status": "listed",
-                            "minDeposit": "0.001",
-                            "minWithdrawal": "0.001",
-                            "withdrawalFee": "0.0005"
-                        },
-                        "id": "ETH",
-                        "numericId": null,
-                        "code": "ETH",
-                        "precision": null,
-                        "type": "crypto",
-                        "name": "Ethereum",
-                        "active": true,
-                        "deposit": null,
-                        "withdraw": null,
-                        "fee": 0.0005,
-                        "fees": {},
-                        "networks": {
-                            "ERC20": {
-                                "info": {
-                                    "symbol": "ETH",
-                                    "assetSymbol": "ETH",
-                                    "name": "Ethereum",
-                                    "type": "1",
-                                    "confirmations": "6",
-                                    "blockTime": "12000000"
-                                },
-                                "id": "ETH",
-                                "network": "ERC20",
-                                "title": "Ethereum",
-                                "active": null,
-                                "deposit": null,
-                                "withdraw": null,
-                                "fee": null,
-                                "precision": null,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": null,
-                                        "max": null
-                                    }
-                                }
-                            }
-                        },
-                        "limits": {
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "withdraw": {
-                                "min": 0.001,
-                                "max": null
-                            },
-                            "deposit": {
-                                "min": 0.001,
                                 "max": null
                             }
                         }

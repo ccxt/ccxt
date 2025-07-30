@@ -220,8 +220,8 @@ export default class arkm extends Exchange {
             },
             'options': {
                 'networks': {
-                    'ERC20': 'ETH',
                     'ETH': 'ETH',
+                    'ERC20': 'ETH',
                     'BTC': 'BTC',
                     'SOL': 'SOL',
                     'TON': 'TON',
@@ -231,6 +231,10 @@ export default class arkm extends Exchange {
                     'OP': 'OP',
                     'AVAXC': 'AVAX',
                     'ARBONE': 'ARB',
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
                 },
                 'requestExpiration': 5000, // 5 seconds
             },
@@ -502,7 +506,6 @@ export default class arkm extends Exchange {
                 base = base.replace ('.P', '');
                 symbol = base + '/' + quote + ':' + quote;
             }
-            const minSize = this.safeNumber (market, 'minSize');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -522,7 +525,7 @@ export default class arkm extends Exchange {
                 'contract': isPerpetual,
                 'linear': isPerpetual,
                 'inverse': undefined,
-                'contractSize': isSpot ? undefined : minSize,
+                'contractSize': isSpot ? undefined : 1, // seems 1 per fetchTrades
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -537,7 +540,7 @@ export default class arkm extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': minSize,
+                        'min': this.safeNumber (market, 'minSize'),
                         'max': this.safeNumber (market, 'maxSize'),
                     },
                     'price': {
