@@ -5,6 +5,31 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "with args",
+                "method": "fetchPositions",
+                "url": "https://arkm.com/api/account/positions",
+                "input": [
+                    [
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "with args",
+                "method": "setLeverage",
+                "url": "https://arkm.com/api/account/leverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"leverage\":\"10\"}"
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "with args",

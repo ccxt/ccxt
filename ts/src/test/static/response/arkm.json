@@ -2,6 +2,112 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "with args",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "subaccountId": "0",
+                        "symbol": "SOL_USDT_PERP",
+                        "base": "-0.058",
+                        "quote": "10.11172",
+                        "openBuySize": "0",
+                        "openSellSize": "0",
+                        "openBuyNotional": "0",
+                        "openSellNotional": "0",
+                        "lastUpdateReason": "orderFill",
+                        "lastUpdateTime": "1753904098501304",
+                        "lastUpdateId": "250443556",
+                        "lastUpdateBaseDelta": "-0.058",
+                        "lastUpdateQuoteDelta": "10.11172",
+                        "breakEvenPrice": "174.34",
+                        "markPrice": "174.9",
+                        "value": "-10.1442",
+                        "pnl": "-0.03248",
+                        "initialMargin": "1.01442",
+                        "maintenanceMargin": "0.608652",
+                        "averageEntryPrice": "174.34"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "subaccountId": "0",
+                            "symbol": "SOL_USDT_PERP",
+                            "base": "-0.058",
+                            "quote": "10.11172",
+                            "openBuySize": "0",
+                            "openSellSize": "0",
+                            "openBuyNotional": "0",
+                            "openSellNotional": "0",
+                            "lastUpdateReason": "orderFill",
+                            "lastUpdateTime": "1753904098501304",
+                            "lastUpdateId": "250443556",
+                            "lastUpdateBaseDelta": "-0.058",
+                            "lastUpdateQuoteDelta": "10.11172",
+                            "breakEvenPrice": "174.34",
+                            "markPrice": "174.9",
+                            "value": "-10.1442",
+                            "pnl": "-0.03248",
+                            "initialMargin": "1.01442",
+                            "maintenanceMargin": "0.608652",
+                            "averageEntryPrice": "174.34"
+                        },
+                        "id": null,
+                        "symbol": "SOL/USDT:USDT",
+                        "notional": 10.1442,
+                        "marginMode": null,
+                        "liquidationPrice": null,
+                        "entryPrice": 174.34,
+                        "unrealizedPnl": -0.03248,
+                        "realizedPnl": null,
+                        "percentage": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "markPrice": 174.9,
+                        "lastPrice": null,
+                        "side": "short",
+                        "hedged": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1753904098501304,
+                        "maintenanceMargin": 0.608652,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": 1.01442,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "with args",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": null,
+                "parsedResponse": {
+                    "info": "",
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "with args",
