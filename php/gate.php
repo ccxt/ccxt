@@ -667,7 +667,6 @@ class gate extends Exchange {
                     'SOL' => 'SOL',
                     'POLYGON' => 'POL',
                     'MATIC' => 'POL',
-                    'OP' => 'OPETH',
                     'OPTIMISM' => 'OPETH',
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',

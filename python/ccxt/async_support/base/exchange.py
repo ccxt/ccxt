@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.96'
+__version__ = '4.4.97'
 
 # -----------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ class Exchange(BaseExchange):
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
                 self.open()  # ensure `asyncio_loop` is set
-                proxy_session = self.get_socks_proxy_session(socksProxy)
+            proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -669,6 +669,9 @@ class Exchange(BaseExchange):
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
+
+    async def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -1894,7 +1897,7 @@ class Exchange(BaseExchange):
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:

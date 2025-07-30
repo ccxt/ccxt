@@ -705,7 +705,7 @@ public partial class kucoin : Exchange
                     { "TLOS", "tlos" },
                     { "CFX", "cfx" },
                     { "ACA", "aca" },
-                    { "OP", "optimism" },
+                    { "OPTIMISM", "optimism" },
                     { "ONT", "ont" },
                     { "GLMR", "glmr" },
                     { "CSPR", "cspr" },
@@ -822,6 +822,7 @@ public partial class kucoin : Exchange
                     { "CS", "cs" },
                     { "ORAI", "orai" },
                     { "BASE", "base" },
+                    { "TARA", "tara" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },

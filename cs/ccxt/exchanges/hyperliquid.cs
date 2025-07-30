@@ -3405,13 +3405,10 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((string)add(this.id, " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
-            object vaultAddress = null;
-            var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "transfer", "vaultAddress");
-            vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
-            parameters = ((IList<object>)vaultAddressparametersVariable)[1];
-            vaultAddress = this.formatVaultAddress(vaultAddress);
+            object vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
             if (isTrue(!isEqual(vaultAddress, null)))
             {
+                vaultAddress = this.formatVaultAddress(vaultAddress);
                 strAmount = add(add(strAmount, " subaccount:"), vaultAddress);
             }
             object toPerp = isTrue((isEqual(toAccount, "perp"))) || isTrue((isEqual(toAccount, "swap")));
@@ -3442,14 +3439,6 @@ public partial class hyperliquid : Exchange
             return transferResponse;
         }
         // transfer between main account and subaccount
-        if (isTrue(!isEqual(code, null)))
-        {
-            code = ((string)code).ToUpper();
-            if (isTrue(!isEqual(code, "USDC")))
-            {
-                throw new NotSupported ((string)add(this.id, " transfer() only support USDC")) ;
-            }
-        }
         object isDeposit = false;
         object subAccountAddress = null;
         if (isTrue(isEqual(fromAccount, "main")))
@@ -3464,24 +3453,47 @@ public partial class hyperliquid : Exchange
             throw new NotSupported ((string)add(this.id, " transfer() only support main <> subaccount transfer")) ;
         }
         this.checkAddress(subAccountAddress);
-        object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-        object action = new Dictionary<string, object>() {
-            { "type", "subAccountTransfer" },
-            { "subAccountUser", subAccountAddress },
-            { "isDeposit", isDeposit },
-            { "usd", usd },
-        };
-        object sig = this.signL1Action(action, nonce);
-        object request = new Dictionary<string, object>() {
-            { "action", action },
-            { "nonce", nonce },
-            { "signature", sig },
-        };
-        object response = await this.privatePostExchange(request);
-        //
-        // {'response': {'type': 'default'}, 'status': 'ok'}
-        //
-        return this.parseTransfer(response);
+        if (isTrue(isTrue(isEqual(code, null)) || isTrue(isEqual(((string)code).ToUpper(), "USDC"))))
+        {
+            // Transfer USDC with subAccountTransfer
+            object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+            object action = new Dictionary<string, object>() {
+                { "type", "subAccountTransfer" },
+                { "subAccountUser", subAccountAddress },
+                { "isDeposit", isDeposit },
+                { "usd", usd },
+            };
+            object sig = this.signL1Action(action, nonce);
+            object request = new Dictionary<string, object>() {
+                { "action", action },
+                { "nonce", nonce },
+                { "signature", sig },
+            };
+            object response = await this.privatePostExchange(request);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return this.parseTransfer(response);
+        } else
+        {
+            // Transfer non-USDC with subAccountSpotTransfer
+            object symbol = this.symbol(code);
+            object action = new Dictionary<string, object>() {
+                { "type", "subAccountSpotTransfer" },
+                { "subAccountUser", subAccountAddress },
+                { "isDeposit", isDeposit },
+                { "token", symbol },
+                { "amount", this.numberToString(amount) },
+            };
+            object sig = this.signL1Action(action, nonce);
+            object request = new Dictionary<string, object>() {
+                { "action", action },
+                { "nonce", nonce },
+                { "signature", sig },
+            };
+            object response = await this.privatePostExchange(request);
+            return this.parseTransfer(response);
+        }
     }
 
     public override object parseTransfer(object transfer, object currency = null)

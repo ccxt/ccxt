@@ -887,6 +887,10 @@ func (this *binanceus) SapiGetPortfolioPmloanHistory (args ...interface{}) <-cha
    return this.callEndpointAsync("sapiGetPortfolioPmloanHistory", args...)
 }
 
+func (this *binanceus) SapiGetPortfolioEarnAssetBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("sapiGetPortfolioEarnAssetBalance", args...)
+}
+
 func (this *binanceus) SapiGetStakingProductList (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("sapiGetStakingProductList", args...)
 }
@@ -1579,6 +1583,10 @@ func (this *binanceus) SapiPostPortfolioRedeem (args ...interface{}) <-chan inte
    return this.callEndpointAsync("sapiPostPortfolioRedeem", args...)
 }
 
+func (this *binanceus) SapiPostPortfolioEarnAssetTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("sapiPostPortfolioEarnAssetTransfer", args...)
+}
+
 func (this *binanceus) SapiPostLendingAutoInvestPlanAdd (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
 }
@@ -2213,6 +2221,10 @@ func (this *binanceus) FapiPublicGetLvtKlines (args ...interface{}) <-chan inter
 
 func (this *binanceus) FapiPublicGetConvertExchangeInfo (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("fapiPublicGetConvertExchangeInfo", args...)
+}
+
+func (this *binanceus) FapiPublicGetInsuranceBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiPublicGetInsuranceBalance", args...)
 }
 
 func (this *binanceus) FapiDataGetDeliveryPrice (args ...interface{}) <-chan interface{} {

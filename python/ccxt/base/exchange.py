@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.96'
+__version__ = '4.4.97'
 
 # -----------------------------------------------------------------------------
 
@@ -2133,6 +2133,17 @@ class Exchange(object):
                 'watchLiquidations': None,
                 'watchLiquidationsForSymbols': None,
                 'watchMyLiquidations': None,
+                'unWatchOrders': None,
+                'unWatchTrades': None,
+                'unWatchTradesForSymbols': None,
+                'unWatchOHLCVForSymbols': None,
+                'unWatchOrderBookForSymbols': None,
+                'unWatchPositions': None,
+                'unWatchOrderBook': None,
+                'unWatchTickers': None,
+                'unWatchMyTrades': None,
+                'unWatchTicker': None,
+                'unWatchOHLCV': None,
                 'watchMyLiquidationsForSymbols': None,
                 'withdraw': None,
                 'ws': None,
@@ -2618,6 +2629,9 @@ class Exchange(object):
 
     def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
+
+    def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -3677,6 +3691,21 @@ class Exchange(object):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def create_ccxt_trade_id(self, timestamp=None, side=None, amount=None, price=None, takerOrMaker=None):
+        # self approach is being used by multiple exchanges(mexc, woo, coinsbit, dydx, ...)
+        id = None
+        if timestamp is not None:
+            id = self.number_to_string(timestamp)
+            if side is not None:
+                id += '-' + side
+            if amount is not None:
+                id += '-' + self.number_to_string(amount)
+            if price is not None:
+                id += '-' + self.number_to_string(price)
+            if takerOrMaker is not None:
+                id += '-' + takerOrMaker
+        return id
 
     def parsed_fee_and_fees(self, container: Any):
         fee = self.safe_dict(container, 'fee')
@@ -6432,7 +6461,7 @@ class Exchange(object):
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
@@ -6994,6 +7023,14 @@ class Exchange(object):
                 self.myTrades = None
             elif topic == 'orders' and (self.orders is not None):
                 self.orders = None
+            elif topic == 'positions' and (self.positions is not None):
+                self.positions = None
+                clients = list(self.clients.values())
+                for i in range(0, len(clients)):
+                    client = clients[i]
+                    futures = self.safe_dict(client, 'futures')
+                    if (futures is not None) and ('fetchPositionsSnapshot' in futures):
+                        del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):

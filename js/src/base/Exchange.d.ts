@@ -457,6 +457,7 @@ export default class Exchange {
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -581,6 +582,7 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
+    createCcxtTradeId(timestamp?: any, side?: any, amount?: any, price?: any, takerOrMaker?: any): any;
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;

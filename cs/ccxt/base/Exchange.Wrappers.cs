@@ -298,6 +298,11 @@ public partial class Exchange
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, object>)res);
     }
+    public Dictionary<string, object> CreateCcxtTradeId(object timestamp = null, object side = null, object amount = null, object price = null, object takerOrMaker = null)
+    {
+        var res = this.createCcxtTradeId(timestamp, side, amount, price, takerOrMaker);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Dictionary<string, object>> FetchBorrowRate(string code, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRate(code, amount, parameters);
