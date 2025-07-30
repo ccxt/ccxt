@@ -3,10 +3,10 @@
 
 import Exchange from './abstract/arkm.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage, LeverageTier, LeverageTiers } from './base/types.js';
 
 /**
  * @class arkm
@@ -2182,6 +2182,97 @@ export default class arkm extends Exchange {
         const responseString = response.replace ('\n', '');
         const data = { 'id': responseString };
         return this.parseTransaction (data, currency);
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://arkm.com/docs#get/public/margin-schedules
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbols argument');
+        }
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v1PublicGetMarginSchedules (params);
+        //
+        //    [
+        //        {
+        //            "name": "A",
+        //            "bands": [
+        //                {
+        //                    "positionLimit": "1000000",
+        //                    "leverageRate": "50",
+        //                    "marginRate": "0.02",
+        //                    "rebate": "0"
+        //                },
+        //                {
+        //                    "positionLimit": "2000000",
+        //                    "leverageRate": "25",
+        //                    "marginRate": "0.04",
+        //                    "rebate": "20000"
+        //                },
+        //                {
+        //                    "positionLimit": "5000000",
+        //                    "leverageRate": "20",
+        //                    "marginRate": "0.05",
+        //                    "rebate": "40000"
+        //                }
+        //            ]
+        //        },
+        //        {
+        //            "name": "B",
+        //            ...
+        //
+        return this.parseLeverageTiers (response, symbols);
+    }
+
+    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
+        // overloaded method
+        const indexed = this.indexBy (response, 'name');
+        symbols = this.marketSymbols (symbols);
+        const tiers = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marginSchedule = this.safeString (market['info'], 'marginSchedule');
+            if (marginSchedule === undefined) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers() could not find marginSchedule for ' + symbol);
+            }
+            const selectedDict = this.safeDict (indexed, marginSchedule, {});
+            const bands = this.safeList (selectedDict, 'bands', []);
+            tiers[symbol] = this.parseMarketLeverageTiers (bands, market);
+        }
+        return tiers;
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+        const tiers = [];
+        const brackets = info;
+        let minNotional = 0;
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            const marketId = this.safeString (info, 'market');
+            market = this.safeMarket (marketId, market, undefined, 'swap');
+            const maxNotional = this.safeNumber (tier, 'positionLimit');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+                'currency': market['linear'] ? market['base'] : market['quote'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (tier, 'marginRate'),
+                'maxLeverage': this.safeInteger (tier, 'leverageRate'),
+                'info': tier,
+            });
+            minNotional = maxNotional;
+        }
+        return tiers as LeverageTier[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
