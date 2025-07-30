@@ -1856,6 +1856,74 @@ export default class arkm extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetAccountFundingRatePayments (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "amount": "20.1",
+        //             "assetSymbol": "BTC",
+        //             "indexPrice": "1.23",
+        //             "pairSymbol": "BTC_USDT",
+        //             "time": 1704067200000000,
+        //             "id": 1,
+        //             "subaccountId": 1,
+        //             "userId": 1
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //         {
+        //             "amount": "20.1",
+        //             "assetSymbol": "BTC",
+        //             "indexPrice": "1.23",
+        //             "pairSymbol": "BTC_USDT",
+        //             "time": 1704067200000000,
+        //             "id": 1,
+        //             "subaccountId": 1,
+        //             "userId": 1
+        //         }
+        //
+        const marketId = this.safeString (income, 'pairSymbol');
+        const currencyId = this.safeString (income, 'assetSymbol');
+        const timestamp = this.safeIntegerProduct (income, 'time', 0.001);
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'tranId'),
+            'amount': this.safeNumber (income, 'amount'),
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
