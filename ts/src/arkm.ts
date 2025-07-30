@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage, LeverageTier, LeverageTiers } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage, LeverageTier, LeverageTiers, Position } from './base/types.js';
 
 /**
  * @class arkm
@@ -51,6 +51,14 @@ export default class arkm extends Exchange {
                 'fetchDepositAddressesByNetwork': true,
                 'createDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTradingFees': true,
+                'fetchFundingHistory': true,
+                'fetchLeverage': true,
+                'setLeverage': true,
+                'fetchPositions': true,
+                'withdraw': true,
+                'fetchLeverageTiers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -479,7 +487,7 @@ export default class arkm extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseSymbol');
             const quoteId = this.safeString (market, 'quoteSymbol');
-            const base = this.safeCurrencyCode (baseId);
+            let base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let marketType: Str = undefined;
             let symbol: Str = undefined;
@@ -491,8 +499,8 @@ export default class arkm extends Exchange {
                 symbol = base + '/' + quote;
             } else if (isPerpetual) {
                 marketType = 'swap';
-                const baseCorrected = baseId.replace ('.P', '');
-                symbol = baseCorrected + '/' + quote + ':' + quote;
+                base = base.replace ('.P', '');
+                symbol = base + '/' + quote + ':' + quote;
             }
             const minSize = isSpot ? undefined : this.safeNumber (market, 'contractSize');
             result.push ({
