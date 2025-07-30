@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/arkm.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage } from './base/types.js';
@@ -310,7 +310,9 @@ export default class arkm extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
-                'broad': {},
+                'broad': {
+                    'less than min withdrawal ': OperationRejected, // {"message":"amount 1 less than min withdrawal 5"}
+                },
             },
         });
     }
@@ -2080,11 +2082,12 @@ export default class arkm extends Exchange {
         const isLong = Precise.stringGe (base, '0');
         const side = isLong ? 'long' : 'short';
         const marketId = this.safeString (position, 'symbol');
+        const notional = this.safeString (position, 'value');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol (marketId, market),
-            'notional': this.safeNumber (position, 'value'),
+            'notional': this.parseNumber (Precise.stringAbs (notional)),
             'marginMode': undefined,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber (position, 'averageEntryPrice'),
@@ -2110,6 +2113,75 @@ export default class arkm extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name arkkm#withdraw
+     * @description make a withdrawal
+     * @see https://arkm.com/docs#post/account/withdraw
+     * @see https://arkm.com/docs#get/account/withdrawal/addresses
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const withdrawalAddresses = await this.v1PrivateGetAccountWithdrawalAddresses ();
+        //
+        //    [
+        //        {
+        //            "id": "12345",
+        //            "chain": "ETH",
+        //            "address": "0x743f79D65EA07AA222F4a83c10dee4210A920a6e",
+        //            "label": "my_binance",
+        //            "createdAt": "1753905200074355",
+        //            "updatedAt": "1753905213464278",
+        //            "confirmed": true
+        //        }
+        //    ]
+        //
+        const currency = this.currency (code);
+        const request: Dict = {
+            'symbol': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'subaccountId': this.safeInteger (params, 'subAccountId', 0),
+        };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" param');
+        }
+        const indexedList = this.groupBy (withdrawalAddresses, 'address');
+        if (!(address in indexedList)) {
+            throw new InvalidAddress (this.id + ' withdraw() requires an address that has been previously added to the whitelisted addresses');
+        }
+        const withdrawalObjects = indexedList[address];
+        let foundWithdrawalObject = undefined;
+        for (let i = 0; i < withdrawalObjects.length; i++) {
+            const withdrawalObject = withdrawalObjects[i];
+            if (withdrawalObject['chain'] === networkCode) {
+                foundWithdrawalObject = withdrawalObject;
+                break;
+            }
+        }
+        if (foundWithdrawalObject === undefined) {
+            throw new InvalidAddress (this.id + ' withdraw() can not find whitelisted withdrawal address for ' + address + ' with network ' + networkCode);
+        }
+        request['addressId'] = this.safeInteger (foundWithdrawalObject, 'id');
+        const response = await this.v1PrivatePostAccountWithdraw (this.extend (request, params));
+        //
+        // response is a weird string like:
+        //
+        //    "1234709779980\\n"
+        //
+        const responseString = response.replace ('\n', '');
+        const data = { 'id': responseString };
+        return this.parseTransaction (data, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
