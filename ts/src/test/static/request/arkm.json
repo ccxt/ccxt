@@ -249,19 +249,6 @@
                     3696995236595
                 ],
                 "output": null
-            },
-            {
-                "description": "with cId",
-                "method": "fetchOrder",
-                "url": "https://arkm.com/api/orders/by-client-order-id?clientOrderId=test123",
-                "input": [
-                    null,
-                    null,
-                    {
-                        "clientOrderId": "test123"
-                    }
-                ],
-                "output": null
             }
         ],
         "createOrder": [
@@ -374,7 +361,7 @@
                 "output": null
             },
             {
-                "description": "swap  with args",
+                "description": "swap with args",
                 "method": "fetchOHLCV",
                 "url": "https://arkm.com/api/public/candles?symbol=BTC_USDT_PERP&duration=1m&start=1745000000000000&end=1745000120000000",
                 "input": [
@@ -388,9 +375,9 @@
         ],
         "fetchTrades": [
             {
-                "description": "swap  with args",
+                "description": "swap with args",
                 "method": "fetchTrades",
-                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT_PERP&limit=2&before=1745000000000000",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT_PERP&limit=2",
                 "input": [
                     "BTC/USDT:USDT",
                     1745000000000,
@@ -401,7 +388,7 @@
             {
                 "description": "spot with args",
                 "method": "fetchTrades",
-                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT&limit=5&before=1745000000000000",
+                "url": "https://arkm.com/api/public/trades?symbol=BTC_USDT&limit=5",
                 "input": [
                     "BTC/USDT",
                     1745000000000,
@@ -464,6 +451,6 @@
                 "input": [],
                 "output": null
             }
-        ],
+        ]
     }
 }

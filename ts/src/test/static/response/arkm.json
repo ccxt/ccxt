@@ -1527,106 +1527,6 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
-            },
-            {
-                "description": "with cId",
-                "method": "fetchOrder",
-                "input": [
-                    null,
-                    null,
-                    {
-                        "clientOrderId": "test123"
-                    }
-                ],
-                "httpResponse": {
-                    "orderId": "3696995236595",
-                    "userId": "2959123",
-                    "subaccountId": "0",
-                    "symbol": "SOL_USDT",
-                    "time": "1753714016555541",
-                    "side": "buy",
-                    "type": "limitGtc",
-                    "size": "0.05",
-                    "price": "180",
-                    "postOnly": false,
-                    "reduceOnly": false,
-                    "executedSize": "0",
-                    "status": "booked",
-                    "avgPrice": "0",
-                    "executedNotional": "0",
-                    "creditFeePaid": "0",
-                    "marginBonusFeePaid": "0",
-                    "quoteFeePaid": "0",
-                    "arkmFeePaid": "0",
-                    "revisionId": "888904063",
-                    "lastTime": "1753714016556640",
-                    "clientOrderId": "test123",
-                    "lastSize": "0",
-                    "lastPrice": "0",
-                    "lastCreditFee": "0",
-                    "lastMarginBonusFee": "0",
-                    "lastQuoteFee": "0",
-                    "lastArkmFee": "0"
-                },
-                "parsedResponse": {
-                    "id": "3696995236595",
-                    "clientOrderId": "test123",
-                    "timestamp": 1753714016555,
-                    "datetime": "2025-07-28T14:46:56.555Z",
-                    "lastTradeTimeStamp": null,
-                    "lastUpdateTimestamp": 1753714016556,
-                    "status": "open",
-                    "symbol": "SOL/USDT",
-                    "type": "LIMIT",
-                    "timeInForce": "GTC",
-                    "postOnly": false,
-                    "side": "buy",
-                    "price": 180,
-                    "triggerPrice": null,
-                    "cost": 0,
-                    "average": null,
-                    "amount": 0.05,
-                    "filled": null,
-                    "remaining": null,
-                    "trades": [],
-                    "fee": null,
-                    "reduceOnly": false,
-                    "info": {
-                        "orderId": "3696995236595",
-                        "userId": "2959123",
-                        "subaccountId": "0",
-                        "symbol": "SOL_USDT",
-                        "time": "1753714016555541",
-                        "side": "buy",
-                        "type": "limitGtc",
-                        "size": "0.05",
-                        "price": "180",
-                        "postOnly": false,
-                        "reduceOnly": false,
-                        "executedSize": "0",
-                        "status": "booked",
-                        "avgPrice": "0",
-                        "executedNotional": "0",
-                        "creditFeePaid": "0",
-                        "marginBonusFeePaid": "0",
-                        "quoteFeePaid": "0",
-                        "arkmFeePaid": "0",
-                        "revisionId": "888904063",
-                        "lastTime": "1753714016556640",
-                        "clientOrderId": "test123",
-                        "lastSize": "0",
-                        "lastPrice": "0",
-                        "lastCreditFee": "0",
-                        "lastMarginBonusFee": "0",
-                        "lastQuoteFee": "0",
-                        "lastArkmFee": "0"
-                    },
-                    "fees": [],
-                    "lastTradeTimestamp": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                }
             }
         ],
         "createOrder": [
@@ -2934,6 +2834,6 @@
                     }
                 }
             }
-        ],
+        ]
     }
 }

@@ -245,5 +245,88 @@
         },
         "tierBased": null,
         "percentage": null
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL_USDT_PERP",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "SOL.P",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": null,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 0.001,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 10000
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "SOL_USDT_PERP",
+            "baseSymbol": "SOL.P",
+            "baseImageUrl": "https://static.arkhamintelligence.com/tokens/solana.png",
+            "baseIsStablecoin": false,
+            "baseName": "Solana Perpetual",
+            "quoteSymbol": "USDT",
+            "quoteImageUrl": "https://static.arkhamintelligence.com/tokens/tether.png",
+            "quoteIsStablecoin": true,
+            "quoteName": "Tether",
+            "minTickPrice": "0.01",
+            "minLotSize": "0.001",
+            "minSize": "0.001",
+            "maxSize": "90000",
+            "minPrice": "0.01",
+            "maxPrice": "10000",
+            "minNotional": "5",
+            "maxPriceScalarUp": "1.5",
+            "maxPriceScalarDown": "0.5",
+            "pairType": "perpetual",
+            "marginSchedule": "E",
+            "maxLeverage": "10",
+            "status": "listed"
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }
