@@ -2,6 +2,49 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "withdraw": [
+            {
+                "description": "with args",
+                "method": "withdraw",
+                "input": [
+                    [
+                        "USDT",
+                        5,
+                        "0x743f79D65EA07AA222F4a83c10dee4210A920a6e",
+                        {
+                            "network": "ETH"
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    "1234709779980\n"
+                ],
+                "parsedResponse": [
+                    {
+                        "info": "1234709779980",
+                        "id": "1234709779980",
+                        "txid": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": null,
+                        "amount": null,
+                        "currency": "USDT",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "with args",

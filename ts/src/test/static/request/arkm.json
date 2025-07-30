@@ -5,6 +5,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "withdraw": [
+            {
+                "disabled": true,
+                "description": "disabled because of multiple endpoints",
+                "method": "withdraw",
+                "url": "https://arkm.com/api/account/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x743f79D65EA07AA222F4a83c10dee4210A920a6e",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"symbol\":\"USDT\",\"amount\":\"5\",\"subaccountId\":\"0\",\"addressId\":\"1234709779980\"}"
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "with args",
