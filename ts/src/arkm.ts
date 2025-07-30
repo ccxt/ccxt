@@ -1968,7 +1968,7 @@ export default class arkm extends Exchange {
         //        }
         //
         const marketId = this.safeString (leverage, 'symbol');
-        const leverageNum = this.safeNumber (leverage, 'leverage', 1); // default is 1
+        const leverageNum = this.safeNumber (leverage, 'leverage'); // default leverage is 1 typically
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
@@ -1976,6 +1976,35 @@ export default class arkm extends Exchange {
             'longLeverage': leverageNum,
             'shortLeverage': leverageNum,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name arkm#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://arkm.com/docs#post/account/leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const leverageString = this.numberToString (leverage);
+        const marketId = this.safeString (market, 'id');
+        const request: Dict = {
+            'symbol': marketId,
+            'leverage': leverageString,
+        };
+        const response = await this.v1PrivatePostAccountLeverage (this.extend (request, params));
+        //
+        // response is just empty string
+        //
+        return this.parseLeverage (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
