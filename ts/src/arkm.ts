@@ -502,7 +502,7 @@ export default class arkm extends Exchange {
                 base = base.replace ('.P', '');
                 symbol = base + '/' + quote + ':' + quote;
             }
-            const minSize = isSpot ? undefined : this.safeNumber (market, 'contractSize');
+            const minSize = this.safeNumber (market, 'minSize');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -522,7 +522,7 @@ export default class arkm extends Exchange {
                 'contract': isPerpetual,
                 'linear': isPerpetual,
                 'inverse': undefined,
-                'contractSize': minSize,
+                'contractSize': isSpot ? undefined : minSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
