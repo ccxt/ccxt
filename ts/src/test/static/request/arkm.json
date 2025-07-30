@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "without args",
+                "method": "fetchTradingFees",
+                "url": "https://arkm.com/api/account/fees",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "without args",

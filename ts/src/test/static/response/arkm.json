@@ -2,6 +2,814 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchTradingFees": [
+            {
+                "disabled": true,
+                "description": "without args",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "spotTakerFee": "0.001",
+                    "spotMakerFee": "0.001",
+                    "perpTakerFee": "0.0005",
+                    "perpMakerFee": "0.00025"
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "BTC/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ETH/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "SOL/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SOL/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ARKM/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ARKM/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "DOGE/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "DOGE/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "PEPE/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PEPE/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "WIF/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "WIF/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TON/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "TON/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "AVAX/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "AVAX/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "FET/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FET/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "XRP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "XRP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BONK/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "BONK/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "SUI/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SUI/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "FLOKI/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FLOKI/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "RENDER/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "RENDER/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "TRUMP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "TRUMP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "MELANIA/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "MELANIA/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ENA/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ENA/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "OP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "OP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ARB/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ARB/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "MOVE/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "MOVE/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "JUP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "JUP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ZRO/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ZRO/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "PYTH/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PYTH/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "EIGEN/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "EIGEN/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "POPCAT/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "POPCAT/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "SPX/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SPX/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "GRASS/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "GRASS/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "FARTCOIN/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FARTCOIN/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ETHFI/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ETHFI/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "JTO/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "JTO/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "SYRUP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SYRUP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "PUMP/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PUMP/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "ES/USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ES/USDT",
+                        "maker": 0.001,
+                        "taker": 0.001
+                    },
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "SOL/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SOL/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ARKM/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ARKM/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "DOGE/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "DOGE/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "PEPE/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PEPE/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "WIF/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "WIF/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "TON/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "TON/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "AVAX/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "AVAX/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "FET/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FET/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "XRP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "XRP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "BONK/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "BONK/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "SUI/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SUI/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "FLOKI/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FLOKI/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "RENDER/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "RENDER/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "TRUMP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "TRUMP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "MELANIA/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "MELANIA/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ENA/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "OP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "OP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ARB/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ARB/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "MOVE/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "MOVE/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "TAO/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "TAO/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "JUP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "JUP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "S/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "S/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ZRO/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ZRO/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "PYTH/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PYTH/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "XDC/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "XDC/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "WAL/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "WAL/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "EIGEN/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "EIGEN/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "POPCAT/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "POPCAT/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "SPX/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SPX/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "GRASS/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "GRASS/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "FARTCOIN/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "FARTCOIN/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ETHFI/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ETHFI/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "JTO/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "JTO/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "SYRUP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "SYRUP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "PUMP/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "PUMP/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    },
+                    "ES/USDT:USDT": {
+                        "info": {
+                            "spotTakerFee": "0.001",
+                            "spotMakerFee": "0.001",
+                            "perpTakerFee": "0.0005",
+                            "perpMakerFee": "0.00025"
+                        },
+                        "symbol": "ES/USDT:USDT",
+                        "maker": 0.00025,
+                        "taker": 0.0005
+                    }
+                }
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "without args",
