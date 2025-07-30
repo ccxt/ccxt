@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees } from './base/types.js';
 
 /**
  * @class arkm
@@ -1810,6 +1810,50 @@ export default class arkm extends Exchange {
             'fee': undefined,
             'internal': false,
         };
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://arkm.com/docs#get/account/fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetAccountFees (params);
+        //
+        // {
+        //   "perpMakerFee": "1.23",
+        //   "perpTakerFee": "1.23",
+        //   "spotMakerFee": "1.23",
+        //   "spotTakerFee": "1.23"
+        // }
+        //
+        const symbols = Object.keys (this.markets);
+        const result: Dict = {};
+        const spotMaker = this.safeNumber (response, 'spotMakerFee');
+        const spotTaker = this.safeNumber (response, 'spotTakerFee');
+        const perpMaker = this.safeNumber (response, 'perpMakerFee');
+        const perpTaker = this.safeNumber (response, 'perpTakerFee');
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.markets[symbol];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+            };
+            if (market['spot']) {
+                result[symbol]['maker'] = spotMaker;
+                result[symbol]['taker'] = spotTaker;
+            } else if (market['swap'] || market['future']) {
+                result[symbol]['maker'] = perpMaker;
+                result[symbol]['taker'] = perpTaker;
+            }
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
