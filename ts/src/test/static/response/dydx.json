@@ -779,6 +779,47 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "118267",
+                            "size": "0.3182"
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "118485",
+                            "size": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            118267,
+                            0.3182
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            118485,
+                            0.0001
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
         ]
     }
 }

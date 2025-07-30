@@ -138,6 +138,16 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/orderbooks/perpetualMarket/BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }
