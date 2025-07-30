@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ export default class dydx extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'sandbox': false,
@@ -1157,8 +1157,8 @@ export default class dydx extends Exchange {
 
     parseLedgerEntryType (type) {
         const ledgerType: Dict = {
-            'TRANSFERIN': 'transfer',
-            'TRANSFEROUT': 'transfer',
+            'TRANSFER_IN': 'transfer',
+            'TRANSFER_OUT': 'transfer',
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
         };
@@ -1221,6 +1221,113 @@ export default class dydx extends Exchange {
         //
         const rows = this.safeList (response, 'transfers', []);
         return this.parseLedger (rows, currency, since, limit, params);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        // {
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        // }
+        //
+        const id = this.safeString (transfer, 'id');
+        const currencyId = this.safeString (transfer, 'symbol');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (transfer, 'size');
+        const type = this.safeStringUpper (transfer, 'type');
+        if (type !== 'TRANSFER_IN' && type !== 'TRANSFER_OUT') {
+            return null;
+        }
+        const sender = this.safeDict (transfer, 'sender');
+        const recipient = this.safeDict (transfer, 'recipient');
+        const fromAccount = this.safeString (sender, 'address');
+        const toAccount = this.safeString (recipient, 'address');
+        const timestamp = this.parse8601 (this.safeString (transfer, 'createdAt'));
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        let userAddress = undefined;
+        let subAccountNumber = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {
+            'address': userAddress,
+            'subaccountNumber': subAccountNumber,
+        };
+        const response = await this.indexerGetTransfers (this.extend (request, params));
+        //
+        // {
+        //     "transfers": [
+        //         {
+        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //             "sender": {
+        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "recipient": {
+        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //                 "subaccountNumber": 1
+        //             },
+        //             "size": "0.000001",
+        //             "createdAt": "2025-07-29T09:43:02.105Z",
+        //             "createdAtHeight": "45116125",
+        //             "symbol": "USDC",
+        //             "type": "TRANSFER_OUT",
+        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        //         }
+        //     ]
+        // }
+        //
+        const transfers = this.safeList (response, 'transfers', []);
+        const transferIn = this.filterBy (transfers, 'type', 'TRANSFER_IN');
+        const transferOut = this.filterBy (transfers, 'type', 'TRANSFER_OUT');
+        const rows = this.arrayConcat (transferIn, transferOut);
+        return this.parseTransfers (rows, currency, since, limit);
     }
 
     nonce () {

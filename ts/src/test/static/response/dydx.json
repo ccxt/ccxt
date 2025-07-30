@@ -863,7 +863,7 @@
                         "account": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
                         "referenceId": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF",
                         "referenceAccount": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-                        "type": "TRANSFER_OUT",
+                        "type": "transfer",
                         "currency": "USDC",
                         "amount": 0.000001,
                         "before": null,
@@ -887,6 +887,70 @@
                             "type": "TRANSFER_OUT",
                             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
                         }
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        },
+                        "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                        "timestamp": 1753782182105,
+                        "datetime": "2025-07-29T09:43:02.105Z",
+                        "currency": "USDC",
+                        "amount": 0.000001,
+                        "fromAccount": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "toAccount": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                        "status": null
                     }
                 ]
             }
