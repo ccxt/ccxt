@@ -2,6 +2,415 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchLeverageTiers": [
+            {
+                "description": "with args",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "name": "A",
+                        "bands": [
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "50",
+                                "marginRate": "0.02",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "2000000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "20000"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "40000"
+                            },
+                            {
+                                "positionLimit": "10000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "290000"
+                            },
+                            {
+                                "positionLimit": "20000000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1290000"
+                            },
+                            {
+                                "positionLimit": "60000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "3290000"
+                            },
+                            {
+                                "positionLimit": "200000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "15290000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "B",
+                        "bands": [
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "50",
+                                "marginRate": "0.02",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "750000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "5000"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "12500"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "62500"
+                            },
+                            {
+                                "positionLimit": "10000000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "562500"
+                            },
+                            {
+                                "positionLimit": "30000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "1562500"
+                            },
+                            {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "7562500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "C",
+                        "bands": [
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "2500"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "27500"
+                            },
+                            {
+                                "positionLimit": "2500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "127500"
+                            },
+                            {
+                                "positionLimit": "50000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "377500"
+                            },
+                            {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "10377500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "D",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "250000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "500"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "25500"
+                            },
+                            {
+                                "positionLimit": "2000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "75500"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "475500"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "E",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "100000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1000"
+                            },
+                            {
+                                "positionLimit": "1000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "11000"
+                            },
+                            {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "211000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "F",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "100000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "1000"
+                            },
+                            {
+                                "positionLimit": "500000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "21000"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "G",
+                        "bands": [
+                            {
+                                "positionLimit": "10000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "0"
+                            },
+                            {
+                                "positionLimit": "50000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "2000"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 0,
+                            "maxNotional": 250000,
+                            "maintenanceMarginRate": 0.04,
+                            "maxLeverage": 25,
+                            "info": {
+                                "positionLimit": "250000",
+                                "leverageRate": "25",
+                                "marginRate": "0.04",
+                                "rebate": "0"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 250000,
+                            "maxNotional": 500000,
+                            "maintenanceMarginRate": 0.05,
+                            "maxLeverage": 20,
+                            "info": {
+                                "positionLimit": "500000",
+                                "leverageRate": "20",
+                                "marginRate": "0.05",
+                                "rebate": "2500"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 500000,
+                            "maxNotional": 1000000,
+                            "maintenanceMarginRate": 0.1,
+                            "maxLeverage": 10,
+                            "info": {
+                                "positionLimit": "1000000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "27500"
+                            }
+                        },
+                        {
+                            "tier": 4,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 1000000,
+                            "maxNotional": 2500000,
+                            "maintenanceMarginRate": 0.2,
+                            "maxLeverage": 5,
+                            "info": {
+                                "positionLimit": "2500000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "127500"
+                            }
+                        },
+                        {
+                            "tier": 5,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 2500000,
+                            "maxNotional": 50000000,
+                            "maintenanceMarginRate": 0.3,
+                            "maxLeverage": 3,
+                            "info": {
+                                "positionLimit": "50000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "377500"
+                            }
+                        },
+                        {
+                            "tier": 6,
+                            "symbol": "BTC/USDT:USDT",
+                            "currency": "BTC.P",
+                            "minNotional": 50000000,
+                            "maxNotional": 100000000,
+                            "maintenanceMarginRate": 0.5,
+                            "maxLeverage": 2,
+                            "info": {
+                                "positionLimit": "100000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "10377500"
+                            }
+                        }
+                    ],
+                    "SOL/USDT:USDT": [
+                        {
+                            "tier": 1,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL.P",
+                            "minNotional": 0,
+                            "maxNotional": 10000,
+                            "maintenanceMarginRate": 0.1,
+                            "maxLeverage": 10,
+                            "info": {
+                                "positionLimit": "10000",
+                                "leverageRate": "10",
+                                "marginRate": "0.1",
+                                "rebate": "0"
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL.P",
+                            "minNotional": 10000,
+                            "maxNotional": 100000,
+                            "maintenanceMarginRate": 0.2,
+                            "maxLeverage": 5,
+                            "info": {
+                                "positionLimit": "100000",
+                                "leverageRate": "5",
+                                "marginRate": "0.2",
+                                "rebate": "1000"
+                            }
+                        },
+                        {
+                            "tier": 3,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL.P",
+                            "minNotional": 100000,
+                            "maxNotional": 1000000,
+                            "maintenanceMarginRate": 0.3,
+                            "maxLeverage": 3,
+                            "info": {
+                                "positionLimit": "1000000",
+                                "leverageRate": "3.33",
+                                "marginRate": "0.3",
+                                "rebate": "11000"
+                            }
+                        },
+                        {
+                            "tier": 4,
+                            "symbol": "SOL/USDT:USDT",
+                            "currency": "SOL.P",
+                            "minNotional": 1000000,
+                            "maxNotional": 5000000,
+                            "maintenanceMarginRate": 0.5,
+                            "maxLeverage": 2,
+                            "info": {
+                                "positionLimit": "5000000",
+                                "leverageRate": "2",
+                                "marginRate": "0.5",
+                                "rebate": "211000"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "with args",

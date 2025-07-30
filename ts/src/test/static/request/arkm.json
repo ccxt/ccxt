@@ -5,6 +5,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchLeverageTiers": [
+            {
+                "description": "with args",
+                "method": "fetchLeverageTiers",
+                "url": "https://arkm.com/api/public/margin-schedules",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "SOL/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "disabled": true,
