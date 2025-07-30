@@ -2,6 +2,35 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "with args",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC_USDT_PERP",
+                        "leverage": "7"
+                    },
+                    {
+                        "symbol": "ETH_USDT_PERP",
+                        "leverage": "5"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC_USDT_PERP",
+                        "leverage": "7"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 7,
+                    "shortLeverage": 7
+                }
+            }
+        ],
         "fetchTradingFees": [
             {
                 "disabled": true,

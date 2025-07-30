@@ -5,6 +5,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "with args",
+                "method": "fetchLeverage",
+                "url": "https://arkm.com/api/account/leverage?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "without args",
