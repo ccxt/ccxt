@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage } from './base/types.js';
 
 /**
  * @class arkm
@@ -1858,9 +1858,9 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name ascendex#fetchFundingHistory
+     * @name arkm#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+     * @see https://arkm.com/docs#get/account/funding-rate-payments
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1922,6 +1922,60 @@ export default class arkm extends Exchange {
             'id': this.safeString (income, 'id'),
             'amount': this.safeNumber (income, 'amount'),
         };
+    }
+
+    /**
+     * @method
+     * @name arkm#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://arkm.com/docs#get/account/leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id');
+        const request: Dict = {
+            'symbol': marketId,
+        };
+        const response = await this.v1PrivateGetAccountLeverage (this.extend (request, params));
+        //
+        // might be empty if not changed from default value (which is 1x)
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC_USDT_PERP",
+        //            "leverage": "7"
+        //        },
+        //        {
+        //            "symbol": "ETH_USDT_PERP",
+        //            "leverage": "5"
+        //        }
+        //    ]
+        //
+        const indexed = this.indexBy (response, 'symbol');
+        const data = this.safeDict (indexed, marketId, {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //        {
+        //            "symbol": "ETH_USDT_PERP",
+        //            "leverage": "5"
+        //        }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageNum = this.safeNumber (leverage, 'leverage', 1); // default is 1
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
+        } as Leverage;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
