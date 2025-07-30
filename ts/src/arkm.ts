@@ -492,6 +492,7 @@ export default class arkm extends Exchange {
                 const baseCorrected = baseId.replace ('.P', '');
                 symbol = baseCorrected + '/' + quote + ':' + quote;
             }
+            const minSize = isSpot ? undefined : this.safeNumber (market, 'contractSize');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -511,7 +512,7 @@ export default class arkm extends Exchange {
                 'contract': isPerpetual,
                 'linear': isPerpetual,
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': minSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -526,7 +527,7 @@ export default class arkm extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minSize'),
+                        'min': minSize,
                         'max': this.safeNumber (market, 'maxSize'),
                     },
                     'price': {
@@ -2005,6 +2006,110 @@ export default class arkm extends Exchange {
         // response is just empty string
         //
         return this.parseLeverage (response, market);
+    }
+
+    /**
+     * @method
+     * @name arkkm#fetchPositions
+     * @description fetch all open positions
+     * @see https://arkm.com/docs#get/account/positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v1PrivateGetAccountPositions (params);
+        //
+        //    [
+        //        {
+        //            "subaccountId": "0",
+        //            "symbol": "SOL_USDT_PERP",
+        //            "base": "0.037",
+        //            "quote": "-6.44614",
+        //            "openBuySize": "0",
+        //            "openSellSize": "0",
+        //            "openBuyNotional": "0",
+        //            "openSellNotional": "0",
+        //            "lastUpdateReason": "orderFill",
+        //            "lastUpdateTime": "1753903829389966",
+        //            "lastUpdateId": "250434684",
+        //            "lastUpdateBaseDelta": "0.037",
+        //            "lastUpdateQuoteDelta": "-6.44614",
+        //            "breakEvenPrice": "174.22",
+        //            "markPrice": "174.33",
+        //            "value": "6.45021",
+        //            "pnl": "0.00407",
+        //            "initialMargin": "0.645021",
+        //            "maintenanceMargin": "0.3870126",
+        //            "averageEntryPrice": "174.22"
+        //        }
+        //    ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //        {
+        //            "subaccountId": "0",
+        //            "symbol": "SOL_USDT_PERP",
+        //            "base": "0.037",                             // negative for short position
+        //            "quote": "-6.44614",                         // negative for long position
+        //            "openBuySize": "0",
+        //            "openSellSize": "0",
+        //            "openBuyNotional": "0",
+        //            "openSellNotional": "0",
+        //            "lastUpdateReason": "orderFill",
+        //            "lastUpdateTime": "1753903829389966",
+        //            "lastUpdateId": "250434684",
+        //            "lastUpdateBaseDelta": "0.037",
+        //            "lastUpdateQuoteDelta": "-6.44614",
+        //            "breakEvenPrice": "174.22",
+        //            "markPrice": "174.33",
+        //            "value": "6.45021",
+        //            "pnl": "0.00407",
+        //            "initialMargin": "0.645021",
+        //            "maintenanceMargin": "0.3870126",
+        //            "averageEntryPrice": "174.22"
+        //        }
+        //
+        const base = this.safeString (position, 'base');
+        const isLong = Precise.stringGe (base, '0');
+        const side = isLong ? 'long' : 'short';
+        const marketId = this.safeString (position, 'symbol');
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, market),
+            'notional': this.safeNumber (position, 'value'),
+            'marginMode': undefined,
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'averageEntryPrice'),
+            'unrealizedPnl': this.safeNumber (position, 'pnl'),
+            'realizedPnl': undefined,
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTime'),
+            'maintenanceMargin': this.safeNumber (position, 'maintenanceMargin'),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
