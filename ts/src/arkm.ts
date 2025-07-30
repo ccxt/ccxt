@@ -1915,11 +1915,11 @@ export default class arkm extends Exchange {
         const timestamp = this.safeIntegerProduct (income, 'time', 0.001);
         return {
             'info': income,
-            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'symbol': this.safeSymbol (marketId, market),
             'code': this.safeCurrencyCode (currencyId),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': this.safeString (income, 'tranId'),
+            'id': this.safeString (income, 'id'),
             'amount': this.safeNumber (income, 'amount'),
         };
     }

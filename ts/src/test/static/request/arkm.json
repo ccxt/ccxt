@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "without args",
+                "method": "fetchFundingHistory",
+                "url": "https://arkm.com/api/account/funding-rate-payments",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTradingFees": [
             {
                 "description": "without args",
