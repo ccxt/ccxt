@@ -169,6 +169,7 @@ export default class binance extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    parseTickersForRolling(response: any, symbols: any): any;
     /**
      * @method
      * @name binance#fetchMarkPrice
