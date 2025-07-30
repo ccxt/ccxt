@@ -9,11 +9,13 @@ import fs from 'fs';
             "accountId": 111,
             "apiKey": "1111111111111111111111111111111111111111111=",
             "privateKey": "0x1111111111111111111111111111111111111111111111111111111111111111",
+            "publicKey": "0x11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "withdrawAddress": "0x1111111111111111111111111111111111111111"
         }
     }
     ```
     You can get the accountId, apiKey and privateKey from Hibachi App by creating an API key
+    After that you can view the API key, it will show the publicKey (only for trustless account, you can ignore it for exchange managed account)
     Note: if you are using exchange managed account, the privateKey's length will be 44 instead
     The withdrawAddress can be any ethereum wallet address, that is used to receive funds for withdraw tests
 */
@@ -76,9 +78,6 @@ async function example () {
     const tradingFees = await exchange.fetchTradingFees ();
     console.log ('fetchTradingFees', tradingFees);
 
-    const depositAddress = await exchange.fetchDepositAddress ('USDT');
-    console.log ('fetchDepositAddress', depositAddress);
-
     const openOrders = await exchange.fetchOpenOrders ();
     console.log ('fetchOpenOrders', openOrders);
     const openOrdersWithLimit = await exchange.fetchOpenOrders (undefined, undefined, 1);
@@ -87,10 +86,9 @@ async function example () {
     console.log ('fetchOpenOrdersBTC', openOrdersBTC);
     const openOrdersSince = await exchange.fetchOpenOrders (undefined, 1752552000000); // 7/15/2025 00:00 UTC
     console.log ('fetchOpenOrdersSince', openOrdersSince);
-    
-    // Only run this for trustless account
-    if (exchange.privateKey.length !== 44) {
-        const depositAddress = await exchange.fetchDepositAddress ('USDT');
+
+    if (keys.hibachi.publicKey !== undefined) {
+        const depositAddress = await exchange.fetchDepositAddress ('USDT', {'publicKey': keys.hibachi.publicKey});
         console.log ('fetchDepositAddress', depositAddress);
     }
 

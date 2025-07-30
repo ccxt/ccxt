@@ -266,7 +266,7 @@ export default class hibachi extends Exchange {
         const settleId: Str = this.safeString (market, 'settlementSymbol');
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        const created = this.safeInteger (market, 'marketCreationTimestamp') * 1000;
+        const created = this.safeIntegerProduct (market, 'marketCreationTimestamp', 1000);
         return {
             'id': marketId,
             'numericId': numericId,
@@ -294,7 +294,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
-                'price': undefined,
+                'price': this.parseNumber (this.safeList (market, 'orderbookGranularities')[0]) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -439,7 +439,6 @@ export default class hibachi extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        this.checkRequiredCredentials ();
         const request: Dict = {
             'accountId': this.accountId,
         };
@@ -466,12 +465,12 @@ export default class hibachi extends Exchange {
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const prices = this.safeDict (ticker, 'prices');
         const stats = this.safeDict (ticker, 'stats');
-        const bid = this.safeFloat (prices, 'bidPrice');
-        const ask = this.safeFloat (prices, 'askPrice');
-        const last = this.safeFloat (prices, 'tradePrice');
-        const high = this.safeFloat (stats, 'high24h');
-        const low = this.safeFloat (stats, 'low24h');
-        const volume = this.safeFloat (stats, 'volume24h');
+        const bid = this.safeNumber (prices, 'bidPrice');
+        const ask = this.safeNumber (prices, 'askPrice');
+        const last = this.safeNumber (prices, 'tradePrice');
+        const high = this.safeNumber (stats, 'high24h');
+        const low = this.safeNumber (stats, 'low24h');
+        const volume = this.safeNumber (stats, 'volume24h');
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
             'timestamp': undefined,
@@ -527,7 +526,7 @@ export default class hibachi extends Exchange {
         const id = this.safeString (trade, 'id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
-        const timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side = undefined;
         let fee = undefined;
@@ -615,7 +614,12 @@ export default class hibachi extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const pricesResponse = await this.publicGetMarketDataPrices (this.extend (request, params));
+        const rawPromises = [
+            this.publicGetMarketDataPrices (this.extend (request, params)),
+            this.publicGetMarketDataStats (this.extend (request, params)),
+        ];
+        const promises = await Promise.all (rawPromises);
+        const pricesResponse = promises[0];
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -628,7 +632,7 @@ export default class hibachi extends Exchange {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const statsResponse = await this.publicGetMarketDataStats (this.extend (request, params));
+        const statsResponse = promises[1];
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -727,7 +731,6 @@ export default class hibachi extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -747,46 +750,21 @@ export default class hibachi extends Exchange {
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        // We currently don't have market-specific trade fees. We will fetch from exchange-info for now
-        const exchangeInfo = await this.publicGetMarketExchangeInfo (params);
-        //     "feeConfig": {
-        //         "depositFees": "0.004498",
-        //         "instantWithdrawDstPublicKey": "a4fff986badd3b58ead09cc617a82ff1b5b77b98d560baa27fbcffa4c08610b6372f362f3e8e530291f24251f2c332d958bf776c88ae4370380eee943cddf859",
-        //         "instantWithdrawalFees": [
-        //             [
-        //                 1000,
-        //                 0.002
-        //             ],
-        //             [
-        //                 100,
-        //                 0.004
-        //             ],
-        //             [
-        //                 50,
-        //                 0.005
-        //             ],
-        //             [
-        //                 20,
-        //                 0.01
-        //             ],
-        //             [
-        //                 5,
-        //                 0.02
-        //             ]
-        //         ],
-        //         "tradeMakerFeeRate": "0.00000000",
-        //         "tradeTakerFeeRate": "0.00020000",
-        //         "transferFeeRate": "0.00010000",
-        //         "withdrawalFees": "0.011995"
+        const request: Dict = {
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetTradeAccountInfo (this.extend (request, params));
+        //    {
+        //        "tradeMakerFeeRate": "0.00000000",
+        //        "tradeTakerFeeRate": "0.00020000"
         //    },
-        const feeConfig = this.safeDict (exchangeInfo, 'feeConfig');
-        const makerFeeRate = this.safeNumber (feeConfig, 'tradeMakerFeeRate');
-        const takerFeeRate = this.safeNumber (feeConfig, 'tradeTakerFeeRate');
+        const makerFeeRate = this.safeNumber (response, 'tradeMakerFeeRate');
+        const takerFeeRate = this.safeNumber (response, 'tradeTakerFeeRate');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
-                'info': feeConfig,
+                'info': response,
                 'symbol': symbol,
                 'maker': makerFeeRate,
                 'taker': takerFeeRate,
@@ -807,32 +785,27 @@ export default class hibachi extends Exchange {
         // - Quantity: Internal = External * (10^underlyingDecimals)
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
-        const amountStr = amount.toString ();
-        const feeRateStr = feeRate.toString ();
+        const amountStr = this.amountToPrecision (this.safeString (market, 'symbol'), amount);
+        const feeRateStr = this.numberToString (feeRate);
         const info = this.safeDict (market, 'info');
-        const underlying = '1e' + this.safeNumber (info, 'underlyingDecimals').toString ();
-        const settlement = '1e' + this.safeNumber (info, 'settlementDecimals').toString ();
-        const pOne = new Precise ('1');
-        const pFeeRateFactor = new Precise ('100000000'); // 10^8
-        const pPriceFactor = new Precise ('4294967296'); // 2^32
-        const pAmount = new Precise (amountStr);
-        const pFeeRate = new Precise (feeRateStr);
-        const pUnderlying = new Precise (underlying);
-        const pSettlement = new Precise (settlement);
-        const quantityInternal = pAmount.mul (pUnderlying).div (pOne, 0);
-        const feeRateInternal = pFeeRate.mul (pFeeRateFactor).div (pOne, 0);
+        const underlying = '1e' + this.safeString (info, 'underlyingDecimals');
+        const settlement = '1e' + this.safeString (info, 'settlementDecimals');
+        const one = '1';
+        const feeRateFactor = '100000000'; // 10^8
+        const priceFactor = '4294967296'; // 2^32
+        const quantityInternal = Precise.stringDiv (Precise.stringMul (amountStr, underlying), one, 0);
+        const feeRateInternal = Precise.stringDiv (Precise.stringMul (feeRateStr, feeRateFactor), one, 0);
         // Encoding
         const encodedNonce = this.base16ToBinary (this.intToBase16 (nonce).padStart (16, '0'));
-        const encodedMarketId = this.base16ToBinary (this.intToBase16 (market.numericId).padStart (8, '0'));
-        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal.toString ())).padStart (16, '0'));
+        const encodedMarketId = this.base16ToBinary (this.intToBase16 (this.safeInteger (market, 'numericId')).padStart (8, '0'));
+        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal)).padStart (16, '0'));
         const encodedSide = this.base16ToBinary (this.intToBase16 (sideInternal).padStart (8, '0'));
-        const encodedFeeRate = this.base16ToBinary (this.intToBase16 (this.parseToInt (feeRateInternal.toString ())).padStart (16, '0'));
+        const encodedFeeRate = this.base16ToBinary (this.intToBase16 (this.parseToInt (feeRateInternal)).padStart (16, '0'));
         let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
-            const priceStr = price.toString ();
-            const pPrice = new Precise (priceStr);
-            const priceInternal = pPrice.mul (pPriceFactor).mul (pSettlement).div (pUnderlying).div (pOne, 0);
-            encodedPrice = this.base16ToBinary (this.intToBase16 (this.parseToInt (priceInternal.toString ())).padStart (16, '0'));
+            const priceStr = this.priceToPrecision (this.safeString (market, 'symbol'), price);
+            const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
+            encodedPrice = this.base16ToBinary (this.intToBase16 (this.parseToInt (priceInternal)).padStart (16, '0'));
         }
         const message = this.binaryConcat (encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
@@ -852,11 +825,10 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.nonce ();
-        const feeRate = Math.max (market.taker, market.maker);
+        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -865,20 +837,20 @@ export default class hibachi extends Exchange {
         }
         let priceInternal = '';
         if (price) {
-            priceInternal = price.toString ();
+            priceInternal = this.priceToPrecision (symbol, price);
         }
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
             'accountId': this.accountId,
-            'symbol': market.id,
+            'symbol': this.safeString (market, 'id'),
             'nonce': nonce,
             'side': sideInternal,
             'orderType': type.toUpperCase (),
-            'quantity': amount.toString (),
+            'quantity': this.amountToPrecision (symbol, amount),
             'price': priceInternal,
             'signature': signature,
-            'maxFeesPercent': feeRate.toString (),
+            'maxFeesPercent': this.numberToString (feeRate),
         };
         const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', undefined, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -902,7 +874,7 @@ export default class hibachi extends Exchange {
         // }
         //
         return this.safeOrder ({
-            'id': response.orderId,
+            'id': this.safeString (response, 'orderId'),
             'status': 'pending',
         });
     }
@@ -922,20 +894,19 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.nonce ();
-        const feeRate = Math.max (market.taker, market.maker);
+        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
             'accountId': this.accountId,
             'orderId': id,
             'nonce': nonce,
-            'updatedQuantity': amount.toString (),
-            'updatedPrice': price.toString (),
-            'maxFeesPercent': feeRate.toString (),
+            'updatedQuantity': this.amountToPrecision (symbol, amount),
+            'updatedPrice': this.priceToPrecision (symbol, price),
+            'maxFeesPercent': this.numberToString (feeRate),
             'signature': signature,
         };
         await this.privatePutTradeOrder (this.extend (request, params));
@@ -960,7 +931,6 @@ export default class hibachi extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (id)).padStart (16, '0'));
         const signature = this.signMessage (message, this.privateKey);
         const request: Dict = {
@@ -985,18 +955,16 @@ export default class hibachi extends Exchange {
         // - maxFees: Internal = External * (10^6)
         // We only have USDT as our currency as this time
         const USDTAssetId = 1;
-        const pUSDTFactor = new Precise ('1000000');
-        const amountStr = amount.toString ();
-        const maxFeesStr = maxFees.toString ();
-        const pOne = new Precise ('1');
-        const pAmount = new Precise (amountStr);
-        const pMaxFees = new Precise (maxFeesStr);
-        const quantityInternal = pAmount.mul (pUSDTFactor).div (pOne, 0);
-        const maxFeesInternal = pMaxFees.mul (pUSDTFactor).div (pOne, 0);
+        const USDTFactor = '1000000';
+        const amountStr = this.numberToString (amount);
+        const maxFeesStr = this.numberToString (maxFees);
+        const one = '1';
+        const quantityInternal = Precise.stringDiv (Precise.stringMul (amountStr, USDTFactor), one, 0);
+        const maxFeesInternal = Precise.stringDiv (Precise.stringMul (maxFeesStr, USDTFactor), one, 0);
         // Encoding
         const encodedAssetId = this.base16ToBinary (this.intToBase16 (USDTAssetId).padStart (8, '0'));
-        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal.toString ())).padStart (16, '0'));
-        const encodedMaxFees = this.base16ToBinary (this.intToBase16 (this.parseToInt (maxFeesInternal.toString ())).padStart (16, '0'));
+        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal)).padStart (16, '0'));
+        const encodedMaxFees = this.base16ToBinary (this.intToBase16 (this.parseToInt (maxFeesInternal)).padStart (16, '0'));
         const encodedAddress = this.base16ToBinary (address);
         const message = this.binaryConcat (encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
         return message;
@@ -1015,7 +983,6 @@ export default class hibachi extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        this.checkRequiredCredentials ();
         const withdrawAddress = address.slice (-40);
         // Get the withdraw fees
         const exchangeInfo = await this.publicGetMarketExchangeInfo (params);
@@ -1039,8 +1006,8 @@ export default class hibachi extends Exchange {
             'network': 'ARBITRUM',
             'withdrawAddress': withdrawAddress,
             'selfWithdrawal': false,
-            'quantity': amount.toString (),
-            'maxFees': maxFees.toString (),
+            'quantity': this.numberToString (amount),
+            'maxFees': this.numberToString (maxFees),
             'signature': signature,
         };
         await this.privatePostCapitalWithdraw (this.extend (request, params));
@@ -1079,7 +1046,7 @@ export default class hibachi extends Exchange {
     signMessage (message, privateKey) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return hmac (message, privateKey, sha256);
+            return hmac (message, privateKey, sha256, 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash (message, sha256, 'hex');
@@ -1087,7 +1054,7 @@ export default class hibachi extends Exchange {
             const r = signature['r'];
             const s = signature['s'];
             const v = signature['v'];
-            return r.padStart (64, '0') + s.padStart (64, '0') + v.toString (16).padStart (2, '0');
+            return r.padStart (64, '0') + s.padStart (64, '0') + this.intToBase16 (v).padStart (2, '0');
         }
     }
 
@@ -1164,7 +1131,6 @@ export default class hibachi extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1212,7 +1178,7 @@ export default class hibachi extends Exchange {
         //   ]
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp') * 1000,
+            this.safeIntegerProduct (ohlcv, 'timestamp', 1000),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -1335,6 +1301,7 @@ export default class hibachi extends Exchange {
             body = this.json (params);
         }
         if (api === 'private') {
+            this.checkRequiredCredentials ();
             headers['Authorization'] = this.apiKey;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1360,11 +1327,6 @@ export default class hibachi extends Exchange {
             }
         }
         return undefined;
-    }
-
-    derivePublicKeyFromPrivate () {
-        this.checkRequiredCredentials ();
-        return secp256k1.getPublicKey (this.privateKey.slice (-64), false).slice (1, 65);
     }
 
     parseTransactionType (type) {
@@ -1399,7 +1361,7 @@ export default class hibachi extends Exchange {
         let status = undefined;
         if (transactionType === undefined) {
             // response from TradeAccountTradingHistory
-            timestamp = this.safeInteger (item, 'timestamp') * 1000;
+            timestamp = this.safeIntegerProduct (item, 'timestamp', 1000);
             type = 'trade';
             let amountStr = this.safeString (item, 'realizedPnl');
             if (Precise.stringLt (amountStr, '0')) {
@@ -1413,7 +1375,7 @@ export default class hibachi extends Exchange {
             status = 'ok';
         } else {
             // response from CapitalHistory
-            timestamp = this.safeInteger (item, 'timestampSec') * 1000;
+            timestamp = this.safeIntegerProduct (item, 'timestampSec', 1000);
             amount = this.safeNumber (item, 'quantity');
             direction = (transactionType === 'deposit' || transactionType === 'transfer-in') ? 'in' : 'out';
             type = this.parseTransactionType (transactionType);
@@ -1428,7 +1390,7 @@ export default class hibachi extends Exchange {
         return this.safeLedgerEntry ({
             'id': this.safeString (item, 'id'),
             'currency': this.currency ('USDT'),
-            'account': this.accountId.toString (),
+            'account': this.numberToString (this.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,
             'status': status,
@@ -1456,11 +1418,15 @@ export default class hibachi extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency ('USDT');
         const request = { 'accountId': this.accountId };
-        const responseCapitalHistory = await this.privateGetCapitalHistory (this.extend (request, params));
+        const rawPromises = [
+            this.privateGetCapitalHistory (this.extend (request, params)),
+            this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
+        ];
+        const promises = await Promise.all (rawPromises);
+        const responseCapitalHistory = promises[0];
         //
         // {
         //     "transactions": [
@@ -1515,7 +1481,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions');
-        const responseTradingHistory = await this.privateGetTradeAccountTradingHistory (this.extend (request, params));
+        const responseTradingHistory = promises[1];
         //
         // {
         //     "tradingHistory": [
@@ -1553,13 +1519,12 @@ export default class hibachi extends Exchange {
      * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters for API
+     * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        this.checkRequiredCredentials ();
-        const publicKey = this.derivePublicKeyFromPrivate ();
         const request = {
-            'publicKey': '0x' + this.binaryToBase16 (publicKey),
+            'publicKey': this.safeString (params, 'publicKey'),
             'accountId': this.accountId,
         };
         const response = await this.privateGetCapitalDepositInfo (this.extend (request, params));
@@ -1576,7 +1541,7 @@ export default class hibachi extends Exchange {
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        const timestamp = this.safeInteger (transaction, 'timestampSec') * 1000;
+        const timestamp = this.safeIntegerProduct (transaction, 'timestampSec', 1000);
         const address = this.safeString (transaction, 'withdrawalAddress');
         let transactionType = this.safeString (transaction, 'transactionType');
         if (transactionType !== 'deposit' && transactionType !== 'withdrawal') {
@@ -1618,7 +1583,6 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        this.checkRequiredCredentials ();
         const currency = this.safeCurrency (code);
         const request = {
             'accountId': this.accountId,
@@ -1678,7 +1642,6 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        this.checkRequiredCredentials ();
         const currency = this.safeCurrency (code);
         const request = {
             'accountId': this.accountId,
