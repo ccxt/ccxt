@@ -193,6 +193,21 @@
                     }
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/transfers?address=dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art&subaccountNumber=0",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
         ]
     }
 }

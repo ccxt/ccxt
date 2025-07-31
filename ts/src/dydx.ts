@@ -67,7 +67,7 @@ export default class dydx extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -1301,7 +1301,7 @@ export default class dydx extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.safeString (transaction, 'type'), // 'TRANSFER_IN', 'TRANSFER_OUT', 'DEPOSIT', 'WITHDRAWAL'
+            'type': this.safeStringLower (transaction, 'type'), // 'deposit', 'withdrawal'
             'amount': amount,
             'currency': code,
             'status': undefined,
@@ -1334,6 +1334,31 @@ export default class dydx extends Exchange {
         params['methodName'] = 'fetchWithdrawals';
         const response = await this.transactionsHelper (code, since, limit, params);
         const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        params['methodName'] = 'fetchDeposits';
+        const response = await this.transactionsHelper (code, since, limit, params);
+        const rows = this.filterBy (response, 'type', 'DEPOSIT');
         return this.parseTransactions (rows, currency, since, limit);
     }
 
