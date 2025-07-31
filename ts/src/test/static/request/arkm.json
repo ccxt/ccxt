@@ -108,22 +108,18 @@
                     "USDT",
                     {
                         "network": "ETH"
-                    },
-                    "--",
-                    "--request",
-                    "--name",
-                    "with network"
+                    }
                 ],
                 "output": "{\"chain\":\"ETH\"}"
             }
         ],
         "fetchDepositAddressesByNetwork": [
             {
-                "description": "without code",
+                "description": "with code",
                 "method": "fetchDepositAddressesByNetwork",
                 "url": "https://arkm.com/api/account/deposit/addresses?chain=SOL",
                 "input": [
-                    null,
+                    "USDT",
                     {
                         "network": "SOL"
                     }
