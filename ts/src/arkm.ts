@@ -206,7 +206,7 @@ export default class arkm extends Exchange {
                             'account/settings/price-alert': 7.5,
                             'account/withdrawal/addresses/{id}': 7.5,
                             'subaccounts': 7.5,
-                            'api-key/update/{id': 7.5,
+                            'api-key/update/{id}': 7.5,
                         },
                         'delete': {
                             'account/settings/price-alert': 7.5,
@@ -320,8 +320,7 @@ export default class arkm extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {
-                },
+                'exact': {},
                 'broad': {
                     'less than min withdrawal ': OperationRejected, // {"message":"amount 1 less than min withdrawal 5"}
                 },
