@@ -320,8 +320,7 @@ export default class arkm extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {
-                },
+                'exact': {},
                 'broad': {
                     'less than min withdrawal ': OperationRejected, // {"message":"amount 1 less than min withdrawal 5"}
                 },
