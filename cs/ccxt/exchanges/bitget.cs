@@ -4045,6 +4045,11 @@ public partial class bitget : Exchange
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, parameters));
             } else
             {
+                if (!isTrue(limitDefined))
+                {
+                    ((IDictionary<string,object>)request)["limit"] = 1000;
+                    limit = 1000;
+                }
                 response = await this.publicSpotGetV2SpotMarketCandles(this.extend(request, parameters));
             }
         } else
@@ -4059,8 +4064,19 @@ public partial class bitget : Exchange
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             object extended = this.extend(request, parameters);
-            // todo: mark & index also have their "recent" endpoints, but not priority now.
-            if (isTrue(isEqual(priceType, "mark")))
+            if (isTrue(!isTrue(historicalEndpointNeeded) && isTrue((isTrue(isEqual(priceType, "mark")) || isTrue(isEqual(priceType, "index"))))))
+            {
+                if (!isTrue(limitDefined))
+                {
+                    ((IDictionary<string,object>)extended)["limit"] = 1000;
+                    limit = 1000;
+                }
+                // Recent endpoint for mark/index prices
+                // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+                response = await this.publicMixGetV2MixMarketCandles(this.extend(new Dictionary<string, object>() {
+                    { "kLineType", priceType },
+                }, extended));
+            } else if (isTrue(isEqual(priceType, "mark")))
             {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles(extended);
             } else if (isTrue(isEqual(priceType, "index")))
@@ -4073,6 +4089,11 @@ public partial class bitget : Exchange
                     response = await this.publicMixGetV2MixMarketHistoryCandles(extended);
                 } else
                 {
+                    if (!isTrue(limitDefined))
+                    {
+                        ((IDictionary<string,object>)extended)["limit"] = 1000;
+                        limit = 1000;
+                    }
                     response = await this.publicMixGetV2MixMarketCandles(extended);
                 }
             }
