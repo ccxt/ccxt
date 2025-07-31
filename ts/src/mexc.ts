@@ -5993,7 +5993,6 @@ export default class mexc extends Exchange {
         return this.parseMarginMode (response, market) as any;
     }
 
-
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         return {
             'info': marginMode,
