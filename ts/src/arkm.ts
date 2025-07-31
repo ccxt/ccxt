@@ -673,7 +673,7 @@ export default class arkm extends Exchange {
             request['end'] = (until !== undefined) ? until : now;
             request['start'] = request['end'] - selectedLimit * durationMs;
         }
-        // exchange needs macroseconds
+        // exchange needs microseconds
         request['start'] = request['start'] * 1000;
         request['end'] = request['end'] * 1000;
         const response = await this.v1PublicGetCandles (this.extend (request, params));
