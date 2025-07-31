@@ -545,7 +545,8 @@
         ],
         "setLeverage": [
             {
-                "description": "with args",
+                "disabled": true,
+                "description": "with args (disabled because of empty response)",
                 "method": "setLeverage",
                 "input": [
                     10,
