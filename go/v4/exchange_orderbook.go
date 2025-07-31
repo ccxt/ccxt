@@ -380,8 +380,8 @@ func (this *CountedOrderBook) Limit() interface{} {
 func (this *CountedOrderBook) Update(snapshot interface{}) interface{} {
 	return this.WsOrderBook.Update(snapshot)
 }
-func (this *CountedOrderBook) Reset(snapshot interface{}) interface{} {
-	return this.WsOrderBook.Reset(snapshot)
+func (this *CountedOrderBook) Reset(optionalArgs ...interface{}) interface{} {
+	return this.WsOrderBook.Reset(optionalArgs...)
 }
 func (this *CountedOrderBook) GetCache() *interface{} {
 	return this.WsOrderBook.GetCache()
@@ -398,8 +398,8 @@ func (this *IndexedOrderBook) Limit() interface{} {
 func (this *IndexedOrderBook) Update(snapshot interface{}) interface{} {
 	return this.WsOrderBook.Update(snapshot)
 }
-func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
-	return this.WsOrderBook.Reset(snapshot)
+func (this *IndexedOrderBook) Reset(optionalArgs ...interface{}) interface{} {
+	return this.WsOrderBook.Reset(optionalArgs...)
 }
 func (this *IndexedOrderBook) GetCache() *interface{} {
 	return this.WsOrderBook.GetCache()

@@ -1484,6 +1484,7 @@ ${constStatements.join('\n')}
             [/\(object client,/gm, '(WebSocketClient client,'],
             [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
+            [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
         ]);
 
         const jsDelimiter = '// ' + delimiter
