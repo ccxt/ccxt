@@ -6288,7 +6288,17 @@ Parameters
 
 Returns
 
-- response from the exchange
+- a array of [margin-mode-structure](#margin-mode-structure)
+
+### Margin Mode Structure
+
+```javascript
+{
+    "info": { ... }             // response from the exchange
+    "symbol": "BTC/USDT:USDT",  // unified market symbol
+    "marginMode": "cross",      // the margin mode either cross or isolated
+}
+```
 
 ### Exchanges Without setMarginMode
 

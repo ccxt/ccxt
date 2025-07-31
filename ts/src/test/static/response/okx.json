@@ -5854,6 +5854,41 @@
                   }
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USD:BTC",
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "instId": "BTC-USD-SWAP",
+                            "lever": "20",
+                            "mgnMode": "cross",
+                            "posSide": ""
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USD-SWAP",
+                        "lever": "20",
+                        "mgnMode": "cross",
+                        "posSide": ""
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "marginMode": "cross"
+                }
+            }
         ]
     }
 }

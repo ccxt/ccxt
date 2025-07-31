@@ -650,6 +650,31 @@
                     "status": "ok"
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "margin_mode": "crossed"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instrument_id": "BTCUSDTPERP",
+                        "margin_mode": "crossed"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
         ]
     }
 }
