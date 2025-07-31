@@ -522,7 +522,6 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
-            [/GetDescribeForExtendedWsExchange\(([^,]+),/g, 'GetDescribeForExtendedWsExchange(&$1, &'],
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],              
             
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],

@@ -13,7 +13,7 @@ import (
 type OrderBookInterface interface {
     Limit() interface{}
     Update(snapshot interface{}) interface{}
-    Reset(snapshot interface{}) interface{}
+    Reset(optionalArgs ...interface{}) interface{}
 	GetCache() *interface{}
 	SetCache(cache interface{})
 	GetNonce() interface{}
@@ -102,7 +102,9 @@ func (this *WsOrderBook) Update(snapshot interface{}) interface{} {
 	return this.Reset(snapshot)
 }
 
-func (this *WsOrderBook) Reset(snapshot interface{}) interface{} {
+func (this *WsOrderBook) Reset(optionalArgs ...interface{}) interface{} {
+	snapshot := GetArg(optionalArgs, 0, nil)
+
 	if snapshot == nil {
 		snapshot = make(map[string]interface{})
 	}

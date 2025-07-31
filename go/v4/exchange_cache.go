@@ -231,8 +231,9 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) 
 
 type ArrayCacheBySymbolById struct{ *ArrayCache }
 
-func NewArrayCacheBySymbolById(MaxSize interface{}) *ArrayCacheBySymbolById {
-	return &ArrayCacheBySymbolById{NewArrayCache(MaxSize)}
+func NewArrayCacheBySymbolById(optionalArgs ...interface{}) *ArrayCacheBySymbolById {
+	maxSize := GetArg(optionalArgs, 0, nil)
+	return &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
