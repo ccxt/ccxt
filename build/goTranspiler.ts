@@ -419,10 +419,6 @@ const INTERFACE_METHODS = [
 	'watchTradesForSymbols',
 ]
 
-const piscina = new Piscina({
-    filename: resolve(__dirname, 'go-worker.js')
-});
-
 class NewTranspiler {
 
     transpiler!: Transpiler;
@@ -1715,6 +1711,9 @@ type IExchange interface {
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // create worker
+        const piscina = new Piscina({
+            filename: resolve(__dirname, 'go-worker.js')
+        });
 
         const chunkSize = 20;
         const promises: any = [];
