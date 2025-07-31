@@ -5158,7 +5158,7 @@ class bybit extends Exchange {
             /**
              * fetches information on a closed order made by the user
              *
-             * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+             * @see https://bybinpt-exchange.github.io/docs/v5/order/order-list
              *
              * @param {string} $id order $id
              * @param {string} [$symbol] unified $symbol of the market the order was made in
