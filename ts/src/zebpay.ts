@@ -197,14 +197,13 @@ export default class zebpay extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         const isSpot = (type === 'spot');
-        const request: Dict = {};
         let response = undefined;
         let data = {};
         if (isSpot) {
-            response = await this.publicSpotGetV2SystemStatus (this.extend (request, params));
+            response = await this.publicSpotGetV2SystemStatus (params);
             data = response;
         } else {
-            response = await this.publicSwapGetV1SystemStatus (this.extend (request, params));
+            response = await this.publicSwapGetV1SystemStatus (params);
             data = this.safeDict (response, 'data', {});
         }
         //
@@ -240,14 +239,13 @@ export default class zebpay extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const isSpot = (type === 'spot');
-        const request: Dict = {};
         let response = undefined;
         let data = {};
         if (isSpot) {
-            response = await this.publicSpotGetV2SystemTime (this.extend (request, params));
+            response = await this.publicSpotGetV2SystemTime (params);
             data = response;
         } else {
-            response = await this.publicSwapGetV1SystemTime (this.extend (request, params));
+            response = await this.publicSwapGetV1SystemTime (params);
             data = this.safeDict (response, 'data', {});
         }
         //
@@ -278,13 +276,12 @@ export default class zebpay extends Exchange {
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const defaultMarkets = [ 'spot', 'swap' ];
         const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
-        const request: Dict = {};
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'spot') {
-                promisesUnresolved.push (this.fetchSpotMarkets (this.extend (request, params)));
+                promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (type === 'swap') {
-                promisesUnresolved.push (this.fetchSwapMarkets (this.extend (request, params)));
+                promisesUnresolved.push (this.fetchSwapMarkets (params));
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + type + '" is not a supported market type');
             }
@@ -304,8 +301,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const request: Dict = {};
-        const response = await this.publicSpotGetV2ExCurrencies (this.extend (request, params));
+        const response = await this.publicSpotGetV2ExCurrencies (params);
         //
         //     {
         //             "data": [
@@ -490,12 +486,11 @@ export default class zebpay extends Exchange {
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
-        const request: Dict = {};
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicSpotGetV2ExTradefees (this.extend (request, params));
+            response = await this.publicSpotGetV2ExTradefees (params);
         } else {
-            response = await this.publicSwapGetV1ExchangeTradefees (this.extend (request, params));
+            response = await this.publicSwapGetV1ExchangeTradefees (params);
         }
         //
         // {
@@ -623,8 +618,7 @@ export default class zebpay extends Exchange {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets');
         }
         await this.loadMarkets ();
-        const request: Dict = {};
-        const response = await this.publicSpotGetV2MarketAllTickers (this.extend (request, params));
+        const response = await this.publicSpotGetV2MarketAllTickers (params);
         //
         //     [
         //        {
@@ -874,12 +868,11 @@ export default class zebpay extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isSpot = (type === 'spot');
-        const request: Dict = {};
         let response = undefined;
         if (isSpot) {
-            response = await this.privateSpotGetV2AccountBalance (this.extend (request, params));
+            response = await this.privateSpotGetV2AccountBalance (params);
         } else {
-            response = await this.privateSwapGetV1WalletBalance (this.extend (request, params));
+            response = await this.privateSwapGetV1WalletBalance (params);
         }
         //
         //     {
@@ -1073,8 +1066,7 @@ export default class zebpay extends Exchange {
             throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' markets');
         }
         await this.loadMarkets ();
-        const request: Dict = {};
-        const response = await this.privateSpotDeleteV2ExOrdersCancelAll (this.extend (request, params));
+        const response = await this.privateSpotDeleteV2ExOrdersCancelAll (params);
         //
         //    {
         //        "data": {
@@ -1297,8 +1289,7 @@ export default class zebpay extends Exchange {
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         await this.loadMarkets ();
-        const request: Dict = {};
-        const response = await this.privateSwapGetV1TradeUserLeverages (this.extend (request, params));
+        const response = await this.privateSwapGetV1TradeUserLeverages (params);
         //
         //     {
         //         "leveragePreferences": [
@@ -1378,8 +1369,7 @@ export default class zebpay extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const request: Dict = {};
-        const response = await this.privateSwapGetV1TradePositions (this.extend (request, params));
+        const response = await this.privateSwapGetV1TradePositions (params);
         //
         //    {
         //        "data": [
