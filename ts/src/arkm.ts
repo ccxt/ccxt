@@ -29,36 +29,35 @@ export default class arkm extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'sandbox': false,
-                'fetchCurrencies': true,
-                'fetchOrderBook': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTrades': true,
-                'fetchOHLCV': true,
-                'fetchTime': true,
-                //
-                'cancelOrder': true,
                 'cancelAllOrders': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
-                'fetchMyTrades': true,
-                'fetchBalance': true,
                 'fetchAccount': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': true,
-                'createDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTradingFees': true,
                 'fetchFundingHistory': true,
                 'fetchLeverage': true,
-                'setLeverage': true,
-                'fetchPositions': true,
-                'withdraw': true,
                 'fetchLeverageTiers': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPositions': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFees': true,
+                'fetchWithdrawals': true,
+                'sandbox': false,
+                'setLeverage': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -321,7 +320,8 @@ export default class arkm extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {},
+                'exact': {
+                },
                 'broad': {
                     'less than min withdrawal ': OperationRejected, // {"message":"amount 1 less than min withdrawal 5"}
                 },
@@ -498,23 +498,27 @@ export default class arkm extends Exchange {
             const pairType = this.safeString (market, 'pairType');
             const isSpot = pairType === 'spot';
             const isPerpetual = pairType === 'perpetual';
+            let settle = undefined;
+            let settleId = undefined;
             if (isSpot) {
                 marketType = 'spot';
                 symbol = base + '/' + quote;
             } else if (isPerpetual) {
                 marketType = 'swap';
                 base = base.replace ('.P', '');
-                symbol = base + '/' + quote + ':' + quote;
+                settle = quote;
+                settleId = quoteId;
+                symbol = base + '/' + quote + ':' + settle;
             }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
                 'margin': undefined,
@@ -523,8 +527,8 @@ export default class arkm extends Exchange {
                 'option': false,
                 'active': this.safeString (market, 'status') === 'listed',
                 'contract': isPerpetual,
-                'linear': isPerpetual,
-                'inverse': undefined,
+                'linear': isPerpetual ? true : undefined,
+                'inverse': isPerpetual ? false : undefined,
                 'contractSize': isSpot ? undefined : 1, // seems 1 per fetchTrades
                 'expiry': undefined,
                 'expiryDatetime': undefined,
