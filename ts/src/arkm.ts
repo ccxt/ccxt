@@ -667,7 +667,7 @@ export default class arkm extends Exchange {
         const selectedLimit = (limit !== undefined) ? Math.min (limit, maxLimit) : maxLimit;
         if (since !== undefined) {
             request['start'] = since;
-            request['end'] = since + selectedLimit * durationMs;
+            request['end'] = this.sum (since, selectedLimit * durationMs);
         } else {
             const now = this.milliseconds ();
             request['end'] = (until !== undefined) ? until : now;
@@ -1498,7 +1498,7 @@ export default class arkm extends Exchange {
             params = this.omit (params, 'until');
             request['to'] = until * 1000; // convert ms to microseconds
         } else {
-            request['to'] = request['from'] + defaultRange * 1000;
+            request['to'] = this.sum (request['from'], defaultRange * 1000);
         }
         [ request, params ] = this.handleUntilOption ('until', request, params);
         const response = await this.v1PrivateGetTradesTime (this.extend (request, params));

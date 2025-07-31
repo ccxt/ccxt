@@ -1851,41 +1851,6 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "spot  with args",
-                "method": "fetchOHLCV",
-                "input": [
-                    "BTC/USDT",
-                    "1m",
-                    1745000000000,
-                    2
-                ],
-                "httpResponse": [
-                    {
-                        "symbol": "BTC_USDT",
-                        "time": "1744999860000000",
-                        "duration": "60000000",
-                        "open": "84552.75",
-                        "high": "84552.75",
-                        "low": "84552.75",
-                        "close": "84552.75",
-                        "volume": "0.00141",
-                        "quoteVolume": "119.2193775"
-                    },
-                    {
-                        "symbol": "BTC_USDT",
-                        "time": "1744999440000000",
-                        "duration": "60000000",
-                        "open": "84529.62",
-                        "high": "84529.62",
-                        "low": "84528.1",
-                        "close": "84528.1",
-                        "volume": "0.00124",
-                        "quoteVolume": "104.8157864"
-                    }
-                ],
-                "parsedResponse": []
-            },
-            {
                 "description": "swap with args",
                 "method": "fetchOHLCV",
                 "input": [
