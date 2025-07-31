@@ -840,7 +840,7 @@ class NewTranspiler {
     safeGoName(name: string): string {
         const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
-            'error': 'err',
+            'error': 'e',
             'time': 'timeVar'
         }
         return goReservedWordsReplacement[name] || name;
