@@ -739,6 +739,7 @@ export default class okx extends Exchange {
                     '51137': InvalidOrder,
                     '51138': InvalidOrder,
                     '51139': InvalidOrder,
+                    '51155': BadSymbol,
                     '51156': BadRequest,
                     '51159': BadRequest,
                     '51162': InvalidOrder,
