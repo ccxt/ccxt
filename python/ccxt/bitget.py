@@ -3816,6 +3816,9 @@ class bitget(Exchange, ImplicitAPI):
             if historicalEndpointNeeded:
                 response = self.publicSpotGetV2SpotMarketHistoryCandles(self.extend(request, params))
             else:
+                if not limitDefined:
+                    request['limit'] = 1000
+                    limit = 1000
                 response = self.publicSpotGetV2SpotMarketCandles(self.extend(request, params))
         else:
             priceType = None
@@ -3824,8 +3827,14 @@ class bitget(Exchange, ImplicitAPI):
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
             extended = self.extend(request, params)
-            # todo: mark & index also have their "recent" endpoints, but not priority now.
-            if priceType == 'mark':
+            if not historicalEndpointNeeded and (priceType == 'mark' or priceType == 'index'):
+                if not limitDefined:
+                    extended['limit'] = 1000
+                    limit = 1000
+                # Recent endpoint for mark/index prices
+                # https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+                response = self.publicMixGetV2MixMarketCandles(self.extend({'kLineType': priceType}, extended))
+            elif priceType == 'mark':
                 response = self.publicMixGetV2MixMarketHistoryMarkCandles(extended)
             elif priceType == 'index':
                 response = self.publicMixGetV2MixMarketHistoryIndexCandles(extended)
@@ -3833,6 +3842,9 @@ class bitget(Exchange, ImplicitAPI):
                 if historicalEndpointNeeded:
                     response = self.publicMixGetV2MixMarketHistoryCandles(extended)
                 else:
+                    if not limitDefined:
+                        extended['limit'] = 1000
+                        limit = 1000
                     response = self.publicMixGetV2MixMarketCandles(extended)
         if response == '':
             return []  # happens when a new token is listed
