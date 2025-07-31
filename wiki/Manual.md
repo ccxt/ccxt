@@ -6288,7 +6288,7 @@ Parameters
 
 Returns
 
-- a array of [margin-mode-structure](#margin-mode-structure)
+- A [margin-mode-structure](#margin-mode-structure)
 
 ### Margin Mode Structure
 
