@@ -1191,6 +1191,56 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "spot ohlcv should retrieve 1000 candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=1h&limit=1000",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap ohlcv should retrieve 1000 candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1H&limit=1000&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "index price  ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?kLineType=index&symbol=BTCUSDT&granularity=1H&limit=1000&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "price": "index"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "mark ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?kLineType=mark&symbol=BTCUSDT&granularity=1H&limit=1000&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "price": "mark"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "+1d +since +limit +until (abnormal, limit more than permitted)",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitget.com/api/v2/spot/market/history-candles?symbol=BTCUSDT&granularity=1Dutc&startTime=1672720000000&endTime=1690000000000&limit=200",
