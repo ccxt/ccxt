@@ -3905,6 +3905,10 @@ export default class bitget extends Exchange {
             if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             } else {
+                if (!limitDefined) {
+                    request['limit'] = 1000;
+                    limit = 1000;
+                }
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
@@ -3914,8 +3918,15 @@ export default class bitget extends Exchange {
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             const extended = this.extend (request, params);
-            // todo: mark & index also have their "recent" endpoints, but not priority now.
-            if (priceType === 'mark') {
+            if (!historicalEndpointNeeded && (priceType === 'mark' || priceType === 'index')) {
+                if (!limitDefined) {
+                    extended['limit'] = 1000;
+                    limit = 1000;
+                }
+                // Recent endpoint for mark/index prices
+                // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+                response = await this.publicMixGetV2MixMarketCandles (this.extend ({ 'kLineType': priceType }, extended));
+            } else if (priceType === 'mark') {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles (extended);
             } else if (priceType === 'index') {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles (extended);
@@ -3923,6 +3934,10 @@ export default class bitget extends Exchange {
                 if (historicalEndpointNeeded) {
                     response = await this.publicMixGetV2MixMarketHistoryCandles (extended);
                 } else {
+                    if (!limitDefined) {
+                        extended['limit'] = 1000;
+                        limit = 1000;
+                    }
                     response = await this.publicMixGetV2MixMarketCandles (extended);
                 }
             }
