@@ -118,6 +118,10 @@ class ManualInteractionNeeded(OperationRejected):
     pass
 
 
+class RestrictedLocation(OperationRejected):
+    pass
+
+
 class InsufficientFunds(ExchangeError):
     pass
 
@@ -238,6 +242,7 @@ __all__ = [
     'MarginModeAlreadySet',
     'MarketClosed',
     'ManualInteractionNeeded',
+    'RestrictedLocation',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',
