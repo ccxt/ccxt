@@ -2360,16 +2360,16 @@ export default class bybit extends bybitRest {
                 }
             }
             return false;
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
                 const messageHash = this.safeString (message, 'reqId');
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
             }
             return true;
         }
@@ -2488,8 +2488,8 @@ export default class bybit extends bybitRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

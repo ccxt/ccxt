@@ -581,8 +581,8 @@ export default class probit extends probitRest {
             handler.call (this, client, message);
             return;
         }
-        const err = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
-        client.reject (err);
+        const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
+        client.reject (error);
     }
 
     async authenticate (params = {}) {

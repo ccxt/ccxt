@@ -3687,8 +3687,8 @@ export default class delta extends Exchange {
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         //
-        const err = this.safeDict (response, 'error', {});
-        const errorCode = this.safeString (err, 'code');
+        const error = this.safeDict (response, 'error', {});
+        const errorCode = this.safeString (error, 'code');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

@@ -949,8 +949,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             } else {
                 throw new ExchangeError (this.id + ' ' + reason);
             }
-        } catch (e) {
-            client.reject (e);
+        } catch (error) {
+            client.reject (error);
             return true;
         }
     }

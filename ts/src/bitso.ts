@@ -1893,11 +1893,11 @@ export default class bitso extends Exchange {
             }
             if (!success) {
                 const feedback = this.id + ' ' + this.json (response);
-                const err = this.safeValue (response, 'error');
-                if (err === undefined) {
+                const error = this.safeValue (response, 'error');
+                if (error === undefined) {
                     throw new ExchangeError (feedback);
                 }
-                const code = this.safeString (err, 'code');
+                const code = this.safeString (error, 'code');
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
             }

@@ -597,8 +597,8 @@ export default class modetrade extends modetradeRest {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions['authenticated'];
@@ -1269,15 +1269,15 @@ export default class modetrade extends modetradeRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             }
             return false;
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (e);
+                client.reject (error);
             }
             return true;
         }

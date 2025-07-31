@@ -5052,11 +5052,11 @@ export default class xt extends Exchange {
         const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
-            const err = this.safeValue (response, 'error', {});
+            const error = this.safeValue (response, 'error', {});
             const spotErrorCode = this.safeString (response, 'mc');
-            const errorCode = this.safeString (err, 'code', spotErrorCode);
+            const errorCode = this.safeString (error, 'code', spotErrorCode);
             const spotMessage = this.safeString (response, 'msgInfo');
-            const message = this.safeString (err, 'msg', spotMessage);
+            const message = this.safeString (error, 'msg', spotMessage);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);

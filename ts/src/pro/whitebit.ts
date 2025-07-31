@@ -898,9 +898,9 @@ export default class whitebit extends whitebitRest {
         //         "id": 1656090882
         //     }
         //
-        const err = this.safeValue (message, 'error');
+        const error = this.safeValue (message, 'error');
         try {
-            if (err !== undefined) {
+            if (error !== undefined) {
                 const code = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);

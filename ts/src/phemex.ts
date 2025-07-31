@@ -5298,9 +5298,9 @@ export default class phemex extends Exchange {
         //     {"code":412,"msg":"Missing parameter - to","data":null}
         //     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
         //
-        const err = this.safeValue (response, 'error', response);
-        const errorCode = this.safeString (err, 'code');
-        const message = this.safeString (err, 'msg');
+        const error = this.safeValue (response, 'error', response);
+        const errorCode = this.safeString (error, 'code');
+        const message = this.safeString (error, 'msg');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

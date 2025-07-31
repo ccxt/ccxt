@@ -1069,11 +1069,11 @@ export default class btcalpha extends Exchange {
         //
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
-        const err = this.safeString (response, 'error');
-        if (err !== undefined) {
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback); // unknown error
         }
         return undefined;

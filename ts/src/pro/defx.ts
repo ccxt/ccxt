@@ -653,13 +653,13 @@ export default class defx extends defxRest {
         }
         try {
             await this.v1PrivatePutApiUsersSocketListenKeysListenKey ({ 'listenKey': listenKey }); // extend the expiry
-        } catch (e) {
+        } catch (error) {
             const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let j = 0; j < messageHashes.length; j++) {
                 const messageHash = messageHashes[j];
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
             }
             this.options['listenKey'] = undefined;
             this.options['lastAuthenticatedTime'] = 0;
@@ -873,8 +873,8 @@ export default class defx extends defxRest {
     }
 
     handleMessage (client: Client, message) {
-        const err = this.safeString (message, 'code');
-        if (err !== undefined) {
+        const error = this.safeString (message, 'code');
+        if (error !== undefined) {
             const errorMsg = this.safeString (message, 'msg');
             throw new ExchangeError (this.id + ' ' + errorMsg);
         }

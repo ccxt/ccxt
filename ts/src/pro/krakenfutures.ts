@@ -1540,8 +1540,8 @@ export default class krakenfutures extends krakenfuturesRest {
         const errMsg = this.safeString (message, 'message');
         try {
             throw new ExchangeError (this.id + ' ' + errMsg);
-        } catch (e) {
-            client.reject (e);
+        } catch (error) {
+            client.reject (error);
             return false;
         }
     }
@@ -1605,8 +1605,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

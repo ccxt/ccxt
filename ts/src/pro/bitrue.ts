@@ -461,7 +461,7 @@ export default class bitrue extends bitrueRest {
             //         "code": "200"
             //     }
             //
-        } catch (e) {
+        } catch (error) {
             this.options['listenKey'] = undefined;
             this.options['listenKeyUrl'] = undefined;
             return;

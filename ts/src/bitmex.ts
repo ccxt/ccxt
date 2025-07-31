@@ -2165,10 +2165,10 @@ export default class bitmex extends Exchange {
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
         const order = this.safeValue (response, 0, {});
-        const err = this.safeString (order, 'error');
-        if (err !== undefined) {
-            if (err.indexOf ('Unable to cancel order due to existing state') >= 0) {
-                throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + err);
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
+                throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
             }
         }
         return this.parseOrder (order);
@@ -3058,8 +3058,8 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const err = this.safeValue (response, 'error', {});
-            const message = this.safeString (err, 'message');
+            const error = this.safeValue (response, 'error', {});
+            const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

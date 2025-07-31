@@ -1042,8 +1042,8 @@ export default class apex extends apexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const err = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (err, messageHash);
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

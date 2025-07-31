@@ -855,8 +855,8 @@ export default class tradeogre extends Exchange {
         if (successString === 'true') {
             return undefined;
         }
-        const err = this.safeValue (response, 'error');
-        const errorCode = this.safeString (err, 'code');
+        const error = this.safeValue (response, 'error');
+        const errorCode = this.safeString (error, 'code');
         const feedback = this.id + ' ' + this.json (response);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         throw new ExchangeError (feedback);

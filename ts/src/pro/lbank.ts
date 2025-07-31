@@ -828,8 +828,8 @@ export default class lbank extends lbankRest {
         //    }
         //
         const errMsg = this.safeString (message, 'message', '');
-        const err = new ExchangeError (this.id + ' ' + errMsg);
-        client.reject (err);
+        const error = new ExchangeError (this.id + ' ' + errMsg);
+        client.reject (error);
     }
 
     async handlePing (client: Client, message) {

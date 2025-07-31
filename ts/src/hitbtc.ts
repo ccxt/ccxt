@@ -3788,11 +3788,11 @@ export default class hitbtc extends Exchange {
         //       }
         //     }
         //
-        const err = this.safeValue (response, 'error');
-        const errorCode = this.safeString (err, 'code');
+        const error = this.safeValue (response, 'error');
+        const errorCode = this.safeString (error, 'code');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            const message = this.safeString2 (err, 'message', 'description');
+            const message = this.safeString2 (error, 'message', 'description');
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);

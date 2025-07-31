@@ -752,8 +752,8 @@ export default class vertex extends vertexRest {
         // { result: null, id: 1 }
         //
         const messageHash = 'authenticated';
-        const err = this.safeString (message, 'error');
-        if (err === undefined) {
+        const error = this.safeString (message, 'error');
+        if (error === undefined) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
@@ -979,15 +979,15 @@ export default class vertex extends vertexRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             }
             return false;
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (e);
+                client.reject (error);
             }
             return true;
         }
