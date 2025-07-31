@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ export default class dydx extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
@@ -1027,7 +1027,7 @@ export default class dydx extends Exchange {
         [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
         if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a address parameter inside \'params\' or the wallet address set');
         }
         await this.loadMarkets ();
         const request: Dict = {
@@ -1179,48 +1179,14 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
-        }
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request: Dict = {
-            'address': userAddress,
-            'subaccountNumber': subAccountNumber,
-        };
-        const response = await this.indexerGetTransfers (this.extend (request, params));
-        //
-        // {
-        //     "transfers": [
-        //         {
-        //             "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
-        //             "sender": {
-        //                 "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
-        //                 "subaccountNumber": 0
-        //             },
-        //             "recipient": {
-        //                 "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
-        //                 "subaccountNumber": 1
-        //             },
-        //             "size": "0.000001",
-        //             "createdAt": "2025-07-29T09:43:02.105Z",
-        //             "createdAtHeight": "45116125",
-        //             "symbol": "USDC",
-        //             "type": "TRANSFER_OUT",
-        //             "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
-        //         }
-        //     ]
-        // }
-        //
-        const rows = this.safeList (response, 'transfers', []);
-        return this.parseLedger (rows, currency, since, limit, params);
+        params['methodName'] = 'fetchLedger';
+        const response = await this.transactionsHelper (code, since, limit, params);
+        return this.parseLedger (response, currency, since, limit);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -1247,10 +1213,6 @@ export default class dydx extends Exchange {
         const currencyId = this.safeString (transfer, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.safeNumber (transfer, 'size');
-        const type = this.safeStringUpper (transfer, 'type');
-        if (type !== 'TRANSFER_IN' && type !== 'TRANSFER_OUT') {
-            return null;
-        }
         const sender = this.safeDict (transfer, 'sender');
         const recipient = this.safeDict (transfer, 'recipient');
         const fromAccount = this.safeString (sender, 'address');
@@ -1283,17 +1245,107 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
-        }
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
+        }
+        params['methodName'] = 'fetchTransfers';
+        const response = await this.transactionsHelper (code, since, limit, params);
+        const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
+        const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
+        const rows = this.arrayConcat (transferIn, transferOut);
+        return this.parseTransfers (rows, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // {
+        //     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+        //     "sender": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0
+        //     },
+        //     "recipient": {
+        //         "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+        //         "subaccountNumber": 1
+        //     },
+        //     "size": "0.000001",
+        //     "createdAt": "2025-07-29T09:43:02.105Z",
+        //     "createdAtHeight": "45116125",
+        //     "symbol": "USDC",
+        //     "type": "TRANSFER_OUT",
+        //     "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+        // }
+        //
+        const id = this.safeString (transaction, 'id');
+        const sender = this.safeDict (transaction, 'sender');
+        const recipient = this.safeDict (transaction, 'recipient');
+        const addressTo = this.safeString (recipient, 'address');
+        const addressFrom = this.safeString (sender, 'address');
+        const txid = this.safeString (transaction, 'transactionHash');
+        const currencyId = this.safeString (transaction, 'symbol');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const amount = this.safeNumber (transaction, 'size');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.safeString (transaction, 'type'), // 'TRANSFER_IN', 'TRANSFER_OUT', 'DEPOSIT', 'WITHDRAWAL'
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        params['methodName'] = 'fetchWithdrawals';
+        const response = await this.transactionsHelper (code, since, limit, params);
+        const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    async transactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        const methodName = this.safeString (params, 'methodName');
+        params = this.omit (params, 'methodName');
+        let userAddress = undefined;
+        let subAccountNumber = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, methodName, 'address');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a address parameter inside \'params\' or the wallet address set');
         }
         const request: Dict = {
             'address': userAddress,
@@ -1323,11 +1375,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const transfers = this.safeList (response, 'transfers', []);
-        const transferIn = this.filterBy (transfers, 'type', 'TRANSFER_IN');
-        const transferOut = this.filterBy (transfers, 'type', 'TRANSFER_OUT');
-        const rows = this.arrayConcat (transferIn, transferOut);
-        return this.parseTransfers (rows, currency, since, limit);
+        return this.safeList (response, 'transfers', []);
     }
 
     nonce () {
