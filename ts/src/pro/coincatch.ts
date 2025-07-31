@@ -165,7 +165,7 @@ export default class coincatch extends coincatchRest {
             'args': args,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, subscribeHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
     }
 
     handleAuthenticate (client: Client, message) {
@@ -184,7 +184,7 @@ export default class coincatch extends coincatchRest {
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, subscribeHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
     }
 
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {

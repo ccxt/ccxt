@@ -89,7 +89,7 @@ export default class upbit extends upbitRest {
                 // 'isOnlyRealtime': false,
             },
         ];
-        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     /**
@@ -181,7 +181,7 @@ export default class upbit extends upbitRest {
                 // 'isOnlyRealtime': false,
             },
         ];
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

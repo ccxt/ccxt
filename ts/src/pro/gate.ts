@@ -2032,7 +2032,7 @@ export default class gate extends gateRest {
             'payload': payload,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async unSubscribePublicMultiple (url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params = {}) {

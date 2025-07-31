@@ -326,7 +326,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById (undefined);
+            this.positions = new ArrayCacheBySymbolById ();
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'positions', []);

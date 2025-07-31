@@ -338,7 +338,7 @@ export default class blofin extends blofinRest {
             });
         }
         const request = this.getSubscriptionRequest (args);
-        const ticker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, undefined);
+        const ticker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -681,7 +681,7 @@ export default class blofin extends blofinRest {
         const request = this.getSubscriptionRequest (rawSubscriptions);
         const privateOrPublic = isPublic ? 'public' : 'private';
         const url = this.implodeHostname (this.urls['api']['ws'][marketType][privateOrPublic]);
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
     getSubscriptionRequest (args) {

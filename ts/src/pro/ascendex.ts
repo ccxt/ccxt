@@ -69,7 +69,7 @@ export default class ascendex extends ascendexRest {
             'op': 'sub',
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {

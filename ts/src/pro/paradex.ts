@@ -255,7 +255,7 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
-        const newTickers = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, undefined);
+        const newTickers = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTickers['symbol']] = newTickers;

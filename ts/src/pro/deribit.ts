@@ -937,7 +937,7 @@ export default class deribit extends deribitRest {
         if (jsonedText.length >= maxMessageByteLimit) {
             throw new ExchangeError (this.id + ' requested subscription length over limit, try to reduce symbols amount');
         }
-        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions, undefined);
+        return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
     handleMessage (client: Client, message) {

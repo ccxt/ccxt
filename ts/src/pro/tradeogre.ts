@@ -203,7 +203,7 @@ export default class tradeogre extends tradeogreRest {
             't': '*',
         };
         const url = this.urls['api']['ws'];
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ 'trades' ], undefined);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ 'trades' ]);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

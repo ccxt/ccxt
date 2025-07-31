@@ -627,7 +627,7 @@ export default class hashkey extends hashkeyRest {
             }
         }
         const url = this.getPrivateUrl (listenKey);
-        const positions = await this.watchMultiple (url, messageHashes, undefined, messageHashes, undefined);
+        const positions = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
         if (this.newUpdates) {
             return positions;
         }

@@ -529,7 +529,7 @@ export default class gemini extends geminiRest {
         } else if (itemHashName === 'trades') {
             url += 'trades=true&bids=false&offers=false';
         }
-        return await this.watchMultiple (url, messageHashes, undefined, undefined, undefined);
+        return await this.watchMultiple (url, messageHashes, undefined);
     }
 
     handleOrderBookForMultidata (client: Client, rawOrderBookChanges, timestamp: Int, nonce: Int) {

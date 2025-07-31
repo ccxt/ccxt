@@ -374,7 +374,7 @@ export default class kucoin extends kucoinRest {
             'response': true,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     handleBidAsk (client: Client, message) {
@@ -827,7 +827,7 @@ export default class kucoin extends kucoinRest {
                 this.orderbooks[symbol] = this.orderBook ();
             } else {
                 const orderbook = this.orderbooks[symbol];
-                orderbook.reset ({});
+                orderbook.reset ();
             }
             this.orderbooks[symbol]['symbol'] = symbol;
         } else {

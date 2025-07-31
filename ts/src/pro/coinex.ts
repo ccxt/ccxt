@@ -677,7 +677,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return result;
         }
@@ -740,7 +740,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return trades;
         }
@@ -801,7 +801,7 @@ export default class coinex extends coinexRest {
         };
         const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
-        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
+        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return orderbooks;
         }
@@ -1262,7 +1262,7 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes, undefined);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return result;
         }

@@ -480,7 +480,7 @@ export default class binance extends binanceRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const message = undefined;
-        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ], undefined);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
         if (this.newUpdates) {
             return newLiquidations;
         }

@@ -1859,7 +1859,7 @@ export default class bitget extends bitgetRest {
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async authenticate (params = {}) {

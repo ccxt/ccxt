@@ -259,7 +259,7 @@ export default class mexc extends mexcRest {
             request['params'] = {};
             messageHashes.push ('ticker');
         }
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (isSpot && this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -448,7 +448,7 @@ export default class mexc extends mexcRest {
             'method': 'SUBSCRIPTION',
             'params': topics,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -1531,7 +1531,7 @@ export default class mexc extends mexcRest {
             messageHashes.push ('unsubscribe:ticker');
         }
         const client = this.client (url);
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }
@@ -1572,7 +1572,7 @@ export default class mexc extends mexcRest {
             'params': topics,
         };
         const client = this.client (url);
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }

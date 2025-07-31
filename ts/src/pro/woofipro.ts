@@ -1269,15 +1269,15 @@ export default class woofipro extends woofiproRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             }
             return false;
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (e, messageHash);
+                client.reject (error, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (e);
+                client.reject (error);
             }
             return true;
         }

@@ -169,7 +169,7 @@ export default class p2b extends p2bRest {
             'params': args,
             'id': this.milliseconds (),
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
@@ -216,7 +216,7 @@ export default class p2b extends p2bRest {
             'id': this.milliseconds (),
         };
         const query = this.extend (subscribe, params);
-        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes, undefined);
+        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
