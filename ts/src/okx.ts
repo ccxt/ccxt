@@ -2454,7 +2454,7 @@ export default class okx extends Exchange {
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
         if (limit === undefined) {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else {
             const maxLimit = this.inArray (price, [ 'mark', 'index' ]) ? 100 : 300;
             limit = Math.min (limit, maxLimit);
