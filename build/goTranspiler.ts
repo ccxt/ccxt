@@ -840,8 +840,7 @@ class NewTranspiler {
         const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
             'error': 'e',
-            'time': 'timeVar',
-            'delta': 'deltaVar',
+            'time': 'timeVar'
         }
         return goReservedWordsReplacement[name] || name;
     }
