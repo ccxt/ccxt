@@ -2451,21 +2451,12 @@ export default class okx extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let features = this.safeDict (this.features, market['type'], {});
-        if (market['subType'] !== undefined) {
-            features = this.safeDict (features, market['subType'], {});
-        }
-        const ohlcvFeatures = this.safeDict (features, 'fetchOHLCV', {});
-        const limitForIndexAndMark = this.safeInteger (ohlcvFeatures, price, 100);
-        const historicalLimit = this.safeInteger (ohlcvFeatures, 'historical', 100);
-        const defaultLimit = this.safeInteger (ohlcvFeatures, 'limit', 300); // max 300 for normal candles
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
-        const isMarkOrIndex = this.inArray (price, [ 'mark', 'index' ]);
-        const maxLimit = isMarkOrIndex ? limitForIndexAndMark : defaultLimit;
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         } else {
+            const maxLimit = this.inArray (price, [ 'mark', 'index' ]) ? 100 : 300;
             limit = Math.min (limit, maxLimit);
         }
         const duration = this.parseTimeframe (timeframe);
@@ -2486,6 +2477,7 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
+                const historicalLimit = this.featureValue (market['type'], market['subType'], 'fetchOHLCV', 'historical', 100);
                 limit = Math.min (limit, historicalLimit);
             }
             const startTime = Math.max (since - 1, 0);
