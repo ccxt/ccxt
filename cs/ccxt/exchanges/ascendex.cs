@@ -1501,6 +1501,8 @@ public partial class ascendex : Exchange
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1508,7 +1510,7 @@ public partial class ascendex : Exchange
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1597,7 +1599,7 @@ public partial class ascendex : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market, "/");
-        object timestamp = this.safeInteger2(order, "timestamp", "sendingTime");
+        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "sendingTime", "time"});
         object lastTradeTimestamp = this.safeInteger(order, "lastExecTime");
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1605,7 +1607,7 @@ public partial class ascendex : Exchange
         }
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "orderQty");
-        object average = this.safeString(order, "avgPx");
+        object average = this.safeString2(order, "avgPx", "avgFilledPx");
         object filled = this.safeStringN(order, new List<object>() {"cumFilledQty", "cumQty", "fillQty"});
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "id");
@@ -1643,13 +1645,13 @@ public partial class ascendex : Exchange
         }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
-        object execInst = this.safeString(order, "execInst");
-        if (isTrue(isEqual(execInst, "reduceOnly")))
+        object execInst = this.safeStringLower(order, "execInst");
+        if (isTrue(isEqual(execInst, "reduceonly")))
         {
             reduceOnly = true;
         }
         object postOnly = null;
-        if (isTrue(isEqual(execInst, "Post")))
+        if (isTrue(isEqual(execInst, "post")))
         {
             postOnly = true;
         }
@@ -2464,8 +2466,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (!isTrue(isArray))
+        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             data = this.safeList(data, "data", new List<object>() {});
         }
@@ -2678,9 +2679,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

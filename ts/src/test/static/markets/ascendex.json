@@ -1404,5 +1404,136 @@
         "tierBased": true,
         "percentage": true,
         "feeSide": "get"
+    },
+    "LINK/USDT:USDT": {
+        "id": "LINK-PERP",
+        "lowercaseId": null,
+        "symbol": "LINK/USDT:USDT",
+        "base": "LINK",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "LINK",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.1,
+                "max": 100000000000000
+            },
+            "price": {
+                "min": 0.001,
+                "max": 1000000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1688437800000,
+        "info": {
+            "symbol": "LINK-PERP",
+            "status": "Normal",
+            "displayName": "LINKUSDT",
+            "settlementAsset": "USDT",
+            "underlying": "LINK/USDT",
+            "tradingStartTime": "1688437800000",
+            "priceFilter": {
+                "minPrice": "0.001",
+                "maxPrice": "1000000",
+                "tickSize": "0.001"
+            },
+            "lotSizeFilter": {
+                "minQty": "0.1",
+                "maxQty": "100000000000000",
+                "lotSize": "0.1"
+            },
+            "commissionType": "Quote",
+            "commissionReserveRate": "0.001",
+            "marketOrderPriceMarkup": "0.1",
+            "marginRequirements": [
+                {
+                    "positionNotionalLowerBound": "0",
+                    "positionNotionalUpperBound": "8000",
+                    "initialMarginRate": "0.01",
+                    "maintenanceMarginRate": "0.0065"
+                },
+                {
+                    "positionNotionalLowerBound": "8000",
+                    "positionNotionalUpperBound": "15000",
+                    "initialMarginRate": "0.013333",
+                    "maintenanceMarginRate": "0.008"
+                },
+                {
+                    "positionNotionalLowerBound": "15000",
+                    "positionNotionalUpperBound": "30000",
+                    "initialMarginRate": "0.02",
+                    "maintenanceMarginRate": "0.014"
+                },
+                {
+                    "positionNotionalLowerBound": "30000",
+                    "positionNotionalUpperBound": "80000",
+                    "initialMarginRate": "0.033333",
+                    "maintenanceMarginRate": "0.023"
+                },
+                {
+                    "positionNotionalLowerBound": "80000",
+                    "positionNotionalUpperBound": "150000",
+                    "initialMarginRate": "0.05",
+                    "maintenanceMarginRate": "0.035"
+                },
+                {
+                    "positionNotionalLowerBound": "150000",
+                    "positionNotionalUpperBound": "250000",
+                    "initialMarginRate": "0.1",
+                    "maintenanceMarginRate": "0.07"
+                },
+                {
+                    "positionNotionalLowerBound": "250000",
+                    "positionNotionalUpperBound": "500000",
+                    "initialMarginRate": "0.2",
+                    "maintenanceMarginRate": "0.11"
+                },
+                {
+                    "positionNotionalLowerBound": "500000",
+                    "positionNotionalUpperBound": "1000000000",
+                    "initialMarginRate": "1",
+                    "maintenanceMarginRate": "0.55"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

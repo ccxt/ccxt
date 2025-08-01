@@ -669,7 +669,6 @@ export default class gate extends Exchange {
                     'SOL': 'SOL',
                     'POLYGON': 'POL',
                     'MATIC': 'POL',
-                    'OP': 'OPETH',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',
@@ -1237,7 +1236,7 @@ export default class gate extends Exchange {
             this.fetchOptionMarkets (params),
         ];
         if (!sandboxMode) {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             const mainnetOnly = [ this.fetchSpotMarkets (params) ];
             rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
         }
@@ -1660,7 +1659,7 @@ export default class gate extends Exchange {
                     'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
-                    'strike': strike,
+                    'strike': this.parseNumber (strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': this.parseNumber ('1'), // all options have this step size
@@ -3910,7 +3909,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        [ request, params ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -3949,7 +3948,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        [ request, params ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }

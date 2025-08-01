@@ -3104,21 +3104,21 @@ func  (this *deribit) ParsePosition(position interface{}, optionalArgs ...interf
     var unrealizedPnl interface{} = this.SafeString(position, "floating_profit_loss")
     var initialMarginString interface{} = this.SafeString(position, "initial_margin")
     var notionalString interface{} = this.SafeString(position, "size_currency")
+    var notionalStringAbs interface{} = Precise.StringAbs(notionalString)
     var maintenanceMarginString interface{} = this.SafeString(position, "maintenance_margin")
-    var currentTime interface{} = this.Milliseconds()
     return this.SafePosition(map[string]interface{} {
         "info": position,
         "id": nil,
         "symbol": this.SafeString(market, "symbol"),
-        "timestamp": currentTime,
-        "datetime": this.Iso8601(currentTime),
+        "timestamp": nil,
+        "datetime": nil,
         "lastUpdateTimestamp": nil,
         "initialMargin": this.ParseNumber(initialMarginString),
-        "initialMarginPercentage": this.ParseNumber(Precise.StringMul(Precise.StringDiv(initialMarginString, notionalString), "100")),
+        "initialMarginPercentage": this.ParseNumber(Precise.StringMul(Precise.StringDiv(initialMarginString, notionalStringAbs), "100")),
         "maintenanceMargin": this.ParseNumber(maintenanceMarginString),
-        "maintenanceMarginPercentage": this.ParseNumber(Precise.StringMul(Precise.StringDiv(maintenanceMarginString, notionalString), "100")),
+        "maintenanceMarginPercentage": this.ParseNumber(Precise.StringMul(Precise.StringDiv(maintenanceMarginString, notionalStringAbs), "100")),
         "entryPrice": this.SafeNumber(position, "average_price"),
-        "notional": this.ParseNumber(notionalString),
+        "notional": this.ParseNumber(notionalStringAbs),
         "leverage": this.SafeInteger(position, "leverage"),
         "unrealizedPnl": this.ParseNumber(unrealizedPnl),
         "contracts": nil,

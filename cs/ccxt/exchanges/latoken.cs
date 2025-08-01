@@ -20,6 +20,10 @@ public partial class latoken : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
@@ -29,9 +33,14 @@ public partial class latoken : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -46,12 +55,34 @@ public partial class latoken : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -62,6 +93,8 @@ public partial class latoken : Exchange
                 { "fetchPositionsForSymbol", false },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
+                { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -71,6 +104,15 @@ public partial class latoken : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", true },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "setLeverage", false },
+                { "setMargin", false },
+                { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "transfer", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -225,6 +267,8 @@ public partial class latoken : Exchange
                 { "fetchTradingFee", new Dictionary<string, object>() {
                     { "method", "fetchPrivateTradingFee" },
                 } },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", true },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -333,39 +377,6 @@ public partial class latoken : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currencies = await this.fetchCurrenciesFromCache(parameters);
-        //
-        //     [
-        //         {
-        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
-        //             "status":"CURRENCY_STATUS_ACTIVE",
-        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
-        //             "name":"MyCryptoBank",
-        //             "tag":"MCB",
-        //             "description":"",
-        //             "logo":"",
-        //             "decimals":18,
-        //             "created":1572912000000,
-        //             "tier":1,
-        //             "assetClass":"ASSET_CLASS_UNKNOWN",
-        //             "minTransferAmount":0
-        //         },
-        //         {
-        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
-        //             "status":"CURRENCY_STATUS_ACTIVE",
-        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
-        //             "name":"BTC USDT Futures Contract",
-        //             "tag":"BTCUSDT",
-        //             "description":"",
-        //             "logo":"",
-        //             "decimals":8,
-        //             "created":1589459984395,
-        //             "tier":1,
-        //             "assetClass":"ASSET_CLASS_UNKNOWN",
-        //             "minTransferAmount":0
-        //         },
-        //     ]
-        //
         object response = await this.publicGetPair(parameters);
         //
         //     [
@@ -387,10 +398,11 @@ public partial class latoken : Exchange
         //         }
         //     ]
         //
-        if (isTrue(this.safeValue(this.options, "adjustForTimeDifference", true)))
+        if (isTrue(this.safeBool(this.options, "adjustForTimeDifference", false)))
         {
             await this.loadTimeDifference();
         }
+        object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         object currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -400,12 +412,14 @@ public partial class latoken : Exchange
             // the exchange shows them inverted
             object baseId = this.safeString(market, "baseCurrency");
             object quoteId = this.safeString(market, "quoteCurrency");
-            object baseCurrency = this.safeValue(currenciesById, baseId);
-            object quoteCurrency = this.safeValue(currenciesById, quoteId);
-            if (isTrue(isTrue(!isEqual(baseCurrency, null)) && isTrue(!isEqual(quoteCurrency, null))))
+            object baseCurrency = this.safeDict(currenciesById, baseId);
+            object quoteCurrency = this.safeDict(currenciesById, quoteId);
+            object baseCurrencyInfo = this.safeDict(baseCurrency, "info");
+            object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
+            if (isTrue(isTrue(!isEqual(baseCurrencyInfo, null)) && isTrue(!isEqual(quoteCurrencyInfo, null))))
             {
-                object bs = this.safeCurrencyCode(this.safeString(baseCurrency, "tag"));
-                object quote = this.safeCurrencyCode(this.safeString(quoteCurrency, "tag"));
+                object bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
+                object quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                 object lowercaseQuote = ((string)quote).ToLower();
                 object capitalizedQuote = this.capitalize(lowercaseQuote);
                 object status = this.safeString(market, "status");
@@ -463,26 +477,6 @@ public partial class latoken : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchCurrenciesFromCache(object parameters = null)
-    {
-        // this method is now redundant
-        // currencies are now fetched before markets
-        parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(options, "timestamp");
-        object expires = this.safeInteger(options, "expires", 1000);
-        object now = this.milliseconds();
-        if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
-        {
-            object response = await this.publicGetCurrency(parameters);
-            ((IDictionary<string,object>)this.options)["fetchCurrencies"] = this.extend(options, new Dictionary<string, object>() {
-                { "response", response },
-                { "timestamp", now },
-            });
-        }
-        return this.safeValue(getValue(this.options, "fetchCurrencies"), "response");
-    }
-
     /**
      * @method
      * @name latoken#fetchCurrencies
@@ -493,7 +487,7 @@ public partial class latoken : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fetchCurrenciesFromCache(parameters);
+        object response = await this.publicGetCurrency(parameters);
         //
         //     [
         //         {
@@ -533,30 +527,18 @@ public partial class latoken : Exchange
             object id = this.safeString(currency, "id");
             object tag = this.safeString(currency, "tag");
             object code = this.safeCurrencyCode(tag);
-            object fee = this.safeNumber(currency, "fee");
             object currencyType = this.safeString(currency, "type");
-            object type = null;
-            if (isTrue(isEqual(currencyType, "CURRENCY_TYPE_ALTERNATIVE")))
-            {
-                type = "other";
-            } else
-            {
-                // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
-                type = "crypto";
-            }
-            object status = this.safeString(currency, "status");
-            object active = (isEqual(status, "CURRENCY_STATUS_ACTIVE"));
-            object name = this.safeString(currency, "name");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
-                { "name", name },
-                { "type", type },
-                { "active", active },
+                { "name", this.safeString(currency, "name") },
+                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
+                { "active", isEqual(this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") },
                 { "deposit", null },
                 { "withdraw", null },
-                { "fee", fee },
+                { "fee", this.safeNumber(currency, "fee") },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -569,7 +551,7 @@ public partial class latoken : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+            });
         }
         return result;
     }

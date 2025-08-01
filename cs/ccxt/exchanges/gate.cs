@@ -659,7 +659,6 @@ public partial class gate : Exchange
                     { "SOL", "SOL" },
                     { "POLYGON", "POL" },
                     { "MATIC", "POL" },
-                    { "OP", "OPETH" },
                     { "OPTIMISM", "OPETH" },
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
@@ -1162,7 +1161,7 @@ public partial class gate : Exchange
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1605,7 +1604,7 @@ public partial class gate : Exchange
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
-                    { "strike", strike },
+                    { "strike", this.parseNumber(strike) },
                     { "optionType", optionType },
                     { "precision", new Dictionary<string, object>() {
                         { "amount", this.parseNumber("1") },
@@ -4108,7 +4107,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(multiply(multiply(30, 24), 60), 60));
         }
-        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.privateWalletGetDeposits(this.extend(request, parameters));
@@ -4157,7 +4156,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(multiply(multiply(30, 24), 60), 60));
         }
-        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.privateWalletGetWithdrawals(this.extend(request, parameters));

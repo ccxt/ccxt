@@ -1719,7 +1719,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        return self.safe_order({'info': response})
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -1811,7 +1811,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
+        return [self.safe_order({'info': data})]
 
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """

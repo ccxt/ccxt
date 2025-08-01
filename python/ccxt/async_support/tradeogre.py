@@ -425,13 +425,13 @@ class tradeogre(Exchange, ImplicitAPI):
             'vwap': None,
             'open': self.safe_string(ticker, 'initialprice'),
             'close': self.safe_string(ticker, 'price'),
-            'last': None,
+            'last': self.safe_string(ticker, 'price'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_string(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': None,
             'info': ticker,
         }, market)
 

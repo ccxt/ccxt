@@ -4,7 +4,7 @@ package ccxt
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
     switch exchangeId {
     case "Exchange":
         ExchangeItf := &Exchange{}
@@ -174,10 +174,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         coinexItf := &coinex{}
         coinexItf.Init(exchangeArgs)
         return coinexItf, true
-    case "coinlist":
-        coinlistItf := &coinlist{}
-        coinlistItf.Init(exchangeArgs)
-        return coinlistItf, true
     case "coinmate":
         coinmateItf := &coinmate{}
         coinmateItf.Init(exchangeArgs)
@@ -238,6 +234,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         fmfwioItf := &fmfwio{}
         fmfwioItf.Init(exchangeArgs)
         return fmfwioItf, true
+    case "foxbit":
+        foxbitItf := &foxbit{}
+        foxbitItf.Init(exchangeArgs)
+        return foxbitItf, true
     case "gate":
         gateItf := &gate{}
         gateItf.Init(exchangeArgs)

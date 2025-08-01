@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.89'
+__version__ = '4.4.98'
 
 # -----------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -104,7 +105,6 @@ from ccxt.async_support.coinbaseinternational import coinbaseinternational      
 from ccxt.async_support.coincatch import coincatch                              # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
-from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinmetro import coinmetro                              # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
@@ -120,6 +120,7 @@ from ccxt.async_support.digifinex import digifinex                              
 from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
+from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
@@ -212,7 +213,6 @@ exchanges = [
     'coincatch',
     'coincheck',
     'coinex',
-    'coinlist',
     'coinmate',
     'coinmetro',
     'coinone',
@@ -228,6 +228,7 @@ exchanges = [
     'ellipx',
     'exmo',
     'fmfwio',
+    'foxbit',
     'gate',
     'gateio',
     'gemini',

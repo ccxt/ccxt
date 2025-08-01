@@ -15,6 +15,7 @@ func BaseTestsInit()  {
     TestNumberToString()
     TestPrecise()
     TestSafeMethods()
+    TestSafeTicker()
     // testJson ();
     TestSortBy()
     TestSum()
@@ -23,4 +24,5 @@ func BaseTestsInit()  {
     TestFilterBy()
     TestHandleMethods()
     TestRemoveRepeatedElementsFromArray()
+    TestParsePrecision()
 }

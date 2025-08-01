@@ -687,7 +687,6 @@ class gate(Exchange, ImplicitAPI):
                     'SOL': 'SOL',
                     'POLYGON': 'POL',
                     'MATIC': 'POL',
-                    'OP': 'OPETH',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',  # CARDANO
                     'AVAXC': 'AVAX_C',
@@ -1242,7 +1241,7 @@ class gate(Exchange, ImplicitAPI):
             self.fetch_option_markets(params),
         ]
         if not sandboxMode:
-            # gate does not have a sandbox for spot markets
+            # gate doesn't have a sandbox for spot markets
             mainnetOnly = [self.fetch_spot_markets(params)]
             rawPromises = self.array_concat(rawPromises, mainnetOnly)
         promises = await asyncio.gather(*rawPromises)
@@ -1653,7 +1652,7 @@ class gate(Exchange, ImplicitAPI):
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
-                    'strike': strike,
+                    'strike': self.parse_number(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': self.parse_number('1'),  # all options have self step size
@@ -3755,7 +3754,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -3789,7 +3788,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 

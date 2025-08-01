@@ -55,7 +55,7 @@ public partial class cryptocom : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
                 { "fetchGreeks", false },
@@ -430,6 +430,7 @@ public partial class cryptocom : Exchange
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "219", typeof(InvalidOrder) },
+                    { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },
@@ -503,7 +504,29 @@ public partial class cryptocom : Exchange
         {
             return null;
         }
-        object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        object skipFetchCurrencies = false;
+        var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        skipFetchCurrencies = ((IList<object>)skipFetchCurrenciesparametersVariable)[0];
+        parameters = ((IList<object>)skipFetchCurrenciesparametersVariable)[1];
+        if (isTrue(skipFetchCurrencies))
+        {
+            // sub-accounts can't access this endpoint
+            return null;
+        }
+        object response = new Dictionary<string, object>() {};
+        try
+        {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        } catch(Exception e)
+        {
+            if (isTrue(e is ExchangeError))
+            {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return null;
+            }
+            throw e;
+        }
         //
         //    {
         //        "id": "1747502328559",
@@ -528,7 +551,7 @@ public partial class cryptocom : Exchange
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },
@@ -1805,7 +1828,10 @@ public partial class cryptocom : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
+        object response = await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -3210,6 +3236,88 @@ public partial class cryptocom : Exchange
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+            { "valuation_type", "estimated_funding_rate" },
+            { "count", 1 },
+        };
+        object response = await this.v1PublicGetPublicGetValuations(this.extend(request, parameters));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
+        object entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(entry, market);
+    }
+
+    public override object parseFundingRate(object contract, object market = null)
+    {
+        //
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //
+        object timestamp = this.safeInteger(contract, "t");
+        object fundingTimestamp = null;
+        if (isTrue(!isEqual(timestamp, null)))
+        {
+            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble(divide(timestamp, 3600000))), 3600000); // end of the next hour
+        }
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(null, market) },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "fundingRate", this.safeNumber(contract, "v") },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", "1h" },
+        };
     }
 
     /**

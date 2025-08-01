@@ -6679,7 +6679,7 @@ class htx extends Exchange {
             $fee = $this->safe_number($params, 'fee');
             if ($fee === null) {
                 $currencies = $this->fetch_currencies();
-                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
                 $targetNetwork = $this->safe_value($currency['networks'], $networkCode, array());
                 $fee = $this->safe_number($targetNetwork, 'fee');
                 if ($fee === null) {
@@ -6928,13 +6928,18 @@ class htx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page_index', 'current_page', 1, 50);
+            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50);
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'contract_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        } else {
+            $request['page_size'] = 50; // max
+        }
         $response = null;
         if ($market['inverse']) {
             $response = $this->contractPublicGetSwapApiV1SwapHistoricalFundingRate ($this->extend($request, $params));

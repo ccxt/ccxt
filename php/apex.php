@@ -1541,7 +1541,7 @@ class apex extends Exchange {
         );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -1560,7 +1560,7 @@ class apex extends Exchange {
         }
         $response = $this->privatePostV3DeleteOpenOrders ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
-        return $data;
+        return array( $this->parse_order($data, $market) );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1586,7 +1586,7 @@ class apex extends Exchange {
             $response = $this->privatePostV3DeleteOrder ($this->extend($request, $params));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $data;
+        return $this->safe_order($data);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

@@ -8,2401 +8,601 @@
 package ccxt
 
 func (this *wavesexchange) MatcherGetMatcher (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcher", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcher", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherSettings", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherSettingsRates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherSettingsRates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherSettingsRates", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherBalanceReservedPublicKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherBalanceReservedPublicKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherBalanceReservedPublicKey", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugAllSnashotOffsets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugAllSnashotOffsets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugAllSnashotOffsets", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugCurrentOffset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugCurrentOffset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugCurrentOffset", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugLastOffset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugLastOffset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugLastOffset", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugOldestSnapshotOffset (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugOldestSnapshotOffset", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugOldestSnapshotOffset", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugConfig", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugAddressAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugAddressAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugAddressAddress", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugStatus", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherDebugAddressAddressCheck (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherDebugAddressAddressCheck", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherDebugAddressAddressCheck", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbook", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteId", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteIdOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteIdOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdOrderId", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteIdInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteIdInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdInfo", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteIdStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteIdStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdStatus", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookBaseIdQuoteIdTradableBalanceAddress", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookPublicKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookPublicKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKey", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrderbookPublicKeyOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrderbookPublicKeyOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrderbookPublicKeyOrderId", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrdersAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrdersAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrdersAddress", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherOrdersAddressOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherOrdersAddressOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherOrdersAddressOrderId", args...)
 }
 
 func (this *wavesexchange) MatcherGetMatcherTransactionsOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetMatcherTransactionsOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetMatcherTransactionsOrderId", args...)
 }
 
 func (this *wavesexchange) MatcherGetApiV1OrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherGetApiV1OrderbookBaseIdQuoteId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherGetApiV1OrderbookBaseIdQuoteId", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbook", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookMarket", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookCancel", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookBaseIdQuoteIdCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookBaseIdQuoteIdCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancel", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookBaseIdQuoteIdDelete (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookBaseIdQuoteIdDelete", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdDelete", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrderbookBaseIdQuoteIdCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrderbookBaseIdQuoteIdCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrderbookBaseIdQuoteIdCancelAll", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherDebugSaveSnapshots (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherDebugSaveSnapshots", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherDebugSaveSnapshots", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrdersAddressCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrdersAddressCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrdersAddressCancel", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrdersCancelOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrdersCancelOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrdersCancelOrderId", args...)
 }
 
 func (this *wavesexchange) MatcherPostMatcherOrdersSerialize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPostMatcherOrdersSerialize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPostMatcherOrdersSerialize", args...)
 }
 
 func (this *wavesexchange) MatcherDeleteMatcherOrderbookBaseIdQuoteId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherDeleteMatcherOrderbookBaseIdQuoteId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherDeleteMatcherOrderbookBaseIdQuoteId", args...)
 }
 
 func (this *wavesexchange) MatcherDeleteMatcherSettingsRatesAssetId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherDeleteMatcherSettingsRatesAssetId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherDeleteMatcherSettingsRatesAssetId", args...)
 }
 
 func (this *wavesexchange) MatcherPutMatcherSettingsRatesAssetId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("matcherPutMatcherSettingsRatesAssetId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("matcherPutMatcherSettingsRatesAssetId", args...)
 }
 
 func (this *wavesexchange) NodeGetAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddresses", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesBalanceAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesBalanceAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesBalanceAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesBalanceAddressConfirmations (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesBalanceAddressConfirmations", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesBalanceAddressConfirmations", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesBalanceDetailsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesBalanceDetailsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesBalanceDetailsAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesDataAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesDataAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesDataAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesDataAddressKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesDataAddressKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesDataAddressKey", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesEffectiveBalanceAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesEffectiveBalanceAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesEffectiveBalanceAddressConfirmations (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesEffectiveBalanceAddressConfirmations", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesEffectiveBalanceAddressConfirmations", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesPublicKeyPublicKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesPublicKeyPublicKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesPublicKeyPublicKey", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesScriptInfoAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesScriptInfoAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesScriptInfoAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesScriptInfoAddressMeta (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesScriptInfoAddressMeta", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesScriptInfoAddressMeta", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesSeedAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesSeedAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesSeedAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesSeqFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesSeqFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesSeqFromTo", args...)
 }
 
 func (this *wavesexchange) NodeGetAddressesValidateAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAddressesValidateAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAddressesValidateAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAliasByAddressAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAliasByAddressAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAliasByAddressAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAliasByAliasAlias (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAliasByAliasAlias", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAliasByAliasAlias", args...)
 }
 
 func (this *wavesexchange) NodeGetAssetsAssetIdDistributionHeightLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAssetsAssetIdDistributionHeightLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAssetsAssetIdDistributionHeightLimit", args...)
 }
 
 func (this *wavesexchange) NodeGetAssetsBalanceAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAssetsBalanceAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAssetsBalanceAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetAssetsBalanceAddressAssetId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAssetsBalanceAddressAssetId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAssetsBalanceAddressAssetId", args...)
 }
 
 func (this *wavesexchange) NodeGetAssetsDetailsAssetId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAssetsDetailsAssetId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAssetsDetailsAssetId", args...)
 }
 
 func (this *wavesexchange) NodeGetAssetsNftAddressLimitLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetAssetsNftAddressLimitLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetAssetsNftAddressLimitLimit", args...)
 }
 
 func (this *wavesexchange) NodeGetBlockchainRewards (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlockchainRewards", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlockchainRewards", args...)
 }
 
 func (this *wavesexchange) NodeGetBlockchainRewardsHeight (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlockchainRewardsHeight", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlockchainRewardsHeight", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksAddressAddressFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksAddressAddressFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksAddressAddressFromTo", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksAtHeight (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksAtHeight", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksAtHeight", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksDelaySignatureBlockNum (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksDelaySignatureBlockNum", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksDelaySignatureBlockNum", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksFirst (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksFirst", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksFirst", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksHeadersLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksHeadersLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksHeadersLast", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksHeadersSeqFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksHeadersSeqFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksHeadersSeqFromTo", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksHeight (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksHeight", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksHeight", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksHeightSignature (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksHeightSignature", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksHeightSignature", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksLast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksLast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksLast", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksSeqFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksSeqFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksSeqFromTo", args...)
 }
 
 func (this *wavesexchange) NodeGetBlocksSignatureSignature (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetBlocksSignatureSignature", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetBlocksSignatureSignature", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusAlgo", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusBasetarget (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusBasetarget", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusBasetarget", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusBasetargetBlockId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusBasetargetBlockId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusBasetargetBlockId", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusGeneratingbalanceAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusGeneratingbalanceAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusGeneratingbalanceAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusGenerationsignature (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusGenerationsignature", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusGenerationsignature", args...)
 }
 
 func (this *wavesexchange) NodeGetConsensusGenerationsignatureBlockId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetConsensusGenerationsignatureBlockId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetConsensusGenerationsignatureBlockId", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugBalancesHistoryAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugBalancesHistoryAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugBalancesHistoryAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugBlocksHowMany (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugBlocksHowMany", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugBlocksHowMany", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugConfigInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugConfigInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugConfigInfo", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugHistoryInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugHistoryInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugHistoryInfo", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugInfo", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugMinerInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugMinerInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugMinerInfo", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugPortfoliosAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugPortfoliosAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugPortfoliosAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugState", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugStateChangesAddressAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugStateChangesAddressAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugStateChangesAddressAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugStateChangesInfoId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugStateChangesInfoId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugStateChangesInfoId", args...)
 }
 
 func (this *wavesexchange) NodeGetDebugStateWavesHeight (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetDebugStateWavesHeight", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetDebugStateWavesHeight", args...)
 }
 
 func (this *wavesexchange) NodeGetLeasingActiveAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetLeasingActiveAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetLeasingActiveAddress", args...)
 }
 
 func (this *wavesexchange) NodeGetNodeState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetNodeState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetNodeState", args...)
 }
 
 func (this *wavesexchange) NodeGetNodeVersion (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetNodeVersion", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetNodeVersion", args...)
 }
 
 func (this *wavesexchange) NodeGetPeersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetPeersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetPeersAll", args...)
 }
 
 func (this *wavesexchange) NodeGetPeersBlacklisted (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetPeersBlacklisted", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetPeersBlacklisted", args...)
 }
 
 func (this *wavesexchange) NodeGetPeersConnected (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetPeersConnected", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetPeersConnected", args...)
 }
 
 func (this *wavesexchange) NodeGetPeersSuspended (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetPeersSuspended", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetPeersSuspended", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsAddressAddressLimitLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsAddressAddressLimitLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsAddressAddressLimitLimit", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsInfoId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsInfoId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsInfoId", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsStatus", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsUnconfirmed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsUnconfirmed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmed", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsUnconfirmedInfoId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsUnconfirmedInfoId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmedInfoId", args...)
 }
 
 func (this *wavesexchange) NodeGetTransactionsUnconfirmedSize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetTransactionsUnconfirmedSize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetTransactionsUnconfirmedSize", args...)
 }
 
 func (this *wavesexchange) NodeGetUtilsSeed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetUtilsSeed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetUtilsSeed", args...)
 }
 
 func (this *wavesexchange) NodeGetUtilsSeedLength (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetUtilsSeedLength", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetUtilsSeedLength", args...)
 }
 
 func (this *wavesexchange) NodeGetUtilsTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetUtilsTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetUtilsTime", args...)
 }
 
 func (this *wavesexchange) NodeGetWalletSeed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeGetWalletSeed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeGetWalletSeed", args...)
 }
 
 func (this *wavesexchange) NodePostAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddresses", args...)
 }
 
 func (this *wavesexchange) NodePostAddressesDataAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddressesDataAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddressesDataAddress", args...)
 }
 
 func (this *wavesexchange) NodePostAddressesSignAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddressesSignAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddressesSignAddress", args...)
 }
 
 func (this *wavesexchange) NodePostAddressesSignTextAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddressesSignTextAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddressesSignTextAddress", args...)
 }
 
 func (this *wavesexchange) NodePostAddressesVerifyAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddressesVerifyAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddressesVerifyAddress", args...)
 }
 
 func (this *wavesexchange) NodePostAddressesVerifyTextAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostAddressesVerifyTextAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostAddressesVerifyTextAddress", args...)
 }
 
 func (this *wavesexchange) NodePostDebugBlacklist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostDebugBlacklist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostDebugBlacklist", args...)
 }
 
 func (this *wavesexchange) NodePostDebugPrint (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostDebugPrint", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostDebugPrint", args...)
 }
 
 func (this *wavesexchange) NodePostDebugRollback (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostDebugRollback", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostDebugRollback", args...)
 }
 
 func (this *wavesexchange) NodePostDebugValidate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostDebugValidate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostDebugValidate", args...)
 }
 
 func (this *wavesexchange) NodePostNodeStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostNodeStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostNodeStop", args...)
 }
 
 func (this *wavesexchange) NodePostPeersClearblacklist (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostPeersClearblacklist", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostPeersClearblacklist", args...)
 }
 
 func (this *wavesexchange) NodePostPeersConnect (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostPeersConnect", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostPeersConnect", args...)
 }
 
 func (this *wavesexchange) NodePostTransactionsBroadcast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostTransactionsBroadcast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostTransactionsBroadcast", args...)
 }
 
 func (this *wavesexchange) NodePostTransactionsCalculateFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostTransactionsCalculateFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostTransactionsCalculateFee", args...)
 }
 
 func (this *wavesexchange) NodePostTranasctionsSign (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostTranasctionsSign", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostTranasctionsSign", args...)
 }
 
 func (this *wavesexchange) NodePostTransactionsSignSignerAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostTransactionsSignSignerAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostTransactionsSignSignerAddress", args...)
 }
 
 func (this *wavesexchange) NodePostTranasctionsStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostTranasctionsStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostTranasctionsStatus", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsHashFast (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsHashFast", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsHashFast", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsHashSecure (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsHashSecure", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsHashSecure", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsScriptCompileCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsScriptCompileCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsScriptCompileCode", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsScriptCompileWithImports (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsScriptCompileWithImports", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsScriptCompileWithImports", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsScriptDecompile (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsScriptDecompile", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsScriptDecompile", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsScriptEstimate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsScriptEstimate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsScriptEstimate", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsSignPrivateKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsSignPrivateKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsSignPrivateKey", args...)
 }
 
 func (this *wavesexchange) NodePostUtilsTransactionsSerialize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodePostUtilsTransactionsSerialize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodePostUtilsTransactionsSerialize", args...)
 }
 
 func (this *wavesexchange) NodeDeleteAddressesAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeDeleteAddressesAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeDeleteAddressesAddress", args...)
 }
 
 func (this *wavesexchange) NodeDeleteDebugRollbackToSignature (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("nodeDeleteDebugRollbackToSignature", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("nodeDeleteDebugRollbackToSignature", args...)
 }
 
 func (this *wavesexchange) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetAssets", args...)
 }
 
 func (this *wavesexchange) PublicGetPairs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPairs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetPairs", args...)
 }
 
 func (this *wavesexchange) PublicGetCandlesBaseIdQuoteId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesBaseIdQuoteId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetCandlesBaseIdQuoteId", args...)
 }
 
 func (this *wavesexchange) PublicGetTransactionsExchange (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTransactionsExchange", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("publicGetTransactionsExchange", args...)
 }
 
 func (this *wavesexchange) PrivateGetDepositAddressesCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositAddressesCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetDepositAddressesCurrency", args...)
 }
 
 func (this *wavesexchange) PrivateGetDepositAddressesCurrencyPlatform (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositAddressesCurrencyPlatform", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetDepositAddressesCurrencyPlatform", args...)
 }
 
 func (this *wavesexchange) PrivateGetPlatforms (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPlatforms", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetPlatforms", args...)
 }
 
 func (this *wavesexchange) PrivateGetDepositCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetDepositCurrencies", args...)
 }
 
 func (this *wavesexchange) PrivateGetWithdrawCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetWithdrawCurrencies", args...)
 }
 
 func (this *wavesexchange) PrivateGetWithdrawAddressesCurrencyAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawAddressesCurrencyAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privateGetWithdrawAddressesCurrencyAddress", args...)
 }
 
 func (this *wavesexchange) PrivatePostOauth2Token (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOauth2Token", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("privatePostOauth2Token", args...)
 }
 
 func (this *wavesexchange) ForwardGetMatcherOrdersAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("forwardGetMatcherOrdersAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("forwardGetMatcherOrdersAddress", args...)
 }
 
 func (this *wavesexchange) ForwardGetMatcherOrdersAddressOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("forwardGetMatcherOrdersAddressOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("forwardGetMatcherOrdersAddressOrderId", args...)
 }
 
 func (this *wavesexchange) ForwardPostMatcherOrdersWavesAddressCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("forwardPostMatcherOrdersWavesAddressCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("forwardPostMatcherOrdersWavesAddressCancel", args...)
 }
 
 func (this *wavesexchange) MarketGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("marketGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+   return this.callEndpointAsync("marketGetTickers", args...)
 }

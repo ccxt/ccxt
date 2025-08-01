@@ -13,7 +13,7 @@ public partial class modetrade : Exchange
             { "countries", new List<object>() {"KY"} },
             { "rateLimit", 100 },
             { "version", "v1" },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "dex", true },
             { "hostname", "trade.mode.network" },
@@ -1776,7 +1776,7 @@ public partial class modetrade : Exchange
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "data": {
         //       "status": "CANCEL_SENT"
         //     }
@@ -1784,7 +1784,7 @@ public partial class modetrade : Exchange
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "status": "CANCEL_SENT"
         // }
         //
@@ -1895,9 +1895,9 @@ public partial class modetrade : Exchange
         //     }
         // }
         //
-        return new List<object>() {new Dictionary<string, object>() {
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
-}};
+})};
     }
 
     /**

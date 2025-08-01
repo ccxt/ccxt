@@ -1785,7 +1785,7 @@ public partial class okcoin : Exchange
         if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {

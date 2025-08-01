@@ -1454,7 +1454,7 @@ class defx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_position(self, symbol: str, params={}):
         """

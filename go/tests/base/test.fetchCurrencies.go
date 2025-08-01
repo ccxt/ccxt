@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchCurrencies(exchange ccxt.IExchange, skippedProperties interface{}) <- chan interface{} {
+    func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -24,7 +24,8 @@ import "github.com/ccxt/ccxt/go/v4"
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
                     var currenciesLength interface{} =         GetArrayLength(values)
                     // ensure exchange returns enough length of currencies
-                    Assert(IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
+                    var skipAmount interface{} =         (InOp(skippedProperties, "amountOfCurrencies"))
+                    Assert(IsTrue(skipAmount) || IsTrue(IsGreaterThan(currenciesLength, 5)), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
                     // allow skipped exchanges
                     var skipActive interface{} =         (InOp(skippedProperties, "activeCurrenciesQuota"))
                     var skipMajorCurrencyCheck interface{} =         (InOp(skippedProperties, "activeMajorCurrencies"))
@@ -57,7 +58,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func DetectCurrencyConflicts(exchange ccxt.IExchange, currencyValues interface{}) interface{}  {
+    func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues interface{}) interface{}  {
         // detect if there are currencies with different ids for the same code
         var ids interface{} = map[string]interface{} {}
         var keys interface{} = ObjectKeys(currencyValues)

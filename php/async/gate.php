@@ -677,7 +677,6 @@ class gate extends Exchange {
                     'SOL' => 'SOL',
                     'POLYGON' => 'POL',
                     'MATIC' => 'POL',
-                    'OP' => 'OPETH',
                     'OPTIMISM' => 'OPETH',
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',
@@ -1252,7 +1251,7 @@ class gate extends Exchange {
                 $this->fetch_option_markets($params),
             );
             if (!$sandboxMode) {
-                // gate does not have a sandbox for spot $markets
+                // gate doesn't have a sandbox for spot $markets
                 $mainnetOnly = array( $this->fetch_spot_markets($params) );
                 $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
             }
@@ -1681,7 +1680,7 @@ class gate extends Exchange {
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
-                        'strike' => $strike,
+                        'strike' => $this->parse_number($strike),
                         'optionType' => $optionType,
                         'precision' => array(
                             'amount' => $this->parse_number('1'), // all options have this step size
@@ -3965,7 +3964,7 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();
@@ -4006,7 +4005,7 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetWithdrawals ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();

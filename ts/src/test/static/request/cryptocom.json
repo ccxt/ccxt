@@ -9,6 +9,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=BTCUSD-PERP&valuation_type=estimated_funding_rate&count=1",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "Edit spot order",
@@ -28,6 +39,7 @@
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
+                "disabled": true,
                 "method": "fetchCurrencies",
                 "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
                 "input": [],

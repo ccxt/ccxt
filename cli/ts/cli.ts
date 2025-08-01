@@ -24,7 +24,8 @@ try {
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
         local = true;
     } catch (ee) {
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first');
+        log.error (ee);
+        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
         process.exit (1);
     }
 }
@@ -69,7 +70,6 @@ interface CLIOptions {
     raw?: boolean;
     noKeys?: boolean;
     i?: boolean;
-    history?: boolean;
     name?: string;
     param?: any;
     config?: any;
@@ -119,7 +119,6 @@ program
     .option ('--clipboard', 'Copies the result to clipboard automatically.')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--cache-markets', 'forces markets caching')
-    .option ('--history', 'prints the history of executed commands')
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--no-table', 'does not prettify the results')
     .option ('--spot', 'sets defaultType as spot')
@@ -129,6 +128,7 @@ program
     .option ('--poll', 'will repeat the call continously')
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--iso8601')
+    .option ('--refresh-markets', 'forces markets refresh')
     .option ('--cors');
 
 // dev related options, docs not needed

@@ -25,7 +25,7 @@ export default class modetrade extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'hostname': 'trade.mode.network',
@@ -1719,7 +1719,7 @@ export default class modetrade extends Exchange {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "data": {
         //       "status": "CANCEL_SENT"
         //     }
@@ -1727,7 +1727,7 @@ export default class modetrade extends Exchange {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "status": "CANCEL_SENT"
         // }
         //
@@ -1738,10 +1738,10 @@ export default class modetrade extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response), extendParams);
+            return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
-        return this.extend (this.parseOrder (data), extendParams);
+        return this.extend (this.parseOrder (data), extendParams) as Order;
     }
 
     /**
@@ -1825,9 +1825,9 @@ export default class modetrade extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder ({
                 'info': response,
-            },
+            }),
         ];
     }
 

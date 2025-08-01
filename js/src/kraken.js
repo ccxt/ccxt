@@ -1383,7 +1383,20 @@ export default class kraken extends Exchange {
         //         "maker": false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         let timestamp = undefined;
+        let datetime = undefined;
         let side = undefined;
         let type = undefined;
         let price = undefined;
@@ -1434,6 +1447,15 @@ export default class kraken extends Exchange {
                 };
             }
         }
+        else {
+            symbol = this.safeString(trade, 'symbol');
+            datetime = this.safeString(trade, 'timestamp');
+            id = this.safeString(trade, 'trade_id');
+            side = this.safeString(trade, 'side');
+            type = this.safeString(trade, 'ord_type');
+            price = this.safeString(trade, 'price');
+            amount = this.safeString(trade, 'qty');
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -1443,12 +1465,18 @@ export default class kraken extends Exchange {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        else {
+            timestamp = this.parse8601(datetime);
+        }
         return this.safeTrade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': datetime,
             'symbol': symbol,
             'type': type,
             'side': side,

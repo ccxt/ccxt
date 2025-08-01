@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress, MarginModification } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -925,7 +925,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    async setMargin (symbol: string, amount: number, params = {}): Promise<any> {
+    async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         let portfolio = undefined;
         [ portfolio, params ] = await this.handlePortfolioAndParams ('setMargin', params);
         if (symbol !== undefined) {

@@ -442,6 +442,7 @@ class mexc extends Exchange {
                         ),
                     ),
                 ),
+                'useCcxtTradeId' => true,
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1m',
@@ -848,6 +849,7 @@ class mexc extends Exchange {
                 'PROS' => 'PROSFINANCE', // conflict with Prosper
                 'SIN' => 'SINCITYTOKEN',
                 'SOUL' => 'SOULSWAP',
+                'XBT' => 'XBT', // restore original mapping
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1738,8 +1740,8 @@ class mexc extends Exchange {
                 }
             }
         }
-        if ($id === null) {
-            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amountString, $priceString, $type, $takerOrMaker);
+        if ($id === null && $this->safe_bool($this->options, 'useCcxtTradeId', true)) {
+            $id = $this->create_ccxt_trade_id($timestamp, $side, $amountString, $priceString, $takerOrMaker);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1756,30 +1758,6 @@ class mexc extends Exchange {
             'fee' => $fee,
             'info' => $trade,
         ), $market);
-    }
-
-    public function synthetic_trade_id($market = null, $timestamp = null, $side = null, $amount = null, $price = null, $orderType = null, $takerOrMaker = null) {
-        // TODO => can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        $id = '';
-        if ($timestamp !== null) {
-            $id = $this->number_to_string($timestamp) . '-' . $this->safe_string($market, 'id', '_');
-            if ($side !== null) {
-                $id .= '-' . $side;
-            }
-            if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
-            }
-            if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
-            }
-            if ($takerOrMaker !== null) {
-                $id .= '-' . $takerOrMaker;
-            }
-            if ($orderType !== null) {
-                $id .= '-' . $orderType;
-            }
-        }
-        return $id;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -4980,11 +4958,14 @@ class mexc extends Exchange {
             //         "network" => "TRX",
             //         "status" => "5",
             //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
             //         "insertTime" => "1664805021000",
             //         "unlockConfirm" => "200",
             //         "confirmTimes" => "203",
-            //         "memo" => "xxyy1122"
+            //         "memo" => "xxyy1122",
+            //         "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+            //         "updateTime" => "1664805621000",
+            //         "netWork => "TRX"
             //     }
             // )
             //
@@ -5032,7 +5013,7 @@ class mexc extends Exchange {
             // array(
             //     {
             //       "id" => "adcd1c8322154de691b815eedcd10c42",
-            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
             //       "coin" => "USDC-MATIC",
             //       "network" => "MATIC",
             //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5043,7 +5024,11 @@ class mexc extends Exchange {
             //       "confirmNo" => null,
             //       "applyTime" => "1664882739000",
             //       "remark" => '',
-            //       "memo" => null
+            //       "memo" => null,
+            //       "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "updateTime" => "1664882799000",
+            //       "netWork => "MATIC"
             //     }
             // )
             //
@@ -5061,18 +5046,21 @@ class mexc extends Exchange {
         //     "network" => "TRX",
         //     "status" => "5",
         //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //     "insertTime" => "1664805021000",
         //     "unlockConfirm" => "200",
         //     "confirmTimes" => "203",
-        //     "memo" => "xxyy1122"
+        //     "memo" => "xxyy1122",
+        //     "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime" => "1664805621000",
+        //     "netWork => "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id" => "adcd1c8322154de691b815eedcd10c42",
-        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //     "coin" => "USDC-MATIC",
         //     "network" => "MATIC",
         //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5082,8 +5070,12 @@ class mexc extends Exchange {
         //     "transactionFee" => "1",
         //     "confirmNo" => null,
         //     "applyTime" => "1664882739000",
-        //     "remark" => '',
-        //     "memo" => null
+        //     "remark" => "",
+        //     "memo" => null,
+        //     "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime" => "1664882799000",
+        //     "netWork => "MATIC"
         //   }
         //
         // withdraw
@@ -5095,6 +5087,7 @@ class mexc extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
+        $updated = $this->safe_integer($transaction, 'updateTime');
         $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
@@ -5109,7 +5102,7 @@ class mexc extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $txid = $this->safe_string($transaction, 'txId');
+        $txid = $this->safe_string_2($transaction, 'transHash', 'txId');
         $fee = null;
         $feeCostString = $this->safe_string($transaction, 'transactionFee');
         if ($feeCostString !== null) {
@@ -5139,8 +5132,8 @@ class mexc extends Exchange {
             'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
-            'comment' => null,
+            'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'remark'),
             'internal' => null,
             'fee' => $fee,
         );
@@ -6123,7 +6116,7 @@ class mexc extends Exchange {
             //
             // array( success => true, code => '0' )
             //
-            return $this->parse_leverage($response, $market);
+            return $this->parse_leverage($response, $market); // tmp revert type
         }) ();
     }
 

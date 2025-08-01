@@ -910,7 +910,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): mixed {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in order to set the margin to a specific value
          *

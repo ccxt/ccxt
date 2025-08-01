@@ -34,13 +34,13 @@ import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
 import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs } from './src/base/types.js'
-import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.89';
+const version = '4.4.98';
 
 (Exchange as any).ccxtVersion = version
 
@@ -87,7 +87,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincatch from  './src/coincatch.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
-import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
 import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
@@ -103,6 +102,7 @@ import digifinex from  './src/digifinex.js'
 import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
+import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
@@ -271,7 +271,6 @@ const exchanges = {
     'coincatch':              coincatch,
     'coincheck':              coincheck,
     'coinex':                 coinex,
-    'coinlist':               coinlist,
     'coinmate':               coinmate,
     'coinmetro':              coinmetro,
     'coinone':                coinone,
@@ -287,6 +286,7 @@ const exchanges = {
     'ellipx':                 ellipx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
+    'foxbit':                 foxbit,
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
@@ -451,6 +451,7 @@ export {
     MarginModeAlreadySet,
     MarketClosed,
     ManualInteractionNeeded,
+    RestrictedLocation,
     InsufficientFunds,
     InvalidAddress,
     AddressPending,
@@ -596,7 +597,6 @@ export {
     coincatch,
     coincheck,
     coinex,
-    coinlist,
     coinmate,
     coinmetro,
     coinone,
@@ -612,6 +612,7 @@ export {
     ellipx,
     exmo,
     fmfwio,
+    foxbit,
     gate,
     gateio,
     gemini,

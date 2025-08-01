@@ -669,7 +669,6 @@ class gate extends gate$1 {
                     'SOL': 'SOL',
                     'POLYGON': 'POL',
                     'MATIC': 'POL',
-                    'OP': 'OPETH',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',
                     'AVAXC': 'AVAX_C',
@@ -1232,7 +1231,7 @@ class gate extends gate$1 {
             this.fetchOptionMarkets(params),
         ];
         if (!sandboxMode) {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             const mainnetOnly = [this.fetchSpotMarkets(params)];
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1652,7 +1651,7 @@ class gate extends gate$1 {
                     'contractSize': this.parseNumber('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601(expiry),
-                    'strike': strike,
+                    'strike': this.parseNumber(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': this.parseNumber('1'),
@@ -3908,7 +3907,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
-        [request, params] = this.handleUntilOption('to', request, params);
+        [request, params] = this.handleUntilOption('to', request, params, 0.001);
         const response = await this.privateWalletGetDeposits(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -3946,7 +3945,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
-        [request, params] = this.handleUntilOption('to', request, params);
+        [request, params] = this.handleUntilOption('to', request, params, 0.001);
         const response = await this.privateWalletGetWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }

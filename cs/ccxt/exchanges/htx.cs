@@ -7122,7 +7122,7 @@ public partial class htx : Exchange
             if (isTrue(isEqual(fee, null)))
             {
                 object currencies = await this.fetchCurrencies();
-                this.currencies = this.deepExtend(this.currencies, currencies);
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 object targetNetwork = this.safeValue(getValue(currency, "networks"), networkCode, new Dictionary<string, object>() {});
                 fee = this.safeNumber(targetNetwork, "fee");
                 if (isTrue(isEqual(fee, null)))
@@ -7398,13 +7398,20 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "page_index", "current_page", 1, 50);
+            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50);
         }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["page_size"] = 50; // max
+        }
         object response = null;
         if (isTrue(getValue(market, "inverse")))
         {

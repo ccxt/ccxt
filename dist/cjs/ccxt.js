@@ -53,7 +53,6 @@ var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
-var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
 var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
@@ -69,6 +68,7 @@ var digifinex = require('./src/digifinex.js');
 var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
+var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
@@ -194,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.89';
+const version = '4.4.98';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -238,7 +238,6 @@ const exchanges = {
     'coincatch': coincatch,
     'coincheck': coincheck,
     'coinex': coinex,
-    'coinlist': coinlist,
     'coinmate': coinmate,
     'coinmetro': coinmetro,
     'coinone': coinone,
@@ -254,6 +253,7 @@ const exchanges = {
     'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
+    'foxbit': foxbit,
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
@@ -427,6 +427,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca;
@@ -470,7 +471,6 @@ exports.coinbaseinternational = coinbaseinternational;
 exports.coincatch = coincatch;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
-exports.coinlist = coinlist;
 exports.coinmate = coinmate;
 exports.coinmetro = coinmetro;
 exports.coinone = coinone;
@@ -486,6 +486,7 @@ exports.digifinex = digifinex;
 exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
+exports.foxbit = foxbit;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;

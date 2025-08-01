@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.89'
+__version__ = '4.4.98'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -124,7 +125,6 @@ from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F4
 from ccxt.coincatch import coincatch                                  # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
-from ccxt.coinlist import coinlist                                    # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
 from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
@@ -140,6 +140,7 @@ from ccxt.digifinex import digifinex                                  # noqa: F4
 from ccxt.ellipx import ellipx                                        # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
+from ccxt.foxbit import foxbit                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
@@ -232,7 +233,6 @@ exchanges = [
     'coincatch',
     'coincheck',
     'coinex',
-    'coinlist',
     'coinmate',
     'coinmetro',
     'coinone',
@@ -248,6 +248,7 @@ exchanges = [
     'ellipx',
     'exmo',
     'fmfwio',
+    'foxbit',
     'gate',
     'gateio',
     'gemini',

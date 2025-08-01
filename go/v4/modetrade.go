@@ -21,7 +21,7 @@ func  (this *modetrade) Describe() interface{}  {
         "countries": []interface{}{"KY"},
         "rateLimit": 100,
         "version": "v1",
-        "certified": true,
+        "certified": false,
         "pro": true,
         "dex": true,
         "hostname": "trade.mode.network",
@@ -1933,7 +1933,7 @@ func  (this *modetrade) CancelOrder(id interface{}, optionalArgs ...interface{})
             //
             // {
             //     "success": true,
-            //     "timestamp": 1702989203989,
+            //     "timestamp": 1702989203988,
             //     "data": {
             //       "status": "CANCEL_SENT"
             //     }
@@ -1941,7 +1941,7 @@ func  (this *modetrade) CancelOrder(id interface{}, optionalArgs ...interface{})
             //
             // {
             //     "success": true,
-            //     "timestamp": 1702989203989,
+            //     "timestamp": 1702989203988,
             //     "status": "CANCEL_SENT"
             // }
             //
@@ -2079,9 +2079,9 @@ func  (this *modetrade) CancelAllOrders(optionalArgs ...interface{}) <- chan int
             //     }
             // }
             //
-        ch <- []interface{}{map[string]interface{} {
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
             "info": response,
-        }}
+        })}
             return nil
         
             }()
