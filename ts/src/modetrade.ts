@@ -2460,7 +2460,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         this.checkAddress (address);
         if (code !== undefined) {
@@ -2594,7 +2594,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const isMinLeverage = leverage < 1;
         const isMaxLeverage = leverage > 50;
