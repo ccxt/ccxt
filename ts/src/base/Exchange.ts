@@ -2874,7 +2874,7 @@ export default class Exchange {
         return featuresObj;
     }
 
-    featureValue (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined): any {
+    featureValue (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
         /**
          * @method
          * @name exchange#featureValue
@@ -2888,28 +2888,28 @@ export default class Exchange {
          */
         // if exchange does not yet have features manually implemented
         if (this.features === undefined) {
-            return undefined;
+            return defaultValue;
         }
-        // if marketType (e.g. 'option') does not exist in features, return exception
+        // if marketType (e.g. 'option') does not exist in features
         if (!(marketType in this.features)) {
-            throw new NotSupported (this.id + ' featureValue(): unsupported marketType' + marketType + ', check "exchange.features" for details');
+            return defaultValue; // unsupported marketType, check "exchange.features" for details
         }
         // if marketType dict undefined
         if (this.features[marketType] === undefined) {
-            return undefined;
+            return defaultValue;
         }
         let methodsContainer = this.features[marketType];
         if (subType === undefined) {
             if (marketType !== 'spot') {
-                throw new NotSupported (this.id + ' featureValue(): for ' + marketType + ' marketType, subType is required');
+                return defaultValue; // subType is required for non-spot markets
             }
         } else {
             if (!(subType in this.features[marketType])) {
-                throw new NotSupported (this.id + ' featureValue(): unsupported subType:' + subType + ', check "exchange.features" for details');
+                return defaultValue; // unsupported subType, check "exchange.features" for details
             }
             // if subType dict undefined
             if (this.features[marketType][subType] === undefined) {
-                return undefined;
+                return defaultValue;
             }
             methodsContainer = this.features[marketType][subType];
         }
@@ -2918,20 +2918,18 @@ export default class Exchange {
             return methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
-            // throw an exception for unsupported
-            throw new NotSupported (this.id + ' featureValue(): unsupported method ' + methodName + ', check "exchange.features" for details');
+            return defaultValue; // unsupported method, check "exchange.features" for details');
         }
         const methodDict = methodsContainer[methodName];
         if (methodDict === undefined) {
-            return undefined;
+            return defaultValue;
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
             return methodDict;
         }
         if (!(paramName in methodDict)) {
-            // throw an exception for unsupported
-            throw new NotSupported (this.id + ' featureValue(): unsupported paramName ' + paramName + ', check "exchange.features" for details');
+            return defaultValue; // unsupported paramName, check "exchange.features" for details');
         }
         const dictionary = this.safeDict (methodDict, paramName);
         if (dictionary === undefined) {
@@ -2944,7 +2942,7 @@ export default class Exchange {
             }
             // throw an exception for unsupported subParamName
             if (!(subParamName in methodDict[paramName])) {
-                throw new NotSupported (this.id + ' featureValue(): unsupported subParamName ' + subParamName + ', check "exchange.features" to know supported values');
+                return defaultValue; // unsupported subParamName, check "exchange.features" for details
             }
             return methodDict[paramName][subParamName];
         }
