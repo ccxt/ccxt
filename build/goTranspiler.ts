@@ -1508,7 +1508,7 @@ ${constStatements.join('\n')}
         
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
-            return`    case "${coreName}":
+            return`    case "${exchange}":
         ${exchange}Itf := &${coreName}{}
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
