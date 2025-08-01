@@ -2882,8 +2882,9 @@ export default class Exchange {
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
-         * @param {string} [paramValueName] to see whether unified param is supported
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         // if exchange does not yet have features manually implemented
