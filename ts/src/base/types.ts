@@ -480,8 +480,8 @@ export interface FundingHistory {
 
 export interface MarginMode {
     info: any;
-    symbol: string;
-    marginMode: 'isolated' | 'cross' | Str;
+    symbol?: Str;
+    marginMode?: 'isolated' | 'cross' | Str;
 }
 
 export interface Greeks {

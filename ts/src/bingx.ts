@@ -5361,9 +5361,9 @@ export default class bingx extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -5383,13 +5383,15 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
+        let response = undefined;
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
         if (subType === 'inverse') {
-            return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
         } else {
-            return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
         }
+        return this.parseMarginMode (response, market);
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {

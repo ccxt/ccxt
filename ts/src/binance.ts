@@ -11155,9 +11155,9 @@ export default class binance extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -11207,7 +11207,7 @@ export default class binance extends Exchange {
                 throw e;
             }
         }
-        return response;
+        return this.parseMarginMode (response, market);
     }
 
     /**

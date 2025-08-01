@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4239,9 +4239,9 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} params.leverage the rate of leverage
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -4268,7 +4268,7 @@ export default class coinex extends Exchange {
             'margin_mode': marginMode,
             'leverage': leverage,
         };
-        return await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
+        const response = await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4279,6 +4279,16 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': this.safeString (marginMode, 'margin_mode'),
+        } as MarginMode;
     }
 
     /**
