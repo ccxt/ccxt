@@ -23,6 +23,7 @@ error_hierarchy = {
                 },
                 'MarketClosed': {},
                 'ManualInteractionNeeded': {},
+                'RestrictedLocation': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {

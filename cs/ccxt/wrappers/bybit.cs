@@ -1007,7 +1007,7 @@ public partial class bybit
     /// fetches information on a closed order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybinpt-exchange.github.io/docs/v5/order/order-list"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>

@@ -5414,7 +5414,7 @@ public partial class bybit : Exchange
      * @method
      * @name bybit#fetchClosedOrder
      * @description fetches information on a closed order made by the user
-     * @see https://bybinpt-exchange.github.io/docs/v5/order/order-list
+     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint

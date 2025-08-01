@@ -786,6 +786,7 @@ public partial class bitget : Exchange
                         { "get", new Dictionary<string, object>() {
                             { "v3/account/assets", 1 },
                             { "v3/account/settings", 1 },
+                            { "v3/account/deposit-records", 2 },
                             { "v3/account/financial-records", 1 },
                             { "v3/account/repayable-coins", 2 },
                             { "v3/account/payment-coins", 2 },
@@ -804,7 +805,9 @@ public partial class bitget : Exchange
                             { "v3/position/history-position", 1 },
                             { "v3/trade/order-info", 1 },
                             { "v3/trade/unfilled-orders", 1 },
+                            { "v3/trade/unfilled-strategy-orders", 1 },
                             { "v3/trade/history-orders", 1 },
+                            { "v3/trade/history-strategy-orders", 1 },
                             { "v3/trade/fills", 1 },
                             { "v3/user/sub-list", 2 },
                             { "v3/user/sub-api-list", 2 },
@@ -818,8 +821,11 @@ public partial class bitget : Exchange
                             { "v3/account/max-open-available", 4 },
                             { "v3/ins-loan/bind-uid", 6.6667 },
                             { "v3/trade/place-order", 2 },
+                            { "v3/trade/place-strategy-order", 2 },
                             { "v3/trade/modify-order", 2 },
+                            { "v3/trade/modify-strategy-order", 2 },
                             { "v3/trade/cancel-order", 2 },
+                            { "v3/trade/cancel-strategy-order", 2 },
                             { "v3/trade/place-batch", 4 },
                             { "v3/trade/batch-modify-order", 2 },
                             { "v3/trade/cancel-batch", 4 },
@@ -1389,6 +1395,19 @@ public partial class bitget : Exchange
                         { "1w", "1Wutc" },
                         { "1M", "1Mutc" },
                     } },
+                    { "uta", new Dictionary<string, object>() {
+                        { "1m", "1m" },
+                        { "3m", "3m" },
+                        { "5m", "5m" },
+                        { "15m", "15m" },
+                        { "30m", "30m" },
+                        { "1h", "1H" },
+                        { "2h", "2H" },
+                        { "4h", "4H" },
+                        { "6h", "6H" },
+                        { "12h", "12H" },
+                        { "1d", "1D" },
+                    } },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "swap"} },
@@ -1713,11 +1732,24 @@ public partial class bitget : Exchange
             // } else {
             defaultProductType = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT-FUTURES" : "COIN-FUTURES";
         }
-        object productType = this.safeString(parameters, "productType", defaultProductType);
+        object productType = this.safeString2(parameters, "productType", "category", defaultProductType);
         if (isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(market, null)))))
         {
             object settle = getValue(market, "settle");
-            if (isTrue(isEqual(settle, "USDT")))
+            if (isTrue(getValue(market, "spot")))
+            {
+                object marginMode = null;
+                var marginModeparametersVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", parameters);
+                marginMode = ((IList<object>)marginModeparametersVariable)[0];
+                parameters = ((IList<object>)marginModeparametersVariable)[1];
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                } else
+                {
+                    productType = "SPOT";
+                }
+            } else if (isTrue(isEqual(settle, "USDT")))
             {
                 productType = "USDT-FUTURES";
             } else if (isTrue(isEqual(settle, "USDC")))
@@ -1739,9 +1771,9 @@ public partial class bitget : Exchange
         }
         if (isTrue(isEqual(productType, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\" or \"SCOIN-FUTURES\"")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
         }
-        parameters = this.omit(parameters, "productType");
+        parameters = this.omit(parameters, new List<object>() {"productType", "category"});
         return new List<object>() {productType, parameters};
     }
 
@@ -1778,9 +1810,9 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
-     * @see https://www.bitget.bike/api-doc/uta/public/Instruments
+     * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -2463,11 +2495,13 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
      * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
      * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
      * @param {string} [params.code] required for cross spot margin
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
@@ -2478,15 +2512,31 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {};
         object response = null;
         object marginMode = null;
+        object productType = null;
+        object uta = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarketLeverageTiers", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
+            if (isTrue(isEqual(productType, "SPOT")))
+            {
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                }
+            }
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketPositionTier(this.extend(request, parameters));
+        } else if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        {
             ((IDictionary<string,object>)request)["productType"] = productType;
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             response = await this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, parameters));
@@ -2566,6 +2616,23 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752735673127,
+        //         "data": [
+        //             {
+        //                 "tier": "1",
+        //                 "minTierValue": "0",
+        //                 "maxTierValue": "150000",
+        //                 "leverage": "125",
+        //                 "mmr": "0.004"
+        //             },
+        //         ]
+        //     }
+        //
         object result = this.safeValue(response, "data", new List<object>() {});
         return this.parseMarketLeverageTiers(result, market);
     }
@@ -2608,17 +2675,27 @@ public partial class bitget : Exchange
         //         "maintainMarginRate": "0.1"
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "tier": "1",
+        //         "minTierValue": "0",
+        //         "maxTierValue": "150000",
+        //         "leverage": "125",
+        //         "mmr": "0.004"
+        //     }
+        //
         object tiers = new List<object>() {};
         object minNotional = 0;
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object item = getValue(info, i);
-            object minimumNotional = this.safeNumber(item, "startUnit");
+            object minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if (isTrue(!isEqual(minimumNotional, null)))
             {
                 minNotional = minimumNotional;
             }
-            object maxNotional = this.safeNumberN(item, new List<object>() {"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount"});
+            object maxNotional = this.safeNumberN(item, new List<object>() {"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"});
             object marginCurrency = this.safeString2(item, "coin", "baseCoin");
             object currencyId = ((bool) isTrue((!isEqual(marginCurrency, null)))) ? marginCurrency : getValue(market, "base");
             object marketId = this.safeString(item, "symbol");
@@ -2628,7 +2705,7 @@ public partial class bitget : Exchange
                 { "currency", this.safeCurrencyCode(currencyId) },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
-                { "maintenanceMarginRate", this.safeNumber2(item, "keepMarginRate", "maintainMarginRate") },
+                { "maintenanceMarginRate", this.safeNumberN(item, new List<object>() {"keepMarginRate", "maintainMarginRate", "mmr"}) },
                 { "maxLeverage", this.safeNumber(item, "leverage") },
                 { "info", item },
             });
@@ -3037,9 +3114,11 @@ public partial class bitget : Exchange
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+     * @see https://www.bitget.com/api-doc/uta/public/OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -3054,16 +3133,24 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             response = await this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, parameters));
         } else
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.publicMixGetV2MixMarketMergeDepth(this.extend(request, parameters));
         }
@@ -3079,9 +3166,24 @@ public partial class bitget : Exchange
         //       }
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750329437753,
+        //         "data": {
+        //             "a": [ [ 104992.60, 0.018411 ] ],
+        //             "b":[ [104927.40, 0.229914 ] ],
+        //             "ts": "1750329437763"
+        //         }
+        //     }
+        //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object bidsKey = ((bool) isTrue(uta)) ? "b" : "bids";
+        object asksKey = ((bool) isTrue(uta)) ? "a" : "asks";
         object timestamp = this.safeInteger(data, "ts");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp);
+        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -3095,7 +3197,7 @@ public partial class bitget : Exchange
         //       "ts": "1695793390482"
         //   }
         //
-        // spot: fetchTicker, fetchTickers
+        // spot
         //
         //     {
         //         "open": "37202.46",
@@ -3116,93 +3218,120 @@ public partial class bitget : Exchange
         //         "change24h": "0.00321"
         //     }
         //
-        // swap and future: fetchTicker
+        // swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "lastPr": "37577.2",
-        //         "askPr": "37577.3",
-        //         "bidPr": "37577.2",
-        //         "bidSz": "3.679",
-        //         "askSz": "0.02",
-        //         "high24h": "37765",
-        //         "low24h": "36628.9",
-        //         "ts": "1700533070359",
-        //         "change24h": "0.00288",
-        //         "baseVolume": "108606.181",
-        //         "quoteVolume": "4051316303.9608",
-        //         "usdtVolume": "4051316303.9608",
-        //         "openUtc": "37451.5",
-        //         "changeUtc24h": "0.00336",
-        //         "indexPrice": "37574.489253",
-        //         "fundingRate": "0.0001",
-        //         "holdingAmount": "53464.529",
+        //         "lastPr": "104823.8",
+        //         "askPr": "104823.8",
+        //         "bidPr": "104823.5",
+        //         "bidSz": "0.703",
+        //         "askSz": "13.894",
+        //         "high24h": "105289.3",
+        //         "low24h": "103447.9",
+        //         "ts": "1750332210370",
+        //         "change24h": "0.00471",
+        //         "baseVolume": "79089.5675",
+        //         "quoteVolume": "8274870921.80485",
+        //         "usdtVolume": "8274870921.80485",
+        //         "openUtc": "104833",
+        //         "changeUtc24h": "-0.00009",
+        //         "indexPrice": "104881.953125",
+        //         "fundingRate": "-0.000014",
+        //         "holdingAmount": "7452.6421",
         //         "deliveryStartTime": null,
         //         "deliveryTime": null,
         //         "deliveryStatus": "",
-        //         "open24h": "37235.7"
+        //         "open24h": "104332.3",
+        //         "markPrice": "104824.2"
         //     }
         //
-        // swap and future: fetchTickers
+        // spot uta
         //
         //     {
-        //         "open": "14.9776",
-        //         "symbol": "LINKUSDT",
-        //         "high24h": "15.3942",
-        //         "low24h": "14.3457",
-        //         "lastPr": "14.3748",
-        //         "quoteVolume": "7008612.4299",
-        //         "baseVolume": "469908.8523",
-        //         "usdtVolume": "7008612.42986561",
-        //         "ts": "1700533772309",
-        //         "bidPr": "14.375",
-        //         "askPr": "14.3769",
-        //         "bidSz": "50.004",
-        //         "askSz": "0.7647",
-        //         "openUtc": "14.478",
-        //         "changeUtc24h": "-0.00713",
-        //         "change24h": "-0.04978"
+        //         "category": "SPOT",
+        //         "symbol": "BTCUSDT",
+        //         "ts": "1750330651972",
+        //         "lastPrice": "104900.2",
+        //         "openPrice24h": "104321.2",
+        //         "highPrice24h": "107956.8",
+        //         "lowPrice24h": "103600.1",
+        //         "ask1Price": "104945.8",
+        //         "bid1Price": "104880.6",
+        //         "bid1Size": "0.266534",
+        //         "ask1Size": "0.014001",
+        //         "price24hPcnt": "0.00555",
+        //         "volume24h": "355.941109",
+        //         "turnover24h": "37302936.008134"
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "ts": "1750332730472",
+        //         "lastPrice": "104738",
+        //         "openPrice24h": "104374",
+        //         "highPrice24h": "105289.3",
+        //         "lowPrice24h": "103447.9",
+        //         "ask1Price": "104738",
+        //         "bid1Price": "104737.7",
+        //         "bid1Size": "2.036",
+        //         "ask1Size": "8.094",
+        //         "price24hPcnt": "0.00349",
+        //         "volume24h": "79101.6477",
+        //         "turnover24h": "8276293391.45973",
+        //         "indexPrice": "104785.956168",
+        //         "markPrice": "104738",
+        //         "fundingRate": "-0.000007",
+        //         "openInterest": "7465.5938",
+        //         "deliveryStartTime": "",
+        //         "deliveryTime": "",
+        //         "deliveryStatus": ""
         //     }
         //
         object marketId = this.safeString(ticker, "symbol");
-        object close = this.safeString(ticker, "lastPr");
+        object close = this.safeString2(ticker, "lastPr", "lastPrice");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
-        object open24 = this.safeString2(ticker, "open24", "open24h");
-        object open = this.safeString(ticker, "open");
-        object symbol = null;
-        object openValue = null;
-        if (isTrue(isEqual(open, null)))
+        object category = this.safeString(ticker, "category");
+        object markPrice = this.safeString(ticker, "markPrice");
+        object marketType = null;
+        if (isTrue(isTrue((!isEqual(markPrice, null))) && isTrue((!isEqual(category, "SPOT")))))
         {
-            symbol = this.safeSymbol(marketId, market, null, "contract");
-            openValue = open24;
+            marketType = "contract";
         } else
         {
-            symbol = this.safeSymbol(marketId, market, null, "spot");
-            openValue = open;
+            marketType = "spot";
+        }
+        object percentage = this.safeString(ticker, "price24hPcnt");
+        if (isTrue(isEqual(percentage, null)))
+        {
+            percentage = Precise.stringMul(change, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", symbol },
+            { "symbol", this.safeSymbol(marketId, market, null, marketType) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "high24h") },
-            { "low", this.safeString(ticker, "low24h") },
-            { "bid", this.safeString(ticker, "bidPr") },
-            { "bidVolume", this.safeString(ticker, "bidSz") },
-            { "ask", this.safeString(ticker, "askPr") },
-            { "askVolume", this.safeString(ticker, "askSz") },
+            { "high", this.safeString2(ticker, "high24h", "highPrice24h") },
+            { "low", this.safeString2(ticker, "low24h", "lowPrice24h") },
+            { "bid", this.safeString2(ticker, "bidPr", "bid1Price") },
+            { "bidVolume", this.safeString2(ticker, "bidSz", "bid1Size") },
+            { "ask", this.safeString2(ticker, "askPr", "ask1Price") },
+            { "askVolume", this.safeString2(ticker, "askSz", "ask1Size") },
             { "vwap", null },
-            { "open", openValue },
+            { "open", this.safeStringN(ticker, new List<object>() {"open", "open24h", "openPrice24h"}) },
             { "close", close },
             { "last", close },
             { "previousClose", null },
             { "change", change },
-            { "percentage", Precise.stringMul(change, "100") },
+            { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "baseVolume") },
-            { "quoteVolume", this.safeString(ticker, "quoteVolume") },
+            { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },
+            { "quoteVolume", this.safeString2(ticker, "quoteVolume", "turnover24h") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
-            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "markPrice", markPrice },
             { "info", ticker },
         }, market);
     }
@@ -3213,8 +3342,10 @@ public partial class bitget : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
+     * @see https://www.bitget.com/api-doc/uta/public/Tickers
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -3225,16 +3356,24 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters));
         } else
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.publicMixGetV2MixMarketTicker(this.extend(request, parameters));
         }
@@ -3269,34 +3408,94 @@ public partial class bitget : Exchange
         //
         // swap and future
         //
-        //     {
+        //      {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1700533070357,
+        //         "requestTime": 1750332210369,
         //         "data": [
         //             {
         //                 "symbol": "BTCUSDT",
-        //                 "lastPr": "37577.2",
-        //                 "askPr": "37577.3",
-        //                 "bidPr": "37577.2",
-        //                 "bidSz": "3.679",
-        //                 "askSz": "0.02",
-        //                 "high24h": "37765",
-        //                 "low24h": "36628.9",
-        //                 "ts": "1700533070359",
-        //                 "change24h": "0.00288",
-        //                 "baseVolume": "108606.181",
-        //                 "quoteVolume": "4051316303.9608",
-        //                 "usdtVolume": "4051316303.9608",
-        //                 "openUtc": "37451.5",
-        //                 "changeUtc24h": "0.00336",
-        //                 "indexPrice": "37574.489253",
-        //                 "fundingRate": "0.0001",
-        //                 "holdingAmount": "53464.529",
+        //                 "lastPr": "104823.8",
+        //                 "askPr": "104823.8",
+        //                 "bidPr": "104823.5",
+        //                 "bidSz": "0.703",
+        //                 "askSz": "13.894",
+        //                 "high24h": "105289.3",
+        //                 "low24h": "103447.9",
+        //                 "ts": "1750332210370",
+        //                 "change24h": "0.00471",
+        //                 "baseVolume": "79089.5675",
+        //                 "quoteVolume": "8274870921.80485",
+        //                 "usdtVolume": "8274870921.80485",
+        //                 "openUtc": "104833",
+        //                 "changeUtc24h": "-0.00009",
+        //                 "indexPrice": "104881.953125",
+        //                 "fundingRate": "-0.000014",
+        //                 "holdingAmount": "7452.6421",
         //                 "deliveryStartTime": null,
         //                 "deliveryTime": null,
         //                 "deliveryStatus": "",
-        //                 "open24h": "37235.7"
+        //                 "open24h": "104332.3",
+        //                 "markPrice": "104824.2"
+        //             }
+        //         ]
+        //     }
+        //
+        // spot uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750330653575,
+        //         "data": [
+        //             {
+        //                 "category": "SPOT",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750330651972",
+        //                 "lastPrice": "104900.2",
+        //                 "openPrice24h": "104321.2",
+        //                 "highPrice24h": "107956.8",
+        //                 "lowPrice24h": "103600.1",
+        //                 "ask1Price": "104945.8",
+        //                 "bid1Price": "104880.6",
+        //                 "bid1Size": "0.266534",
+        //                 "ask1Size": "0.014001",
+        //                 "price24hPcnt": "0.00555",
+        //                 "volume24h": "355.941109",
+        //                 "turnover24h": "37302936.008134"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750332731203,
+        //         "data": [
+        //             {
+        //                 "category": "USDT-FUTURES",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750332730472",
+        //                 "lastPrice": "104738",
+        //                 "openPrice24h": "104374",
+        //                 "highPrice24h": "105289.3",
+        //                 "lowPrice24h": "103447.9",
+        //                 "ask1Price": "104738",
+        //                 "bid1Price": "104737.7",
+        //                 "bid1Size": "2.036",
+        //                 "ask1Size": "8.094",
+        //                 "price24hPcnt": "0.00349",
+        //                 "volume24h": "79101.6477",
+        //                 "turnover24h": "8276293391.45973",
+        //                 "indexPrice": "104785.956168",
+        //                 "markPrice": "104738",
+        //                 "fundingRate": "-0.000007",
+        //                 "openInterest": "7465.5938",
+        //                 "deliveryStartTime": "",
+        //                 "deliveryTime": "",
+        //                 "deliveryStatus": ""
         //             }
         //         ]
         //     }
@@ -3345,8 +3544,10 @@ public partial class bitget : Exchange
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/api-doc/uta/public/Tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -3376,7 +3577,20 @@ public partial class bitget : Exchange
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         // only if passedSubType && productType is undefined, then use spot
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(symbolsLength, 1)))))
+            {
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
         {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters));
         } else
@@ -3438,6 +3652,65 @@ public partial class bitget : Exchange
         //                 "changeUtc24h": "-0.00713",
         //                 "change24h": "-0.04978"
         //             },
+        //         ]
+        //     }
+        //
+        // spot uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750330653575,
+        //         "data": [
+        //             {
+        //                 "category": "SPOT",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750330651972",
+        //                 "lastPrice": "104900.2",
+        //                 "openPrice24h": "104321.2",
+        //                 "highPrice24h": "107956.8",
+        //                 "lowPrice24h": "103600.1",
+        //                 "ask1Price": "104945.8",
+        //                 "bid1Price": "104880.6",
+        //                 "bid1Size": "0.266534",
+        //                 "ask1Size": "0.014001",
+        //                 "price24hPcnt": "0.00555",
+        //                 "volume24h": "355.941109",
+        //                 "turnover24h": "37302936.008134"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750332731203,
+        //         "data": [
+        //             {
+        //                 "category": "USDT-FUTURES",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750332730472",
+        //                 "lastPrice": "104738",
+        //                 "openPrice24h": "104374",
+        //                 "highPrice24h": "105289.3",
+        //                 "lowPrice24h": "103447.9",
+        //                 "ask1Price": "104738",
+        //                 "bid1Price": "104737.7",
+        //                 "bid1Size": "2.036",
+        //                 "ask1Size": "8.094",
+        //                 "price24hPcnt": "0.00349",
+        //                 "volume24h": "79101.6477",
+        //                 "turnover24h": "8276293391.45973",
+        //                 "indexPrice": "104785.956168",
+        //                 "markPrice": "104738",
+        //                 "fundingRate": "-0.000007",
+        //                 "openInterest": "7465.5938",
+        //                 "deliveryStartTime": "",
+        //                 "deliveryTime": "",
+        //                 "deliveryStatus": ""
+        //             }
         //         ]
         //     }
         //
@@ -3529,20 +3802,54 @@ public partial class bitget : Exchange
         //         "cTime": "1700720700342"
         //     }
         //
+        // uta fetchTrades
+        //
+        //     {
+        //         "execId": "1319896716324937729",
+        //         "price": "105909.1",
+        //         "size": "6.3090",
+        //         "side": "sell",
+        //         "ts": "1750413820344"
+        //     }
+        //
+        // uta fetchMyTrades
+        //
+        //     {
+        //         "execId": "1322441401010528257",
+        //         "orderId": "1322441400976261120",
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "execPrice": "107005.4",
+        //         "execQty": "0.0001",
+        //         "execValue": "10.7005",
+        //         "tradeScope": "taker",
+        //         "feeDetail": [{
+        //             "feeCoin": "USDT",
+        //             "fee":"0.00642032"
+        //         }],
+        //         "createdTime": "1751020520451",
+        //         "updatedTime": "1751020520458",
+        //         "execPnl": "0.00017"
+        //     }
+        //
         object marketId = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeInteger2(trade, "cTime", "ts");
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"cTime", "ts", "createdTime"});
         object fee = null;
         object feeDetail = this.safeValue(trade, "feeDetail");
         object posMode = this.safeString(trade, "posMode");
-        object feeStructure = ((bool) isTrue((!isEqual(posMode, null)))) ? getValue(feeDetail, 0) : feeDetail;
+        object category = this.safeString(trade, "category");
+        object isFeeStructure = isTrue((!isEqual(posMode, null))) || isTrue((!isEqual(category, null)));
+        object feeStructure = ((bool) isTrue(isFeeStructure)) ? getValue(feeDetail, 0) : feeDetail;
         if (isTrue(!isEqual(feeStructure, null)))
         {
             object currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
             fee = new Dictionary<string, object>() {
                 { "currency", currencyCode },
             };
-            object feeCostString = this.safeString(feeStructure, "totalFee");
+            object feeCostString = this.safeString2(feeStructure, "totalFee", "fee");
             object deduction = ((bool) isTrue(isEqual(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
             if (isTrue(deduction))
             {
@@ -3554,15 +3861,15 @@ public partial class bitget : Exchange
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
-            { "id", this.safeString(trade, "tradeId") },
+            { "id", this.safeString2(trade, "tradeId", "execId") },
             { "order", this.safeString(trade, "orderId") },
             { "symbol", symbol },
             { "side", this.safeStringLower(trade, "side") },
             { "type", this.safeString(trade, "orderType") },
             { "takerOrMaker", this.safeString(trade, "tradeScope") },
-            { "price", this.safeString2(trade, "priceAvg", "price") },
-            { "amount", this.safeString2(trade, "baseVolume", "size") },
-            { "cost", this.safeString2(trade, "quoteVolume", "amount") },
+            { "price", this.safeStringN(trade, new List<object>() {"priceAvg", "price", "execPrice"}) },
+            { "amount", this.safeStringN(trade, new List<object>() {"baseVolume", "size", "execQty"}) },
+            { "cost", this.safeStringN(trade, new List<object>() {"quoteVolume", "amount", "execValue"}) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", fee },
@@ -3577,10 +3884,12 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+     * @see https://www.bitget.com/api-doc/uta/public/Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -3601,9 +3910,16 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(getValue(market, "contract")))
+            if (isTrue(uta))
+            {
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
+            } else if (isTrue(getValue(market, "contract")))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
             } else
@@ -3613,7 +3929,26 @@ public partial class bitget : Exchange
         }
         object options = this.safeValue(this.options, "fetchTrades", new Dictionary<string, object>() {});
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            if (isTrue(isEqual(productType, "SPOT")))
+            {
+                object marginMode = null;
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTrades", parameters);
+                marginMode = ((IList<object>)marginModeparametersVariable)[0];
+                parameters = ((IList<object>)marginModeparametersVariable)[1];
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                }
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketFills(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             object spotOptions = this.safeValue(options, "spot", new Dictionary<string, object>() {});
             object defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
@@ -3639,10 +3974,6 @@ public partial class bitget : Exchange
             object defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory");
             object swapMethod = this.safeString(parameters, "method", defaultSwapMethod);
             parameters = this.omit(parameters, "method");
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(isEqual(swapMethod, "publicMixGetV2MixMarketFillsHistory")))
             {
@@ -3693,6 +4024,23 @@ public partial class bitget : Exchange
         //                 "ts": "1692073521000",
         //                 "symbol": "BTCUSDT_UMCBL"
         //             },
+        //         ]
+        //     }
+        //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750413823980,
+        //         "data": [
+        //             {
+        //                 "execId": "1319896716324937729",
+        //                 "price": "105909.1",
+        //                 "size": "6.3090",
+        //                 "side": "sell",
+        //                 "ts": "1750413820344"
+        //             }
         //         ]
         //     }
         //
@@ -3910,7 +4258,9 @@ public partial class bitget : Exchange
         //         "1399132.341"
         //     ]
         //
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
+        object inverse = this.safeBool(market, "inverse");
+        object volumeIndex = ((bool) isTrue(inverse)) ? 6 : 5;
+        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 
     /**
@@ -3923,11 +4273,13 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -3955,12 +4307,25 @@ public partial class bitget : Exchange
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, limitForPagination);
         }
         object market = this.market(symbol);
-        object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
-        object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "granularity", this.safeString(timeframes, timeframe, timeframe) },
         };
+        object marketType = null;
+        object timeframes = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            timeframes = getValue(getValue(this.options, "timeframes"), "uta");
+            ((IDictionary<string,object>)request)["interval"] = this.safeString(timeframes, timeframe, timeframe);
+        } else
+        {
+            marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
+            timeframes = getValue(getValue(this.options, "timeframes"), marketType);
+            ((IDictionary<string,object>)request)["granularity"] = this.safeString(timeframes, timeframe, timeframe);
+        }
         object msInDay = 86400000;
         object now = this.milliseconds();
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
@@ -4037,7 +4402,29 @@ public partial class bitget : Exchange
         ((IDictionary<string,object>)request)["limit"] = limit;
         // make request
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object productType = null;
+        object priceType = null;
+        var priceTypeparametersVariable = this.handleParamString(parameters, "price");
+        priceType = ((IList<object>)priceTypeparametersVariable)[0];
+        parameters = ((IList<object>)priceTypeparametersVariable)[1];
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            if (isTrue(!isEqual(priceType, null)))
+            {
+                if (isTrue(isEqual(priceType, "mark")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "MARK";
+                } else if (isTrue(isEqual(priceType, "index")))
+                {
+                    ((IDictionary<string,object>)request)["type"] = "INDEX";
+                }
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketCandles(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             // checks if we need history endpoint
             if (isTrue(historicalEndpointNeeded))
@@ -4054,14 +4441,6 @@ public partial class bitget : Exchange
             }
         } else
         {
-            object priceType = null;
-            var priceTypeparametersVariable = this.handleParamString(parameters, "price");
-            priceType = ((IList<object>)priceTypeparametersVariable)[0];
-            parameters = ((IList<object>)priceTypeparametersVariable)[1];
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             object extended = this.extend(request, parameters);
             if (isTrue(!isTrue(historicalEndpointNeeded) && isTrue((isTrue(isEqual(priceType, "mark")) || isTrue(isEqual(priceType, "index"))))))
@@ -4117,8 +4496,10 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -4129,13 +4510,23 @@ public partial class bitget : Exchange
         object marketType = null;
         object marginMode = null;
         object response = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")))))
+        if (isTrue(uta))
+        {
+            response = await this.privateUtaGetV3AccountAssets(this.extend(request, parameters));
+            object results = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object assets = this.safeList(results, "assets", new List<object>() {});
+            return this.parseUtaBalance(assets);
+        } else if (isTrue(isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")))))
         {
             object productType = null;
             var productTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
@@ -4243,8 +4634,71 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1749980065089,
+        //         "data": {
+        //             "accountEquity": "11.13919278",
+        //             "usdtEquity": "11.13921165",
+        //             "btcEquity": "0.00011256",
+        //             "unrealisedPnl": "0",
+        //             "usdtUnrealisedPnl": "0",
+        //             "btcUnrealizedPnl": "0",
+        //             "effEquity": "6.19299777",
+        //             "mmr": "0",
+        //             "imr": "0",
+        //             "mgnRatio": "0",
+        //             "positionMgnRatio": "0",
+        //             "assets": [
+        //                 {
+        //                     "coin": "USDT",
+        //                     "equity": "6.19300826",
+        //                     "usdValue": "6.19299777",
+        //                     "balance": "6.19300826",
+        //                     "available": "6.19300826",
+        //                     "debt": "0",
+        //                     "locked": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         object data = this.safeValue(response, "data", new List<object>() {});
         return this.parseBalance(data);
+    }
+
+    public virtual object parseUtaBalance(object balance)
+    {
+        object result = new Dictionary<string, object>() {
+            { "info", balance },
+        };
+        //
+        //     {
+        //         "coin": "USDT",
+        //         "equity": "6.19300826",
+        //         "usdValue": "6.19299777",
+        //         "balance": "6.19300826",
+        //         "available": "6.19300826",
+        //         "debt": "0",
+        //         "locked": "0"
+        //     }
+        //
+        for (object i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        {
+            object entry = getValue(balance, i);
+            object account = this.account();
+            object currencyId = this.safeString(entry, "coin");
+            object code = this.safeCurrencyCode(currencyId);
+            ((IDictionary<string,object>)account)["debt"] = this.safeString(entry, "debt");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
+        return this.safeBalance(result);
     }
 
     public override object parseBalance(object balance)
@@ -4395,7 +4849,7 @@ public partial class bitget : Exchange
         //         },
         //     ]
         //
-        // spot, swap, future and spot margin: cancelOrder, cancelOrders
+        // spot, swap, future, spot margin and uta: cancelOrder, cancelOrders, cancelAllOrders
         //
         //     {
         //         "orderId": "1098758604547850241",
@@ -4524,6 +4978,66 @@ public partial class bitget : Exchange
         //         "stopLossTriggerType": "fill_price",
         //     }
         //
+        // uta: fetchOrder, fetchOpenOrders, fetchCanceledAndClosedOrders
+        //
+        //     {
+        //         "orderId": "1320244799629316096",
+        //         "clientOid": "1320244799633510400",
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "price": "50000",
+        //         "qty": "0.001",
+        //         "amount": "0",
+        //         "cumExecQty": "0",
+        //         "cumExecValue": "0",
+        //         "avgPrice": "0",
+        //         "timeInForce": "gtc",
+        //         "orderStatus": "live",
+        //         "posSide": "long",
+        //         "holdMode": "hedge_mode",
+        //         "reduceOnly": "NO",
+        //         "feeDetail": [{
+        //             "feeCoin": "",
+        //             "fee": ""
+        //         }],
+        //         "createdTime": "1750496809871",
+        //         "updatedTime": "1750496809886",
+        //         "cancelReason": "",
+        //         "execType": "normal",
+        //         "stpMode": "none",
+        //         "tpTriggerBy": null,
+        //         "slTriggerBy": null,
+        //         "takeProfit": null,
+        //         "stopLoss": null,
+        //         "tpOrderType": null,
+        //         "slOrderType": null,
+        //         "tpLimitPrice": null,
+        //         "slLimitPrice": null
+        //     }
+        //
+        // uta trigger: fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "orderId": "1330984742276198400",
+        //         "clientOid": "1330984742276198400",
+        //         "symbol": "BTCUSDT",
+        //         "category": "USDT-FUTURES",
+        //         "qty": "0.001",
+        //         "posSide": "long",
+        //         "tpTriggerBy": "market",
+        //         "slTriggerBy": "mark",
+        //         "takeProfit": "",
+        //         "stopLoss": "112000",
+        //         "tpOrderType": "market",
+        //         "slOrderType": "limit",
+        //         "tpLimitPrice": "",
+        //         "slLimitPrice": "111000",
+        //         "createdTime": "1753057411736",
+        //         "updatedTime": "1753058267412"
+        //     }
+        //
         object errorMessage = this.safeString(order, "errorMsg");
         if (isTrue(!isEqual(errorMessage, null)))
         {
@@ -4534,7 +5048,8 @@ public partial class bitget : Exchange
                 { "status", "rejected" },
             }, market);
         }
-        object isContractOrder = (inOp(order, "posSide"));
+        object posSide = this.safeString(order, "posSide");
+        object isContractOrder = (!isEqual(posSide, null));
         object marketType = ((bool) isTrue(isContractOrder)) ? "contract" : "spot";
         if (isTrue(!isEqual(market, null)))
         {
@@ -4542,10 +5057,9 @@ public partial class bitget : Exchange
         }
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeInteger2(order, "cTime", "ctime");
-        object updateTimestamp = this.safeInteger(order, "uTime");
-        object rawStatus = this.safeString2(order, "status", "state");
-        rawStatus = this.safeString(order, "planStatus", rawStatus);
+        object timestamp = this.safeIntegerN(order, new List<object>() {"cTime", "ctime", "createdTime"});
+        object updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
+        object rawStatus = this.safeStringN(order, new List<object>() {"status", "state", "orderStatus", "planStatus"});
         object fee = null;
         object feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
@@ -4557,27 +5071,39 @@ public partial class bitget : Exchange
             };
         }
         object feeDetail = this.safeValue(order, "feeDetail");
-        if (isTrue(!isEqual(feeDetail, null)))
+        object uta = !isEqual(this.safeString(order, "category"), null);
+        if (isTrue(uta))
         {
-            object parsedFeeDetail = parseJson(feeDetail);
-            object feeValues = new List<object>(((IDictionary<string,object>)parsedFeeDetail).Values);
-            object feeObject = null;
-            for (object i = 0; isLessThan(i, getArrayLength(feeValues)); postFixIncrement(ref i))
-            {
-                object feeValue = getValue(feeValues, i);
-                if (isTrue(!isEqual(this.safeValue(feeValue, "feeCoinCode"), null)))
-                {
-                    feeObject = feeValue;
-                    break;
-                }
-            }
+            object feeResult = this.safeDict(feeDetail, 0, new Dictionary<string, object>() {});
+            object utaFee = this.safeString(feeResult, "fee");
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringNeg(this.safeString(feeObject, "totalFee"))) },
-                { "currency", this.safeCurrencyCode(this.safeString(feeObject, "feeCoinCode")) },
+                { "cost", this.parseNumber(Precise.stringNeg(utaFee)) },
+                { "currency", getValue(market, "settle") },
             };
+        } else
+        {
+            if (isTrue(!isEqual(feeDetail, null)))
+            {
+                object parsedFeeDetail = parseJson(feeDetail);
+                object feeValues = new List<object>(((IDictionary<string,object>)parsedFeeDetail).Values);
+                object feeObject = null;
+                for (object i = 0; isLessThan(i, getArrayLength(feeValues)); postFixIncrement(ref i))
+                {
+                    object feeValue = getValue(feeValues, i);
+                    if (isTrue(!isEqual(this.safeValue(feeValue, "feeCoinCode"), null)))
+                    {
+                        feeObject = feeValue;
+                        break;
+                    }
+                }
+                fee = new Dictionary<string, object>() {
+                    { "cost", this.parseNumber(Precise.stringNeg(this.safeString(feeObject, "totalFee"))) },
+                    { "currency", this.safeCurrencyCode(this.safeString(feeObject, "feeCoinCode")) },
+                };
+            }
         }
         object postOnly = null;
-        object timeInForce = this.safeStringUpper(order, "force");
+        object timeInForce = this.safeStringUpper2(order, "force", "timeInForce");
         if (isTrue(isEqual(timeInForce, "POST_ONLY")))
         {
             postOnly = true;
@@ -4599,7 +5125,7 @@ public partial class bitget : Exchange
             average = this.safeString(order, "basePrice");
         } else
         {
-            price = this.safeString2(order, "price", "executePrice");
+            price = this.safeStringN(order, new List<object>() {"price", "executePrice", "slLimitPrice", "tpLimitPrice"});
             average = this.safeString(order, "priceAvg");
         }
         object size = null;
@@ -4612,8 +5138,8 @@ public partial class bitget : Exchange
             filled = this.safeString(order, "size");
         } else
         {
-            size = this.safeString(order, "size");
-            filled = this.safeString(order, "baseVolume");
+            size = this.safeString2(order, "size", "qty");
+            filled = this.safeString2(order, "baseVolume", "cumExecQty");
         }
         object side = this.safeString(order, "side");
         object posMode = this.safeString(order, "posMode");
@@ -4649,8 +5175,8 @@ public partial class bitget : Exchange
             { "postOnly", postOnly },
             { "reduceOnly", reduceOnly },
             { "triggerPrice", this.safeNumber(order, "triggerPrice") },
-            { "takeProfitPrice", this.safeNumber2(order, "presetStopSurplusPrice", "stopSurplusTriggerPrice") },
-            { "stopLossPrice", this.safeNumber2(order, "presetStopLossPrice", "stopLossTriggerPrice") },
+            { "takeProfitPrice", this.safeNumberN(order, new List<object>() {"presetStopSurplusPrice", "stopSurplusTriggerPrice", "takeProfit"}) },
+            { "stopLossPrice", this.safeNumberN(order, new List<object>() {"presetStopLossPrice", "stopLossTriggerPrice", "stopLoss"}) },
             { "status", this.parseOrderStatus(rawStatus) },
             { "fee", fee },
             { "trades", null },
@@ -4695,6 +5221,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -4723,6 +5251,8 @@ public partial class bitget : Exchange
      * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -4741,34 +5271,51 @@ public partial class bitget : Exchange
         object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            if (isTrue(isTriggerOrder))
+            object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+            if (isTrue(isStopLossOrTakeProfitTrigger))
             {
-                response = await this.privateSpotPostV2SpotTradePlacePlanOrder(request);
-            } else if (isTrue(isEqual(marginMode, "isolated")))
-            {
-                response = await this.privateMarginPostV2MarginIsolatedPlaceOrder(request);
-            } else if (isTrue(isEqual(marginMode, "cross")))
-            {
-                response = await this.privateMarginPostV2MarginCrossedPlaceOrder(request);
+                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradePlaceStrategyOrder", new object[] { request }));
             } else
             {
-                response = await this.privateSpotPostV2SpotTradePlaceOrder(request);
+                response = await this.privateUtaPostV3TradePlaceOrder(request);
             }
         } else
         {
-            if (isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingPercentOrder)))
+            object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            if (isTrue(getValue(market, "spot")))
             {
-                response = await this.privateMixPostV2MixOrderPlacePlanOrder(request);
-            } else if (isTrue(isStopLossOrTakeProfitTrigger))
-            {
-                response = await this.privateMixPostV2MixOrderPlaceTpslOrder(request);
+                if (isTrue(isTriggerOrder))
+                {
+                    response = await this.privateSpotPostV2SpotTradePlacePlanOrder(request);
+                } else if (isTrue(isEqual(marginMode, "isolated")))
+                {
+                    response = await this.privateMarginPostV2MarginIsolatedPlaceOrder(request);
+                } else if (isTrue(isEqual(marginMode, "cross")))
+                {
+                    response = await this.privateMarginPostV2MarginCrossedPlaceOrder(request);
+                } else
+                {
+                    response = await this.privateSpotPostV2SpotTradePlaceOrder(request);
+                }
             } else
             {
-                response = await this.privateMixPostV2MixOrderPlaceOrder(request);
+                if (isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingPercentOrder)))
+                {
+                    response = await this.privateMixPostV2MixOrderPlacePlanOrder(request);
+                } else if (isTrue(isStopLossOrTakeProfitTrigger))
+                {
+                    response = await this.privateMixPostV2MixOrderPlaceTpslOrder(request);
+                } else
+                {
+                    response = await this.privateMixPostV2MixOrderPlaceOrder(request);
+                }
             }
         }
         //
@@ -4784,6 +5331,160 @@ public partial class bitget : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
+    }
+
+    public virtual object createUtaOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        if (isTrue(isEqual(productType, "SPOT")))
+        {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                productType = "MARGIN";
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "category", productType },
+            { "symbol", getValue(market, "id") },
+            { "qty", this.amountToPrecision(symbol, amount) },
+            { "side", side },
+        };
+        object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+            parameters = this.omit(parameters, "clientOrderId");
+        }
+        object stopLossTriggerPrice = this.safeNumber(parameters, "stopLossPrice");
+        object takeProfitTriggerPrice = this.safeNumber(parameters, "takeProfitPrice");
+        object stopLoss = this.safeValue(parameters, "stopLoss");
+        object takeProfit = this.safeValue(parameters, "takeProfit");
+        object isStopLoss = !isEqual(stopLoss, null);
+        object isTakeProfit = !isEqual(takeProfit, null);
+        object isStopLossTrigger = !isEqual(stopLossTriggerPrice, null);
+        object isTakeProfitTrigger = !isEqual(takeProfitTriggerPrice, null);
+        object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTrigger) || isTrue(isTakeProfitTrigger);
+        if (isTrue(isStopLossOrTakeProfitTrigger))
+        {
+            if (isTrue(isStopLossTrigger))
+            {
+                object slType = this.safeString(parameters, "slTriggerBy", "mark");
+                ((IDictionary<string,object>)request)["slTriggerBy"] = slType;
+                ((IDictionary<string,object>)request)["stopLoss"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["slLimitPrice"] = this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "limit");
+                } else
+                {
+                    ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "market");
+                }
+            } else if (isTrue(isTakeProfitTrigger))
+            {
+                object tpType = this.safeString(parameters, "tpTriggerBy", "mark");
+                ((IDictionary<string,object>)request)["tpTriggerBy"] = tpType;
+                ((IDictionary<string,object>)request)["takeProfit"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpLimitPrice"] = this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "limit");
+                } else
+                {
+                    ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "market");
+                }
+            }
+            parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
+        } else
+        {
+            if (isTrue(isStopLoss))
+            {
+                object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                object slLimitPrice = this.safeNumber(stopLoss, "price");
+                ((IDictionary<string,object>)request)["stopLoss"] = this.priceToPrecision(symbol, slTriggerPrice);
+                if (isTrue(!isEqual(slLimitPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["slLimitPrice"] = this.priceToPrecision(symbol, slLimitPrice);
+                    ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "limit");
+                } else
+                {
+                    ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "market");
+                }
+            }
+            if (isTrue(isTakeProfit))
+            {
+                object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                object tpLimitPrice = this.safeNumber(takeProfit, "price");
+                ((IDictionary<string,object>)request)["takeProfit"] = this.priceToPrecision(symbol, tpTriggerPrice);
+                if (isTrue(!isEqual(tpLimitPrice, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpLimitPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
+                    ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "limit");
+                } else
+                {
+                    ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "market");
+                }
+            }
+            object isMarketOrder = isEqual(type, "market");
+            if (!isTrue(isMarketOrder))
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            }
+            ((IDictionary<string,object>)request)["orderType"] = type;
+            object exchangeSpecificTifParam = this.safeString(parameters, "timeInForce");
+            object postOnly = null;
+            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isEqual(exchangeSpecificTifParam, "post_only"), parameters);
+            postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+            parameters = ((IList<object>)postOnlyparametersVariable)[1];
+            object defaultTimeInForce = this.safeStringUpper(this.options, "defaultTimeInForce");
+            object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTimeInForce);
+            if (isTrue(postOnly))
+            {
+                ((IDictionary<string,object>)request)["timeInForce"] = "post_only";
+            } else if (isTrue(isEqual(timeInForce, "GTC")))
+            {
+                ((IDictionary<string,object>)request)["timeInForce"] = "gtc";
+            } else if (isTrue(isEqual(timeInForce, "FOK")))
+            {
+                ((IDictionary<string,object>)request)["timeInForce"] = "fok";
+            } else if (isTrue(isEqual(timeInForce, "IOC")))
+            {
+                ((IDictionary<string,object>)request)["timeInForce"] = "ioc";
+            }
+        }
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        if (isTrue(reduceOnly))
+        {
+            if (isTrue(isTrue(hedged) || isTrue(isStopLossOrTakeProfitTrigger)))
+            {
+                object reduceOnlyPosSide = ((bool) isTrue((isEqual(side, "sell")))) ? "long" : "short";
+                ((IDictionary<string,object>)request)["posSide"] = reduceOnlyPosSide;
+            } else if (!isTrue(isStopLossOrTakeProfitTrigger))
+            {
+                ((IDictionary<string,object>)request)["reduceOnly"] = "yes";
+            }
+        } else
+        {
+            if (isTrue(hedged))
+            {
+                object posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
+                ((IDictionary<string,object>)request)["posSide"] = posSide;
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"});
+        return this.extend(request, parameters);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -4890,18 +5591,18 @@ public partial class bitget : Exchange
                 }
                 if (isTrue(isStopLoss))
                 {
-                    object slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                    object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopLossTriggerPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
-                    object slPrice = this.safeNumber(stopLoss, "price");
+                    object slPrice = this.safeString(stopLoss, "price");
                     ((IDictionary<string,object>)request)["stopLossExecutePrice"] = this.priceToPrecision(symbol, slPrice);
                     object slType = this.safeString(stopLoss, "type", "mark_price");
                     ((IDictionary<string,object>)request)["stopLossTriggerType"] = slType;
                 }
                 if (isTrue(isTakeProfit))
                 {
-                    object tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                    object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                     ((IDictionary<string,object>)request)["stopSurplusTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
-                    object tpPrice = this.safeNumber(takeProfit, "price");
+                    object tpPrice = this.safeString(takeProfit, "price");
                     ((IDictionary<string,object>)request)["stopSurplusExecutePrice"] = this.priceToPrecision(symbol, tpPrice);
                     object tpType = this.safeString(takeProfit, "type", "mark_price");
                     ((IDictionary<string,object>)request)["stopSurplusTriggerType"] = tpType;
@@ -5057,6 +5758,69 @@ public partial class bitget : Exchange
         return this.extend(request, parameters);
     }
 
+    public async virtual Task<object> createUtaOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object marginMode = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
+            object currentMarginMode = getValue(marginResult, 0);
+            if (isTrue(!isEqual(currentMarginMode, null)))
+            {
+                if (isTrue(isEqual(marginMode, null)))
+                {
+                    marginMode = currentMarginMode;
+                } else
+                {
+                    if (isTrue(!isEqual(marginMode, currentMarginMode)))
+                    {
+                        throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                    }
+                }
+            }
+            object orderRequest = this.createUtaOrderRequest(marketId, type, side, amount, price, orderParams);
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object market = this.market(symbol);
+        object response = await this.privateUtaPostV3TradePlaceBatch(ordersRequests);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752810184560,
+        //         "data": [
+        //             {
+        //                 "orderId": "1329947796441513984",
+        //                 "clientOid": "1329947796483457024"
+        //             },
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data, market);
+    }
+
     /**
      * @method
      * @name bitget#createOrders
@@ -5065,14 +5829,24 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.createUtaOrders(orders, parameters);
+        }
         object ordersRequests = new List<object>() {};
         object symbol = null;
         object marginMode = null;
@@ -5182,6 +5956,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
      * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Modify-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -5203,6 +5979,7 @@ public partial class bitget : Exchange
      * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
      * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
      * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -5238,7 +6015,60 @@ public partial class bitget : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"});
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object productType = null;
+        object uta = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            if (isTrue(!isEqual(amount, null)))
+            {
+                ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+            }
+            if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
+            {
+                if (isTrue(isStopLossOrder))
+                {
+                    object slType = this.safeString(parameters, "slTriggerBy", "mark");
+                    ((IDictionary<string,object>)request)["slTriggerBy"] = slType;
+                    ((IDictionary<string,object>)request)["stopLoss"] = this.priceToPrecision(symbol, stopLossPrice);
+                    if (isTrue(!isEqual(price, null)))
+                    {
+                        ((IDictionary<string,object>)request)["slLimitPrice"] = this.priceToPrecision(symbol, price);
+                        ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "limit");
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "market");
+                    }
+                } else if (isTrue(isTakeProfitOrder))
+                {
+                    object tpType = this.safeString(parameters, "tpTriggerBy", "mark");
+                    ((IDictionary<string,object>)request)["tpTriggerBy"] = tpType;
+                    ((IDictionary<string,object>)request)["takeProfit"] = this.priceToPrecision(symbol, takeProfitPrice);
+                    if (isTrue(!isEqual(price, null)))
+                    {
+                        ((IDictionary<string,object>)request)["tpLimitPrice"] = this.priceToPrecision(symbol, price);
+                        ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "limit");
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "market");
+                    }
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
+                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeModifyStrategyOrder", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                }
+                response = await this.privateUtaPostV3TradeModifyOrder(this.extend(request, parameters));
+            }
+        } else if (isTrue(getValue(market, "spot")))
         {
             if (isTrue(isEqual(triggerPrice, null)))
             {
@@ -5272,10 +6102,6 @@ public partial class bitget : Exchange
                 throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders")) ;
             }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(!isTrue(isTakeProfitOrder) && !isTrue(isStopLossOrder)))
             {
@@ -5379,6 +6205,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+     * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5386,6 +6214,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -5414,7 +6243,21 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+            if (isTrue(trigger))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeCancelStrategyOrder", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, parameters));
+            }
+        } else if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
         {
             object productType = null;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -5508,17 +6351,74 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1753058267399",
+        //         "data": null
+        //     }
+        //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = null;
-        if (isTrue(isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger)))
+        if (isTrue(isTrue(isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger)) && !isTrue(uta)))
         {
             object orderInfo = this.safeValue(data, "successList", new List<object>() {});
             order = getValue(orderInfo, 0);
         } else
         {
-            order = data;
+            if (isTrue(isTrue(uta) && isTrue(trigger)))
+            {
+                order = response;
+            } else
+            {
+                order = data;
+            }
         }
         return this.parseOrder(order, market);
+    }
+
+    public async virtual Task<object> cancelUtaOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        object requestList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object individualId = getValue(ids, i);
+            object order = new Dictionary<string, object>() {
+                { "orderId", individualId },
+                { "symbol", getValue(market, "id") },
+                { "category", productType },
+            };
+            ((IList<object>)requestList).Add(order);
+        }
+        object response = await this.privateUtaPostV3TradeCancelBatch(requestList);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752813731517,
+        //         "data": [
+        //             {
+        //                 "orderId": "1329948909442023424",
+        //                 "clientOid": "1329948909446217728"
+        //             },
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data, market);
     }
 
     /**
@@ -5530,11 +6430,13 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -5546,6 +6448,14 @@ public partial class bitget : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.cancelUtaOrders(ids, symbol, parameters);
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -5632,10 +6542,12 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -5651,13 +6563,32 @@ public partial class bitget : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            if (isTrue(isEqual(productType, "SPOT")))
+            {
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                }
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaPostV3TradeCancelSymbolOrder(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             if (isTrue(!isEqual(marginMode, null)))
             {
@@ -5702,10 +6633,6 @@ public partial class bitget : Exchange
             }
         } else
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(trigger))
             {
@@ -5716,9 +6643,16 @@ public partial class bitget : Exchange
             }
         }
         object data = this.safeDict(response, "data");
-        object resultList = this.safeList2(data, "resultList", "successList");
+        object resultList = this.safeListN(data, new List<object>() {"resultList", "successList", "list"});
         object failureList = this.safeList2(data, "failure", "failureList");
-        object responseList = this.arrayConcat(resultList, failureList);
+        object responseList = null;
+        if (isTrue(isTrue((!isEqual(resultList, null))) && isTrue((!isEqual(failureList, null)))))
+        {
+            responseList = this.arrayConcat(resultList, failureList);
+        } else
+        {
+            responseList = resultList;
+        }
         return this.parseOrders(responseList);
     }
 
@@ -5728,9 +6662,11 @@ public partial class bitget : Exchange
      * @description fetches information on an order made by the user
      * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -5746,7 +6682,14 @@ public partial class bitget : Exchange
             { "orderId", id },
         };
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
         {
             response = await this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, parameters));
         } else if (isTrue(isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"))))
@@ -5829,7 +6772,51 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        if (isTrue((response is string)))
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750496858333,
+        //         "data": {
+        //             "orderId": "1320244799629316096",
+        //             "clientOid": "1320244799633510400",
+        //             "category": "USDT-FUTURES",
+        //             "symbol": "BTCUSDT",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "price": "50000",
+        //             "qty": "0.001",
+        //             "amount": "0",
+        //             "cumExecQty": "0",
+        //             "cumExecValue": "0",
+        //             "avgPrice": "0",
+        //             "timeInForce": "gtc",
+        //             "orderStatus": "live",
+        //             "posSide": "long",
+        //             "holdMode": "hedge_mode",
+        //             "reduceOnly": "NO",
+        //             "feeDetail": [{
+        //                 "feeCoin": "",
+        //                 "fee": ""
+        //             }],
+        //             "createdTime": "1750496809871",
+        //             "updatedTime": "1750496809886",
+        //             "cancelReason": "",
+        //             "execType": "normal",
+        //             "stpMode": "none",
+        //             "tpTriggerBy": null,
+        //             "slTriggerBy": null,
+        //             "takeProfit": null,
+        //             "stopLoss": null,
+        //             "tpOrderType": null,
+        //             "slOrderType": null,
+        //             "tpLimitPrice": null,
+        //             "slLimitPrice": null
+        //         }
+        //     }
+        //
+        if (isTrue(!isTrue(uta) && isTrue(((response is string)))))
         {
             response = parseJson(response);
         }
@@ -5856,6 +6843,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -5866,6 +6854,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -5879,6 +6868,10 @@ public partial class bitget : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -5898,24 +6891,30 @@ public partial class bitget : Exchange
         if (isTrue(paginate))
         {
             object cursorReceived = null;
-            if (isTrue(isEqual(type, "spot")))
+            object cursorSent = null;
+            if (isTrue(uta))
+            {
+                cursorReceived = "cursor";
+                cursorSent = "cursor";
+            } else if (isTrue(isEqual(type, "spot")))
             {
                 if (isTrue(!isEqual(marginMode, null)))
                 {
                     cursorReceived = "minId";
+                    cursorSent = "idLessThan";
                 }
             } else
             {
                 cursorReceived = "endId";
+                cursorSent = "idLessThan";
             }
-            return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, cursorReceived, "idLessThan");
+            return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, cursorReceived, cursorSent);
         }
         object response = null;
         object trailing = this.safeBool(parameters, "trailing");
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object planTypeDefined = !isEqual(this.safeString(parameters, "planType"), null);
         object isTrigger = (isTrue(trigger) || isTrue(planTypeDefined));
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "trailing"});
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -5927,7 +6926,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isTrue(isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((!isEqual(marginMode, null)))))
+        if (isTrue(!isTrue(uta) && isTrue((isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((!isEqual(marginMode, null)))))))
         {
             object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             parameters = this.omit(parameters, "clientOrderId");
@@ -5936,9 +6935,29 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
             }
         }
-        object query = null;
-        query = this.omit(parameters, new List<object>() {"type"});
-        if (isTrue(isEqual(type, "spot")))
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        parameters = this.omit(parameters, new List<object>() {"type", "stop", "trigger", "trailing"});
+        if (isTrue(uta))
+        {
+            if (isTrue(isEqual(type, "spot")))
+            {
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                }
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            if (isTrue(trigger))
+            {
+                response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeUnfilledStrategyOrders", new object[] { this.extend(request, parameters) }));
+            } else
+            {
+                response = await this.privateUtaGetV3TradeUnfilledOrders(this.extend(request, parameters));
+            }
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(!isEqual(marginMode, null)))
             {
@@ -5949,41 +6968,37 @@ public partial class bitget : Exchange
                 }
                 if (isTrue(isEqual(marginMode, "isolated")))
                 {
-                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders(this.extend(request, query));
+                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders(this.extend(request, parameters));
                 } else if (isTrue(isEqual(marginMode, "cross")))
                 {
-                    response = await this.privateMarginGetV2MarginCrossedOpenOrders(this.extend(request, query));
+                    response = await this.privateMarginGetV2MarginCrossedOpenOrders(this.extend(request, parameters));
                 }
             } else
             {
                 if (isTrue(trigger))
                 {
-                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder(this.extend(request, query));
+                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders(this.extend(request, query));
+                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders(this.extend(request, parameters));
                 }
             }
         } else
         {
-            object productType = null;
-            var productTypequeryVariable = this.handleProductTypeAndParams(market, query);
-            productType = ((IList<object>)productTypequeryVariable)[0];
-            query = ((IList<object>)productTypequeryVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(trailing))
             {
                 object planType = this.safeString(parameters, "planType", "track_plan");
                 ((IDictionary<string,object>)request)["planType"] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, parameters));
             } else if (isTrue(isTrigger))
             {
-                object planType = this.safeString(query, "planType", "normal_plan");
+                object planType = this.safeString(parameters, "planType", "normal_plan");
                 ((IDictionary<string,object>)request)["planType"] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, parameters));
             } else
             {
-                response = await this.privateMixGetV2MixOrderOrdersPending(this.extend(request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPending(this.extend(request, parameters));
             }
         }
         //
@@ -6161,8 +7176,96 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750753395850,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "1321320757371228160",
+        //                     "clientOid": "1321320757371228161",
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "limit",
+        //                     "side": "buy",
+        //                     "price": "50000",
+        //                     "qty": "0.001",
+        //                     "amount": "0",
+        //                     "cumExecQty": "0",
+        //                     "cumExecValue": "0",
+        //                     "avgPrice": "0",
+        //                     "timeInForce": "gtc",
+        //                     "orderStatus": "live",
+        //                     "posSide": "long",
+        //                     "holdMode": "hedge_mode",
+        //                     "reduceOnly": "NO",
+        //                     "feeDetail": [
+        //                         {
+        //                             "feeCoin": "",
+        //                             "fee": ""
+        //                         }
+        //                     ],
+        //                     "createdTime": "1750753338186",
+        //                     "updatedTime": "1750753338203",
+        //                     "stpMode": "none",
+        //                     "tpTriggerBy": null,
+        //                     "slTriggerBy": null,
+        //                     "takeProfit": null,
+        //                     "stopLoss": null,
+        //                     "tpOrderType": null,
+        //                     "slOrderType": null,
+        //                     "tpLimitPrice": null,
+        //                     "slLimitPrice": null
+        //                 }
+        //             ],
+        //             "cursor": "1321320757371228160"
+        //         }
+        //     }
+        //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1753057527060,
+        //         "data": [
+        //             {
+        //                 "orderId": "1330984742276198400",
+        //                 "clientOid": "1330984742276198400",
+        //                 "symbol": "BTCUSDT",
+        //                 "category": "USDT-FUTURES",
+        //                 "qty": "0.001",
+        //                 "posSide": "long",
+        //                 "tpTriggerBy": "market",
+        //                 "slTriggerBy": "mark",
+        //                 "takeProfit": "",
+        //                 "stopLoss":"114000",
+        //                 "tpOrderType": "market",
+        //                 "slOrderType": "limit",
+        //                 "tpLimitPrice": "",
+        //                 "slLimitPrice": "113000",
+        //                 "createdTime": "1753057411736",
+        //                 "updatedTime": "1753057411747"
+        //             }
+        //         ]
+        //     }
+        //
         object data = this.safeValue(response, "data");
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(uta))
+        {
+            object result = null;
+            if (isTrue(trigger))
+            {
+                result = this.safeList(response, "data", new List<object>() {});
+            } else
+            {
+                result = this.safeList(data, "list", new List<object>() {});
+            }
+            return this.parseOrders(result, market, since, limit);
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue(trigger)))
             {
@@ -6187,6 +7290,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
      * @param {string} symbol unified market symbol of the closed orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
@@ -6217,6 +7321,7 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
      * @param {string} symbol unified market symbol of the canceled orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
@@ -6246,6 +7351,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+     * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
      * @description fetches information on multiple canceled and closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -6257,11 +7364,20 @@ public partial class bitget : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.fetchUtaCanceledAndClosedOrders(symbol, since, limit, parameters);
+        }
         await this.loadMarkets();
         object market = null;
         object request = new Dictionary<string, object>() {};
@@ -6580,6 +7696,150 @@ public partial class bitget : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    public async virtual Task<object> fetchUtaCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        if (isTrue(isEqual(productType, "SPOT")))
+        {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(!isEqual(marginMode, null)))
+            {
+                productType = "MARGIN";
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "category", productType },
+        };
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "cursor", "cursor");
+        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        if (isTrue(trigger))
+        {
+            response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeHistoryStrategyOrders", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await this.privateUtaGetV3TradeHistoryOrders(this.extend(request, parameters));
+        }
+        //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752531592855,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "1322441400976261120",
+        //                     "clientOid": "1322441400976261121",
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "market",
+        //                     "side": "sell",
+        //                     "price": "0",
+        //                     "qty": "0.0001",
+        //                     "amount": "0",
+        //                     "cumExecQty": "0.0001",
+        //                     "cumExecValue": "10.7005",
+        //                     "avgPrice": "107005.4",
+        //                     "timeInForce": "gtc",
+        //                     "orderStatus": "filled",
+        //                     "posSide": "long",
+        //                     "holdMode": "hedge_mode",
+        //                     "reduceOnly": "NO",
+        //                     "feeDetail": [
+        //                         {
+        //                             "feeCoin": "USDT",
+        //                             "fee": "0.00642032"
+        //                         }
+        //                     ],
+        //                     "createdTime": "1751020520442",
+        //                     "updatedTime": "1751020520457",
+        //                     "cancelReason": "",
+        //                     "execType": "normal",
+        //                     "stpMode": "none",
+        //                     "tpTriggerBy": null,
+        //                     "slTriggerBy": null,
+        //                     "takeProfit": null,
+        //                     "stopLoss": null,
+        //                     "tpOrderType": null,
+        //                     "slOrderType": null,
+        //                     "tpLimitPrice": null,
+        //                     "slLimitPrice": null
+        //                 },
+        //             ],
+        //             "cursor": "1322441328637100035"
+        //         }
+        //     }
+        //
+        // uta trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1753058447920,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "1330984742276198400",
+        //                     "clientOid": "1330984742276198400",
+        //                     "symbol": "BTCUSDT",
+        //                     "category": "USDT-FUTURES",
+        //                     "qty": "0.001",
+        //                     "posSide": "long",
+        //                     "tpTriggerBy": "market",
+        //                     "slTriggerBy": "mark",
+        //                     "takeProfit": "",
+        //                     "stopLoss": "112000",
+        //                     "tpOrderType": "market",
+        //                     "slOrderType": "limit",
+        //                     "tpLimitPrice": "",
+        //                     "slLimitPrice": "111000",
+        //                     "createdTime": "1753057411736",
+        //                     "updatedTime": "1753058267412"
+        //                 },
+        //             ],
+        //             "cursor": 1330960754317619202
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList(data, "list", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
+    }
+
     /**
      * @method
      * @name bitget#fetchLedger
@@ -6831,50 +8091,30 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(!isTrue(uta) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
-        parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
-        {
-            object cursorReceived = null;
-            if (isTrue(getValue(market, "spot")))
-            {
-                if (isTrue(!isEqual(marginMode, null)))
-                {
-                    cursorReceived = "minId";
-                }
-            } else
-            {
-                cursorReceived = "endId";
-            }
-            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, cursorReceived, "idLessThan");
-        }
-        object response = null;
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
+        object request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -6886,33 +8126,71 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isTrue(getValue(market, "spot")))
+        object paginate = false;
+        object marginMode = null;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(paginate))
         {
-            if (isTrue(!isEqual(marginMode, null)))
+            object cursorReceived = null;
+            object cursorSent = null;
+            if (isTrue(uta))
             {
-                if (isTrue(isEqual(since, null)))
+                cursorReceived = "cursor";
+                cursorSent = "cursor";
+            } else if (isTrue(getValue(market, "spot")))
+            {
+                if (isTrue(!isEqual(marginMode, null)))
                 {
-                    ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), 7776000000);
-                }
-                if (isTrue(isEqual(marginMode, "isolated")))
-                {
-                    response = await this.privateMarginGetV2MarginIsolatedFills(this.extend(request, parameters));
-                } else if (isTrue(isEqual(marginMode, "cross")))
-                {
-                    response = await this.privateMarginGetV2MarginCrossedFills(this.extend(request, parameters));
+                    cursorReceived = "minId";
+                    cursorSent = "idLessThan";
                 }
             } else
             {
-                response = await this.privateSpotGetV2SpotTradeFills(this.extend(request, parameters));
+                cursorReceived = "endId";
+                cursorSent = "idLessThan";
             }
+            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, cursorReceived, cursorSent);
+        }
+        object response = null;
+        if (isTrue(uta))
+        {
+            response = await this.privateUtaGetV3TradeFills(this.extend(request, parameters));
         } else
         {
-            object productType = null;
-            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
-            productType = ((IList<object>)productTypeparametersVariable)[0];
-            parameters = ((IList<object>)productTypeparametersVariable)[1];
-            ((IDictionary<string,object>)request)["productType"] = productType;
-            response = await this.privateMixGetV2MixOrderFills(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            if (isTrue(getValue(market, "spot")))
+            {
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    if (isTrue(isEqual(since, null)))
+                    {
+                        ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), 7776000000);
+                    }
+                    if (isTrue(isEqual(marginMode, "isolated")))
+                    {
+                        response = await this.privateMarginGetV2MarginIsolatedFills(this.extend(request, parameters));
+                    } else if (isTrue(isEqual(marginMode, "cross")))
+                    {
+                        response = await this.privateMarginGetV2MarginCrossedFills(this.extend(request, parameters));
+                    }
+                } else
+                {
+                    response = await this.privateSpotGetV2SpotTradeFills(this.extend(request, parameters));
+                }
+            } else
+            {
+                object productType = null;
+                var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+                productType = ((IList<object>)productTypeparametersVariable)[0];
+                parameters = ((IList<object>)productTypeparametersVariable)[1];
+                ((IDictionary<string,object>)request)["productType"] = productType;
+                response = await this.privateMixGetV2MixOrderFills(this.extend(request, parameters));
+            }
         }
         //
         // spot
@@ -7013,11 +8291,47 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
+        // uta
+        //
+        //      {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1751099666579,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "execId": "1322441401010528257",
+        //                     "orderId": "1322441400976261120",
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "market",
+        //                     "side": "sell",
+        //                     "execPrice": "107005.4",
+        //                     "execQty": "0.0001",
+        //                     "execValue": "10.7005",
+        //                     "tradeScope": "taker",
+        //                     "feeDetail": [{
+        //                         "feeCoin": "USDT",
+        //                         "fee":"0.00642032"
+        //                     }],
+        //                     "createdTime": "1751020520451",
+        //                     "updatedTime": "1751020520458",
+        //                     "execPnl": "0.00017"
+        //                 },
+        //             ],
+        //             "cursor": "1322061241878880257"
+        //         }
+        //     }
+        //
         object data = this.safeValue(response, "data");
-        if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        if (isTrue(uta))
         {
-            object fillList = this.safeList(data, "fillList", new List<object>() {});
-            return this.parseTrades(fillList, market, since, limit);
+            object fills = this.safeList(data, "list", new List<object>() {});
+            return this.parseTrades(fills, market, since, limit);
+        } else if (isTrue((isTrue(getValue(market, "swap")) || isTrue((getValue(market, "future"))))))
+        {
+            object fills = this.safeList(data, "fillList", new List<object>() {});
+            return this.parseTrades(fills, market, since, limit);
         } else if (isTrue(!isEqual(marginMode, null)))
         {
             object fills = this.safeList(data, "fills", new List<object>() {});
@@ -7031,8 +8345,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -7046,42 +8362,95 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
-            { "productType", productType },
         };
-        object response = await this.privateMixGetV2MixPositionSinglePosition(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700807531673,
-        //         "data": [
-        //             {
-        //                 "marginCoin": "USDT",
-        //                 "symbol": "BTCUSDT",
-        //                 "holdSide": "long",
-        //                 "openDelegateSize": "0",
-        //                 "marginSize": "3.73555",
-        //                 "available": "0.002",
-        //                 "locked": "0",
-        //                 "total": "0.002",
-        //                 "leverage": "20",
-        //                 "achievedProfits": "0",
-        //                 "openPriceAvg": "37355.5",
-        //                 "marginMode": "crossed",
-        //                 "posMode": "hedge_mode",
-        //                 "unrealizedPL": "0.007",
-        //                 "liquidationPrice": "31724.970702417",
-        //                 "keepMarginRate": "0.004",
-        //                 "markPrice": "37359",
-        //                 "marginRatio": "0.029599540355",
-        //                 "cTime": "1700807507275"
-        //             }
-        //         ]
-        //     }
-        //
-        object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object response = null;
+        object uta = null;
+        object result = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPosition", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1750929905423,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "category": "USDT-FUTURES",
+            //                     "symbol": "BTCUSDT",
+            //                     "marginCoin": "USDT",
+            //                     "holdMode": "hedge_mode",
+            //                     "posSide": "long",
+            //                     "marginMode": "crossed",
+            //                     "positionBalance": "5.435199",
+            //                     "available": "0.001",
+            //                     "frozen": "0",
+            //                     "total": "0.001",
+            //                     "leverage": "20",
+            //                     "curRealisedPnl": "0",
+            //                     "avgPrice": "107410.3",
+            //                     "positionStatus": "normal",
+            //                     "unrealisedPnl": "0.0047",
+            //                     "liquidationPrice": "0",
+            //                     "mmr": "0.004",
+            //                     "profitRate": "0.0008647337475591",
+            //                     "markPrice": "107415.3",
+            //                     "breakEvenPrice": "107539.2",
+            //                     "totalFunding": "0",
+            //                     "openFeeTotal": "-0.06444618",
+            //                     "closeFeeTotal": "0",
+            //                     "createdTime": "1750495670699",
+            //                     "updatedTime": "1750929883465"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            result = this.safeList(data, "list", new List<object>() {});
+        } else
+        {
+            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixGetV2MixPositionSinglePosition(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700807531673,
+            //         "data": [
+            //             {
+            //                 "marginCoin": "USDT",
+            //                 "symbol": "BTCUSDT",
+            //                 "holdSide": "long",
+            //                 "openDelegateSize": "0",
+            //                 "marginSize": "3.73555",
+            //                 "available": "0.002",
+            //                 "locked": "0",
+            //                 "total": "0.002",
+            //                 "leverage": "20",
+            //                 "achievedProfits": "0",
+            //                 "openPriceAvg": "37355.5",
+            //                 "marginMode": "crossed",
+            //                 "posMode": "hedge_mode",
+            //                 "unrealizedPL": "0.007",
+            //                 "liquidationPrice": "31724.970702417",
+            //                 "keepMarginRate": "0.004",
+            //                 "markPrice": "37359",
+            //                 "marginRatio": "0.029599540355",
+            //                 "cTime": "1700807507275"
+            //             }
+            //         ]
+            //     }
+            //
+            result = this.safeList(response, "data", new List<object>() {});
+        }
+        object first = this.safeDict(result, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 
@@ -7281,6 +8650,36 @@ public partial class bitget : Exchange
         //         "cTime": "1700807507275"
         //     }
         //
+        // uta: fetchPosition
+        //
+        //     {
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "holdMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "marginMode": "crossed",
+        //         "positionBalance": "5.435199",
+        //         "available": "0.001",
+        //         "frozen": "0",
+        //         "total": "0.001",
+        //         "leverage": "20",
+        //         "curRealisedPnl": "0",
+        //         "avgPrice": "107410.3",
+        //         "positionStatus": "normal",
+        //         "unrealisedPnl": "0.0047",
+        //         "liquidationPrice": "0",
+        //         "mmr": "0.004",
+        //         "profitRate": "0.0008647337475591",
+        //         "markPrice": "107415.3",
+        //         "breakEvenPrice": "107539.2",
+        //         "totalFunding": "0",
+        //         "openFeeTotal": "-0.06444618",
+        //         "closeFeeTotal": "0",
+        //         "createdTime": "1750495670699",
+        //         "updatedTime": "1750929883465"
+        //     }
+        //
         // fetchPositions: privateMixGetV2MixPositionAllPosition
         //
         //     {
@@ -7332,15 +8731,38 @@ public partial class bitget : Exchange
         //         "clientOid": "1120923953904893956"
         //     }
         //
+        // uta: fetchPositionsHistory
+        //
+        //     {
+        //         "positionId": "1322441328637100049",
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "holdMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "marginMode": "crossed",
+        //         "openPriceAvg": "107003.7",
+        //         "closePriceAvg": "107005.4",
+        //         "openTotalPos": "0.0001",
+        //         "closeTotalPos": "0.0001",
+        //         "cumRealisedPnl": "0.00017",
+        //         "netProfit": "-0.01267055",
+        //         "totalFunding": "0",
+        //         "openFeeTotal": "-0.00642022",
+        //         "closeFeeTotal": "-0.00642032",
+        //         "createdTime": "1751020503195",
+        //         "updatedTime": "1751020520458"
+        //     }
+        //
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(position, "cTime", "ctime");
+        object timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         object marginMode = this.safeString(position, "marginMode");
         object collateral = null;
         object initialMargin = null;
-        object unrealizedPnl = this.safeString(position, "unrealizedPL");
-        object rawCollateral = this.safeString(position, "marginSize");
+        object unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
+        object rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
         if (isTrue(isEqual(marginMode, "isolated")))
         {
             collateral = Precise.stringAdd(rawCollateral, unrealizedPnl);
@@ -7349,7 +8771,7 @@ public partial class bitget : Exchange
             marginMode = "cross";
             initialMargin = rawCollateral;
         }
-        object holdMode = this.safeString(position, "posMode");
+        object holdMode = this.safeString2(position, "posMode", "holdMode");
         object hedged = null;
         if (isTrue(isEqual(holdMode, "hedge_mode")))
         {
@@ -7358,12 +8780,12 @@ public partial class bitget : Exchange
         {
             hedged = false;
         }
-        object side = this.safeString(position, "holdSide");
+        object side = this.safeString2(position, "holdSide", "posSide");
         object leverage = this.safeString(position, "leverage");
         object contractSizeNumber = this.safeValue(market, "contractSize");
         object contractSize = this.numberToString(contractSizeNumber);
-        object baseAmount = this.safeString(position, "total");
-        object entryPrice = this.safeString2(position, "openPriceAvg", "openAvgPrice");
+        object baseAmount = this.safeString2(position, "total", "openTotalPos");
+        object entryPrice = this.safeStringN(position, new List<object>() {"openPriceAvg", "openAvgPrice", "avgPrice"});
         object maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
         object openNotional = Precise.stringMul(entryPrice, baseAmount);
         if (isTrue(isEqual(initialMargin, null)))
@@ -7406,31 +8828,31 @@ public partial class bitget : Exchange
         object percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", this.safeString(position, "orderId") },
+            { "id", this.safeString2(position, "orderId", "positionId") },
             { "symbol", symbol },
             { "notional", this.parseNumber(notional) },
             { "marginMode", marginMode },
             { "liquidationPrice", liquidationPrice },
             { "entryPrice", this.parseNumber(entryPrice) },
             { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
-            { "realizedPnl", this.safeNumber(position, "pnl") },
+            { "realizedPnl", this.safeNumberN(position, new List<object>() {"pnl", "curRealisedPnl", "cumRealisedPnl"}) },
             { "percentage", this.parseNumber(percentage) },
             { "contracts", contracts },
             { "contractSize", contractSizeNumber },
             { "markPrice", this.parseNumber(markPrice) },
-            { "lastPrice", this.safeNumber(position, "closeAvgPrice") },
+            { "lastPrice", this.safeNumber2(position, "closeAvgPrice", "closePriceAvg") },
             { "side", side },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", this.safeInteger(position, "utime") },
+            { "lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime") },
             { "maintenanceMargin", this.parseNumber(maintenanceMargin) },
             { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage) },
             { "collateral", this.parseNumber(collateral) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "leverage", this.parseNumber(leverage) },
-            { "marginRatio", this.safeNumber(position, "marginRatio") },
+            { "marginRatio", this.safeNumber2(position, "marginRatio", "mmr") },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });
@@ -7441,10 +8863,12 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+     * @see https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
@@ -7456,50 +8880,85 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = ((IList<object>)paginateparametersVariable)[0];
-        parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (isTrue(paginate))
-        {
-            return await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "pageNo", 100);
-        }
         object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
         object productType = null;
+        object uta = null;
+        object response = null;
+        object result = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "productType", productType },
-        };
-        if (isTrue(!isEqual(limit, null)))
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketHistoryFundRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1750435113658,
+            //         "data": {
+            //             "resultList": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "fundingRate": "-0.000017",
+            //                     "fundingRateTimestamp": "1750431600000"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            result = this.safeList(data, "resultList", new List<object>() {});
+        } else
+        {
+            object paginate = false;
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            paginate = ((IList<object>)paginateparametersVariable)[0];
+            parameters = ((IList<object>)paginateparametersVariable)[1];
+            if (isTrue(paginate))
+            {
+                return await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "pageNo", 100);
+            }
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["pageSize"] = limit;
+            }
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.publicMixGetV2MixMarketHistoryFundRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1652406728393,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "fundingRate": "-0.0003",
+            //                 "fundingTime": "1652396400000"
+            //             },
+            //         ]
+            //     }
+            //
+            result = this.safeList(response, "data", new List<object>() {});
         }
-        object response = await this.publicMixGetV2MixMarketHistoryFundRate(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1652406728393,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "fundingRate": "-0.0003",
-        //                 "fundingTime": "1652396400000"
-        //             },
-        //         ]
-        //     }
-        //
-        object data = this.safeValue(response, "data", new List<object>() {});
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = getValue(result, i);
             object marketId = this.safeString(entry, "symbol");
             object symbolInner = this.safeSymbol(marketId, market);
-            object timestamp = this.safeInteger(entry, "fundingTime");
+            object timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
@@ -7518,8 +8977,10 @@ public partial class bitget : Exchange
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -7538,19 +8999,29 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "productType", productType },
         };
-        object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
-        method = ((IList<object>)methodparametersVariable)[0];
-        parameters = ((IList<object>)methodparametersVariable)[1];
+        object uta = null;
         object response = null;
-        if (isTrue(isEqual(method, "publicMixGetV2MixMarketCurrentFundRate")))
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
-        } else if (isTrue(isEqual(method, "publicMixGetV2MixMarketFundingTime")))
+            response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters));
+        } else
         {
-            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            object method = null;
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+            if (isTrue(isEqual(method, "publicMixGetV2MixMarketCurrentFundRate")))
+            {
+                response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters));
+            } else if (isTrue(isEqual(method, "publicMixGetV2MixMarketFundingTime")))
+            {
+                response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+            }
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRate(getValue(data, 0), market);
@@ -7624,7 +9095,7 @@ public partial class bitget : Exchange
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -8028,10 +9499,13 @@ public partial class bitget : Exchange
      * @name bitget#setLeverage
      * @description set the level of leverage for a market
      * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Leverage
      * @param {int} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -8049,26 +9523,35 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
             { "leverage", this.numberToString(leverage) },
-            { "productType", productType },
         };
-        object response = await this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700864711517,
-        //         "data": {
-        //             "symbol": "BTCUSDT",
-        //             "marginCoin": "USDT",
-        //             "longLeverage": "25",
-        //             "shortLeverage": "25",
-        //             "crossMarginLeverage": "25",
-        //             "marginMode": "crossed"
-        //         }
-        //     }
-        //
+        object uta = null;
+        object response = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            if (isTrue(isEqual(productType, "SPOT")))
+            {
+                object marginMode = null;
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTrades", parameters);
+                marginMode = ((IList<object>)marginModeparametersVariable)[0];
+                parameters = ((IList<object>)marginModeparametersVariable)[1];
+                if (isTrue(!isEqual(marginMode, null)))
+                {
+                    productType = "MARGIN";
+                }
+            }
+            ((IDictionary<string,object>)request)["coin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaPostV3AccountSetLeverage(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters));
+        }
         return response;
     }
 
@@ -8133,10 +9616,12 @@ public partial class bitget : Exchange
      * @name bitget#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by bitget setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.productType] required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
@@ -8144,30 +9629,31 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object posMode = ((bool) isTrue(hedged)) ? "hedge_mode" : "one_way_mode";
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         object productType = null;
+        object uta = null;
+        object response = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "posMode", posMode },
-            { "productType", productType },
-        };
-        object response = await this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700865608009,
-        //         "data": {
-        //             "posMode": "hedge_mode"
-        //         }
-        //     }
-        //
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["holdMode"] = posMode;
+            response = await this.privateUtaPostV3AccountSetHoldMode(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["posMode"] = posMode;
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixPostV2MixAccountSetPositionMode(this.extend(request, parameters));
+        }
         return response;
     }
 
@@ -8176,8 +9662,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
      * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
@@ -8195,31 +9683,29 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "productType", productType },
         };
-        object response = await this.publicMixGetV2MixMarketOpenInterest(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700866041022,
-        //         "data": {
-        //             "openInterestList": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "size": "52234.134"
-        //                 }
-        //             ],
-        //             "ts": "1700866041023"
-        //         }
-        //     }
-        //
+        object uta = null;
+        object response = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenInterest", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.publicUtaGetV3MarketOpenInterest(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.publicMixGetV2MixMarketOpenInterest(this.extend(request, parameters));
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
     public override object parseOpenInterest(object interest, object market = null)
     {
+        //
+        // default
         //
         //     {
         //         "openInterestList": [
@@ -8231,12 +9717,24 @@ public partial class bitget : Exchange
         //         "ts": "1700866041023"
         //     }
         //
-        object data = this.safeValue(interest, "openInterestList", new List<object>() {});
+        // uta
+        //
+        //     {
+        //         "list": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "openInterest": "18166.3583"
+        //             }
+        //         ],
+        //         "ts": "1751101220993"
+        //     }
+        //
+        object data = this.safeList2(interest, "openInterestList", "list", new List<object>() {});
         object timestamp = this.safeInteger(interest, "ts");
         object marketId = this.safeString(getValue(data, 0), "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
-            { "openInterestAmount", this.safeNumber(getValue(data, 0), "size") },
+            { "openInterestAmount", this.safeNumber2(getValue(data, 0), "size", "openInterest") },
             { "openInterestValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -9047,9 +10545,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchCrossBorrowRate
      * @description fetch the rate of interest to borrow a currency for margin trading
      * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.symbol] required for isolated margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
     public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
@@ -9060,42 +10559,69 @@ public partial class bitget : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
-        object response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700879047861,
-        //         "data": [
-        //             {
-        //                 "coin": "BTC",
-        //                 "leverage": "3",
-        //                 "transferable": true,
-        //                 "borrowable": true,
-        //                 "dailyInterestRate": "0.00007",
-        //                 "annualInterestRate": "0.02555",
-        //                 "maxBorrowableAmount": "26",
-        //                 "vipList": [
-        //                     {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
-        //                     {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
-        //                     {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
-        //                     {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
-        //                     {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
-        //                     {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
-        //                 ]
-        //             }
-        //         ]
-        //     }
-        //
+        object uta = null;
+        object response = null;
+        object result = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchCrossBorrowRate", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            response = await this.publicUtaGetV3MarketMarginLoans(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1752817798893,
+            //         "data": {
+            //             "dailyInterest": "0.00100008",
+            //             "annualInterest": "0.3650292",
+            //             "limit": "100"
+            //         }
+            //     }
+            //
+            result = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        } else
+        {
+            response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700879047861,
+            //         "data": [
+            //             {
+            //                 "coin": "BTC",
+            //                 "leverage": "3",
+            //                 "transferable": true,
+            //                 "borrowable": true,
+            //                 "dailyInterestRate": "0.00007",
+            //                 "annualInterestRate": "0.02555",
+            //                 "maxBorrowableAmount": "26",
+            //                 "vipList": [
+            //                     {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
+            //                     {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
+            //                     {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
+            //                     {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
+            //                     {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
+            //                     {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
+            //                 ]
+            //             }
+            //         ]
+            //     }
+            //
+            object data = this.safeValue(response, "data", new List<object>() {});
+            result = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        }
         object timestamp = this.safeInteger(response, "requestTime");
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)first)["timestamp"] = timestamp;
-        return this.parseBorrowRate(first, currency);
+        ((IDictionary<string,object>)result)["timestamp"] = timestamp;
+        return this.parseBorrowRate(result, currency);
     }
 
     public override object parseBorrowRate(object info, object currency = null)
     {
+        //
+        // default
         //
         //     {
         //         "coin": "BTC",
@@ -9115,11 +10641,19 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "dailyInterest": "0.00100008",
+        //         "annualInterest": "0.3650292",
+        //         "limit": "100"
+        //     }
+        //
         object currencyId = this.safeString(info, "coin");
         object timestamp = this.safeInteger(info, "timestamp");
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.safeNumber(info, "dailyInterestRate") },
+            { "rate", this.safeNumber2(info, "dailyInterestRate", "dailyInterest") },
             { "period", 86400000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -9301,9 +10835,11 @@ public partial class bitget : Exchange
      * @name bitget#closePosition
      * @description closes an open position for a market
      * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
      * @param {string} symbol unified CCXT market symbol
      * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
@@ -9311,38 +10847,37 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
         object productType = null;
+        object uta = null;
+        object response = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "productType", productType },
-        };
-        if (isTrue(!isEqual(side, null)))
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "closePosition", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["holdSide"] = side;
+            if (isTrue(!isEqual(side, null)))
+            {
+                ((IDictionary<string,object>)request)["posSide"] = side;
+            }
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaPostV3TradeClosePositions(this.extend(request, parameters));
+        } else
+        {
+            if (isTrue(!isEqual(side, null)))
+            {
+                ((IDictionary<string,object>)request)["holdSide"] = side;
+            }
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters));
         }
-        object response = await this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1702975017017,
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1120923953904893955",
-        //                     "clientOid": "1120923953904893956"
-        //                 }
-        //             ],
-        //             "failureList": [],
-        //             "result": false
-        //         }
-        //     }
-        //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeList(data, "successList", new List<object>() {});
+        object order = this.safeList2(data, "successList", "list", new List<object>() {});
         return this.parseOrder(getValue(order, 0), market);
     }
 
@@ -9351,41 +10886,37 @@ public partial class bitget : Exchange
      * @name bitget#closeAllPositions
      * @description closes all open positions for a market type
      * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Close-All-Positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> closeAllPositions(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
         object productType = null;
+        object uta = null;
+        object response = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "productType", productType },
-        };
-        object response = await this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1702975017017,
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1120923953904893955",
-        //                     "clientOid": "1120923953904893956"
-        //                 }
-        //             ],
-        //             "failureList": [],
-        //             "result": false
-        //         }
-        //     }
-        //
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "closeAllPositions", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaPostV3TradeClosePositions(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters));
+        }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orderInfo = this.safeList(data, "successList", new List<object>() {});
+        object orderInfo = this.safeList2(data, "successList", "list", new List<object>() {});
         return this.parsePositions(orderInfo, null, parameters);
     }
 
@@ -9461,29 +10992,31 @@ public partial class bitget : Exchange
      * @name bitget#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position-History
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, "until");
         object request = new Dictionary<string, object>() {};
+        object market = null;
+        object productType = null;
+        object uta = null;
+        object response = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
-                object market = this.market(getValue(symbols, 0));
+                market = this.market(getValue(symbols, 0));
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
         }
@@ -9495,42 +11028,25 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isTrue(!isEqual(until, null)))
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["endTime"] = until;
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaGetV3PositionHistoryPosition(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
         }
-        object response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
-        //
-        //    {
-        //        code: '00000',
-        //        msg: 'success',
-        //        requestTime: '1712794148791',
-        //        data: {
-        //            list: [
-        //                {
-        //                    symbol: 'XRPUSDT',
-        //                    marginCoin: 'USDT',
-        //                    holdSide: 'long',
-        //                    openAvgPrice: '0.64967',
-        //                    closeAvgPrice: '0.58799',
-        //                    marginMode: 'isolated',
-        //                    openTotalPos: '10',
-        //                    closeTotalPos: '10',
-        //                    pnl: '-0.62976205',
-        //                    netProfit: '-0.65356802',
-        //                    totalFunding: '-0.01638',
-        //                    openFee: '-0.00389802',
-        //                    closeFee: '-0.00352794',
-        //                    ctime: '1709590322199',
-        //                    utime: '1709667583395'
-        //                },
-        //                ...
-        //            ]
-        //        }
-        //    }
-        //
-        object data = this.safeDict(response, "data");
-        object responseList = this.safeList(data, "list");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object responseList = this.safeList(data, "list", new List<object>() {});
         object positions = this.parsePositions(responseList, symbols, parameters);
         return this.filterBySinceLimit(positions, since, limit);
     }
@@ -9831,8 +11347,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingInterval
      * @description fetch the current funding rate interval
      * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
@@ -9846,23 +11364,20 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "productType", productType },
         };
-        object response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1727930153888,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "nextFundingTime": "1727942400000",
-        //                 "ratePeriod": "8"
-        //             }
-        //         ]
-        //     }
-        //
+        object response = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingInterval", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+        }
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseFundingRate(first, market);
@@ -10036,7 +11551,7 @@ public partial class bitget : Exchange
             }
         }
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (isTrue(isTrue(sandboxMode) && isTrue((!isEqual(path, "v2/public/time")))))
+        if (isTrue(isTrue(isTrue(sandboxMode) && isTrue((!isEqual(path, "v2/public/time")))) && isTrue((!isEqual(path, "v3/market/current-fund-rate")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (isTrue(isEqual(headers, null)))

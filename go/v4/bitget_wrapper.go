@@ -42,9 +42,9 @@ func (this *Bitget) FetchTime(params ...interface{}) ( int64, error) {
  * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
  * @see https://www.bitget.com/api-doc/margin/common/support-currencies
- * @see https://www.bitget.bike/api-doc/uta/public/Instruments
+ * @see https://www.bitget.com/api-doc/uta/public/Instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bitget) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
@@ -56,13 +56,6 @@ func (this *Bitget) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 func (this *Bitget) FetchDefaultMarkets(params interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchDefaultMarkets(params)
-    if IsError(res) {
-        return nil, CreateReturnError(res)
-    }
-    return NewMarketInterfaceArray(res), nil
-}
-func (this *Bitget) FetchUtaMarkets(params interface{}) ([]MarketInterface, error) {
-    res := <- this.Core.FetchUtaMarkets(params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -90,11 +83,13 @@ func (this *Bitget) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
  * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
  * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
  * @param {string} [params.code] required for cross spot margin
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
  */
 func (this *Bitget) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
@@ -278,9 +273,11 @@ func (this *Bitget) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
  * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+ * @see https://www.bitget.com/api-doc/uta/public/OrderBook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitget) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
@@ -312,8 +309,10 @@ func (this *Bitget) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
  * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
+ * @see https://www.bitget.com/api-doc/uta/public/Tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
 func (this *Bitget) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -367,8 +366,10 @@ func (this *Bitget) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptio
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+ * @see https://www.bitget.com/api-doc/uta/public/Tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -404,10 +405,12 @@ func (this *Bitget) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
  * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
  * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+ * @see https://www.bitget.com/api-doc/uta/public/Fills
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -497,11 +500,13 @@ func (this *Bitget) FetchTradingFees(params ...interface{}) (TradingFees, error)
  * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
  * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
  * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
  * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -552,8 +557,10 @@ func (this *Bitget) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+ * @see https://www.bitget.com/api-doc/uta/account/Get-Account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func (this *Bitget) FetchBalance(params ...interface{}) (Balances, error) {
@@ -604,6 +611,8 @@ func (this *Bitget) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
  * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -632,6 +641,8 @@ func (this *Bitget) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
  * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
  * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -665,8 +676,10 @@ func (this *Bitget) CreateOrder(symbol string, typeVar string, side string, amou
  * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the api endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
@@ -695,6 +708,8 @@ func (this *Bitget) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
  * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
  * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Modify-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -716,6 +731,7 @@ func (this *Bitget) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
  * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
  * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
@@ -756,6 +772,8 @@ func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side str
  * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+ * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
+ * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -763,6 +781,7 @@ func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side str
  * @param {boolean} [params.trigger] set to true for canceling trigger orders
  * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
  * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -797,11 +816,13 @@ func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+ * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
  * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
@@ -836,10 +857,12 @@ func (this *Bitget) CancelOrders(ids interface{}, options ...CancelOrdersOptions
  * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
+ * @see https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
  * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -871,9 +894,11 @@ func (this *Bitget) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @description fetches information on an order made by the user
  * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
  * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -909,6 +934,7 @@ func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+ * @see https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -919,6 +945,7 @@ func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -964,6 +991,7 @@ func (this *Bitget) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
  * @param {string} symbol unified market symbol of the closed orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of closed orders to return
@@ -1019,6 +1047,7 @@ func (this *Bitget) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
  * @param {string} symbol unified market symbol of the canceled orders
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the max number of canceled orders to return
@@ -1073,6 +1102,8 @@ func (this *Bitget) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
  * @see https://www.bitget.com/api-doc/contract/plan/orders-plan-history
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
+ * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
  * @description fetches information on multiple canceled and closed orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1084,6 +1115,7 @@ func (this *Bitget) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1176,11 +1208,13 @@ func (this *Bitget) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
  * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
  * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
  * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
@@ -1222,8 +1256,10 @@ func (this *Bitget) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @name bitget#fetchPosition
  * @description fetch data on a single open contract trade position
  * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bitget) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1287,10 +1323,12 @@ func (this *Bitget) FetchPositions(options ...FetchPositionsOptions) ([]Position
  * @name bitget#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
+ * @see https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
  */
@@ -1333,8 +1371,10 @@ func (this *Bitget) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @description fetch the current funding rate
  * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
  * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
  */
@@ -1468,10 +1508,13 @@ func (this *Bitget) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @name bitget#setLeverage
  * @description set the level of leverage for a market
  * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
+ * @see https://www.bitget.com/api-doc/uta/account/Change-Leverage
  * @param {int} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {boolean} [params.posSide] required for uta isolated margin, long or short
  * @returns {object} response from the exchange
  */
 func (this *Bitget) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -1535,10 +1578,12 @@ func (this *Bitget) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @name bitget#setPositionMode
  * @description set hedged to true or false for a market
  * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+ * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by bitget setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.productType] required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} response from the exchange
  */
 func (this *Bitget) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
@@ -1569,8 +1614,10 @@ func (this *Bitget) SetPositionMode(hedged bool, options ...SetPositionModeOptio
  * @name bitget#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
  * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Open-Interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
  */
 func (this *Bitget) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
@@ -1780,9 +1827,10 @@ func (this *Bitget) FetchIsolatedBorrowRate(symbol string, options ...FetchIsola
  * @name bitget#fetchCrossBorrowRate
  * @description fetch the rate of interest to borrow a currency for margin trading
  * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.symbol] required for isolated margin
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
  */
 func (this *Bitget) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
@@ -1887,14 +1935,14 @@ func (this *Bitget) FetchMarginMode(symbol string, options ...FetchMarginModeOpt
  * @name bitget#fetchPositionsHistory
  * @description fetches historical positions
  * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position-History
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
  * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
- *
- * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bitget) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
@@ -2065,8 +2113,10 @@ func (this *Bitget) FetchConvertCurrencies(params ...interface{}) (Currencies, e
  * @name bitget#fetchFundingInterval
  * @description fetch the current funding rate interval
  * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+ * @see https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
  */
 func (this *Bitget) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
