@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -93,7 +93,7 @@ export default class hibachi extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -1298,6 +1298,115 @@ export default class hibachi extends Exchange {
         //
         const klines = this.safeList (response, 'klines', []);
         return this.parseOHLCVs (klines, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+        };
+        const response = await this.privateGetTradeAccountInfo (this.extend (request, params));
+        //
+        // {
+        //     "assets": [
+        //       {
+        //         "quantity": "14.130626",
+        //         "symbol": "USDT"
+        //       }
+        //     ],
+        //     "balance": "14.186087",
+        //     "maximalWithdraw": "4.152340",
+        //     "numFreeTransfersRemaining": 96,
+        //     "positions": [
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "10.302213",
+        //         "notionalValue": "10.225008",
+        //         "quantity": "0.004310550",
+        //         "symbol": "ETH/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.077204"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000016",
+        //         "notionalValue": "1.999390",
+        //         "quantity": "0.0000328410",
+        //         "symbol": "BTC/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.000625"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000015",
+        //         "notionalValue": "2.022384",
+        //         "quantity": "0.01470600",
+        //         "symbol": "SOL/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "-0.022369"
+        //       }
+        //     ],
+        //   }
+        //
+        const data = this.safeList (response, 'positions', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // {
+        //     "direction": "Short",
+        //     "entryNotional": "10.302213",
+        //     "notionalValue": "10.225008",
+        //     "quantity": "0.004310550",
+        //     "symbol": "ETH/USDT-P",
+        //     "unrealizedFundingPnl": "0.000000",
+        //     "unrealizedTradingPnl": "0.077204"
+        // }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (position, 'direction');
+        const quantity = this.safeString (position, 'quantity');
+        const unrealizedFunding = this.safeString (position, 'unrealizedFundingPnl', '0');
+        const unrealizedTrading = this.safeString (position, 'unrealizedTradingPnl', '0');
+        const unrealizedPnl = Precise.stringAdd (unrealizedFunding, unrealizedTrading);
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'entryPrice': this.safeString (position, 'average_entry_price'),
+            'markPrice': undefined,
+            'notional': this.safeString (position, 'notionalValue'),
+            'collateral': undefined,
+            'unrealizedPnl': unrealizedPnl,
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

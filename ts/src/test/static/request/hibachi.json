@@ -3,6 +3,15 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.hibachi.xyz/trade/account/info?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder",

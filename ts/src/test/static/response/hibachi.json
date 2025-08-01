@@ -3,6 +3,81 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "assets": [
+                        {
+                            "quantity": "99.939670",
+                            "symbol": "USDT"
+                        }
+                    ],
+                    "balance": "99.990151",
+                    "maximalWithdraw": "97.958610",
+                    "numFreeTransfersRemaining": "100",
+                    "positions": [
+                        {
+                            "direction": "Long",
+                            "entryNotional": "33.808533",
+                            "markPrice": "169.2950738",
+                            "notionalValue": "33.859014",
+                            "openPrice": "169.0426650",
+                            "quantity": "0.20000000",
+                            "symbol": "SOL/USDT-P",
+                            "unrealizedFundingPnl": "0.000000",
+                            "unrealizedTradingPnl": "0.050481"
+                        }
+                    ],
+                    "totalOrderNotional": "0.000000",
+                    "totalPositionNotional": "33.859014",
+                    "totalUnrealizedFundingPnl": "0.000000",
+                    "totalUnrealizedPnl": "0.050481",
+                    "totalUnrealizedTradingPnl": "0.050481",
+                    "tradeMakerFeeRate": "0.00000000",
+                    "tradeTakerFeeRate": "0.00020000"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "direction": "Long",
+                            "entryNotional": "33.808533",
+                            "markPrice": "169.2950738",
+                            "notionalValue": "33.859014",
+                            "openPrice": "169.0426650",
+                            "quantity": "0.20000000",
+                            "symbol": "SOL/USDT-P",
+                            "unrealizedFundingPnl": "0.000000",
+                            "unrealizedTradingPnl": "0.050481"
+                        },
+                        "id": null,
+                        "symbol": "SOL/USDT:USDT",
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "notional": "33.859014",
+                        "collateral": null,
+                        "unrealizedPnl": "0.050481",
+                        "side": "long",
+                        "contracts": 0.2,
+                        "contractSize": 1,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder",
