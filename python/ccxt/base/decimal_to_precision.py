@@ -34,14 +34,14 @@ PAD_WITH_ZERO = 6
 
 
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert precision is not None, 'numPrecisionDigits should not be None'
+    assert precision is not None, 'precision should not be None'
 
     if isinstance(precision, str):
         precision = float(precision)
-    assert isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral), 'numPrecisionDigits has an invalid number'
+    assert isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral), 'precision has an invalid number'
 
     if counting_mode == TICK_SIZE:
-        assert precision > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode'
+        assert precision > 0, 'negative or zero precision can not be used with TICK_SIZE precisionMode'
     else:
         assert isinstance(precision, numbers.Integral)
 
