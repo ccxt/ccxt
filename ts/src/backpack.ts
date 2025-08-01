@@ -79,14 +79,14 @@ export default class backpack extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -129,16 +129,16 @@ export default class backpack extends Exchange {
                 '5m': '5m',
                 '15': '15m',
                 '30': '30m',
-                '1h': '1H',
-                '2h': '2H',
-                '4h': '4H',
-                '6h': '6H',
-                '8h': '8H',
-                '12h': '12H',
-                '1d': '1D',
-                '3d': '3D',
-                '1w': '1W',
-                '1month': '1M',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1month',
             },
             'urls': {
                 'logo': '',
@@ -399,6 +399,7 @@ export default class backpack extends Exchange {
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify either `clientId` or `orderId`"}
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Invalid signature"}
+                // {"code":"INVALID_CLIENT_REQUEST","message":"Invalid start time"}
                 'broad': {},
             },
         });
@@ -469,15 +470,23 @@ export default class backpack extends Exchange {
                     'info': network,
                 };
             }
+            let active = undefined;
+            let deposit = undefined;
+            let withdraw = undefined;
+            if (networks.length === 0) {
+                active = false;
+                deposit = false;
+                withdraw = false;
+            }
             result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'code': code,
                 'precision': undefined,
-                'type': undefined,
+                'type': 'crypto', // todo check if it is always crypto
                 'name': this.safeString (currecy, 'displayName'),
-                'active': undefined,
-                'deposit': this.safeBool (networks, 'depositEnabled'),
-                'withdraw': this.safeBool (networks, 'withdrawEnabled'),
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': undefined,
                 'limits': {
                     'deposit': {
@@ -714,7 +723,8 @@ export default class backpack extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const response = await this.publicGetApiV1Tickers (this.extend (request, params));
-        return this.parseTickers (response);
+        const tickers = this.parseTickers (response);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     /**
@@ -820,8 +830,10 @@ export default class backpack extends Exchange {
         //         "timestamp":1753102447307501
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        const microseconds = this.safeInteger (response, 'timestamp');
+        const timestamp = this.parseToInt (microseconds / 1000);
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
 
@@ -833,7 +845,7 @@ export default class backpack extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the bitteam api endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -845,15 +857,27 @@ export default class backpack extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchOHLCV() requires a since argument');
-        } else {
-            request['startTime'] = since;
-        }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
-            request['endTime'] = until;
+            request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
+        }
+        const defaultLimit = 100;
+        if (since === undefined) {
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
+            const duration = this.parseTimeframe (timeframe);
+            const endTime = until ? this.parseToInt (until / 1000) : this.seconds ();
+            const startTime = endTime - (limit * duration);
+            request['startTime'] = startTime;
+        } else {
+            request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
+        }
+        const price = this.safeString (params, 'price');
+        if (price !== undefined) {
+            request['priceType'] = this.capitalize (price);
+            params = this.omit (params, 'price');
         }
         const response = await this.publicGetApiV1Klines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -1141,11 +1165,11 @@ export default class backpack extends Exchange {
         if (timestamp2 !== undefined) {
             timestamp = timestamp2;
         }
-        const id = this.safeInteger2 (trade, 'id', 'tradeId');
+        const id = this.safeString2 (trade, 'id', 'tradeId');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
-        const isBuyerMaker = this.safeBool2 (trade, 'isBuyerMaker', 'isMaker');
-        const takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+        const isMaker = this.safeBool (trade, 'isMaker');
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const orderId = this.safeString (trade, 'orderId');
         const side = this.parseOrderSide (this.safeString (trade, 'side'));
         let fee = undefined;
