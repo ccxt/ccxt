@@ -103,5 +103,8 @@ async function example () {
 
     const timestamp = await exchange.fetchTime();
     console.log('fetchTime', timestamp)
+
+    const openInterest = await exchange.fetchOpenInterest('BTC/USDT:USDT');
+    console.log('fetchOpenInterest', openInterest);
 }
 example ();

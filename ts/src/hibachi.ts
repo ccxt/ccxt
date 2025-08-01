@@ -84,6 +84,7 @@ export default class hibachi extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpen': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -142,6 +143,7 @@ export default class hibachi extends Exchange {
                         'market/data/stats': 1,
                         'market/data/klines': 1,
                         'market/data/orderbook': 1,
+                        'market/data/open-interest': 1,
                         'exchange/utc-timestamp': 1,
                     },
                 },
@@ -1828,5 +1830,35 @@ export default class hibachi extends Exchange {
         //     { "timestampMs":1754077574040 }
         //
         return this.safeInteger (response, 'timestampMs');
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketDataOpenInterest (this.extend (request, params));
+        //
+        //   { "totalQuantity" : "2.3299770166" }
+        //
+        const timestamp = this.milliseconds ();
+        return this.safeOpenInterest ({
+            'symbol': symbol,
+            'openInterestAmount': this.safeString (response, 'totalQuantity'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': response,
+        }, market);
     }
 }
