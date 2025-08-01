@@ -8,7 +8,7 @@ import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError } from './base/errors.js';
+import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -247,12 +247,21 @@ export default class hibachi extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+                    '2': BadRequest, //  {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '3': OrderNotFound, // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
+                    '4': BadRequest, // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 },
                 'broad': {
                 },
             },
             'precisionMode': TICK_SIZE,
         });
+    }
+
+    getAccountId () {
+        this.checkRequiredCredentials ();
+        const id = this.parseToInt (this.accountId);
+        return id;
     }
 
     parseMarket (market: Dict): Market {
@@ -440,7 +449,7 @@ export default class hibachi extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         const request: Dict = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeAccountInfo (this.extend (request, params));
         //
@@ -732,10 +741,13 @@ export default class hibachi extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {
             'orderId': id,
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeOrder (this.extend (request, params));
         return this.parseOrder (response, market);
@@ -751,7 +763,7 @@ export default class hibachi extends Exchange {
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         const request: Dict = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeAccountInfo (this.extend (request, params));
         //    {
@@ -842,7 +854,7 @@ export default class hibachi extends Exchange {
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
             'symbol': this.safeString (market, 'id'),
             'nonce': nonce,
             'side': sideInternal,
@@ -901,7 +913,7 @@ export default class hibachi extends Exchange {
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
             'orderId': id,
             'nonce': nonce,
             'updatedQuantity': this.amountToPrecision (symbol, amount),
@@ -934,7 +946,7 @@ export default class hibachi extends Exchange {
         const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (id)).padStart (16, '0'));
         const signature = this.signMessage (message, this.privateKey);
         const request: Dict = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
             'orderId': id,
             'signature': signature,
         };
@@ -1001,7 +1013,7 @@ export default class hibachi extends Exchange {
         const message = this.withdrawMessage (amount, maxFees, withdrawAddress);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
             'coin': 'USDT',
             'network': 'ARBITRUM',
             'withdrawAddress': withdrawAddress,
@@ -1076,8 +1088,8 @@ export default class hibachi extends Exchange {
         };
         const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
         const formattedResponse = {};
-        formattedResponse['ask'] = this.safeValue (this.safeValue (response, 'ask'), 'levels');
-        formattedResponse['bid'] = this.safeValue (this.safeValue (response, 'bid'), 'levels');
+        formattedResponse['ask'] = this.safeList (this.safeDict (response, 'ask'), 'levels');
+        formattedResponse['bid'] = this.safeList (this.safeDict (response, 'bid'), 'levels');
         // {
         //     "ask": {
         //         "endPrice": "3512.63",
@@ -1136,7 +1148,7 @@ export default class hibachi extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'accountId': this.accountId };
+        const request = { 'accountId': this.getAccountId () };
         const response = await this.privateGetTradeAccountTrades (this.extend (request, params));
         //
         // {
@@ -1205,7 +1217,7 @@ export default class hibachi extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetTradeOrders (request);
         // [
@@ -1420,7 +1432,7 @@ export default class hibachi extends Exchange {
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
         const currency = this.currency ('USDT');
-        const request = { 'accountId': this.accountId };
+        const request = { 'accountId': this.getAccountId () };
         const rawPromises = [
             this.privateGetCapitalHistory (this.extend (request, params)),
             this.privateGetTradeAccountTradingHistory (this.extend (request, params)),
@@ -1525,7 +1537,7 @@ export default class hibachi extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const request = {
             'publicKey': this.safeString (params, 'publicKey'),
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetCapitalDepositInfo (this.extend (request, params));
         // {
@@ -1585,7 +1597,7 @@ export default class hibachi extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const currency = this.safeCurrency (code);
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetCapitalHistory (this.extend (request, params));
         // {
@@ -1644,7 +1656,7 @@ export default class hibachi extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const currency = this.safeCurrency (code);
         const request = {
-            'accountId': this.accountId,
+            'accountId': this.getAccountId (),
         };
         const response = await this.privateGetCapitalHistory (this.extend (request, params));
         // {
