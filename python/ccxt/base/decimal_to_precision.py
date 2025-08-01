@@ -33,24 +33,22 @@ NO_PADDING = 5
 PAD_WITH_ZERO = 6
 
 
-def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
-    assert numPrecisionDigits is not None, 'numPrecisionDigits should not be None'
+def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+    assert precision is not None, 'precision should not be None'
 
-    if isinstance(numPrecisionDigits, str):
-        numPrecisionDigits = float(numPrecisionDigits)
-    assert isinstance(numPrecisionDigits, float) or isinstance(numPrecisionDigits, decimal.Decimal) or isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits has an invalid number'
+    if isinstance(precision, str):
+        precision = float(precision)
+    assert isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral), 'precision has an invalid number'
 
     if counting_mode == TICK_SIZE:
-        assert numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode'
+        assert precision > 0, 'negative or zero precision can not be used with TICK_SIZE precisionMode'
     else:
-        assert isinstance(numPrecisionDigits, numbers.Integral)
+        assert isinstance(precision, numbers.Integral)
 
     assert rounding_mode in [TRUNCATE, ROUND]
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
     # end of checks
-
-    precision = numPrecisionDigits  # "precision" variable name was in signature, but to make function signature similar to php/js, I had to change the argument name to "numPrecisionDigits". however, the below codes use "precision" variable name, so we have to assign that name here (you can change the usage of 'precision' variable name below everywhere, but i've refrained to do that to avoid many changes)
 
     context = decimal.getcontext()
 
