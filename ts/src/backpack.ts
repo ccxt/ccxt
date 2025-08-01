@@ -166,34 +166,34 @@ export default class backpack extends Exchange {
                         'api/v1/openInterest': 1, // done
                         'api/v1/fundingRates': 1, // done
                         'api/v1/status': 1, // done
-                        'api/v1/ping': 1,
+                        'api/v1/ping': 1, // todo check if it is needed for ws
                         'api/v1/time': 1, // done
-                        'api/v1/wallets': 1,
+                        'api/v1/wallets': 1, // not used
                         'api/v1/trades': 1, // done
                         'api/v1/trades/history': 1, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1,
-                        'api/v1/account/limits/borrow': 1,
-                        'api/v1/account/limits/order': 1,
-                        'api/v1/account/limits/withdrawal': 1,
-                        'api/v1/borrowLend/positions': 1,
+                        'api/v1/account': 1, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': 1, // not used
+                        'api/v1/account/limits/order': 1, // not used
+                        'api/v1/account/limits/withdrawal': 1, // not used
+                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
                         'api/v1/capital': 1, // done
-                        'api/v1/capital/collateral': 1,
+                        'api/v1/capital/collateral': 1, // not used
                         'wapi/v1/capital/deposits': 1, // done
                         'wapi/v1/capital/deposit/address': 1, // done
                         'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
                         'api/v1/position': 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1,
-                        'wapi/v1/history/interest': 1,
-                        'wapi/v1/history/borrowLend/positions': 1,
-                        'wapi/v1/history/dust': 1,
+                        'wapi/v1/history/borrowLend': 1, // not used
+                        'wapi/v1/history/interest': 1, // not used
+                        'wapi/v1/history/borrowLend/positions': 1, // not used
+                        'wapi/v1/history/dust': 1, // not used
                         'wapi/v1/history/fills': 1, // done
-                        'wapi/v1/history/funding': 1,
+                        'wapi/v1/history/funding': 1, // todo fetchFundingHistory
                         'wapi/v1/history/orders': 1, // done
-                        'wapi/v1/history/pnl': 1,
+                        'wapi/v1/history/pnl': 1, // todo fetchPositionsHistory
                         'wapi/v1/history/rfq': 1,
                         'wapi/v1/history/quote': 1,
                         'wapi/v1/history/settlement': 1,
@@ -203,9 +203,9 @@ export default class backpack extends Exchange {
                     },
                     'post': {
                         'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1,
+                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
                         'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/order': 1,
+                        'api/v1/order': 1, // done
                         'api/v1/orders': 1,
                         'api/v1/rfq': 1,
                         'api/v1/rfq/accept': 1,
@@ -217,6 +217,9 @@ export default class backpack extends Exchange {
                         'api/v1/order': 1, // done
                         'api/v1/orders': 1, // done
                     },
+                    'patch': {
+                        'api/v1/account': 1,
+                    },
                 },
             },
             'requiredCredentials': {
@@ -225,6 +228,94 @@ export default class backpack extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'instructions': {
+                    'api/v1/account': {
+                        'GET': 'accountQuery',
+                        'PATCH': 'accountUpdate',
+                    },
+                    'api/v1/capital': {
+                        'GET': 'balanceQuery',
+                    },
+                    'api/v1/account/limits/borrow': {
+                        'GET': 'maxBorrowQuantity',
+                    },
+                    'api/v1/account/limits/order': {
+                        'GET': 'maxOrderQuantity',
+                    },
+                    'api/v1/account/limits/withdrawal': {
+                        'GET': 'maxWithdrawalQuantity',
+                    },
+                    'api/v1/borrowLend/positions': {
+                        'GET': 'borrowLendPositionQuery',
+                    },
+                    'api/v1/borrowLend': {
+                        'POST': 'borrowLendExecute',
+                    },
+                    'wapi/v1/history/borrowLend/positions': {
+                        'GET': 'borrowPositionHistoryQueryAll',
+                    },
+                    'wapi/v1/history/borrowLend': {
+                        'GET': 'borrowHistoryQueryAll',
+                    },
+                    'wapi/v1/history/dust': {
+                        'GET': 'dustHistoryQueryAll',
+                    },
+                    'api/v1/capital/collateral': {
+                        'GET': 'collateralQuery',
+                    },
+                    'wapi/v1/capital/deposit/address': {
+                        'GET': 'depositAddressQuery',
+                    },
+                    'wapi/v1/capital/deposits': {
+                        'GET': 'depositQueryAll',
+                    },
+                    'wapi/v1/history/fills': {
+                        'GET': 'fillHistoryQueryAll',
+                    },
+                    'wapi/v1/history/funding': {
+                        'GET': 'fundingHistoryQueryAll',
+                    },
+                    'wapi/v1/history/interest': {
+                        'GET': 'interestHistoryQueryAll',
+                    },
+                    'api/v1/order': {
+                        'GET': 'orderQuery',
+                        'POST': 'orderExecute',
+                        'DELETE': 'orderCancel',
+                    },
+                    'api/v1/orders': {
+                        'GET': 'orderQueryAll',
+                        'DELETE': 'orderCancelAll',
+                    },
+                    'wapi/v1/history/orders': {
+                        'GET': 'orderHistoryQueryAll',
+                    },
+                    'wapi/v1/history/pnl': {
+                        'GET': 'pnlHistoryQueryAll',
+                    },
+                    'wapi/v1/history/rfq': {
+                        'GET': 'rfqHistoryQueryAll',
+                    },
+                    'wapi/v1/history/quote': {
+                        'GET': 'quoteHistoryQueryAll',
+                    },
+                    'wapi/v1/history/settlement': {
+                        'GET': 'settlementHistoryQueryAll',
+                    },
+                    'api/v1/position': {
+                        'GET': 'positionQuery',
+                    },
+                    'api/v1/rfq/quote': {
+                        'POST': 'quoteSubmit',
+                    },
+                    'wapi/v1/history/strategies': {
+                        'GET': 'strategyHistoryQueryAll',
+                    },
+                    'wapi/v1/capital/withdrawals': {
+                        'GET': 'withdrawalQueryAll',
+                        'POST': 'withdraw',
+                    },
+                },
                 'recvWindow': 5000, // default is 5000, max is 60000
                 'brokerId': '',
                 'currencyIdsListForParseMarket': undefined,
@@ -307,6 +398,7 @@ export default class backpack extends Exchange {
                 // {"code":"INVALID_ORDER","message":"Invalid order"}
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
                 // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify either `clientId` or `orderId`"}
+                // {"code":"INVALID_CLIENT_REQUEST","message":"Invalid signature"}
                 'broad': {},
             },
         });
@@ -1156,9 +1248,11 @@ export default class backpack extends Exchange {
             const code = this.safeCurrencyCode (id);
             const balance = response[id];
             const account = this.account ();
+            const locked = this.safeString (balance, 'locked');
+            const staked = this.safeString (balance, 'staked');
+            const used = Precise.stringAdd (locked, staked);
             account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'locked');
-            account['total'] = this.safeString (balance, 'staked');
+            account['used'] = used;
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1725,7 +1819,6 @@ export default class backpack extends Exchange {
         //         "triggerPrice": "4300",
         //         "triggerQuantity": "0.001"
         //     }
-
         //
         let timestamp = this.safeInteger (order, 'createdAt');
         const timestamp2 = this.parse8601 (this.safeString (order, 'createdAt'));
@@ -1856,10 +1949,13 @@ export default class backpack extends Exchange {
         const symbol = market['symbol'];
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
-        const notionalString = Precise.stringAbs (this.safeString (position, 'netExposureNotional'));
-        const notional = this.parseNumber (notionalString);
-        const maintenanceMargin = this.safeString (position, 'mmf');
+        const netCost = this.safeString (position, 'netCost');
+        let side = 'long';
+        if (Precise.stringLt (netCost, '0')) {
+            side = 'short';
+        }
         const unrealizedPnl = this.safeString (position, 'pnlUnrealized');
+        const realizedPnl = this.safeString (position, 'pnlRealized');
         const liquidationPrice = this.safeString (position, 'estLiquidationPrice');
         return this.safePosition ({
             'info': position,
@@ -1868,20 +1964,21 @@ export default class backpack extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'lastUpdateTimestamp': undefined,
-            'hedged': undefined,
-            'side': undefined,
-            'contracts': undefined,
+            'hedged': false,
+            'side': side,
+            'contracts': this.safeString (position, 'netExposureQuantity'),
             'contractSize': undefined,
             'entryPrice': entryPrice,
             'markPrice': markPrice,
             'lastPrice': undefined,
-            'notional': notional,
+            'notional': Precise.stringAbs (netCost),
             'leverage': undefined,
             'collateral': undefined,
             'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': undefined,
+            'initialMarginPercentage': this.safeString (position, 'imf'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': this.safeString (position, 'mmf'),
+            'realizedPnl': realizedPnl,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': liquidationPrice,
             'marginMode': undefined,
@@ -1910,7 +2007,9 @@ export default class backpack extends Exchange {
             this.checkRequiredCredentials ();
             const ts = this.nonce ().toString ();
             const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
-            const instruction = this.getInstruction (path, method);
+            const optionInstructions = this.safeDict (this.options, 'instructions', {});
+            const optionPathInstructions = this.safeDict (optionInstructions, path, {});
+            const instruction = this.safeString (optionPathInstructions, method, '');
             let queryString = query;
             if (queryString.length > 0) {
                 queryString += '&';
@@ -1932,76 +2031,5 @@ export default class backpack extends Exchange {
         }
         url += endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    getInstruction (path, method) {
-        const instructions = {
-            'api/v1/account': {
-                'GET': 'accountQuery',
-            },
-            'api/v1/capital': {
-                'GET': 'balanceQuery',
-            },
-            'api/v1/borrowLend': {
-                'GET': 'borrowLendExecute',
-            },
-            'wapi/v1/history/borrowLend': {
-                'GET': 'borrowHistoryQueryAll',
-            },
-            'api/v1/capital/collateral': {
-                'GET': 'collateralQuery',
-            },
-            'wapi/v1/capital/deposit/address': {
-                'GET': 'depositAddressQuery',
-            },
-            'wapi/v1/capital/deposits': {
-                'GET': 'depositQueryAll',
-            },
-            'wapi/v1/history/fills': {
-                'GET': 'fillHistoryQueryAll',
-            },
-            'wapi/v1/history/funding': {
-                'GET': 'fundingHistoryQueryAll',
-            },
-            'wapi/v1/history/interest': {
-                'GET': 'interestHistoryQueryAll',
-            },
-            'api/v1/order': {
-                'GET': 'orderQuery',
-                'POST': 'orderExecute',
-                'DELETE': 'orderCancel',
-            },
-            'api/v1/orders': {
-                'GET': 'orderQueryAll',
-                'DELETE': 'orderCancelAll',
-            },
-            'wapi/v1/history/orders': {
-                'GET': 'orderHistoryQueryAll',
-            },
-            'wapi/v1/history/pnl': {
-                'GET': 'pnlHistoryQueryAll',
-            },
-            'api/v1/position': {
-                'GET': 'positionQuery',
-            },
-            'api/v1/rfq/quote': {
-                'POST': 'quoteSubmit',
-            },
-            'wapi/v1/history/strategies': {
-                'GET': 'strategyHistoryQueryAll',
-            },
-            'wapi/v1/capital/withdrawals': {
-                'GET': 'withdrawalQueryAll',
-                'POST': 'withdraw',
-            },
-        };
-        const pathInstructions = this.safeDict (instructions, path, {});
-        let instruction = this.safeString (pathInstructions, method);
-        if (instruction === undefined) {
-            const optionInstructions = this.safeDict (this.options, 'instructions', {});
-            const optionPathInstructions = this.safeDict (optionInstructions, path, {});
-            instruction = this.safeString (optionPathInstructions, method, '');
-        }
-        return instruction;
     }
 }
