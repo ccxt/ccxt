@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -2451,7 +2451,8 @@ export default class okx extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const ohlcvFeatures = this.safeDict (this.features, 'fetchOHLCV', {});
+        const features = this.safeDict (this.features, 'default', {});
+        const ohlcvFeatures = this.safeDict (features, 'fetchOHLCV', {});
         const limitForIndexAndMark = this.safeInteger (ohlcvFeatures, price, 100);
         const historicalLimit = this.safeInteger (ohlcvFeatures, 'historical', 100);
         const defaultLimit = this.safeInteger (ohlcvFeatures, 'limit', 300); // max 300 for normal candles
