@@ -686,7 +686,6 @@ class gate(Exchange, ImplicitAPI):
                     'SOL': 'SOL',
                     'POLYGON': 'POL',
                     'MATIC': 'POL',
-                    'OP': 'OPETH',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',  # CARDANO
                     'AVAXC': 'AVAX_C',
@@ -3754,7 +3753,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -3788,7 +3787,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 

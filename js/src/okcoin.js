@@ -1725,7 +1725,7 @@ export default class okcoin extends Exchange {
         const advanced = this.safeValue(params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         const market = this.market(symbol);
         const request = {

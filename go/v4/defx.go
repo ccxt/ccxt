@@ -1719,7 +1719,9 @@ func  (this *defx) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             //     }
             // }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

@@ -667,8 +667,9 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
+        promises = []
         #
-        currencyList = await self.publicGetCurrencyListExtended(params)
+        promises.append(self.publicGetCurrencyListExtended(params))
         #
         #     [
         #         {"name":"VLX","description":"Velas"},
@@ -677,7 +678,7 @@ class exmo(Exchange, ImplicitAPI):
         #         {"name":"USD","description":"US Dollar"}
         #     ]
         #
-        cryptoList = await self.publicGetPaymentsProvidersCryptoList(params)
+        promises.append(self.publicGetPaymentsProvidersCryptoList(params))
         #
         #     {
         #         "BTC":[
@@ -702,73 +703,92 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        responses = await asyncio.gather(*promises)
+        currencyList = responses[0]
+        cryptoList = responses[1]
         result: dict = {}
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
             currencyId = self.safe_string(currency, 'name')
-            name = self.safe_string(currency, 'description')
-            providers = self.safe_value(cryptoList, currencyId)
-            active = False
+            code = self.safe_currency_code(currencyId)
             type = 'crypto'
-            limits: dict = {
-                'deposit': {
-                    'min': None,
-                    'max': None,
-                },
-                'withdraw': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            fee = None
-            depositEnabled = None
-            withdrawEnabled = None
+            networks = {}
+            providers = self.safe_list(cryptoList, currencyId)
             if providers is None:
-                active = True
                 type = 'fiat'
             else:
                 for j in range(0, len(providers)):
                     provider = providers[j]
+                    name = self.safe_string(provider, 'name')
+                    # get network-id by removing extra things
+                    networkId = name.replace(currencyId + ' ', '')
+                    networkId = networkId.replace('(', '')
+                    replaceChar = ')'  # transpiler trick
+                    networkId = networkId.replace(replaceChar, '')
+                    networkCode = self.network_id_to_code(networkId)
+                    if not (networkCode in networks):
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': None,
+                            'deposit': None,
+                            'withdraw': None,
+                            'fee': None,
+                            'limits': {
+                                'withdraw': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                                'deposit': {
+                                    'min': None,
+                                    'max': None,
+                                },
+                            },
+                            'info': [],  # set, because of multiple network sub-entries
+                        }
                     typeInner = self.safe_string(provider, 'type')
                     minValue = self.safe_string(provider, 'min')
                     maxValue = self.safe_string(provider, 'max')
-                    if Precise.string_eq(maxValue, '0.0'):
-                        maxValue = None
-                    activeProvider = self.safe_value(provider, 'enabled')
+                    activeProvider = self.safe_bool(provider, 'enabled')
+                    networkEntry = networks[networkCode]
                     if typeInner == 'deposit':
-                        if activeProvider and not depositEnabled:
-                            depositEnabled = True
-                        elif not activeProvider:
-                            depositEnabled = False
+                        networkEntry['deposit'] = activeProvider
+                        networkEntry['limits']['deposit']['min'] = minValue
+                        networkEntry['limits']['deposit']['max'] = maxValue
                     elif typeInner == 'withdraw':
-                        if activeProvider and not withdrawEnabled:
-                            withdrawEnabled = True
-                        elif not activeProvider:
-                            withdrawEnabled = False
-                    if activeProvider:
-                        active = True
-                        limitMin = self.number_to_string(limits[typeInner]['min'])
-                        if (limits[typeInner]['min'] is None) or (Precise.string_lt(minValue, limitMin)):
-                            limits[typeInner]['min'] = minValue
-                            limits[typeInner]['max'] = maxValue
-                            if typeInner == 'withdraw':
-                                commissionDesc = self.safe_string(provider, 'commission_desc')
-                                fee = self.parse_fixed_float_value(commissionDesc)
-            code = self.safe_currency_code(currencyId)
-            result[code] = {
+                        networkEntry['withdraw'] = activeProvider
+                        networkEntry['limits']['withdraw']['min'] = minValue
+                        networkEntry['limits']['withdraw']['max'] = maxValue
+                    info = self.safe_list(networkEntry, 'info')
+                    info.append(provider)
+                    networkEntry['info'] = info
+                    networks[networkCode] = networkEntry
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,
-                'name': name,
+                'name': self.safe_string(currency, 'description'),
                 'type': type,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': self.parse_number('1e-8'),
-                'limits': limits,
-                'info': providers,
-                'networks': {},
-            }
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': {
+                    'currency': currency,
+                    'providers': providers,
+                },
+                'networks': networks,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -937,7 +957,7 @@ class exmo(Exchange, ImplicitAPI):
             request['from'] = to - (limit * duration) - 1
             request['to'] = to
         else:
-            request['from'] = self.parse_to_int(since / 1000) - 1
+            request['from'] = self.parse_to_int(since / 1000)
             if untilIsDefined:
                 request['to'] = min(until, now)
             else:

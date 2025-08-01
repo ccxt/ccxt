@@ -1596,7 +1596,7 @@ export default class bittrade extends Exchange {
         return this.extend (this.parseOrder (response), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**

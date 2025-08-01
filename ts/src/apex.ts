@@ -1555,7 +1555,7 @@ export default class apex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = {};
@@ -1565,7 +1565,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privatePostV3DeleteOpenOrders (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        return data;
+        return [ this.parseOrder (data, market) ];
     }
 
     /**
@@ -1591,7 +1591,7 @@ export default class apex extends Exchange {
             response = await this.privatePostV3DeleteOrder (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data', {});
-        return data;
+        return this.safeOrder (data);
     }
 
     /**

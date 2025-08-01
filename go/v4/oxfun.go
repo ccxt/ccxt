@@ -3137,10 +3137,7 @@ func  (this *oxfun) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
                 var market interface{} = this.Market(symbol)
                 AddElementToObject(request, "marketCode", GetValue(market, "id"))
             }
-        
-                retRes268315 :=  (<-this.PrivateDeleteV3OrdersCancelAll(this.Extend(request, params)))
-                PanicOnError(retRes268315)
-                    //
+            //
             //     {
             //         "success": true,
             //         "data": { "notice": "Orders queued for cancelation" }
@@ -3151,8 +3148,14 @@ func  (this *oxfun) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
             //         "data": { "notice": "No working orders found" }
             //     }
             //
-        ch <- retRes268315
-                return nil
+        
+            response:= (<-this.PrivateDeleteV3OrdersCancelAll(this.Extend(request, params)))
+            PanicOnError(response)
+        
+            ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
+            return nil
         
             }()
             return ch
@@ -3183,8 +3186,8 @@ func  (this *oxfun) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes27038 := (<-this.LoadMarkets())
-            PanicOnError(retRes27038)
+            retRes27048 := (<-this.LoadMarkets())
+            PanicOnError(retRes27048)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
             var request interface{} = map[string]interface{} {

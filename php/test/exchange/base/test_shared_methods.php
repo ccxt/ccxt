@@ -560,6 +560,16 @@ function assert_order_state($exchange, $skipped_properties, $method, $order, $as
 }
 
 
+function get_active_markets($exchange, $include_unknown = true) {
+    $filtered_active = $exchange->filter_by($exchange->markets, 'active', true);
+    if ($include_unknown) {
+        $filtered_undefined = $exchange->filter_by($exchange->markets, 'active', null);
+        return $exchange->array_concat($filtered_active, $filtered_undefined);
+    }
+    return $filtered_active;
+}
+
+
 function remove_proxy_options($exchange, $skipped_properties) {
     $proxy_url = $exchange->check_proxy_url_settings();
     [$http_proxy, $https_proxy, $socks_proxy] = $exchange->check_proxy_settings();

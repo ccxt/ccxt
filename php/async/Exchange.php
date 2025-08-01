@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.90';
+$version = '4.4.98';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.90';
+    const VERSION = '4.4.98';
 
     public $browser;
     public $marketsLoading = null;
@@ -219,6 +219,9 @@ class Exchange extends \ccxt\Exchange {
                 $json_response = $this->parse_json($response_body);
                 if ($this->enableLastJsonResponse) {
                     $this->last_json_response = $json_response;
+                }
+                if ($this->returnResponseHeaders) {
+                    $json_response['responseHeaders'] = $response_headers;
                 }
             }
 
@@ -587,6 +590,17 @@ class Exchange extends \ccxt\Exchange {
                 'watchLiquidations' => null,
                 'watchLiquidationsForSymbols' => null,
                 'watchMyLiquidations' => null,
+                'unWatchOrders' => null,
+                'unWatchTrades' => null,
+                'unWatchTradesForSymbols' => null,
+                'unWatchOHLCVForSymbols' => null,
+                'unWatchOrderBookForSymbols' => null,
+                'unWatchPositions' => null,
+                'unWatchOrderBook' => null,
+                'unWatchTickers' => null,
+                'unWatchMyTrades' => null,
+                'unWatchTicker' => null,
+                'unWatchOHLCV' => null,
                 'watchMyLiquidationsForSymbols' => null,
                 'withdraw' => null,
                 'ws' => null,
@@ -1176,6 +1190,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
     }
 
+    public function un_watch_positions(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
@@ -1474,7 +1492,7 @@ class Exchange extends \ccxt\Exchange {
         // keep this in mind:
         // in JS => 1 == 1.0 is true;  1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -1930,14 +1948,14 @@ class Exchange extends \ccxt\Exchange {
             }
             $values[] = $market;
         }
-        $this->markets = $this->index_by($values, 'symbol');
+        $this->markets = $this->map_to_safe_map($this->index_by($values, 'symbol'));
         $marketsSortedBySymbol = $this->keysort($this->markets);
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
         if ($currencies !== null) {
             // $currencies is always null when called in constructor but not when called from loadMarkets
-            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
         } else {
             $baseCurrencies = array();
             $quoteCurrencies = array();
@@ -1966,8 +1984,8 @@ class Exchange extends \ccxt\Exchange {
             }
             $baseCurrencies = $this->sort_by($baseCurrencies, 'code', false, '');
             $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code', false, '');
-            $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
-            $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
+            $this->baseCurrencies = $this->map_to_safe_map($this->index_by($baseCurrencies, 'code'));
+            $this->quoteCurrencies = $this->map_to_safe_map($this->index_by($quoteCurrencies, 'code'));
             $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
             $groupedCurrencies = $this->group_by($allCurrencies, 'code');
             $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
@@ -1987,7 +2005,7 @@ class Exchange extends \ccxt\Exchange {
                 $resultingCurrencies[] = $highestPrecisionCurrency;
             }
             $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
-            $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
+            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code')));
         }
         $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
@@ -2354,18 +2372,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
-    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
-        /**
-         * calculates the presumptive fee that would be charged for an order
-         * @param {string} $symbol unified $market $symbol
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
-         * @param {string} $takerOrMaker 'taker' or 'maker'
-         * @param {array} $params
-         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
-         */
+    public function calculate_fee_with_rate(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', ?float $feeRate = null, $params = array ()) {
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -2399,7 +2406,7 @@ class Exchange extends \ccxt\Exchange {
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = $this->safe_string($market, $takerOrMaker);
+        $rate = ($feeRate !== null) ? $this->number_to_string($feeRate) : $this->safe_string($market, $takerOrMaker);
         $cost = Precise::string_mul($cost, $rate);
         return array(
             'type' => $takerOrMaker,
@@ -2407,6 +2414,21 @@ class Exchange extends \ccxt\Exchange {
             'rate' => $this->parse_number($rate),
             'cost' => $this->parse_number($cost),
         );
+    }
+
+    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the rate, the percentage multiplied to the order $amount to obtain the fee $amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
+        return $this->calculate_fee_with_rate($symbol, $type, $side, $amount, $price, $takerOrMaker, null, $params);
     }
 
     public function safe_liquidation(array $liquidation, ?array $market = null) {
@@ -2453,6 +2475,27 @@ class Exchange extends \ccxt\Exchange {
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
+    }
+
+    public function create_ccxt_trade_id($timestamp = null, $side = null, $amount = null, $price = null, $takerOrMaker = null) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        $id = null;
+        if ($timestamp !== null) {
+            $id = $this->number_to_string($timestamp);
+            if ($side !== null) {
+                $id .= '-' . $side;
+            }
+            if ($amount !== null) {
+                $id .= '-' . $this->number_to_string($amount);
+            }
+            if ($price !== null) {
+                $id .= '-' . $this->number_to_string($price);
+            }
+            if ($takerOrMaker !== null) {
+                $id .= '-' . $takerOrMaker;
+            }
+        }
+        return $id;
     }
 
     public function parsed_fee_and_fees(mixed $container) {
@@ -2579,7 +2622,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $code = $this->safe_string($fee, 'currency');
-            $feeCurrencyCode = $code !== null ? $code : (string) $i;
+            $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');
@@ -2615,8 +2658,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_ticker(array $ticker, ?array $market = null) {
         $open = $this->omit_zero($this->safe_string($ticker, 'open'));
-        $close = $this->omit_zero($this->safe_string($ticker, 'close'));
-        $last = $this->omit_zero($this->safe_string($ticker, 'last'));
+        $close = $this->omit_zero($this->safe_string_2($ticker, 'close', 'last'));
         $change = $this->omit_zero($this->safe_string($ticker, 'change'));
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
@@ -2626,16 +2668,52 @@ class Exchange extends \ccxt\Exchange {
         if ($vwap === null) {
             $vwap = Precise::string_div($this->omit_zero($quoteVolume), $baseVolume);
         }
-        if (($last !== null) && ($close === null)) {
-            $close = $last;
-        } elseif (($last === null) && ($close !== null)) {
-            $last = $close;
-        }
-        if (($last !== null) && ($open !== null)) {
-            if ($change === null) {
-                $change = Precise::string_sub($last, $open);
+        // calculate $open
+        if ($change !== null) {
+            if ($close === null && $average !== null) {
+                $close = Precise::string_add($average, Precise::string_div($change, '2'));
             }
-            if ($average === null) {
+            if ($open === null && $close !== null) {
+                $open = Precise::string_sub($close, $change);
+            }
+        } elseif ($percentage !== null) {
+            if ($close === null && $average !== null) {
+                $openAddClose = Precise::string_mul($average, '2');
+                // $openAddClose = $open * (1 . (100 . $percentage)/100)
+                $denominator = Precise::string_add('2', Precise::string_div($percentage, '100'));
+                $calcOpen = ($open !== null) ? $open : Precise::string_div($openAddClose, $denominator);
+                $close = Precise::string_mul($calcOpen, Precise::string_add('1', Precise::string_div($percentage, '100')));
+            }
+            if ($open === null && $close !== null) {
+                $open = Precise::string_div($close, Precise::string_add('1', Precise::string_div($percentage, '100')));
+            }
+        }
+        // $change
+        if ($change === null) {
+            if ($close !== null && $open !== null) {
+                $change = Precise::string_sub($close, $open);
+            } elseif ($close !== null && $percentage !== null) {
+                $change = Precise::string_mul(Precise::string_div($percentage, '100'), Precise::string_div($close, '100'));
+            } elseif ($open !== null && $percentage !== null) {
+                $change = Precise::string_mul($open, Precise::string_div($percentage, '100'));
+            }
+        }
+        // calculate things according to "open" (similar can be done with "close")
+        if ($open !== null) {
+            // $percentage (using $change)
+            if ($percentage === null && $change !== null) {
+                $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+            }
+            // $close (using $change)
+            if ($close === null && $change !== null) {
+                $close = Precise::string_add($open, $change);
+            }
+            // $close (using $average)
+            if ($close === null && $average !== null) {
+                $close = Precise::string_mul($average, '2');
+            }
+            // $average
+            if ($average === null && $close !== null) {
                 $precision = 18;
                 if ($market !== null && $this->is_tick_precision()) {
                     $marketPrecision = $this->safe_dict($market, 'precision');
@@ -2644,20 +2722,12 @@ class Exchange extends \ccxt\Exchange {
                         $precision = $this->precision_from_string($precisionPrice);
                     }
                 }
-                $average = Precise::string_div(Precise::string_add($last, $open), '2', $precision);
+                $average = Precise::string_div(Precise::string_add($open, $close), '2', $precision);
             }
-        }
-        if (($percentage === null) && ($change !== null) && ($open !== null) && Precise::string_gt($open, '0')) {
-            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
-        }
-        if (($change === null) && ($percentage !== null) && ($open !== null)) {
-            $change = Precise::string_div(Precise::string_mul($percentage, $open), '100');
-        }
-        if (($open === null) && ($last !== null) && ($change !== null)) {
-            $open = Precise::string_sub($last, $change);
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
+        $closeParsed = $this->parse_number($this->omit_zero($close));
         return $this->extend($ticker, array(
             'bid' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'bid'))),
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
@@ -2666,8 +2736,8 @@ class Exchange extends \ccxt\Exchange {
             'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high'))),
             'low' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'low'))),
             'open' => $this->parse_number($this->omit_zero($open)),
-            'close' => $this->parse_number($this->omit_zero($close)),
-            'last' => $this->parse_number($this->omit_zero($last)),
+            'close' => $closeParsed,
+            'last' => $closeParsed,
             'change' => $this->parse_number($change),
             'percentage' => $this->parse_number($percentage),
             'average' => $this->parse_number($average),
@@ -3143,7 +3213,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
-        // $marketIdKey should only be null when $response is a dictionary
+        // $marketIdKey should only be null when $response is a dictionary.
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
         $symbolsLength = 0;
@@ -4744,6 +4814,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
     }
 
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchAllGreeks() is not supported yet');
+    }
+
     public function fetch_option_chain(string $code, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOptionChain() is not supported yet');
     }
@@ -4768,11 +4842,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
@@ -5097,11 +5171,19 @@ class Exchange extends \ccxt\Exchange {
         if ($precisionNumber === 0) {
             return '1';
         }
-        $parsedPrecision = '0.';
-        for ($i = 0; $i < $precisionNumber - 1; $i++) {
-            $parsedPrecision = $parsedPrecision . '0';
+        if ($precisionNumber > 0) {
+            $parsedPrecision = '0.';
+            for ($i = 0; $i < $precisionNumber - 1; $i++) {
+                $parsedPrecision = $parsedPrecision . '0';
+            }
+            return $parsedPrecision . '1';
+        } else {
+            $parsedPrecision = '1';
+            for ($i = 0; $i < $precisionNumber * -1 - 1; $i++) {
+                $parsedPrecision = $parsedPrecision . '0';
+            }
+            return $parsedPrecision . '0';
         }
-        return $parsedPrecision . '1';
     }
 
     public function integer_precision_to_amount(?string $precision) {
@@ -5967,7 +6049,7 @@ class Exchange extends \ccxt\Exchange {
             $calls = 0;
             $result = array();
             $errors = 0;
-            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
+            $until = $this->safe_integer_n($params, array( 'until', 'untill', 'till' )); // do not omit it from $params here
             list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
             if (($paginationDirection === 'forward')) {
                 if ($since === null) {
@@ -6333,6 +6415,31 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 
+    public function parse_all_greeks($greeks, ?array $symbols = null, $params = array ()) {
+        //
+        // the value of $greeks is either a dict or a list
+        //
+        $results = array();
+        if (gettype($greeks) === 'array' && array_keys($greeks) === array_keys(array_keys($greeks))) {
+            for ($i = 0; $i < count($greeks); $i++) {
+                $parsedTicker = $this->parse_greeks($greeks[$i]);
+                $greek = $this->extend($parsedTicker, $params);
+                $results[] = $greek;
+            }
+        } else {
+            $marketIds = is_array($greeks) ? array_keys($greeks) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $parsed = $this->parse_greeks($greeks[$marketId], $market);
+                $greek = $this->extend($parsed, $params);
+                $results[] = $greek;
+            }
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOption () is not supported yet');
     }
@@ -6472,7 +6579,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function convert_market_id_expire_date(string $date) {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         $monthMappping = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -6570,16 +6677,34 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function clean_unsubscription($client, string $subHash, string $unsubHash) {
+    public function clean_unsubscription($client, string $subHash, string $unsubHash, $subHashIsPrefix = false) {
         if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
             unset($client->subscriptions[$unsubHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subHash]);
-        }
-        if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
-            $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-            $client->reject ($error, $subHash);
+        if (!$subHashIsPrefix) {
+            if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+                unset($client->subscriptions[$subHash]);
+            }
+            if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+                $error = new UnsubscribeError ($this->id . ' ' . $subHash);
+                $client->reject ($error, $subHash);
+            }
+        } else {
+            $clientSubscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($clientSubscriptions); $i++) {
+                $sub = $clientSubscriptions[$i];
+                if (str_starts_with($sub, $subHash)) {
+                    unset($client->subscriptions[$sub]);
+                }
+            }
+            $clientFutures = is_array($client->futures) ? array_keys($client->futures) : array();
+            for ($i = 0; $i < count($clientFutures); $i++) {
+                $future = $clientFutures[$i];
+                if (str_starts_with($future, $subHash)) {
+                    $error = new UnsubscribeError ($this->id . ' ' . $future);
+                    $client->reject ($error, $future);
+                }
+            }
         }
         $client->resolve (true, $unsubHash);
     }
@@ -6619,21 +6744,17 @@ class Exchange extends \ccxt\Exchange {
             }
         } else {
             if ($topic === 'myTrades' && ($this->myTrades !== null)) {
-                // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object (thread-safe dict)
-                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    $key = $keys[$i];
-                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
-                        unset($this->myTrades[$key]);
-                    }
-                }
+                $this->myTrades = null;
             } elseif ($topic === 'orders' && ($this->orders !== null)) {
-                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
-                for ($i = 0; $i < count($orderSymbols); $i++) {
-                    $orderSymbol = $orderSymbols[$i];
-                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
-                        unset($this->orders[$orderSymbol]);
+                $this->orders = null;
+            } elseif ($topic === 'positions' && ($this->positions !== null)) {
+                $this->positions = null;
+                $clients = is_array($this->clients) ? array_values($this->clients) : array();
+                for ($i = 0; $i < count($clients); $i++) {
+                    $client = $clients[$i];
+                    $futures = $this->safe_dict($client, 'futures');
+                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
+                        unset($futures['fetchPositionsSnapshot']);
                     }
                 }
             } elseif ($topic === 'ticker' && ($this->tickers !== null)) {

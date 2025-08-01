@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class bitstamp(ccxt.async_support.bitstamp):
@@ -296,6 +297,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #        "price_str":"1000.00"
         #     },
         #     "channel":"private-my_orders_ltcusd-4848701",
+        #     "event": "order_deleted"  # field only present for cancelOrder
         # }
         #
         channel = self.safe_string(message, 'channel')
@@ -307,29 +309,58 @@ class bitstamp(ccxt.async_support.bitstamp):
         subscription = self.safe_value(client.subscriptions, channel)
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
+        order['event'] = self.safe_string(message, 'event')
         parsed = self.parse_ws_order(order, market)
         stored.append(parsed)
         client.resolve(self.orders, channel)
 
     def parse_ws_order(self, order, market=None):
         #
-        #   {
-        #        "id":"1463471322288128",
-        #        "id_str":"1463471322288128",
-        #        "order_type":1,
-        #        "datetime":"1646127778",
-        #        "microtimestamp":"1646127777950000",
-        #        "amount":0.05,
-        #        "amount_str":"0.05000000",
-        #        "price":1000,
-        #        "price_str":"1000.00"
+        #    {
+        #        "id": "1894876776091648",
+        #        "id_str": "1894876776091648",
+        #        "order_type": 0,
+        #        "order_subtype": 0,
+        #        "datetime": "1751451375",
+        #        "microtimestamp": "1751451375070000",
+        #        "amount": 1.1,
+        #        "amount_str": "1.10000000",
+        #        "amount_traded": "0",
+        #        "amount_at_create": "1.10000000",
+        #        "price": 10.23,
+        #        "price_str": "10.23",
+        #        "is_liquidation": False,
+        #        "trade_account_id": 0
         #    }
         #
         id = self.safe_string(order, 'id_str')
-        orderType = self.safe_string_lower(order, 'order_type')
+        orderTypeRaw = self.safe_string_lower(order, 'order_type')
+        side = 'sell' if (orderTypeRaw == '1') else 'buy'
+        orderSubTypeRaw = self.safe_string_lower(order, 'order_subtype')  # https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        orderType: Str = None
+        timeInForce: Str = None
+        if orderSubTypeRaw == '0':
+            orderType = 'limit'
+        elif orderSubTypeRaw == '2':
+            orderType = 'market'
+        elif orderSubTypeRaw == '4':
+            orderType = 'limit'
+            timeInForce = 'IOC'
+        elif orderSubTypeRaw == '6':
+            orderType = 'limit'
+            timeInForce = 'FOK'
+        elif orderSubTypeRaw == '8':
+            orderType = 'limit'
+            timeInForce = 'GTD'
         price = self.safe_string(order, 'price_str')
         amount = self.safe_string(order, 'amount_str')
-        side = 'sell' if (orderType == '1') else 'buy'
+        filled = self.safe_string(order, 'amount_traded')
+        event = self.safe_string(order, 'event')
+        status = None
+        if Precise.string_eq(filled, amount):
+            status = 'closed'
+        elif event == 'order_deleted':
+            status = 'canceled'
         timestamp = self.safe_timestamp(order, 'datetime')
         market = self.safe_market(None, market)
         symbol = market['symbol']
@@ -341,8 +372,8 @@ class bitstamp(ccxt.async_support.bitstamp):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': None,
-            'timeInForce': None,
+            'type': orderType,
+            'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
             'price': price,
@@ -351,9 +382,9 @@ class bitstamp(ccxt.async_support.bitstamp):
             'amount': amount,
             'cost': None,
             'average': None,
-            'filled': None,
+            'filled': filled,
             'remaining': None,
-            'status': None,
+            'status': status,
             'fee': None,
             'trades': None,
         }, market)
@@ -417,6 +448,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #         "price_str":"1000.00"
         #         },
         #         "channel":"private-my_orders_ltcusd-4848701",
+        #         "event": "order_deleted"  # field only present for cancelOrder
         #     }
         #
         channel = self.safe_string(message, 'channel')

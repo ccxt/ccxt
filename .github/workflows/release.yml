@@ -15,6 +15,7 @@ permissions:
 jobs:
   manual-job:
     runs-on: ubuntu-latest
+    environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
@@ -50,7 +51,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
@@ -140,15 +141,15 @@ jobs:
         run: npm run buildCSRelease
       - name: Deploy C#
         env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
         run: cd python && ./deploy.sh && cd ..;
       - uses: JS-DevTools/npm-publish@v3
         with:
-          token: ${{ secrets.NPM_TOKEN }}
+          token: ${{ secrets.NPM_PROD }}
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest

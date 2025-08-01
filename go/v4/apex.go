@@ -1810,7 +1810,7 @@ func  (this *apex) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
-            ch <- data
+            ch <- []interface{}{this.ParseOrder(data, market)}
             return nil
         
             }()
@@ -1852,7 +1852,7 @@ func  (this *apex) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
-            ch <- data
+            ch <- this.SafeOrder(data)
             return nil
         
             }()

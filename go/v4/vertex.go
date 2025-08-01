@@ -2732,7 +2732,9 @@ func  (this *vertex) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                 PanicOnError(response)
             }
         
-            ch <- response
+            ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()
@@ -2759,10 +2761,13 @@ func  (this *vertex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes247815 :=  (<-this.CancelOrders([]interface{}{id}, symbol, params))
-                PanicOnError(retRes247815)
-                ch <- retRes247815
-                return nil
+            order:= (<-this.CancelOrders([]interface{}{id}, symbol, params))
+            PanicOnError(order)
+        
+            ch <- this.SafeOrder(map[string]interface{} {
+                "info": order,
+            })
+            return nil
         
             }()
             return ch
@@ -2792,8 +2797,8 @@ func  (this *vertex) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes24978 := (<-this.LoadMarkets())
-            PanicOnError(retRes24978)
+            retRes24988 := (<-this.LoadMarkets())
+            PanicOnError(retRes24988)
             var market interface{} = this.Market(symbol)
             var marketId interface{} = GetValue(market, "id")
         
@@ -3374,8 +3379,8 @@ func  (this *vertex) Withdraw(code interface{}, amount interface{}, address inte
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes30478 := (<-this.LoadMarkets())
-            PanicOnError(retRes30478)
+            retRes30488 := (<-this.LoadMarkets())
+            PanicOnError(retRes30488)
             var currency interface{} = this.Currency(code)
         
             contracts:= (<-this.QueryContracts())

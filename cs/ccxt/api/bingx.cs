@@ -766,6 +766,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("apiV3PrivateGetAssetTransfer",parameters);
     }
 
+    public async Task<object> apiV3PrivateGetAssetTransferRecord (object parameters = null)
+    {
+        return await this.callAsync ("apiV3PrivateGetAssetTransferRecord",parameters);
+    }
+
     public async Task<object> apiV3PrivateGetCapitalDepositHisrec (object parameters = null)
     {
         return await this.callAsync ("apiV3PrivateGetCapitalDepositHisrec",parameters);
@@ -779,6 +784,16 @@ public partial class bingx : Exchange
     public async Task<object> apiV3PrivatePostPostAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("apiV3PrivatePostPostAssetTransfer",parameters);
+    }
+
+    public async Task<object> apiAssetV1PrivatePostTransfer (object parameters = null)
+    {
+        return await this.callAsync ("apiAssetV1PrivatePostTransfer",parameters);
+    }
+
+    public async Task<object> apiAssetV1PublicGetTransferSupportCoins (object parameters = null)
+    {
+        return await this.callAsync ("apiAssetV1PublicGetTransferSupportCoins",parameters);
     }
 
 }

@@ -22,13 +22,13 @@ public partial class Exchange
 
     public string hostname { get; set; } = "";
 
-    public dict baseCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> baseCurrencies { get; set; } = new dict();
 
     public bool reloadingMarkets { get; set; } = false;
 
     public Task<object> marketsLoading { get; set; } = null;
 
-    public dict quoteCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> quoteCurrencies { get; set; } = new dict();
 
     public dict api { get; set; } = new dict();
 
@@ -130,6 +130,7 @@ public partial class Exchange
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
+    public bool returnResponseHeaders { get; set; } = false;
 
     public dict httpExceptions { get; set; } = new dict();
 
@@ -292,5 +293,7 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
+
+        this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
     }
 }

@@ -182,10 +182,41 @@ public partial class Exchange
         return null;
     }
 
+    // public List<object> aggregate(object bidasks)
+    // {
+    //     var outList = new List<object>();
+    //     return outList; // stub to override
+    // }
+
     public List<object> aggregate(object bidasks)
     {
-        var outList = new List<object>();
-        return outList; // stub to override
+        var result = new Dictionary<double, double>();
+
+        if (bidasks is IList<object> list)
+        {
+            foreach (var entry in list)
+            {
+                if (entry is IList<object> pair && pair.Count >= 2)
+                {
+                    double price = Convert.ToDouble(pair[0]);
+                    double volume = Convert.ToDouble(pair[1]);
+
+                    if (volume > 0)
+                    {
+                        if (!result.ContainsKey(price))
+                        {
+                            result[price] = 0;
+                        }
+                        result[price] += volume;
+                    }
+                }
+            }
+        }
+
+        var res = result
+            .Select(kv => new List<object> { kv.Key, kv.Value })
+            .ToList();
+        return res.Select(x => (object)x).ToList();
     }
 
     // public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)

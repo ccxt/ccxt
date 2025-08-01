@@ -1738,7 +1738,9 @@ func  (this *derive) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             //     "result": "ok"
             // }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

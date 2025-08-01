@@ -667,7 +667,6 @@ class gate extends Exchange {
                     'SOL' => 'SOL',
                     'POLYGON' => 'POL',
                     'MATIC' => 'POL',
-                    'OP' => 'OPETH',
                     'OPTIMISM' => 'OPETH',
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',
@@ -3896,7 +3895,7 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
         $response = $this->privateWalletGetDeposits ($this->extend($request, $params));
         return $this->parse_transactions($response, $currency);
     }
@@ -3935,7 +3934,7 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
-        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
         $response = $this->privateWalletGetWithdrawals ($this->extend($request, $params));
         return $this->parse_transactions($response, $currency);
     }

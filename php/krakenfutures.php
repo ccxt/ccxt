@@ -526,7 +526,7 @@ class krakenfutures extends Exchange {
                 'precision' => null,
             );
         }
-        $this->currencies = $this->deep_extend($currencies, $this->currencies);
+        $this->currencies = $this->map_to_safe_map($this->deep_extend($currencies, $this->currencies));
         return $result;
     }
 

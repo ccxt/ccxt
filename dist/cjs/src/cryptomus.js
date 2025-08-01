@@ -30,11 +30,15 @@ class cryptomus extends cryptomus$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
@@ -44,6 +48,8 @@ class cryptomus extends cryptomus$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopLossOrder': false,
@@ -55,6 +61,12 @@ class cryptomus extends cryptomus$1 {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -63,27 +75,48 @@ class cryptomus extends cryptomus$1 {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -94,7 +127,9 @@ class cryptomus extends cryptomus$1 {
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': true,
@@ -104,11 +139,16 @@ class cryptomus extends cryptomus$1 {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -363,68 +403,45 @@ class cryptomus extends cryptomus$1 {
         //     }
         //
         const coins = this.safeList(response, 'result');
+        const groupedById = this.groupBy(coins, 'currency_code');
+        const keys = Object.keys(groupedById);
         const result = {};
-        for (let i = 0; i < coins.length; i++) {
-            const networkEntry = coins[i];
-            const currencyId = this.safeString(networkEntry, 'currency_code');
-            const code = this.safeCurrencyCode(currencyId);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const code = this.safeCurrencyCode(id);
+            const networks = {};
+            const networkEntries = groupedById[id];
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString(networkEntry, 'network_code');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
+                            'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber(networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': undefined,
-                            'max': undefined,
+                            'min': this.safeNumber(networkEntry, 'min_deposit'),
+                            'max': this.safeNumber(networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': {},
-                    'info': {},
+                    'active': undefined,
+                    'deposit': this.safeBool(networkEntry, 'can_withdraw'),
+                    'withdraw': this.safeBool(networkEntry, 'can_deposit'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
                 };
             }
-            const networkId = this.safeString(networkEntry, 'network_code');
-            const networkCode = this.networkIdToCode(networkId);
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
-                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit'),
-                        'max': this.safeNumber(networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(networkEntry, 'can_withdraw'),
-                'withdraw': this.safeBool(networkEntry, 'can_deposit'),
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
-            // add entry in info
-            const info = this.safeList(result[code], 'info', []);
-            info.push(networkEntry);
-            result[code]['info'] = info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys(result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
+            result[code] = this.safeCurrencyStructure({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            });
         }
         return result;
     }
@@ -745,7 +762,7 @@ class cryptomus extends cryptomus$1 {
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method
