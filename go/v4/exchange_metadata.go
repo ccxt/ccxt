@@ -1,5 +1,5 @@
 package ccxt
 
-var Version string = "4.4.97"
+var Version string = "4.4.98"
 
 var Exchanges []string = []string{ "Alpaca", "Apex", "Ascendex", "Bequant", "Bigone", "Binance", "Binancecoinm", "Binanceus", "Binanceusdm", "Bingx", "Bit2c", "Bitbank", "Bitbns", "Bitfinex", "Bitflyer", "Bitget", "Bithumb", "Bitmart", "Bitmex", "Bitopro", "Bitrue", "Bitso", "Bitstamp", "Bitteam", "Bittrade", "Bitvavo", "Blockchaincom", "Blofin", "Btcalpha", "Btcbox", "Btcmarkets", "Btcturk", "Bybit", "Cex", "Coinbase", "Coinbaseadvanced", "Coinbaseexchange", "Coinbaseinternational", "Coincatch", "Coincheck", "Coinex", "Coinmate", "Coinmetro", "Coinone", "Coinsph", "Coinspot", "Cryptocom", "Cryptomus", "Defx", "Delta", "Deribit", "Derive", "Digifinex", "Ellipx", "Exmo", "Fmfwio", "Foxbit", "Gate", "Gateio", "Gemini", "Hashkey", "Hitbtc", "Hollaex", "Htx", "Huobi", "Hyperliquid", "Independentreserve", "Indodax", "Kraken", "Krakenfutures", "Kucoin", "Kucoinfutures", "Latoken", "Lbank", "Luno", "Mercado", "Mexc", "Modetrade", "Myokx", "Ndax", "Novadax", "Oceanex", "Okcoin", "Okx", "Okxus", "Onetrading", "Oxfun", "P2b", "Paradex", "Paymium", "Phemex", "Poloniex", "Probit", "Timex", "Tokocrypto", "Tradeogre", "Upbit", "Vertex", "Wavesexchange", "Whitebit", "Woo", "Woofipro", "Xt", "Yobit", "Zaif", "Zonda" }
