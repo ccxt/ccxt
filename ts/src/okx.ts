@@ -2451,7 +2451,10 @@ export default class okx extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const features = this.safeDict (this.features, 'default', {});
+        let features = this.safeDict (this.features, market['type'], {});
+        if (market['subType'] !== undefined) {
+            features = this.safeDict (features, market['subType'], {});
+        }
         const ohlcvFeatures = this.safeDict (features, 'fetchOHLCV', {});
         const limitForIndexAndMark = this.safeInteger (ohlcvFeatures, price, 100);
         const historicalLimit = this.safeInteger (ohlcvFeatures, 'historical', 100);
