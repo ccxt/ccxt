@@ -1100,6 +1100,105 @@
                     }
                 ]
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "subaccounts": [
+                        {
+                            "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                            "subaccountNumber": 0,
+                            "equity": "25346.73993597",
+                            "freeCollateral": "24207.8530595294",
+                            "openPerpetualPositions": {
+                                "BTC-USD": {
+                                    "market": "BTC-USD",
+                                    "status": "OPEN",
+                                    "side": "SHORT",
+                                    "size": "-0.491",
+                                    "maxSize": "-0.009",
+                                    "entryPrice": "118703.60811320754716981132",
+                                    "exitPrice": "119655.95",
+                                    "realizedPnl": "3075.17994830188679245283016",
+                                    "unrealizedPnl": "1339.12776155490566037735812",
+                                    "createdAt": "2025-07-14T07:53:55.631Z",
+                                    "createdAtHeight": "44140908",
+                                    "closedAt": null,
+                                    "sumOpen": "0.53",
+                                    "sumClose": "0.038",
+                                    "netFunding": "3111.36894",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "assetPositions": {
+                                "USDC": {
+                                    "size": "82291.083758",
+                                    "symbol": "USDC",
+                                    "side": "LONG",
+                                    "assetId": "0",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "marginEnabled": true,
+                            "updatedAtHeight": "45234659",
+                            "latestProcessedBlockHeight": "45293477"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0",
+                        "type": null,
+                        "currency": null,
+                        "info": {
+                            "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                            "subaccountNumber": 0,
+                            "equity": "25346.73993597",
+                            "freeCollateral": "24207.8530595294",
+                            "openPerpetualPositions": {
+                                "BTC-USD": {
+                                    "market": "BTC-USD",
+                                    "status": "OPEN",
+                                    "side": "SHORT",
+                                    "size": "-0.491",
+                                    "maxSize": "-0.009",
+                                    "entryPrice": "118703.60811320754716981132",
+                                    "exitPrice": "119655.95",
+                                    "realizedPnl": "3075.17994830188679245283016",
+                                    "unrealizedPnl": "1339.12776155490566037735812",
+                                    "createdAt": "2025-07-14T07:53:55.631Z",
+                                    "createdAtHeight": "44140908",
+                                    "closedAt": null,
+                                    "sumOpen": "0.53",
+                                    "sumClose": "0.038",
+                                    "netFunding": "3111.36894",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "assetPositions": {
+                                "USDC": {
+                                    "size": "82291.083758",
+                                    "symbol": "USDC",
+                                    "side": "LONG",
+                                    "assetId": "0",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "marginEnabled": true,
+                            "updatedAtHeight": "45234659",
+                            "latestProcessedBlockHeight": "45293477"
+                        },
+                        "code": null
+                    }
+                ]
+            }
         ]
     }
 }

@@ -208,6 +208,18 @@
                     }
                 ]
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                "input": [
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ]
+            }
         ]
     }
 }

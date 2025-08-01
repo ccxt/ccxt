@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export default class dydx extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -1401,6 +1401,85 @@ export default class dydx extends Exchange {
         // }
         //
         return this.safeList (response, 'transfers', []);
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.dydx.xyz/indexer-client/http#get-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'address');
+        if (userAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchAccounts() requires a address parameter inside \'params\' or the wallet address set');
+        }
+        const request: Dict = {
+            'address': userAddress,
+        };
+        const response = await this.indexerGetAddressesAddress (this.extend (request, params));
+        //
+        // {
+        //     "subaccounts": [
+        //         {
+        //             "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //             "subaccountNumber": 0,
+        //             "equity": "25346.73993597",
+        //             "freeCollateral": "24207.8530595294",
+        //             "openPerpetualPositions": {
+        //                 "BTC-USD": {
+        //                     "market": "BTC-USD",
+        //                     "status": "OPEN",
+        //                     "side": "SHORT",
+        //                     "size": "-0.491",
+        //                     "maxSize": "-0.009",
+        //                     "entryPrice": "118703.60811320754716981132",
+        //                     "exitPrice": "119655.95",
+        //                     "realizedPnl": "3075.17994830188679245283016",
+        //                     "unrealizedPnl": "1339.12776155490566037735812",
+        //                     "createdAt": "2025-07-14T07:53:55.631Z",
+        //                     "createdAtHeight": "44140908",
+        //                     "closedAt": null,
+        //                     "sumOpen": "0.53",
+        //                     "sumClose": "0.038",
+        //                     "netFunding": "3111.36894",
+        //                     "subaccountNumber": 0
+        //                 }
+        //             },
+        //             "assetPositions": {
+        //                 "USDC": {
+        //                     "size": "82291.083758",
+        //                     "symbol": "USDC",
+        //                     "side": "LONG",
+        //                     "assetId": "0",
+        //                     "subaccountNumber": 0
+        //                 }
+        //             },
+        //             "marginEnabled": true,
+        //             "updatedAtHeight": "45234659",
+        //             "latestProcessedBlockHeight": "45293477"
+        //         }
+        //     ]
+        // }
+        //
+        const rows = this.safeList (response, 'subaccounts', []);
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const account = rows[i];
+            const accountId = this.safeString (account, 'subaccountNumber');
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': undefined,
+                'info': account,
+                'code': undefined,
+            });
+        }
+        return result;
     }
 
     nonce () {
