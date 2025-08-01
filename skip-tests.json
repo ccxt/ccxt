@@ -1959,6 +1959,9 @@
             },
             "fetchTrades": {
                 "side": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     }
