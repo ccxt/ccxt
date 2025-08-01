@@ -750,6 +750,9 @@ class NewTranspiler {
             'fetchPortfolioDetails',
             'createVault',
         ] // improve this later
+        if (methodName.toLowerCase().includes('uta')) {
+            return false; // skip UTA methods
+        }
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
                 return false;
