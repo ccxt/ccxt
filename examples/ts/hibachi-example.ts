@@ -110,5 +110,7 @@ async function example () {
     const fundingRate = await exchange.fetchFundingRate('BTC/USDT:USDT');
     console.log('fetchFundingRate', fundingRate);
 
+    const fundingRateHistory = await exchange.fetchFundingRateHistory('BTC/USDT:USDT', undefined, 2);
+    console.log('fetchFundingRateHistory', fundingRateHistory);
 }
 example ();

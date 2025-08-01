@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -74,7 +74,7 @@ export default class hibachi extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
@@ -144,6 +144,7 @@ export default class hibachi extends Exchange {
                         'market/data/klines': 1,
                         'market/data/orderbook': 1,
                         'market/data/open-interest': 1,
+                        'market/data/funding-rates': 1,
                         'exchange/utc-timestamp': 1,
                     },
                 },
@@ -1915,5 +1916,52 @@ export default class hibachi extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': '8h',
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketDataFundingRates (this.extend (request, params));
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "contractId": 2,
+        //             "fundingTimestamp": 1753488000,
+        //             "fundingRate": "0.000137",
+        //             "indexPrice": "117623.65010"
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeIntegerProduct (entry, 'fundingTimestamp', 1000);
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 }
