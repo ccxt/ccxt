@@ -1783,7 +1783,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
-            [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+            [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
