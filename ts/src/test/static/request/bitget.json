@@ -354,6 +354,93 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
+            },
+            {
+                "description": "uta spot createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    50000,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\"}"
+            },
+            {
+                "description": "uta swap createOrder with posSide param",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    50000,
+                    {
+                        "posSide": "long",
+                        "uta": true
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}"
+            },
+            {
+                "description": "uta one way mode market order with a stopLoss attached",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "uta": true,
+                        "stopLoss": {
+                            "triggerPrice": 95000
+                        }
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"buy\",\"stopLoss\":\"95000\",\"slOrderType\":\"market\",\"orderType\":\"market\",\"timeInForce\":\"gtc\"}"
+            },
+            {
+                "description": "uta strategy order using stopLossPrice and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-strategy-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    113000,
+                    {
+                        "uta": true,
+                        "stopLossPrice": 114000,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"sell\",\"slTriggerBy\":\"mark\",\"stopLoss\":\"114000\",\"slLimitPrice\":\"113000\",\"slOrderType\":\"limit\",\"posSide\":\"long\"}"
+            },
+            {
+                "description": "uta spot margin createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    101000,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"category\":\"MARGIN\",\"symbol\":\"BTCUSDT\",\"qty\":\"0.001\",\"side\":\"buy\",\"price\":\"101000\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -482,6 +569,39 @@
                     ]
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderList\":[{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"25000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\"},{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"27000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\"}],\"marginMode\":\"crossed\",\"marginCoin\":\"USDT\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta swap create multiple orders",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/v3/trade/place-batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 100000,
+                            "params": {
+                                "posSide": "long"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 101000,
+                            "params": {
+                                "posSide": "long"
+                            }
+                        }
+                    ],
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "[{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"100000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"},{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"101000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}]"
             }
         ],
         "editOrder": [
@@ -567,6 +687,58 @@
                     }
                 ],
                 "output": "{\"orderId\":\"1121635717619453955\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newTriggerPrice\":\"46000\",\"newCallbackRatio\":\"5\"}"
+            },
+            {
+                "description": "uta spot editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-order",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"orderId\":\"1320239033384062976\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
+            },
+            {
+                "description": "uta swap editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-order",
+                "input": [
+                    "1320240021595639809",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"orderId\":\"1320240021595639809\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
+            },
+            {
+                "description": "uta strategy stopLossPrice editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-strategy-order",
+                "input": [
+                    "1330984742276198400",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    111000,
+                    {
+                        "uta": true,
+                        "stopLossPrice": 112000
+                    }
+                ],
+                "output": "{\"orderId\":\"1330984742276198400\",\"qty\":\"0.001\",\"slTriggerBy\":\"mark\",\"stopLoss\":\"112000\",\"slLimitPrice\":\"111000\",\"slOrderType\":\"limit\"}"
             }
         ],
         "fetchMyTrades": [
@@ -615,6 +787,19 @@
                         "marginMode": "isolated"
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitget.com/api/v3/trade/fills",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchOrder": [
@@ -634,6 +819,30 @@
                 "input": [
                     "1112202424673271809",
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "uta spot fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320239033384062976",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320244799629316096",
+                "input": [
+                    "1320244799629316096",
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -698,7 +907,61 @@
                         "planType": "profit_loss"
                     }
                 ]
-            }
+            },
+            {
+                "description": "uta spot fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=SPOT&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta trigger stopLossPrice open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-strategy-orders?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
+                    "description": "uta spot margin fetchOpenOrders",
+                    "method": "fetchOpenOrders",
+                    "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=MARGIN&symbol=BTCUSDT",
+                    "input": [
+                        "BTC/USDT",
+                        null,
+                        null,
+                        {
+                            "uta": true,
+                            "marginMode": "cross"
+                        }
+                    ]
+                }
         ],
         "fetchClosedOrders": [
             {
@@ -746,6 +1009,19 @@
                     null,
                     {
                         "trailing": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
                     }
                 ]
             }
@@ -798,6 +1074,33 @@
                         "trailing": true
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta trigger fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-strategy-orders?category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "fetchBalance": [
@@ -841,7 +1144,17 @@
                         "marginMode": "isolated"
                     }
                 ]
-            }
+            },
+            {
+                "description": "Fetch the uta balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/assets",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ]
+        }
         ],
         "fetchPosition": [
             {
@@ -850,6 +1163,17 @@
                 "url": "https://api.bitget.com/api/v2/mix/position/single-position?marginCoin=USDT&productType=USDT-FUTURES&symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "uta fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.bitget.com/api/v3/position/current-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -882,6 +1206,21 @@
                 ]
             }
         ],
+        "fetchPositionHistory": [
+            {
+                "description": "uta fetchPositionHistory",
+                "method": "fetchPositionHistory",
+                "url": "https://api.bitget.com/api/v3/position/history-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "Fetch Positions History",
@@ -902,6 +1241,21 @@
                   {
                     "until": 1709590068602
                   }
+                ]
+            },
+            {
+                "description": "uta fetchPositionsHistory",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.bitget.com/api/v3/position/history-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    [
+                    "BTC/USDT:USDT"
+                    ],
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -928,6 +1282,19 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSD\",\"marginCoin\":\"BTC\",\"leverage\":\"20\",\"productType\":\"COIN-FUTURES\",\"holdSide\":\"long\"}"
+            },
+            {
+                "description": "uta swap setLeverage",
+                "method": "setLeverage",
+                "url": "https://api.bitget.com/api/v3/account/set-leverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"leverage\":\"20\",\"coin\":\"USDT\",\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "setPositionMode": [
@@ -940,6 +1307,19 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"posMode\":\"hedge_mode\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://api.bitget.com/api/v3/account/set-hold-mode",
+                "input": [
+                    false,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"holdMode\":\"one_way_mode\"}"
             }
         ],
         "setMarginMode": [
@@ -1026,6 +1406,46 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
+            },
+            {
+                "description": "uta spot cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "1320254907742572544",
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320254907742572544\"}"
+            },
+            {
+                "description": "uta swap cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "1320244799629316096",
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320244799629316096\"}"
+            },
+            {
+                "description": "uta trigger cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-strategy-order",
+                "input": [
+                    "1330984742276198400",
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true,
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1330984742276198400\"}"
             }
         ],
         "cancelOrders": [
@@ -1086,6 +1506,22 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderIdList\":[{\"orderId\":\"1112207614827704321\"},{\"orderId\":\"1112207614982893571\"}]}"
+            },
+            {
+                "description": "uta cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-batch",
+                "input": [
+                        [
+                        "1329948909442023424",
+                        "1329948909442023425"
+                    ],
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "[{\"orderId\":\"1329948909442023424\",\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"},{\"orderId\":\"1329948909442023425\",\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}]"
             }
         ],
         "cancelAllOrders": [
@@ -1142,6 +1578,43 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\"}"
+            },
+            {
+                "description": "uta spot cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"SPOT\"}"
+            },
+            {
+                "description": "uta swap cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta spot margin cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"MARGIN\"}"
             }
         ],
         "fetchCrossBorrowRate": [
@@ -1151,6 +1624,17 @@
                 "url": "https://api.bitget.com/api/v2/margin/crossed/interest-rate-and-limit?coin=USDT",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "uta fetchCrossBorrowRate",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.bitget.com/api/v3/market/margin-loans?coin=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1174,6 +1658,19 @@
                     null
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta closePosition",
+                "method": "closePosition",
+                "url": "https://api.bitget.com/api/v3/trade/close-positions",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "long",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"posSide\":\"long\",\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "closeAllPositions": [
@@ -1187,6 +1684,17 @@
                     }
                 ],
                 "output": "{\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta closeAllPositions",
+                "method": "closeAllPositions",
+                "url": "https://api.bitget.com/api/v3/trade/close-positions",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "fetchOHLCV": [
@@ -1465,6 +1973,64 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "uta spot fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with mark price parameter",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&type=MARK&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "mark",
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with index price parameter",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&type=INDEX&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "index",
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -1519,6 +2085,18 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta orderbookl",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/market/orderbook?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchTrades": [
@@ -1556,6 +2134,46 @@
                 "url": "https://api.bitget.com/api/v2/mix/market/fills-history?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "uta spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=1&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=1&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta spot margin fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=3&category=MARGIN",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    3,
+                    {
+                        "uta": true,
+                        "marginMode": "cross"
+                    }
                 ]
             }
         ],
@@ -1613,6 +2231,17 @@
                 "url": "https://api.bitget.com/api/v2/mix/market/open-interest?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "uta fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.bitget.com/api/v3/market/open-interest?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1699,6 +2328,28 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "spot uta ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "swap uta ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchTickers": [
@@ -1757,6 +2408,32 @@
                         "productType": "USDC-FUTURES"
                     }
                 ]
+            },
+            {
+                "description": "uta spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -1766,6 +2443,19 @@
                 "url": "https://api.bitget.com/api/v2/mix/market/history-fund-rate?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "uta fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.bitget.com/api/v3/market/history-fund-rate?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1787,6 +2477,17 @@
                   {
                     "method": "publicMixGetV2MixMarketFundingTime"
                   }
+                ]
+            },
+            {
+                "description": "uta fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1878,6 +2579,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchLongShortRatioHistory": [
@@ -1934,6 +2646,19 @@
                 "method": "fetchFundingRates",
                 "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES",
                 "input": []
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "uta fetch the market leverage tiers for a trading pair",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.bitget.com/api/v3/market/position-tier?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ]
     }
