@@ -522,7 +522,7 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
-            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],              
+            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
             
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
             
@@ -839,8 +839,6 @@ class NewTranspiler {
     safeGoName(name: string): string {
         const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
-            'error': 'e',
-            'time': 'timeVar'
         }
         return goReservedWordsReplacement[name] || name;
     }
