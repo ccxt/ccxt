@@ -2360,7 +2360,7 @@ export default class binance extends binanceRest {
     }
 
     async authenticate (params = {}) {
-        const now = this.milliseconds ();
+        const time = this.milliseconds ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
@@ -2382,7 +2382,7 @@ export default class binance extends binanceRest {
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
-        if (now - lastAuthenticatedTime > delay) {
+        if (time - lastAuthenticatedTime > delay) {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey (params);
@@ -2405,7 +2405,7 @@ export default class binance extends binanceRest {
             }
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
-                'lastAuthenticatedTime': now,
+                'lastAuthenticatedTime': time,
             });
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
@@ -2433,7 +2433,7 @@ export default class binance extends binanceRest {
         const request: Dict = {};
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
-        const now = this.milliseconds ();
+        const time = this.milliseconds ();
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey (this.extend (request, params));
@@ -2471,7 +2471,7 @@ export default class binance extends binanceRest {
         }
         this.options[type] = this.extend (options, {
             'listenKey': listenKey,
-            'lastAuthenticatedTime': now,
+            'lastAuthenticatedTime': time,
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
@@ -2851,15 +2851,15 @@ export default class binance extends binanceRest {
             const currencyId = this.safeString (message, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const deltaFree = this.safeString (message, 'd');
+            const delta = this.safeString (message, 'd');
             if (code in this.balance[accountType]) {
                 let previousValue = this.balance[accountType][code]['free'];
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
-                account['free'] = Precise.stringAdd (previousValue, deltaFree);
+                account['free'] = Precise.stringAdd (previousValue, delta);
             } else {
-                account['free'] = deltaFree;
+                account['free'] = delta;
             }
             this.balance[accountType][code] = account;
         } else {

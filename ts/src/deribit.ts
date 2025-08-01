@@ -3168,11 +3168,11 @@ export default class deribit extends Exchange {
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const now = this.milliseconds ();
+        const time = this.milliseconds ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'start_timestamp': now - (8 * 60 * 60 * 1000), // 8h ago,
-            'end_timestamp': now,
+            'start_timestamp': time - (8 * 60 * 60 * 1000), // 8h ago,
+            'end_timestamp': time,
         };
         const response = await this.publicGetGetFundingRateValue (this.extend (request, params));
         //
@@ -3213,12 +3213,12 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend (params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest) as FundingRateHistory[];
         }
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
-        let now = this.milliseconds ();
+        let time = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
-            since = now - month;
+            since = time - month;
         } else {
-            now = since + month;
+            time = since + month;
         }
         const request: Dict = {
             'instrument_name': market['id'],
@@ -3229,7 +3229,7 @@ export default class deribit extends Exchange {
             params = this.omit (params, [ 'until' ]);
             request['end_timestamp'] = until;
         } else {
-            request['end_timestamp'] = now;
+            request['end_timestamp'] = time;
         }
         if ('isDeribitPaginationCall' in params) {
             params = this.omit (params, 'isDeribitPaginationCall');

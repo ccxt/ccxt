@@ -1239,13 +1239,13 @@ export default class bingx extends bingxRest {
     }
 
     async authenticate (params = {}) {
-        const now = this.milliseconds ();
+        const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if (now - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
             const response = await this.userAuthPrivatePostUserDataStream ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = now;
+            this.options['lastAuthenticatedTime'] = time;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
@@ -1265,10 +1265,10 @@ export default class bingx extends bingxRest {
                 await client.send ('Pong');
             } else {
                 const ping = this.safeString (message, 'ping');
-                const timestamp = this.safeString (message, 'time');
+                const time = this.safeString (message, 'time');
                 await client.send ({
                     'pong': ping,
-                    'time': timestamp,
+                    'time': time,
                 });
             }
         } catch (e) {

@@ -399,9 +399,9 @@ export default class bitrue extends bitrueRest {
         //         "ping": 1670057540627
         //     }
         //
-        const timestamp = this.safeInteger (message, 'ping');
+        const time = this.safeInteger (message, 'ping');
         const pong: Dict = {
-            'pong': timestamp,
+            'pong': time,
         };
         await client.send (pong);
     }

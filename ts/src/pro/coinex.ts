@@ -1414,8 +1414,8 @@ export default class coinex extends coinexRest {
     async authenticate (type: string) {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
-        const now = this.milliseconds ();
-        const timestamp = now.toString ();
+        const time = this.milliseconds ();
+        const timestamp = time.toString ();
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -1434,7 +1434,7 @@ export default class coinex extends coinexRest {
             'params': {
                 'access_id': this.apiKey,
                 'signed_str': hmac.toLowerCase (),
-                'timestamp': now,
+                'timestamp': time,
             },
         };
         this.watch (url, messageHash, request, requestId, subscribe);

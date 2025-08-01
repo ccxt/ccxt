@@ -948,8 +948,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
-            const deltaCache = cache[i];
-            const deltaStart = this.safeInteger (deltaCache, 'sequence');
+            const delta = cache[i];
+            const deltaStart = this.safeInteger (delta, 'sequence');
             if (nonce < deltaStart - 1) {
                 return i;
             }

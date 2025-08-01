@@ -1062,8 +1062,8 @@ export default class deribit extends deribitRest {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const now = this.milliseconds ();
-        const timeString = this.numberToString (now);
+        const time = this.milliseconds ();
+        const timeString = this.numberToString (time);
         const nonce = timeString;
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -1078,7 +1078,7 @@ export default class deribit extends deribitRest {
                 'params': {
                     'grant_type': 'client_signature',
                     'client_id': this.apiKey,
-                    'timestamp': now,
+                    'timestamp': time,
                     'signature': signature,
                     'nonce': nonce,
                     'data': '',

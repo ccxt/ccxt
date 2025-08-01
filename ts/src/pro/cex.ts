@@ -843,10 +843,10 @@ export default class cex extends cexRest {
             symbol = base + '/' + quote;
         }
         market = this.safeMarket (symbol, market);
-        const orderTime = this.safeInteger (order, 'time', this.milliseconds ());
-        let timestamp = orderTime;
+        const time = this.safeInteger (order, 'time', this.milliseconds ());
+        let timestamp = time;
         if (isTransaction) {
-            timestamp = this.parse8601 (orderTime);
+            timestamp = this.parse8601 (time);
         }
         const canceled = this.safeBool (order, 'cancel', false);
         let status = 'open';

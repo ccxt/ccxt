@@ -1396,13 +1396,13 @@ export default class bingx extends Exchange {
         //         "tradeTime": 1722146730000
         //     }
         //
-        let timestamp = this.safeIntegerN (trade, [ 'time', 'filledTm', 'T', 'tradeTime' ]);
+        let time = this.safeIntegerN (trade, [ 'time', 'filledTm', 'T', 'tradeTime' ]);
         const datetimeId = this.safeString (trade, 'filledTm');
         if (datetimeId !== undefined) {
-            timestamp = this.parse8601 (datetimeId);
+            time = this.parse8601 (datetimeId);
         }
-        if (timestamp === 0) {
-            timestamp = undefined;
+        if (time === 0) {
+            time = undefined;
         }
         const cost = this.safeString (trade, 'quoteQty');
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
@@ -1440,8 +1440,8 @@ export default class bingx extends Exchange {
         return this.safeTrade ({
             'id': this.safeStringN (trade, [ 'id', 't' ]),
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': time,
+            'datetime': this.iso8601 (time),
             'symbol': this.safeSymbol (marketId, market, '-'),
             'order': this.safeString2 (trade, 'orderId', 'i'),
             'type': this.safeStringLower (trade, 'o'),
