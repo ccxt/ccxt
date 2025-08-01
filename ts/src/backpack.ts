@@ -473,7 +473,7 @@ export default class backpack extends Exchange {
             let active = undefined;
             let deposit = undefined;
             let withdraw = undefined;
-            if (networks.length === 0) {
+            if (this.isEmpty (parsedNetworks)) { // if networks are not provided
                 active = false;
                 deposit = false;
                 withdraw = false;
