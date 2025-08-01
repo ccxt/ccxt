@@ -1,0 +1,260 @@
+{
+    "ETH/USDT:USDT": {
+        "id": "ETH/USDT-P",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-9,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1727701319734,
+        "info": {
+            "displayName": "ETH/USDT Perps",
+            "id": "1",
+            "maintenanceFactorForPositions": "0.030000",
+            "marketCloseTimestamp": null,
+            "marketCreationTimestamp": "1727701319.73488",
+            "marketOpenTimestamp": null,
+            "minNotional": "1",
+            "minOrderSize": "0.000000001",
+            "orderbookGranularities": [
+                "0.01",
+                "0.1",
+                "1",
+                "10"
+            ],
+            "riskFactorForOrders": "0.066667",
+            "riskFactorForPositions": "0.030000",
+            "settlementDecimals": "6",
+            "settlementSymbol": "USDT",
+            "status": "LIVE",
+            "stepSize": "0.000000001",
+            "symbol": "ETH/USDT-P",
+            "tickSize": "0.000001",
+            "underlyingDecimals": "9",
+            "underlyingSymbol": "ETH"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "numericId": 1
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOL/USDT-P",
+        "lowercaseId": null,
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1e-7
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1727701319734,
+        "info": {
+            "displayName": "SOL/USDT Perps",
+            "id": "3",
+            "maintenanceFactorForPositions": "0.030000",
+            "marketCloseTimestamp": null,
+            "marketCreationTimestamp": "1727701319.73488",
+            "marketOpenTimestamp": null,
+            "minNotional": "1",
+            "minOrderSize": "0.00000001",
+            "orderbookGranularities": [
+                "0.001",
+                "0.01",
+                "0.1",
+                "1"
+            ],
+            "riskFactorForOrders": "0.066667",
+            "riskFactorForPositions": "0.030000",
+            "settlementDecimals": "6",
+            "settlementSymbol": "USDT",
+            "status": "LIVE",
+            "stepSize": "0.00000001",
+            "symbol": "SOL/USDT-P",
+            "tickSize": "0.0000001",
+            "underlyingDecimals": "8",
+            "underlyingSymbol": "SOL"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "numericId": 3
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC/USDT-P",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-10,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1727701319734,
+        "info": {
+            "displayName": "BTC/USDT Perps",
+            "id": "2",
+            "maintenanceFactorForPositions": "0.030000",
+            "marketCloseTimestamp": null,
+            "marketCreationTimestamp": "1727701319.73488",
+            "marketOpenTimestamp": null,
+            "minNotional": "1",
+            "minOrderSize": "0.0000000001",
+            "orderbookGranularities": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ],
+            "riskFactorForOrders": "0.066667",
+            "riskFactorForPositions": "0.030000",
+            "settlementDecimals": "6",
+            "settlementSymbol": "USDT",
+            "status": "LIVE",
+            "stepSize": "0.0000000001",
+            "symbol": "BTC/USDT-P",
+            "tickSize": "0.00001",
+            "underlyingDecimals": "10",
+            "underlyingSymbol": "BTC"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "numericId": 2
+    }
+}
