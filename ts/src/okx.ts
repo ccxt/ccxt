@@ -2477,7 +2477,7 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const historicalLimit = this.featureValue (market['type'], market['subType'], 'fetchOHLCV', 'historical', 100);
+                const historicalLimit = this.featureValue (market['type'], market['subType'], 'fetchOHLCV', 'historical', undefined, 100);
                 limit = Math.min (limit, historicalLimit);
             }
             const startTime = Math.max (since - 1, 0);
