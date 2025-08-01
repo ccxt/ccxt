@@ -5271,17 +5271,17 @@ export default class bitget extends Exchange {
                     request['executePrice'] = this.priceToPrecision (symbol, price);
                 }
                 if (isStopLoss) {
-                    const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
                     request['stopLossTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
-                    const slPrice = this.safeNumber (stopLoss, 'price');
+                    const slPrice = this.safeString (stopLoss, 'price');
                     request['stopLossExecutePrice'] = this.priceToPrecision (symbol, slPrice);
                     const slType = this.safeString (stopLoss, 'type', 'mark_price');
                     request['stopLossTriggerType'] = slType;
                 }
                 if (isTakeProfit) {
-                    const tpTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice');
                     request['stopSurplusTriggerPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
-                    const tpPrice = this.safeNumber (takeProfit, 'price');
+                    const tpPrice = this.safeString (takeProfit, 'price');
                     request['stopSurplusExecutePrice'] = this.priceToPrecision (symbol, tpPrice);
                     const tpType = this.safeString (takeProfit, 'type', 'mark_price');
                     request['stopSurplusTriggerType'] = tpType;
