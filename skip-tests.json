@@ -1947,5 +1947,19 @@
                 "activeMajorCurrencies": "todo"
             }
         }
+    },
+    "backpack": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            }
+        }
     }
 }
