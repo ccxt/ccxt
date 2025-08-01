@@ -129,6 +129,9 @@ export default class hibachi extends Exchange {
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'referral': {
+                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                },
             },
             'api': {
                 'public': {
