@@ -100,5 +100,8 @@ async function example () {
 
     const withdrawals = await exchange.fetchWithdrawals ();
     console.log ('fetchWithdrawals', withdrawals);
+
+    const timestamp = await exchange.fetchTime();
+    console.log('fetchTime', timestamp)
 }
 example ();

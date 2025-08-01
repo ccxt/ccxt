@@ -98,7 +98,7 @@ export default class hibachi extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -142,6 +142,7 @@ export default class hibachi extends Exchange {
                         'market/data/stats': 1,
                         'market/data/klines': 1,
                         'market/data/orderbook': 1,
+                        'exchange/utc-timestamp': 1,
                     },
                 },
                 'private': {
@@ -250,7 +251,7 @@ export default class hibachi extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '2': BadRequest, //  {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '2': BadRequest, // {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
                     '3': OrderNotFound, // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
                     '4': BadRequest, // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 },
@@ -1811,5 +1812,21 @@ export default class hibachi extends Exchange {
             }
         }
         return this.parseTransactions (withdrawals, currency, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetExchangeUtcTimestamp (params);
+        //
+        //     { "timestampMs":1754077574040 }
+        //
+        return this.safeInteger (response, 'timestampMs');
     }
 }
