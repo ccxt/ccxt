@@ -1101,6 +1101,79 @@
                 ]
             }
         ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        },
+                        "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                        "txid": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81",
+                        "timestamp": 1753939498236,
+                        "datetime": "2025-07-31T05:24:58.236Z",
+                        "network": null,
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressTo": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressFrom": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "fetchAccounts",

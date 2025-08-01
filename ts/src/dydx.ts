@@ -68,7 +68,7 @@ export default class dydx extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
-                'fetchDepositsWithdrawals': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -1185,7 +1185,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         params['methodName'] = 'fetchLedger';
-        const response = await this.transactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         return this.parseLedger (response, currency, since, limit);
     }
 
@@ -1251,7 +1251,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         params['methodName'] = 'fetchTransfers';
-        const response = await this.transactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat (transferIn, transferOut);
@@ -1332,7 +1332,7 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         params['methodName'] = 'fetchWithdrawals';
-        const response = await this.transactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -1357,12 +1357,39 @@ export default class dydx extends Exchange {
             currency = this.currency (code);
         }
         params['methodName'] = 'fetchDeposits';
-        const response = await this.transactionsHelper (code, since, limit, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
         const rows = this.filterBy (response, 'type', 'DEPOSIT');
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async transactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    /**
+     * @method
+     * @name dydx#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.dydx.xyz/indexer-client/http#get-transfers
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] wallet address that made trades
+     * @param {string} [params.subAccountNumber] sub account number
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        params['methodName'] = 'fetchDepositsWithdrawals';
+        const response = await this.fetchTransactionsHelper (code, since, limit, params);
+        const withdrawals = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const deposits = this.filterBy (response, 'type', 'DEPOSIT');
+        const rows = this.arrayConcat (withdrawals, deposits);
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
         let userAddress = undefined;
