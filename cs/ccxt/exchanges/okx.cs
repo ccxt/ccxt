@@ -695,6 +695,7 @@ public partial class okx : Exchange
                     { "51137", typeof(InvalidOrder) },
                     { "51138", typeof(InvalidOrder) },
                     { "51139", typeof(InvalidOrder) },
+                    { "51155", typeof(BadSymbol) },
                     { "51156", typeof(BadRequest) },
                     { "51159", typeof(BadRequest) },
                     { "51162", typeof(InvalidOrder) },

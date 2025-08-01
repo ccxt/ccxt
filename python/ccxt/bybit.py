@@ -4837,7 +4837,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         fetches information on a closed order made by the user
 
-        https://bybit-exchange.github.io/docs/v5/order/order-list
+        https://bybinpt-exchange.github.io/docs/v5/order/order-list
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in

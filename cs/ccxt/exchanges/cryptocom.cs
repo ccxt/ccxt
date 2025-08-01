@@ -430,6 +430,7 @@ public partial class cryptocom : Exchange
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "219", typeof(InvalidOrder) },
+                    { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },

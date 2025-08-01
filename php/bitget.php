@@ -3898,6 +3898,10 @@ class bitget extends Exchange {
             if ($historicalEndpointNeeded) {
                 $response = $this->publicSpotGetV2SpotMarketHistoryCandles ($this->extend($request, $params));
             } else {
+                if (!$limitDefined) {
+                    $request['limit'] = 1000;
+                    $limit = 1000;
+                }
                 $response = $this->publicSpotGetV2SpotMarketCandles ($this->extend($request, $params));
             }
         } else {
@@ -3907,8 +3911,15 @@ class bitget extends Exchange {
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
             $extended = $this->extend($request, $params);
-            // todo => mark & index also have their "recent" endpoints, but not priority $now->
-            if ($priceType === 'mark') {
+            if (!$historicalEndpointNeeded && ($priceType === 'mark' || $priceType === 'index')) {
+                if (!$limitDefined) {
+                    $extended['limit'] = 1000;
+                    $limit = 1000;
+                }
+                // Recent endpoint for mark/index prices
+                // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+                $response = $this->publicMixGetV2MixMarketCandles ($this->extend(array( 'kLineType' => $priceType ), $extended));
+            } elseif ($priceType === 'mark') {
                 $response = $this->publicMixGetV2MixMarketHistoryMarkCandles ($extended);
             } elseif ($priceType === 'index') {
                 $response = $this->publicMixGetV2MixMarketHistoryIndexCandles ($extended);
@@ -3916,6 +3927,10 @@ class bitget extends Exchange {
                 if ($historicalEndpointNeeded) {
                     $response = $this->publicMixGetV2MixMarketHistoryCandles ($extended);
                 } else {
+                    if (!$limitDefined) {
+                        $extended['limit'] = 1000;
+                        $limit = 1000;
+                    }
                     $response = $this->publicMixGetV2MixMarketCandles ($extended);
                 }
             }

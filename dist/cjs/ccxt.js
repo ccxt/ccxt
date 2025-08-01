@@ -427,6 +427,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca;
