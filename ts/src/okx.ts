@@ -2451,10 +2451,13 @@ export default class okx extends Exchange {
         params = this.omit (params, 'price');
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
+        const isMarkOrIndex = this.inArray (price, [ 'mark', 'index' ]);
+        const limitForIndexAndMark = 100; // max 100 for index and mark candles
+        const maxLimit = isMarkOrIndex ? limitForIndexAndMark : 300; // max 300 for normal candles
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         } else {
-            limit = Math.min (limit, 300); // max 100
+            limit = Math.min (limit, maxLimit);
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
