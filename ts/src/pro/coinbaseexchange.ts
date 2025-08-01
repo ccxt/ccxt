@@ -110,7 +110,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     /**
@@ -230,7 +230,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @method
      * @name coinbaseexchange#watchMyTradesForSymbols
      * @description watches information on multiple trades made by the user
-     * @param {string[]} [symbols] unified symbol of the market to fetch trades for
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint

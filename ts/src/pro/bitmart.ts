@@ -142,7 +142,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
-        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions, undefined);
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), rawSubscriptions);
     }
 
     /**
@@ -414,7 +414,7 @@ export default class bitmart extends bitmartRest {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
-        const newTickers = await this.watchMultiple (url, messageHashes, request, rawSubscriptions, undefined);
+        const newTickers = await this.watchMultiple (url, messageHashes, request, rawSubscriptions);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
