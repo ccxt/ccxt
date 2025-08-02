@@ -75,7 +75,7 @@ export default class backpack extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -191,7 +191,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/borrowLend/positions': 1, // not used
                         'wapi/v1/history/dust': 1, // not used
                         'wapi/v1/history/fills': 1, // done
-                        'wapi/v1/history/funding': 1, // todo fetchFundingHistory
+                        'wapi/v1/history/funding': 1, // done
                         'wapi/v1/history/orders': 1, // done
                         'wapi/v1/history/pnl': 1, // todo fetchPositionsHistory
                         'wapi/v1/history/rfq': 1,
@@ -206,7 +206,7 @@ export default class backpack extends Exchange {
                         'api/v1/borrowLend': 1, // todo borrowCrossMargin
                         'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
                         'api/v1/order': 1, // done
-                        'api/v1/orders': 1,
+                        'api/v1/orders': 1, // done
                         'api/v1/rfq': 1,
                         'api/v1/rfq/accept': 1,
                         'api/v1/rfq/refresh': 1,
@@ -2011,6 +2011,62 @@ export default class backpack extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchFundingHistory
+     * @description fetches the history of funding payments
+     * @see https://docs.backpack.exchange/#tag/History/operation/get_funding_payments
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWapiV1HistoryFunding (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //     {
+        //         "fundingRate": "0.0001",
+        //         "intervalEndTimestamp": "2025-08-01T16:00:00",
+        //         "quantity": "-0.001301",
+        //         "subaccountId": 0,
+        //         "symbol": "ETH_USDC_PERP",
+        //         "userId": 1813870
+        //     }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeNumber (income, 'quantity');
+        const id = this.safeString (income, 'userId');
+        const timestamp = this.parse8601 (this.safeString (income, 'intervalEndTimestamp'));
+        const rate = this.safeNumber (income, 'fundingRate');
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': amount,
+            'rate': rate,
+        };
     }
 
     nonce () {
