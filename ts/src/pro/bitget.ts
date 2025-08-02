@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, Exch
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1576,7 +1576,7 @@ export default class bitget extends bitgetRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let instType = undefined;
         if (market === undefined && type === 'spot') {
-            instType = 'SPOT';
+            instType = 'spot';
         } else {
             [ instType, params ] = this.getInstType (market, params);
         }
@@ -1918,7 +1918,7 @@ export default class bitget extends bitgetRest {
         future.resolve (true);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //

@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -497,7 +497,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',

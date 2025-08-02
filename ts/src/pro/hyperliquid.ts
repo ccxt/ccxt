@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -866,7 +866,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "channel": "error",

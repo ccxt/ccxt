@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -233,7 +233,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -1530,7 +1530,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return messageHash;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        event: 'alert',
@@ -1542,6 +1542,7 @@ export default class krakenfutures extends krakenfuturesRest {
             throw new ExchangeError (this.id + ' ' + errMsg);
         } catch (error) {
             client.reject (error);
+            return false;
         }
     }
 

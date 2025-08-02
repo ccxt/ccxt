@@ -5,7 +5,7 @@ import coinbaseexchangeRest from '../coinbaseexchange.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -236,7 +236,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
         const name = 'user';
@@ -261,7 +261,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
@@ -925,7 +925,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "type": "error",
