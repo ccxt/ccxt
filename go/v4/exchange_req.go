@@ -160,9 +160,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
-		// Unmarshal the response body
+		// Use json.Decoder with UseNumber to prevent float64 precision loss when parsing numbers.
+		decoder := json.NewDecoder(bytes.NewReader(respBody))
+		decoder.UseNumber()
 		var result interface{}
-		err = json.Unmarshal(respBody, &result)
+		err = decoder.Decode(&result)
 		if err != nil {
 			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
 			result = string(respBody)
