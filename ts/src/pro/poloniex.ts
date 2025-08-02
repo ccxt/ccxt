@@ -846,8 +846,7 @@ export default class poloniex extends poloniexRest {
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
                     }
-                    const trades = previousOrder['trades'];
-                    trades.push (trade);
+                    previousOrder['trades'].push (trade);
                     previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                     let totalCost = '0';
                     let totalAmount = '0';

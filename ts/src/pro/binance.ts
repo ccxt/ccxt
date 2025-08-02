@@ -4208,8 +4208,7 @@ export default class binance extends binanceRest {
                                 }
                             }
                             if (insertNewFeeCurrency) {
-                                const orderFees = order['fees'];
-                                orderFees.push (tradeFee);
+                                order['fees'].push (tradeFee);
                             }
                         } else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
