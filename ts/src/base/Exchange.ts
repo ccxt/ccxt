@@ -189,6 +189,11 @@ export default class Exchange {
     pro: boolean = false;
     countries: Str[] = undefined;
 
+    // Flags, indicating current state of the running exchange instance
+    authenticated = true;
+    bootstrapped = true;
+    offline = false;
+
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
     proxyUrl: string;
@@ -934,7 +939,10 @@ export default class Exchange {
             if (e instanceof this.AbortError) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             } else if (e instanceof this.FetchError) {
+                this.offline = true
                 throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed');
+            } else if (e instanceof AuthenticationError) {
+                this.authenticated = false
             }
             throw e
         }
@@ -1020,10 +1028,20 @@ export default class Exchange {
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            try {
+                currencies = await this.fetchCurrencies ();
+            } catch (e) {
+                this.bootstrapped = false;
+            }
             this.options['cachedCurrencies'] = currencies;
         }
-        const markets = await this.fetchMarkets (params);
+        let markets: Market[];
+        try {
+            markets = await this.fetchMarkets (params);
+        } catch (e) {
+            this.bootstrapped = false;
+            throw e;
+        }
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
@@ -1703,6 +1721,9 @@ export default class Exchange {
             'timeout': this.timeout, // milliseconds = seconds * 1000
             'certified': false, // if certified by the CCXT dev team
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
+            'authenticated': true,
+            'bootstrapped': true,
+            'offline': false,
             'alias': false, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {

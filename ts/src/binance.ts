@@ -10372,21 +10372,32 @@ export default class binance extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
+            let catched = undefined;
             let response = undefined;
-            if (this.isLinear (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetUmLeverageBracket (query);
-                } else {
-                    response = await this.fapiPrivateGetLeverageBracket (query);
+            try {
+                if (this.isLinear (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetUmLeverageBracket (query);
+                    } else {
+                        response = await this.fapiPrivateGetLeverageBracket (query);
+                    }
+                } else if (this.isInverse (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetCmLeverageBracket (query);
+                    } else {
+                        response = await this.dapiPrivateV2GetLeverageBracket (query);
+                    }
                 }
-            } else if (this.isInverse (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetCmLeverageBracket (query);
+            } catch (e) {
+                catched = e;
+            }
+            if (!response || catched) {
+                this.bootstrapped = false;
+                if (catched) {
+                    throw catched;
                 } else {
-                    response = await this.dapiPrivateV2GetLeverageBracket (query);
+                    throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
                 }
-            } else {
-                throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
             this.options['leverageBrackets'] = this.createSafeDictionary ();
             for (let i = 0; i < response.length; i++) {
