@@ -948,6 +948,9 @@ class NewTranspiler {
             'fetchCurrenciesWs',
             'fetchMarketsWs',
         ]); // improve this later
+        if (methodName.toLowerCase().includes('uta')) {
+            return false; // skip UTA methods
+        }
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
                 return false;
@@ -1505,7 +1508,7 @@ ${constStatements.join('\n')}
         
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
-            return`    case "${coreName}":
+            return`    case "${exchange}":
         ${exchange}Itf := &${coreName}{}
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
@@ -2085,7 +2088,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
-            [/Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+            // [/Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+            [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
@@ -2183,6 +2187,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                // [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals

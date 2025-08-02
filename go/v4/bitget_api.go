@@ -2099,6 +2099,10 @@ func (this *bitget) PrivateUtaGetV3AccountSettings (args ...interface{}) <-chan 
    return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
 }
 
+func (this *bitget) PrivateUtaGetV3AccountDepositRecords (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
+}
+
 func (this *bitget) PrivateUtaGetV3AccountFinancialRecords (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
 }
@@ -2171,8 +2175,16 @@ func (this *bitget) PrivateUtaGetV3TradeUnfilledOrders (args ...interface{}) <-c
    return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
 }
 
+func (this *bitget) PrivateUtaGetV3TradeUnfilledStrategyOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
+}
+
 func (this *bitget) PrivateUtaGetV3TradeHistoryOrders (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
+}
+
+func (this *bitget) PrivateUtaGetV3TradeHistoryStrategyOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
 }
 
 func (this *bitget) PrivateUtaGetV3TradeFills (args ...interface{}) <-chan interface{} {
@@ -2219,12 +2231,24 @@ func (this *bitget) PrivateUtaPostV3TradePlaceOrder (args ...interface{}) <-chan
    return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
 }
 
+func (this *bitget) PrivateUtaPostV3TradePlaceStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
+}
+
 func (this *bitget) PrivateUtaPostV3TradeModifyOrder (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
 }
 
+func (this *bitget) PrivateUtaPostV3TradeModifyStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
+}
+
 func (this *bitget) PrivateUtaPostV3TradeCancelOrder (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
+}
+
+func (this *bitget) PrivateUtaPostV3TradeCancelStrategyOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
 }
 
 func (this *bitget) PrivateUtaPostV3TradePlaceBatch (args ...interface{}) <-chan interface{} {

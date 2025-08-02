@@ -210,7 +210,6 @@ class coinmetro extends coinmetro$1 {
             'options': {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': ['QRDO'],
-                'skippedMarkets': ['VXVUSDT'], // broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -458,11 +457,11 @@ class coinmetro extends coinmetro$1 {
         //         ...
         //     ]
         //
-        const skippedMarkets = this.safeList(this.options, 'skippedMarkets', []);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
-            if (this.inArray(market['id'], skippedMarkets)) {
+            // there are several broken (unavailable info) markets
+            if (market['base'] === undefined || market['quote'] === undefined) {
                 continue;
             }
             result.push(market);

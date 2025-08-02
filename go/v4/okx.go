@@ -703,7 +703,7 @@ func  (this *okx) Describe() interface{}  {
                 "51137": InvalidOrder,
                 "51138": InvalidOrder,
                 "51139": InvalidOrder,
-                "51155": BadSymbol,
+                "51155": RestrictedLocation,
                 "51156": BadRequest,
                 "51159": BadRequest,
                 "51162": InvalidOrder,
