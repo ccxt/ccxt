@@ -193,7 +193,7 @@ export default class backpack extends Exchange {
                         'wapi/v1/history/fills': 1, // done
                         'wapi/v1/history/funding': 1, // done
                         'wapi/v1/history/orders': 1, // done
-                        'wapi/v1/history/pnl': 1, // todo fetchPositionsHistory
+                        'wapi/v1/history/pnl': 1, // done
                         'wapi/v1/history/rfq': 1,
                         'wapi/v1/history/quote': 1,
                         'wapi/v1/history/settlement': 1,
@@ -1934,8 +1934,39 @@ export default class backpack extends Exchange {
         return this.filterByArrayPositions (positions, 'symbol', symbols, false);
     }
 
+    /**
+     * @method
+     * @name backpack#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://docs.backpack.exchange/#tag/History/operation/get_pnl_payments
+     * @param {string[]} [symbols] unified contract symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+     * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            if (symbols.length > 0) {
+                market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWapiV1HistoryPnl (this.extend (request, params));
+        return this.parsePositions (response, symbols, params);
+    }
+
     parsePosition (position: Dict, market: Market = undefined) {
         //
+        // fetchPositions
         //     {
         //         "breakEvenPrice": "3831.3630555555555555555555556",
         //         "cumulativeFundingPayment": "-0.009218",
@@ -1967,6 +1998,16 @@ export default class backpack extends Exchange {
         //         "userId":1813870
         //     }
         //
+        // fetchPositionsHistory
+        //     [
+        //         {
+        //             "pnlRealized": "2.82474",
+        //             "symbol": "ETH_USDC_PERP",
+        //             "timestamp": "2025-08-01T21:04:20.654"
+        //         }
+        //     ]
+        //
+        //
         const id = this.safeString (position, 'positionId');
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -1974,9 +2015,14 @@ export default class backpack extends Exchange {
         const entryPrice = this.safeString (position, 'entryPrice');
         const markPrice = this.safeString (position, 'markPrice');
         const netCost = this.safeString (position, 'netCost');
+        let hedged = false;
         let side = 'long';
         if (Precise.stringLt (netCost, '0')) {
             side = 'short';
+        }
+        if (netCost === undefined) {
+            hedged = undefined;
+            side = undefined;
         }
         const unrealizedPnl = this.safeString (position, 'pnlUnrealized');
         const realizedPnl = this.safeString (position, 'pnlRealized');
@@ -1985,10 +2031,10 @@ export default class backpack extends Exchange {
             'info': position,
             'id': id,
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': this.parse8601 (this.safeString (position, 'timestamp')),
+            'datetime': this.iso8601 (this.parse8601 (this.safeString (position, 'timestamp'))),
             'lastUpdateTimestamp': undefined,
-            'hedged': false,
+            'hedged': hedged,
             'side': side,
             'contracts': this.safeString (position, 'netExposureQuantity'),
             'contractSize': undefined,
