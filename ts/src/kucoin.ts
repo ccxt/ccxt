@@ -2140,24 +2140,22 @@ export default class kucoin extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const level = this.safeInteger (params, 'level', 2);
         const request: Dict = { 'symbol': market['id'] };
-        const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
-        if (!isAuthenticated || limit !== undefined) {
-            if (level === 2) {
-                request['level'] = level;
-                if (limit !== undefined) {
-                    if ((limit === 20) || (limit === 100)) {
-                        request['limit'] = limit;
-                    } else {
-                        throw new ExchangeError (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
-                    }
-                }
-                request['limit'] = limit ? limit : 100;
-            }
-            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
+        if (limit === undefined) {
+            limit = 100;
         } else {
+            limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
+        }
+        if (limit === 20) {
+            response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
+        } else if (limit === 100) {
+            response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
+        } else {
+            // auth required for this endpoint
+            if (!this.checkRequiredCredentials (false)) {
+                throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook requires an authentication');
+            }
             response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
         //
@@ -2193,7 +2191,7 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
