@@ -3,7 +3,7 @@
 
 import backpackRest from '../backpack.js';
 import { } from '../base/errors.js';
-import type { Dict, Market, Ticker } from '../base/types.js';
+import type { Dict, Market, Strings, Ticker, Tickers } from '../base/types.js';
 import { } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -23,7 +23,7 @@ export default class backpack extends backpackRest {
                 'watchOrders': false,
                 'watchMyTrades': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true, // todo why is not working well?
                 'watchBidsAsks': false,
                 'watchBalance': false,
                 'createOrderWs': false,
@@ -60,11 +60,31 @@ export default class backpack extends backpackRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async unWatchPublic (messageHash, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': [ messageHash ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPublicMultiple (messageHashes, topics, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': topics,
+        };
+        const message = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
     /**
      * @method
      * @name crybackpackptocom#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -74,6 +94,48 @@ export default class backpack extends backpackRest {
         const market = this.market (symbol);
         const messageHash = 'ticker' + '.' + market['id'];
         return await this.watchPublic (messageHash, params);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker' + '.' + market['id'];
+        return await this.unWatchPublic (messageHash, params);
+    }
+
+    /**
+     * @method
+     * @name backpack#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const messageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push ('ticker.' + marketId);
+        }
+        const tickers = await this.watchPublicMultiple (messageHashes, messageHashes, params);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
