@@ -128,17 +128,19 @@ export default class cryptocom extends cryptocomRest {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
+        let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['book_subscription_type'] = bookSubscriptionType;
+        [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['book_subscription_type'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
+        let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
-        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
-        if (bookUpdateFrequency !== undefined) {
-            if ((bookSubscriptionType === 'SNAPSHOT' && bookUpdateFrequency !== 500) || (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency, [ 10, 100 ]))) {
+        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        if (bookUpdateFrequency2 !== undefined) {
+            if ((bookSubscriptionType === 'SNAPSHOT' && bookUpdateFrequency2 !== 500) || (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency2, [ 10, 100 ]))) {
                 throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription, but for SNAPSHOT_AND_UPDATE subscription - 10 or 100');
             }
-            params['params']['book_update_frequency'] = bookUpdateFrequency;
+            params['params']['book_update_frequency'] = bookUpdateFrequency2;
         }
         if (limit === undefined) {
             limit = 50; // max
