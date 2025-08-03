@@ -120,8 +120,10 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
-            limit = 50;
+        if (limit === undefined) {
+            limit = 50; // max
+        } else {
+            limit = this.findNearestCeiling ([ 10, 50 ], limit);
         }
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
@@ -141,11 +143,6 @@ export default class cryptocom extends cryptocomRest {
                 throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription, but for SNAPSHOT_AND_UPDATE subscription - 10 or 100');
             }
             params['params']['book_update_frequency'] = bookUpdateFrequency2;
-        }
-        if (limit === undefined) {
-            limit = 50; // max
-        } else {
-            limit = this.findNearestCeiling ([ 10, 50 ], limit);
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
