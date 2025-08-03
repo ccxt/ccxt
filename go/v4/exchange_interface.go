@@ -276,6 +276,7 @@ type ICoreExchange interface {
 	UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
 	UnWatchTickers(optionalArgs ...interface{}) <- chan interface{}
 	UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
+	UnWatchPositions(optionalArgs ...interface{}) <- chan interface{}
 	WatchBalance(optionalArgs ...interface{}) <-chan interface{}
 	WatchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
 	WatchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
