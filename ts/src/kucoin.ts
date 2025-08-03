@@ -2138,7 +2138,7 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.endpoint] if users want to manually choose specific endpoint: level2, level2_20 or level2_100 (default is level2_100)
+     * @param {object} [params.spotEndpoint] if users want to manually choose specific endpoint: "level2", "level2_20" or "level2_100" (default is "level2_100")
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
