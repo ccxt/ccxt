@@ -653,7 +653,7 @@ export default class kucoin extends Exchange {
                     'fetchTickersFees': true,
                 },
                 'fetchOrderBook': {
-                    'endpoint': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
+                    'spotEndpoint': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2146,16 +2146,17 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         const request: Dict = { 'symbol': market['id'] };
         let endpoint = undefined;
-        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'endpoint'); // avoid c# null.ToString ()
+        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'spotEndpoint');
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
         } else {
             limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
         }
-        if ((endpoint === undefined && limit === 20) || (endpoint !== undefined && endpoint === 'level2_20')) {
+        // we prioritize the `endpoint` param precedence over the `limit` parameter
+        if ((endpoint === undefined && limit === 20) || endpoint === 'level2_20') {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
-        } else if ((endpoint === undefined && limit === 100) || (endpoint !== undefined && endpoint === 'level2_100')) {
+        } else if ((endpoint === undefined && limit === 100) || endpoint === 'level2_100') {
             response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
             // full orderbook, auth required for this endpoint
