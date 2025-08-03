@@ -652,6 +652,9 @@ export default class kucoin extends Exchange {
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
+                'fetchOrderBook': {
+                    'endpoint': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
+                },
                 'withdraw': {
                     'includeFee': false,
                 },
@@ -2135,24 +2138,27 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.endpoint] if users want to manually choose specific endpoint: level2, level2_20 or level2_100 (default is level2_100)
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = { 'symbol': market['id'] };
+        let endpoint = undefined;
+        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'endpoint'); // avoid c# null.ToString ()
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
         } else {
             limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
         }
-        if (limit === 20) {
+        if ((endpoint === undefined && limit === 20) || (endpoint !== undefined && endpoint === 'level2_20')) {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
-        } else if (limit === 100) {
+        } else if ((endpoint === undefined && limit === 100) || (endpoint !== undefined && endpoint === 'level2_100')) {
             response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
-            // auth required for this endpoint
+            // full orderbook, auth required for this endpoint
             if (!this.checkRequiredCredentials (false)) {
                 throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook requires an authentication');
             }
