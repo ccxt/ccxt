@@ -80,6 +80,16 @@ export default class backpack extends backpackRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    async unWatchPublicMultiple (messageHashes, topics, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': topics,
+        };
+        const message = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
     /**
      * @method
      * @name crybackpackptocom#watchTicker
@@ -123,6 +133,40 @@ export default class backpack extends backpackRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new Error (this.id + ' watchTickers() requires a symbols argument');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push ('ticker.' + marketId);
+        }
+        const tickers = await this.watchPublicMultiple (messageHashes, messageHashes, params);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new Error (this.id + ' unWatchTickers() requires a symbols argument');
+        }
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes = [];
         const marketIds = this.marketIds (symbols);
         for (let i = 0; i < marketIds.length; i++) {
