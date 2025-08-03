@@ -681,7 +681,7 @@
                                 "fee": 0.15,
                                 "precision": 1e-8
                             },
-                            "BSC": {
+                            "BEP20": {
                                 "info": {
                                     "chain": "BEP20",
                                     "needTag": "false",
@@ -700,7 +700,7 @@
                                     "congestion": "normal"
                                 },
                                 "id": "BEP20",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 10,
