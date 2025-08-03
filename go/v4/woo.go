@@ -8,10 +8,10 @@ type woo struct {
 
 }
 
-func NewWooCore() woo {
-   p := woo{}
-   setDefaults(&p)
-   return p
+func NewWooCore() *woo {
+    p := &woo{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *woo) Describe() interface{}  {
@@ -1481,7 +1481,7 @@ func  (this *woo) CreateOrder(symbol interface{}, typeVar interface{}, side inte
                         "type": "CLOSE_POSITION",
                         "reduceOnly": true,
                     }
-                    AppendToArray(&childOrders,stopLossOrder)
+                    AppendToArray(&childOrders, stopLossOrder)
                 }
                 if IsTrue(!IsEqual(takeProfit, nil)) {
                     var takeProfitPrice interface{} = this.SafeString(takeProfit, "triggerPrice", takeProfit)
@@ -1492,7 +1492,7 @@ func  (this *woo) CreateOrder(symbol interface{}, typeVar interface{}, side inte
                         "type": "CLOSE_POSITION",
                         "reduceOnly": true,
                     }
-                    AppendToArray(&childOrders,takeProfitOrder)
+                    AppendToArray(&childOrders, takeProfitOrder)
                 }
                 AddElementToObject(request, "childOrders", []interface{}{outterOrder})
             }
@@ -1500,12 +1500,12 @@ func  (this *woo) CreateOrder(symbol interface{}, typeVar interface{}, side inte
             var response interface{} = nil
             if IsTrue(isConditional) {
                 
-        response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivatePostTradeAlgoOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivatePostTradeOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             data = this.SafeDict(this.SafeList(data, "rows"), 0, data)
@@ -1600,23 +1600,23 @@ func  (this *woo) EditOrder(id interface{}, symbol interface{}, typeVar interfac
                 AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
                 if IsTrue(isConditional) {
                     
-        response = (<-this.V3PrivatePutAlgoOrderClientClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V3PrivatePutAlgoOrderClientClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.V3PrivatePutOrderClientClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V3PrivatePutOrderClientClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 AddElementToObject(request, "oid", id)
                 if IsTrue(isConditional) {
                     
-        response = (<-this.V3PrivatePutAlgoOrderOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V3PrivatePutAlgoOrderOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.V3PrivatePutOrderOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V3PrivatePutOrderOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1685,8 +1685,8 @@ func  (this *woo) CancelOrder(id interface{}, optionalArgs ...interface{}) <- ch
                     AddElementToObject(request, "algoOrderId", id)
                 }
                 
-        response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateDeleteTradeAlgoOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 if IsTrue(isByClientOrder) {
@@ -1695,8 +1695,8 @@ func  (this *woo) CancelOrder(id interface{}, optionalArgs ...interface{}) <- ch
                     AddElementToObject(request, "orderId", id)
                 }
                 
-        response = (<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateDeleteTradeOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -1754,12 +1754,12 @@ func  (this *woo) CancelAllOrders(optionalArgs ...interface{}) <- chan interface
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.V3PrivateDeleteTradeAlgoOrders(params))
-                PanicOnError(response)
+            response = (<-this.V3PrivateDeleteTradeAlgoOrders(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V3PrivateDeleteTradeOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateDeleteTradeOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -1861,8 +1861,8 @@ func  (this *woo) FetchOrder(id interface{}, optionalArgs ...interface{}) <- cha
                     AddElementToObject(request, "algoOrderId", id)
                 }
                 
-        response = (<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetTradeAlgoOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(clientOrderId, nil)) {
                     AddElementToObject(request, "clientOrderId", clientOrderId)
@@ -1870,8 +1870,8 @@ func  (this *woo) FetchOrder(id interface{}, optionalArgs ...interface{}) <- cha
                     AddElementToObject(request, "orderId", id)
                 }
                 
-        response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetTradeOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
@@ -1946,12 +1946,12 @@ func  (this *woo) FetchOrders(optionalArgs ...interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetTradeOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var orders interface{} = this.SafeList(data, "rows", []interface{}{})
@@ -3992,7 +3992,7 @@ func  (this *woo) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan i
                 var entry interface{} = GetValue(rows, i)
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var timestamp interface{} = this.SafeInteger(entry, "fundingRateTimestamp")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(marketId),
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -4078,8 +4078,8 @@ func  (this *woo) FetchLeverage(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.V3PrivateGetAccountInfo(params))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetAccountInfo(params))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 var request interface{} = map[string]interface{} {
                     "symbol": GetValue(market, "id"),
@@ -4090,8 +4090,8 @@ func  (this *woo) FetchLeverage(symbol interface{}, optionalArgs ...interface{})
                 params = GetValue(marginModeparamsVariable,1)
                 AddElementToObject(request, "marginMode", this.EncodeMarginMode(marginMode))
                 
-        response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
             }
@@ -4190,7 +4190,7 @@ func  (this *woo) SetLeverage(leverage interface{}, optionalArgs ...interface{})
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")))
             }
-                return nil
+        
             }()
             return ch
         }

@@ -8,10 +8,10 @@ type alpaca struct {
 
 }
 
-func NewAlpacaCore() alpaca {
-   p := alpaca{}
-   setDefaults(&p)
-   return p
+func NewAlpacaCore() *alpaca {
+    p := &alpaca{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *alpaca) Describe() interface{}  {
@@ -957,7 +957,7 @@ func  (this *alpaca) FetchTickers(optionalArgs ...interface{}) <- chan interface
                     "baseVolume": this.SafeString(dailyBar, "v"),
                     "quoteVolume": this.SafeString(dailyBar, "n"),
                 }, market)
-                AppendToArray(&results,ticker)
+                AppendToArray(&results, ticker)
             }
         
             ch <- this.FilterByArray(results, "symbol", symbols)
@@ -1253,7 +1253,7 @@ func  (this *alpaca) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
         })}
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1941,9 +1941,9 @@ func  (this *alpaca) FetchTransactionsHelper(typeVar interface{}, code interface
                 var entry interface{} = GetValue(response, i)
                 var direction interface{} = this.SafeString(entry, "direction")
                 if IsTrue(IsEqual(direction, typeVar)) {
-                    AppendToArray(&results,entry)
+                    AppendToArray(&results, entry)
                 } else if IsTrue(IsEqual(typeVar, "BOTH")) {
-                    AppendToArray(&results,entry)
+                    AppendToArray(&results, entry)
                 }
             }
         

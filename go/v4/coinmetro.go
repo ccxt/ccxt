@@ -8,10 +8,10 @@ type coinmetro struct {
 
 }
 
-func NewCoinmetroCore() coinmetro {
-   p := coinmetro{}
-   setDefaults(&p)
-   return p
+func NewCoinmetroCore() *coinmetro {
+    p := &coinmetro{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinmetro) Describe() interface{}  {
@@ -425,7 +425,7 @@ func  (this *coinmetro) FetchCurrencies(optionalArgs ...interface{}) <- chan int
                 var currentCurrencyIdsList interface{} = this.SafeList(this.Options, "currencyIdsListForParseMarket", []interface{}{})
                 var currencyIdsList interface{} = ObjectKeys(currenciesById)
                 for i := 0; IsLessThan(i, GetArrayLength(currencyIdsList)); i++ {
-                    AppendToArray(&currentCurrencyIdsList,GetValue(currencyIdsList, i))
+                    AppendToArray(&currentCurrencyIdsList, GetValue(currencyIdsList, i))
                 }
                 AddElementToObject(this.Options, "currencyIdsListForParseMarket", currentCurrencyIdsList)
             }
@@ -452,9 +452,9 @@ func  (this *coinmetro) FetchMarkets(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PublicGetMarkets(params))
+            AppendToArray(&promises, this.PublicGetMarkets(params))
             if IsTrue(IsEqual(this.SafeValue(this.Options, "currenciesByIdForParseMarket"), nil)) {
-                AppendToArray(&promises,this.FetchCurrencies())
+                AppendToArray(&promises, this.FetchCurrencies())
             }
         
             responses:= (<-promiseAll(promises))
@@ -482,7 +482,7 @@ func  (this *coinmetro) FetchMarkets(optionalArgs ...interface{}) <- chan interf
                 if IsTrue(IsTrue(IsEqual(GetValue(market, "base"), nil)) || IsTrue(IsEqual(GetValue(market, "quote"), nil))) {
                     continue
                 }
-                AppendToArray(&result,market)
+                AppendToArray(&result, market)
             }
         
             ch <- result
@@ -990,7 +990,7 @@ func  (this *coinmetro) ParseBidsAsks(bidasks interface{}, optionalArgs ...inter
         var priceString interface{} = this.SafeString(prices, i)
         var price interface{} = this.SafeNumber(prices, i)
         var volume interface{} = this.SafeNumber(bidasks, priceString)
-        AppendToArray(&result,[]interface{}{price, volume})
+        AppendToArray(&result, []interface{}{price, volume})
     }
     return result
 }
@@ -1385,7 +1385,7 @@ func  (this *coinmetro) FetchLedger(optionalArgs ...interface{}) <- chan interfa
                 for j := 0; IsLessThan(j, GetArrayLength(balanceHistory)); j++ {
                     var rawLedgerEntry interface{} = GetValue(balanceHistory, j)
                     AddElementToObject(rawLedgerEntry, "currencyId", currencyId)
-                    AppendToArray(&ledger,rawLedgerEntry)
+                    AppendToArray(&ledger, rawLedgerEntry)
                 }
             }
         
@@ -1651,12 +1651,12 @@ func  (this *coinmetro) CancelOrder(id interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsTrue(isMargin) || IsTrue((!IsEqual(marginMode, nil)))) {
                 
-        response = (<-this.PrivatePostExchangeOrdersCloseOrderID(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostExchangeOrdersCloseOrderID(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePutExchangeOrdersCancelOrderID(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutExchangeOrdersCancelOrderID(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //

@@ -8,10 +8,10 @@ type wavesexchange struct {
 
 }
 
-func NewWavesexchangeCore() wavesexchange {
-   p := wavesexchange{}
-   setDefaults(&p)
-   return p
+func NewWavesexchangeCore() *wavesexchange {
+    p := &wavesexchange{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *wavesexchange) Describe() interface{}  {
@@ -451,7 +451,7 @@ func  (this *wavesexchange) GetQuotes() <- chan interface{} {
             ch <- quotes
             return nil
         }
-                return nil
+        
             }()
             return ch
         }
@@ -513,7 +513,7 @@ func  (this *wavesexchange) FetchMarkets(optionalArgs ...interface{}) <- chan in
                 base = this.SafeCurrencyCode(base)
                 quote = this.SafeCurrencyCode(quote)
                 var symbol interface{} = Add(Add(base, "/"), quote)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -644,7 +644,7 @@ func  (this *wavesexchange) ParseOrderBookSide(bookSide interface{}, optionalArg
         if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsGreaterThan(i, limit)))) {
             break
         }
-        AppendToArray(&result,[]interface{}{this.ParseNumber(price), this.ParseNumber(amount)})
+        AppendToArray(&result, []interface{}{this.ParseNumber(price), this.ParseNumber(amount)})
     }
     return result
 }
@@ -658,49 +658,47 @@ func  (this *wavesexchange) CheckRequiredKeys() interface{}  {
     var apiKeyBytes interface{} = nil
     var secretKeyBytes interface{} = nil
     
-    {		ret__ := func(this *wavesexchange) (ret_ interface{}) {
-    		defer func() {
-    			if e := recover(); e != nil {
-                    if e == "break" {
-    				    return
-    			    }
-    				ret_ = func(this *wavesexchange) interface{} {
-    					// catch block:
-                                panic(AuthenticationError(Add(this.Id, " apiKey must be a base58 encoded public key")))
-                        return nil
-    				}(this)
-    			}
-    		}()
-    		// try block:
-                    apiKeyBytes = this.Base58ToBinary(this.ApiKey)
-    		return nil
-    	}(this)
-    	if ret__ != nil {
-    		return ret__
-    	}
-    }
+        {		
+             func(this *wavesexchange) (ret_ interface{}) {
+    		    defer func() {
+                    if e := recover(); e != nil {
+                        if e == "break" {
+                            return
+                        }
+                        ret_ = func(this *wavesexchange) interface{} {
+                            // catch block:
+                                    panic(AuthenticationError(Add(this.Id, " apiKey must be a base58 encoded public key")))
+                            
+                        }(this)
+                    }
+                }()
+    		    // try block:
+                        apiKeyBytes = this.Base58ToBinary(this.ApiKey)
+    		    return nil
+    	    }(this)
+        
+            }
     
-    {		ret__ := func(this *wavesexchange) (ret_ interface{}) {
-    		defer func() {
-    			if e := recover(); e != nil {
-                    if e == "break" {
-    				    return
-    			    }
-    				ret_ = func(this *wavesexchange) interface{} {
-    					// catch block:
-                                panic(AuthenticationError(Add(this.Id, " secret must be a base58 encoded private key")))
-                        return nil
-    				}(this)
-    			}
-    		}()
-    		// try block:
-                    secretKeyBytes = this.Base58ToBinary(this.Secret)
-    		return nil
-    	}(this)
-    	if ret__ != nil {
-    		return ret__
-    	}
-    }
+        {		
+             func(this *wavesexchange) (ret_ interface{}) {
+    		    defer func() {
+                    if e := recover(); e != nil {
+                        if e == "break" {
+                            return
+                        }
+                        ret_ = func(this *wavesexchange) interface{} {
+                            // catch block:
+                                    panic(AuthenticationError(Add(this.Id, " secret must be a base58 encoded private key")))
+                            
+                        }(this)
+                    }
+                }()
+    		    // try block:
+                        secretKeyBytes = this.Base58ToBinary(this.Secret)
+    		    return nil
+    	    }(this)
+        
+            }
     var hexApiKeyBytes interface{} = this.BinaryToBase16(apiKeyBytes)
     var hexSecretKeyBytes interface{} = this.BinaryToBase16(secretKeyBytes)
     if IsTrue(!IsEqual(GetLength(hexApiKeyBytes), 64)) {
@@ -1148,7 +1146,7 @@ func  (this *wavesexchange) FilterFutureCandles(ohlcvs interface{}) interface{} 
             // stop when getting data from the future
             break
         }
-        AppendToArray(&result,GetValue(ohlcvs, i))
+        AppendToArray(&result, GetValue(ohlcvs, i))
     }
     return result
 }
@@ -1259,8 +1257,8 @@ func  (this *wavesexchange) FetchDepositAddress(code interface{}, optionalArgs .
                     "currency": code,
                 }
                 
-        response = (<-this.PrivateGetDepositAddressesCurrency(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetDepositAddressesCurrency(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var supportedNetworks interface{} = GetValue(networksByCurrency, code)
                 if !IsTrue((InOp(supportedNetworks, network))) {
@@ -1290,8 +1288,8 @@ func  (this *wavesexchange) FetchDepositAddress(code interface{}, optionalArgs .
                         "platform": network,
                     }
                     
-        response = (<-this.PrivateGetDepositAddressesCurrencyPlatform(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetDepositAddressesCurrencyPlatform(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1357,7 +1355,7 @@ func  (this *wavesexchange) GetMatcherPublicKey() <- chan interface{} {
             ch <- GetValue(this.Options, "matcherPublicKey")
             return nil
         }
-                return nil
+        
             }()
             return ch
         }
@@ -1636,7 +1634,7 @@ func  (this *wavesexchange) CreateOrder(symbol interface{}, typeVar interface{},
                 ch <- this.ParseOrder(value, market)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2115,7 +2113,7 @@ func  (this *wavesexchange) GetWavesAddress() <- chan interface{} {
             ch <- cachedAddreess
             return nil
         }
-                return nil
+        
             }()
             return ch
         }
@@ -2205,8 +2203,8 @@ func  (this *wavesexchange) FetchBalance(optionalArgs ...interface{}) <- chan in
                     AddElementToObject(result, code, this.Account())
                     AddElementToObject(GetValue(result, code), "total", this.FromRealCurrencyAmount(code, balance))
                 } else if IsTrue(IsEqual(issueTransaction, nil)) {
-                    AppendToArray(&assetIds,currencyId)
-                    AppendToArray(&nonStandardBalances,balance)
+                    AppendToArray(&assetIds, currencyId)
+                    AppendToArray(&nonStandardBalances, balance)
                 }
             }
             var nonStandardAssets interface{} =     GetArrayLength(assetIds)
@@ -2722,11 +2720,11 @@ func  (this *wavesexchange) FetchDepositWithdrawFees(optionalArgs ...interface{}
             PanicOnError(retRes24728)
             var data interface{} = []interface{}{}
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PrivateGetDepositCurrencies(params))
-            AppendToArray(&promises,this.PrivateGetWithdrawCurrencies(params))
+            AppendToArray(&promises, this.PrivateGetDepositCurrencies(params))
+            AppendToArray(&promises, this.PrivateGetWithdrawCurrencies(params))
             
-        promises = (<-promiseAll(promises))
-            PanicOnError(promises)
+            promises = (<-promiseAll(promises))
+                PanicOnError(promises)
             //
             //    {
             //        "type": "list",

@@ -8,10 +8,10 @@ type binanceus struct {
 
 }
 
-func NewBinanceusCore() binanceus {
-   p := binanceus{}
-   setDefaults(&p)
-   return p
+func NewBinanceusCore() *binanceus {
+    p := &binanceus{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *binanceus) Describe() interface{}  {

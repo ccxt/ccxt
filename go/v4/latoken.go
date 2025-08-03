@@ -8,10 +8,10 @@ type latoken struct {
 
 }
 
-func NewLatokenCore() latoken {
-   p := latoken{}
-   setDefaults(&p)
-   return p
+func NewLatokenCore() *latoken {
+    p := &latoken{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *latoken) Describe() interface{}  {
@@ -443,7 +443,7 @@ func  (this *latoken) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                     var lowercaseQuote interface{} = ToLower(quote)
                     var capitalizedQuote interface{} = this.Capitalize(lowercaseQuote)
                     var status interface{} = this.SafeString(market, "status")
-                    AppendToArray(&result,map[string]interface{} {
+                    AppendToArray(&result, map[string]interface{} {
                         "id": id,
                         "symbol": Add(Add(base, "/"), quote),
                         "base": base,
@@ -1055,7 +1055,7 @@ func  (this *latoken) FetchTradingFee(symbol interface{}, optionalArgs ...interf
             } else {
                 panic(NotSupported(Add(this.Id, " not support this method")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1178,12 +1178,12 @@ func  (this *latoken) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 AddElementToObject(request, "currency", GetValue(market, "baseId"))
                 AddElementToObject(request, "quote", GetValue(market, "quoteId"))
                 
-        response = (<-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAuthTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1382,12 +1382,12 @@ func  (this *latoken) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             }
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1463,22 +1463,22 @@ func  (this *latoken) FetchOrders(optionalArgs ...interface{}) <- chan interface
                 AddElementToObject(request, "quote", GetValue(market, "quoteId"))
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetAuthOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetAuthOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
         
@@ -1542,12 +1542,12 @@ func  (this *latoken) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             var response interface{} = nil
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1628,12 +1628,12 @@ func  (this *latoken) CreateOrder(symbol interface{}, typeVar interface{}, side 
             if IsTrue(!IsEqual(triggerPrice, nil)) {
                 AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, triggerPrice))
                 
-        response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1686,12 +1686,12 @@ func  (this *latoken) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             var response interface{} = nil
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1743,22 +1743,22 @@ func  (this *latoken) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 AddElementToObject(request, "quote", GetValue(market, "quoteId"))
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
         
@@ -2030,16 +2030,16 @@ func  (this *latoken) Transfer(code interface{}, amount interface{}, fromAccount
             var response interface{} = nil
             if IsTrue(IsGreaterThanOrEqual(GetIndexOf(toAccount, "@"), 0)) {
                 
-        response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(GetLength(toAccount), 36)) {
                 
-        response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2178,10 +2178,10 @@ func  (this *latoken) HandleErrors(code interface{}, reason interface{}, url int
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
     }
-    var error interface{} = this.SafeValue(response, "error")
-    var errorMessage interface{} = this.SafeString(error, "message")
-    if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsEqual(errorMessage, nil)))) {
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+    var err interface{} = this.SafeValue(response, "error")
+    var errorMessage interface{} = this.SafeString(err, "message")
+    if IsTrue(IsTrue((!IsEqual(err, nil))) || IsTrue((!IsEqual(errorMessage, nil)))) {
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
         panic(ExchangeError(feedback))
     }

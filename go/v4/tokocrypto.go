@@ -8,10 +8,10 @@ type tokocrypto struct {
 
 }
 
-func NewTokocryptoCore() tokocrypto {
-   p := tokocrypto{}
-   setDefaults(&p)
-   return p
+func NewTokocryptoCore() *tokocrypto {
+    p := &tokocrypto{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *tokocrypto) Describe() interface{}  {
@@ -891,7 +891,7 @@ func  (this *tokocrypto) FetchMarkets(optionalArgs ...interface{}) <- chan inter
                     var filter interface{} = this.SafeValue(filtersByType, "MIN_NOTIONAL", map[string]interface{} {})
                     AddElementToObject(GetValue(GetValue(entry, "limits"), "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
                 }
-                AppendToArray(&result,entry)
+                AppendToArray(&result, entry)
             }
         
             ch <- result
@@ -931,13 +931,13 @@ func  (this *tokocrypto) FetchOrderBook(symbol interface{}, optionalArgs ...inte
             if IsTrue(IsEqual(GetValue(market, "quote"), "USDT")) {
                 AddElementToObject(request, "symbol", Add(GetValue(market, "baseId"), GetValue(market, "quoteId")))
                 
-        response = (<-this.BinanceGetDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.BinanceGetDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // future
@@ -1198,12 +1198,12 @@ func  (this *tokocrypto) FetchTrades(symbol interface{}, optionalArgs ...interfa
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 AddElementToObject(request, "endTime", this.Sum(since, 3600000))
                 
-        response = (<-this.BinanceGetAggTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.BinanceGetAggTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.BinanceGetTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.BinanceGetTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1540,12 +1540,12 @@ func  (this *tokocrypto) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(IsEqual(GetValue(market, "quote"), "USDT")) {
                 
-        response = (<-this.BinanceGetKlines(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.BinanceGetKlines(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     [
@@ -2927,28 +2927,27 @@ func  (this *tokocrypto) HandleErrors(code interface{}, reason interface{}, url 
         var parsedMessage interface{} = nil
         if IsTrue(!IsEqual(messageInner, nil)) {
             
-            {		ret__ := func(this *tokocrypto) (ret_ interface{}) {
-            		defer func() {
-            			if e := recover(); e != nil {
-                            if e == "break" {
-            				    return
-            			    }
-            				ret_ = func(this *tokocrypto) interface{} {
-            					// catch block:
-                                                // do nothing
+                {		
+                     func(this *tokocrypto) (ret_ interface{}) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *tokocrypto) interface{} {
+                                    // catch block:
+                                                    // do nothing
                             parsedMessage = nil
-                                return nil
-            				}(this)
-            			}
-            		}()
-            		// try block:
-                                    parsedMessage = JsonParse(messageInner)
-            		return nil
-            	}(this)
-            	if ret__ != nil {
-            		return ret__
-            	}
-            }
+                                    return nil
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                                        parsedMessage = JsonParse(messageInner)
+            		    return nil
+            	    }(this)
+                
+                    }
             if IsTrue(!IsEqual(parsedMessage, nil)) {
                 response = parsedMessage
             }
@@ -2960,24 +2959,24 @@ func  (this *tokocrypto) HandleErrors(code interface{}, reason interface{}, url 
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, Add(Add(this.Id, " "), message))
     }
     // checks against error codes
-    var error interface{} = this.SafeString(response, "code")
-    if IsTrue(!IsEqual(error, nil)) {
+    var err interface{} = this.SafeString(response, "code")
+    if IsTrue(!IsEqual(err, nil)) {
         // https://github.com/ccxt/ccxt/issues/6501
         // https://github.com/ccxt/ccxt/issues/7742
-        if IsTrue(IsTrue((IsEqual(error, "200"))) || IsTrue(Precise.StringEquals(error, "0"))) {
+        if IsTrue(IsTrue((IsEqual(err, "200"))) || IsTrue(Precise.StringEquals(err, "0"))) {
             return nil
         }
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         // despite that their message is very confusing, it is raised by Binance
         // on a temporary ban, the API key is valid, but disabled for a while
-        if IsTrue(IsTrue((IsEqual(error, "-2015"))) && IsTrue(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"))) {
+        if IsTrue(IsTrue((IsEqual(err, "-2015"))) && IsTrue(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"))) {
             panic(DDoSProtection(Add(Add(this.Id, " "), body)))
         }
         var feedback interface{} = Add(Add(this.Id, " "), body)
         if IsTrue(IsEqual(message, "No need to change margin type.")) {
             panic(MarginModeAlreadySet(feedback))
         }
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
         panic(ExchangeError(feedback))
     }
     if !IsTrue(success) {

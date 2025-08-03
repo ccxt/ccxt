@@ -8,10 +8,10 @@ type indodax struct {
 
 }
 
-func NewIndodaxCore() indodax {
-   p := indodax{}
-   setDefaults(&p)
-   return p
+func NewIndodaxCore() *indodax {
+    p := &indodax{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *indodax) Describe() interface{}  {
@@ -376,7 +376,7 @@ func  (this *indodax) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var isMaintenance interface{} = this.SafeInteger(market, "is_maintenance")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1652,7 +1652,7 @@ func  (this *indodax) FetchDepositAddresses(optionalArgs ...interface{}) <- chan
                             network = []interface{}{}
                             var networkIds interface{} = Split(networkId, ",")
                             for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
-                                AppendToArray(&network,ToUpper(this.NetworkIdToCode(GetValue(networkIds, j))))
+                                AppendToArray(&network, ToUpper(this.NetworkIdToCode(GetValue(networkIds, j))))
                             }
                         } else {
                             network = ToUpper(this.NetworkIdToCode(networkId))
@@ -1724,8 +1724,8 @@ func  (this *indodax) HandleErrors(code interface{}, reason interface{}, url int
     if IsTrue(IsArray(response)) {
         return nil  // public endpoints may return []-arrays
     }
-    var error interface{} = this.SafeValue(response, "error", "")
-    if IsTrue(!IsTrue((InOp(response, "success"))) && IsTrue(IsEqual(error, ""))) {
+    var err interface{} = this.SafeValue(response, "error", "")
+    if IsTrue(!IsTrue((InOp(response, "success"))) && IsTrue(IsEqual(err, ""))) {
         return nil  // no 'success' property on public responses
     }
     var status interface{} = this.SafeString(response, "success")
@@ -1741,8 +1741,8 @@ func  (this *indodax) HandleErrors(code interface{}, reason interface{}, url int
         }
     }
     var feedback interface{} = Add(Add(this.Id, " "), body)
-    this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-    this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+    this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+    this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
     panic(ExchangeError(feedback))
 }
 

@@ -8,10 +8,10 @@ type bitstamp struct {
 
 }
 
-func NewBitstampCore() bitstamp {
-   p := bitstamp{}
-   setDefaults(&p)
-   return p
+func NewBitstampCore() *bitstamp {
+    p := &bitstamp{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitstamp) Describe() interface{}  {
@@ -610,7 +610,7 @@ func  (this *bitstamp) FetchMarkets(optionalArgs ...interface{}) <- chan interfa
                 var minimumOrder interface{} = this.SafeString(market, "minimum_order")
                 var parts interface{} = Split(minimumOrder, " ")
                 var status interface{} = this.SafeString(market, "trading")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": this.SafeString(market, "url_symbol"),
                     "marketId": Add(Add(baseId, "_"), quoteId),
                     "symbol": Add(Add(base, "/"), quote),
@@ -1685,33 +1685,33 @@ func  (this *bitstamp) CreateOrder(symbol interface{}, typeVar interface{}, side
             if IsTrue(IsEqual(typeVar, "market")) {
                 if IsTrue(IsEqual(capitalizedSide, "Buy")) {
                     
-        response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostSellMarketPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSellMarketPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(typeVar, "instant")) {
                 if IsTrue(IsEqual(capitalizedSide, "Buy")) {
                     
-        response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostSellInstantPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSellInstantPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                 if IsTrue(IsEqual(capitalizedSide, "Buy")) {
                     
-        response = (<-this.PrivatePostBuyPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostBuyPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostSellPair(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSellPair(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             var order interface{} = this.ParseOrder(response, market)
@@ -1796,12 +1796,12 @@ func  (this *bitstamp) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
                 market = this.Market(symbol)
                 AddElementToObject(request, "pair", GetValue(market, "id"))
                 
-        response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //    {
@@ -2699,13 +2699,13 @@ func  (this *bitstamp) Transfer(code interface{}, amount interface{}, fromAccoun
             if IsTrue(IsEqual(fromAccount, "main")) {
                 AddElementToObject(request, "subAccount", toAccount)
                 
-        response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(toAccount, "main")) {
                 AddElementToObject(request, "subAccount", fromAccount)
                 
-        response = (<-this.PrivatePostTransferToMain(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTransferToMain(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " transfer() only supports from or to main")))
             }
@@ -2823,30 +2823,30 @@ func  (this *bitstamp) HandleErrors(httpCode interface{}, reason interface{}, ur
     //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
     //
     var status interface{} = this.SafeString(response, "status")
-    var error interface{} = this.SafeValue(response, "error")
-    if IsTrue(IsTrue((IsEqual(status, "error"))) || IsTrue((!IsEqual(error, nil)))) {
+    var err interface{} = this.SafeValue(response, "error")
+    if IsTrue(IsTrue((IsEqual(status, "error"))) || IsTrue((!IsEqual(err, nil)))) {
         var errors interface{} = []interface{}{}
-        if IsTrue(IsString(error)) {
-            AppendToArray(&errors,error)
-        } else if IsTrue(!IsEqual(error, nil)) {
-            var keys interface{} = ObjectKeys(error)
+        if IsTrue(IsString(err)) {
+            AppendToArray(&errors, err)
+        } else if IsTrue(!IsEqual(err, nil)) {
+            var keys interface{} = ObjectKeys(err)
             for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
                 var key interface{} = GetValue(keys, i)
-                var value interface{} = this.SafeValue(error, key)
+                var value interface{} = this.SafeValue(err, key)
                 if IsTrue(IsArray(value)) {
                     errors = this.ArrayConcat(errors, value)
                 } else {
-                    AppendToArray(&errors,value)
+                    AppendToArray(&errors, value)
                 }
             }
         }
         var reasonInner interface{} = this.SafeValue(response, "reason", map[string]interface{} {})
         if IsTrue(IsString(reasonInner)) {
-            AppendToArray(&errors,reasonInner)
+            AppendToArray(&errors, reasonInner)
         } else {
             var all interface{} = this.SafeValue(reasonInner, "__all__", []interface{}{})
             for i := 0; IsLessThan(i, GetArrayLength(all)); i++ {
-                AppendToArray(&errors,GetValue(all, i))
+                AppendToArray(&errors, GetValue(all, i))
             }
         }
         var code interface{} = this.SafeString(response, "code")

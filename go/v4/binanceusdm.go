@@ -8,10 +8,10 @@ type binanceusdm struct {
 
 }
 
-func NewBinanceusdmCore() binanceusdm {
-   p := binanceusdm{}
-   setDefaults(&p)
-   return p
+func NewBinanceusdmCore() *binanceusdm {
+    p := &binanceusdm{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *binanceusdm) Describe() interface{}  {

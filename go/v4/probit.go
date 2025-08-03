@@ -8,10 +8,10 @@ type probit struct {
 
 }
 
-func NewProbitCore() probit {
-   p := probit{}
-   setDefaults(&p)
-   return p
+func NewProbitCore() *probit {
+    p := &probit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *probit) Describe() interface{}  {
@@ -1702,7 +1702,7 @@ func  (this *probit) FetchDepositAddresses(optionalArgs ...interface{}) <- chan 
                 var currencyIds interface{} = []interface{}{}
                 for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
                     var currency interface{} = this.Currency(GetValue(codes, i))
-                    AppendToArray(&currencyIds,GetValue(currency, "id"))
+                    AppendToArray(&currencyIds, GetValue(currency, "id"))
                 }
                 AddElementToObject(request, "currency_id", Join(codes, ","))
             }

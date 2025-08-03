@@ -8,10 +8,10 @@ type gemini struct {
 
 }
 
-func NewGeminiCore() gemini {
-   p := gemini{}
-   setDefaults(&p)
-   return p
+func NewGeminiCore() *gemini {
+    p := &gemini{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *gemini) Describe() interface{}  {
@@ -497,8 +497,8 @@ func  (this *gemini) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             var method interface{} = this.SafeValue(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
             if IsTrue(IsEqual(method, "fetch_markets_from_web")) {
                 var promises interface{} = []interface{}{}
-                AppendToArray(&promises,this.FetchMarketsFromWeb(params)) // get usd markets
-                AppendToArray(&promises,this.FetchUSDTMarkets(params)) // get usdt markets
+                AppendToArray(&promises, this.FetchMarketsFromWeb(params)) // get usd markets
+                AppendToArray(&promises, this.FetchUSDTMarkets(params)) // get usdt markets
         
                 promisesResult:= (<-promiseAll(promises))
                 PanicOnError(promisesResult)
@@ -525,16 +525,16 @@ func  (this *gemini) FetchMarketsFromWeb(optionalArgs ...interface{}) <- chan in
         
             data:= (<-this.FetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
             PanicOnError(data)
-            var error interface{} = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
+            var err interface{} = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
             var tables interface{} = Split(data, "tbody>")
             var numTables interface{} =     GetArrayLength(tables)
             if IsTrue(IsLessThan(numTables, 2)) {
-                panic(NotSupported(error))
+                panic(NotSupported(err))
             }
             var rows interface{} = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
             var numRows interface{} =     GetArrayLength(rows)
             if IsTrue(IsLessThan(numRows, 2)) {
-                panic(NotSupported(error))
+                panic(NotSupported(err))
             }
             var result interface{} = []interface{}{}
             // skip the first element (empty string)
@@ -543,7 +543,7 @@ func  (this *gemini) FetchMarketsFromWeb(optionalArgs ...interface{}) <- chan in
                 var cells interface{} = Split(row, "</td>\n") // eslint-disable-line quotes
                 var numCells interface{} =         GetArrayLength(cells)
                 if IsTrue(IsLessThan(numCells, 5)) {
-                    panic(NotSupported(error))
+                    panic(NotSupported(err))
                 }
                 //     [
                 //         '<td>btcusd', // currency
@@ -568,7 +568,7 @@ func  (this *gemini) FetchMarketsFromWeb(optionalArgs ...interface{}) <- chan in
                 var baseId interface{} = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": marketId,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -663,7 +663,7 @@ func  (this *gemini) FetchUSDTMarkets(optionalArgs ...interface{}) <- chan inter
         
                 rawResponse:= (<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
                 PanicOnError(rawResponse)
-                AppendToArray(&result,this.ParseMarket(rawResponse))
+                AppendToArray(&result, this.ParseMarket(rawResponse))
             }
         
             ch <- result
@@ -695,7 +695,7 @@ func  (this *gemini) FetchMarketsFromAPI(optionalArgs ...interface{}) <- chan in
             var marketIds interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(marketIdsRaw)); i++ {
                 if IsTrue(!IsEqual(GetValue(marketIdsRaw, i), bugSymbol)) {
-                    AppendToArray(&marketIds,GetValue(marketIdsRaw, i))
+                    AppendToArray(&marketIds, GetValue(marketIdsRaw, i))
                 }
             }
             if IsTrue(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
@@ -705,13 +705,13 @@ func  (this *gemini) FetchMarketsFromAPI(optionalArgs ...interface{}) <- chan in
                     var request interface{} = map[string]interface{} {
                         "symbol": marketId,
                     }
-                    AppendToArray(&promises,this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
+                    AppendToArray(&promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
                 }
         
                 responses:= (<-promiseAll(promises))
                 PanicOnError(responses)
                 for i := 0; IsLessThan(i, GetArrayLength(responses)); i++ {
-                    AppendToArray(&result,this.ParseMarket(GetValue(responses, i)))
+                    AppendToArray(&result, this.ParseMarket(GetValue(responses, i)))
                 }
             } else {
                 // use trading-pairs info, if it was fetched
@@ -722,12 +722,12 @@ func  (this *gemini) FetchMarketsFromAPI(optionalArgs ...interface{}) <- chan in
                         var marketId interface{} = GetValue(marketIds, i)
                         var tradingPair interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
                         if IsTrue(!IsEqual(tradingPair, nil)) {
-                            AppendToArray(&result,this.ParseMarket(tradingPair))
+                            AppendToArray(&result, this.ParseMarket(tradingPair))
                         }
                     }
                 } else {
                     for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-                        AppendToArray(&result,this.ParseMarket(GetValue(marketIds, i)))
+                        AppendToArray(&result, this.ParseMarket(GetValue(marketIds, i)))
                     }
                 }
             }

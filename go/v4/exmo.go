@@ -8,10 +8,10 @@ type exmo struct {
 
 }
 
-func NewExmoCore() exmo {
-   p := exmo{}
-   setDefaults(&p)
-   return p
+func NewExmoCore() *exmo {
+    p := &exmo{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *exmo) Describe() interface{}  {
@@ -265,12 +265,12 @@ func  (this *exmo) ModifyMarginHelper(symbol interface{}, amount interface{}, ty
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "add")) {
                 
-        response = (<-this.PrivatePostMarginUserPositionMarginAdd(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserPositionMarginAdd(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "reduce")) {
                 
-        response = (<-this.PrivatePostMarginUserPositionMarginRemove(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserPositionMarginRemove(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //      {}
@@ -393,7 +393,7 @@ func  (this *exmo) FetchTradingFees(optionalArgs ...interface{}) <- chan interfa
                     ch <- retRes39619
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -749,7 +749,7 @@ func  (this *exmo) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
             _ = params
             var promises interface{} = []interface{}{}
             //
-            AppendToArray(&promises,this.PublicGetCurrencyListExtended(params))
+            AppendToArray(&promises, this.PublicGetCurrencyListExtended(params))
             //
             //     [
             //         {"name":"VLX","description":"Velas"},
@@ -758,7 +758,7 @@ func  (this *exmo) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
             //         {"name":"USD","description":"US Dollar"}
             //     ]
             //
-            AppendToArray(&promises,this.PublicGetPaymentsProvidersCryptoList(params))
+            AppendToArray(&promises, this.PublicGetPaymentsProvidersCryptoList(params))
             //
             //     {
             //         "BTC":[
@@ -844,7 +844,7 @@ func  (this *exmo) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                             AddElementToObject(GetValue(GetValue(networkEntry, "limits"), "withdraw"), "max", maxValue)
                         }
                         var info interface{} = this.SafeList(networkEntry, "info")
-                        AppendToArray(&info,provider)
+                        AppendToArray(&info, provider)
                         AddElementToObject(networkEntry, "info", info)
                         AddElementToObject(networks, networkCode, networkEntry)
                     }
@@ -899,7 +899,7 @@ func  (this *exmo) FetchMarkets(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PublicGetPairSettings(params))
+            AppendToArray(&promises, this.PublicGetPairSettings(params))
             //
             //     {
             //         "BTC_USD":{
@@ -918,7 +918,7 @@ func  (this *exmo) FetchMarkets(optionalArgs ...interface{}) <- chan interface{}
             var marginPairsDict interface{} = map[string]interface{} {}
             var fetchMargin interface{} = this.CheckRequiredCredentials(false)
             if IsTrue(fetchMargin) {
-                AppendToArray(&promises,this.PrivatePostMarginPairList(params))
+                AppendToArray(&promises, this.PrivatePostMarginPairList(params))
             }
         
             responses:= (<-promiseAll(promises))
@@ -945,7 +945,7 @@ func  (this *exmo) FetchMarkets(optionalArgs ...interface{}) <- chan interface{}
                 var makerString interface{} = this.SafeString(market, "commission_maker_percent")
                 var maxQuantity interface{} = this.SafeString(market, "max_quantity")
                 var marginMaxQuantity interface{} = this.SafeString(marginMarket, "max_order_quantity")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -1168,12 +1168,12 @@ func  (this *exmo) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
             var response interface{} = nil
             if IsTrue(IsEqual(marginMode, "isolated")) {
                 
-        response = (<-this.PrivatePostMarginUserWalletList(params))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserWalletList(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostUserInfo(params))
-                PanicOnError(response)
+            response = (<-this.PrivatePostUserInfo(params))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseBalance(response)
@@ -1624,8 +1624,8 @@ func  (this *exmo) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(isSpot) {
                 
-        response = (<-this.PrivatePostUserTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostUserTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
         
                 responseFromExchange:= (<-this.PrivatePostMarginTrades(this.Extend(request, params)))
@@ -1841,8 +1841,8 @@ func  (this *exmo) CreateOrder(symbol interface{}, typeVar interface{}, side int
                         AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
                     }
                     
-        response = (<-this.PrivatePostStopMarketOrderCreate(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostStopMarketOrderCreate(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var execType interface{} = this.SafeString(params, "exec_type")
                     var isPostOnly interface{} = nil
@@ -1863,8 +1863,8 @@ func  (this *exmo) CreateOrder(symbol interface{}, typeVar interface{}, side int
                         AddElementToObject(request, "exec_type", timeInForce)
                     }
                     
-        response = (<-this.PrivatePostOrderCreate(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostOrderCreate(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1884,8 +1884,8 @@ func  (this *exmo) CreateOrder(symbol interface{}, typeVar interface{}, side int
                     }
                 }
                 
-        response = (<-this.PrivatePostMarginUserOrderCreate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserOrderCreate(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrder(response, market)
@@ -1934,19 +1934,19 @@ func  (this *exmo) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             if IsTrue((IsEqual(marginMode, "isolated"))) {
                 AddElementToObject(request, "order_id", id)
                 
-        response = (<-this.PrivatePostMarginUserOrderCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserOrderCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(trigger) {
                     AddElementToObject(request, "parent_order_id", id)
                     
-        response = (<-this.PrivatePostStopMarketOrderCancel(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostStopMarketOrderCancel(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     AddElementToObject(request, "order_id", id)
                     
-        response = (<-this.PrivatePostOrderCancel(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostOrderCancel(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
         
@@ -2058,12 +2058,12 @@ func  (this *exmo) FetchOrderTrades(id interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(marginMode, "isolated")) {
                 
-        response = (<-this.PrivatePostMarginUserOrderTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserOrderTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrderTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrderTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var trades interface{} = this.SafeList(response, "trades")
         
@@ -2116,8 +2116,8 @@ func  (this *exmo) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             var orders interface{} = []interface{}{}
             if IsTrue(isMargin) {
                 
-        response = (<-this.PrivatePostMarginUserOrderList(params))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginUserOrderList(params))
+                    PanicOnError(response)
                 //
                 //    {
                 //        "orders": [
@@ -2152,8 +2152,8 @@ func  (this *exmo) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
                 orders = this.ParseOrders(responseOrders, market, since, limit, params)
             } else {
                 
-        response = (<-this.PrivatePostUserOpenOrders(params))
-                PanicOnError(response)
+            response = (<-this.PrivatePostUserOpenOrders(params))
+                    PanicOnError(response)
                 //
                 //    {
                 //        "USDT_USD": [
@@ -2416,8 +2416,8 @@ func  (this *exmo) FetchCanceledOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(isSpot) {
                 
-        response = (<-this.PrivatePostUserCancelledOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostUserCancelledOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //    [
                 //        {
@@ -2472,14 +2472,14 @@ func  (this *exmo) FetchCanceledOrders(optionalArgs ...interface{}) <- chan inte
                 for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
                     var order interface{} = GetValue(orders, i)
                     if IsTrue(IsEqual(GetValue(order, "status"), "canceled")) {
-                        AppendToArray(&result,order)
+                        AppendToArray(&result, order)
                     }
                 }
         
                 ch <- result
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }

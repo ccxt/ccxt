@@ -8,10 +8,10 @@ type kucoin struct {
 
 }
 
-func NewKucoinCore() kucoin {
-   p := kucoin{}
-   setDefaults(&p)
-   return p
+func NewKucoinCore() *kucoin {
+    p := &kucoin{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *kucoin) Describe() interface{}  {
@@ -1010,7 +1010,7 @@ func  (this *kucoin) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             fetchTickersFees = GetValue(fetchTickersFeesparamsVariable,0);
             params = GetValue(fetchTickersFeesparamsVariable,1)
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PublicGetSymbols(params))
+            AppendToArray(&promises, this.PublicGetSymbols(params))
             //
             //     {
             //         "code": "200000",
@@ -1037,7 +1037,7 @@ func  (this *kucoin) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             var credentialsSet interface{} = this.CheckRequiredCredentials(false)
             var requestMarginables interface{} = IsTrue(credentialsSet) && IsTrue(this.SafeBool(params, "marginables", true))
             if IsTrue(requestMarginables) {
-                AppendToArray(&promises,this.PrivateGetMarginSymbols(params)) // cross margin symbols
+                AppendToArray(&promises, this.PrivateGetMarginSymbols(params)) // cross margin symbols
                 //
                 //    {
                 //        "code": "200000",
@@ -1049,14 +1049,14 @@ func  (this *kucoin) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 //                    "minFunds": "0.1"
                 //                },
                 //
-                AppendToArray(&promises,this.PrivateGetIsolatedSymbols(params)) // isolated margin symbols
+                AppendToArray(&promises, this.PrivateGetIsolatedSymbols(params)) // isolated margin symbols
             }
             if IsTrue(fetchTickersFees) {
-                AppendToArray(&promises,this.PublicGetMarketAllTickers(params))
+                AppendToArray(&promises, this.PublicGetMarketAllTickers(params))
             }
             if IsTrue(credentialsSet) {
                 // load migration status for account
-                AppendToArray(&promises,this.LoadMigrationStatus())
+                AppendToArray(&promises, this.LoadMigrationStatus())
             }
         
             responses:= (<-promiseAll(promises))
@@ -1090,7 +1090,7 @@ func  (this *kucoin) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var hasCrossMargin interface{} =         (InOp(crossById, id))
                 var hasIsolatedMargin interface{} =         (InOp(isolatedById, id))
                 var isMarginable interface{} = IsTrue(IsTrue(this.SafeBool(market, "isMarginEnabled", false)) || IsTrue(hasCrossMargin)) || IsTrue(hasIsolatedMargin)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1372,7 +1372,7 @@ func  (this *kucoin) FetchAccounts(optionalArgs ...interface{}) <- chan interfac
                 var currencyId interface{} = this.SafeString(account, "currency")
                 var code interface{} = this.SafeCurrencyCode(currencyId)
                 var typeVar interface{} = this.SafeString(account, "type") // main or trade
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": accountId,
                     "type": typeVar,
                     "currency": code,
@@ -1734,10 +1734,10 @@ func  (this *kucoin) FetchTickers(optionalArgs ...interface{}) <- chan interface
             //
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             var tickers interface{} = this.SafeList(data, "ticker", []interface{}{})
-            var time interface{} = this.SafeInteger(data, "time")
+            var timeVar interface{} = this.SafeInteger(data, "time")
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-                AddElementToObject(GetValue(tickers, i), "time", time)
+                AddElementToObject(GetValue(tickers, i), "time", timeVar)
                 var ticker interface{} = this.ParseTicker(GetValue(tickers, i))
                 var symbol interface{} = this.SafeString(ticker, "symbol")
                 if IsTrue(!IsEqual(symbol, nil)) {
@@ -2205,12 +2205,12 @@ func  (this *kucoin) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
                     AddElementToObject(request, "limit", Ternary(IsTrue(limit), limit, 100))
                 }
                 
-        response = (<-this.PublicGetMarketOrderbookLevelLevelLimit(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMarketOrderbookLevelLevelLimit(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetMarketOrderbookLevel2(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarketOrderbookLevel2(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
@@ -2347,37 +2347,37 @@ func  (this *kucoin) CreateOrder(symbol interface{}, typeVar interface{}, side i
             if IsTrue(testOrder) {
                 if IsTrue(isMarginOrder) {
                     
-        response = (<-this.PrivatePostMarginOrderTest(orderRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostMarginOrderTest(orderRequest))
+                        PanicOnError(response)
                 } else if IsTrue(hf) {
                     
-        response = (<-this.PrivatePostHfOrdersTest(orderRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostHfOrdersTest(orderRequest))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostOrdersTest(orderRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostOrdersTest(orderRequest))
+                        PanicOnError(response)
                 }
             } else if IsTrue(isTriggerOrder) {
                 
-        response = (<-this.PrivatePostStopOrder(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostStopOrder(orderRequest))
+                    PanicOnError(response)
             } else if IsTrue(isMarginOrder) {
                 
-        response = (<-this.PrivatePostMarginOrder(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginOrder(orderRequest))
+                    PanicOnError(response)
             } else if IsTrue(useSync) {
                 
-        response = (<-this.PrivatePostHfOrdersSync(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostHfOrdersSync(orderRequest))
+                    PanicOnError(response)
             } else if IsTrue(hf) {
                 
-        response = (<-this.PrivatePostHfOrders(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostHfOrders(orderRequest))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrders(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrders(orderRequest))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -2530,7 +2530,7 @@ func  (this *kucoin) CreateOrders(orders interface{}, optionalArgs ...interface{
                 var price interface{} = this.SafeValue(rawOrder, "price")
                 var orderParams interface{} = this.SafeValue(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -2548,16 +2548,16 @@ func  (this *kucoin) CreateOrders(orders interface{}, optionalArgs ...interface{
             var response interface{} = nil
             if IsTrue(useSync) {
                 
-        response = (<-this.PrivatePostHfOrdersMultiSync(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostHfOrdersMultiSync(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(hf) {
                 
-        response = (<-this.PrivatePostHfOrdersMulti(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostHfOrdersMulti(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrdersMulti(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrdersMulti(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // {
@@ -2802,20 +2802,20 @@ func  (this *kucoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 AddElementToObject(request, "clientOid", clientOrderId)
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivateDeleteStopOrderCancelOrderByClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteStopOrderCancelOrderByClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(useSync) {
                     
-        response = (<-this.PrivateDeleteHfOrdersSyncClientOrderClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrdersSyncClientOrderClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(hf) {
                     
-        response = (<-this.PrivateDeleteHfOrdersClientOrderClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrdersClientOrderClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateDeleteOrderClientOrderClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteOrderClientOrderClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
                 response = this.SafeDict(response, "data")
         
@@ -2825,16 +2825,16 @@ func  (this *kucoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 AddElementToObject(request, "orderId", id)
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivateDeleteStopOrderOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteStopOrderOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(useSync) {
                     
-        response = (<-this.PrivateDeleteHfOrdersSyncOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrdersSyncOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(hf) {
                     
-        response = (<-this.PrivateDeleteHfOrdersOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrdersOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                     //
                     //    {
                     //        "code": "200000",
@@ -2849,8 +2849,8 @@ func  (this *kucoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                     return nil
                 } else {
                     
-        response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
                 var data interface{} = this.SafeDict(response, "data")
                 var orderIds interface{} = this.SafeList(data, "cancelledOrderIds", []interface{}{})
@@ -2862,7 +2862,7 @@ func  (this *kucoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 })
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2915,22 +2915,22 @@ func  (this *kucoin) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivateDeleteStopOrderCancel(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteStopOrderCancel(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(hf) {
                 if IsTrue(IsEqual(symbol, nil)) {
                     
-        response = (<-this.PrivateDeleteHfOrdersCancelAll(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrdersCancelAll(this.Extend(request, query)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateDeleteHfOrders(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteHfOrders(this.Extend(request, query)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateDeleteOrders(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrders(this.Extend(request, query)))
+                    PanicOnError(response)
             }
         
             ch <- []interface{}{this.SafeOrder(map[string]interface{} {
@@ -3020,22 +3020,22 @@ func  (this *kucoin) FetchOrdersByStatus(status interface{}, optionalArgs ...int
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivateGetStopOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetStopOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(hf) {
                 if IsTrue(IsEqual(lowercaseStatus, "active")) {
                     
-        response = (<-this.PrivateGetHfOrdersActive(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfOrdersActive(this.Extend(request, query)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(lowercaseStatus, "done")) {
                     
-        response = (<-this.PrivateGetHfOrdersDone(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfOrdersDone(this.Extend(request, query)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateGetOrders(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrders(this.Extend(request, query)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3267,16 +3267,16 @@ func  (this *kucoin) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
                         AddElementToObject(request, "symbol", GetValue(market, "id"))
                     }
                     
-        response = (<-this.PrivateGetStopOrderQueryOrderByClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetStopOrderQueryOrderByClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(hf) {
                     
-        response = (<-this.PrivateGetHfOrdersClientOrderClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfOrdersClientOrderClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetOrderClientOrderClientOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetOrderClientOrderClientOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 // a special case for undefined ids
@@ -3288,16 +3288,16 @@ func  (this *kucoin) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
                 AddElementToObject(request, "orderId", id)
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivateGetStopOrderOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetStopOrderOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(hf) {
                     
-        response = (<-this.PrivateGetHfOrdersOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfOrdersOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             var responseData interface{} = this.SafeDict(response, "data", map[string]interface{} {})
@@ -3601,8 +3601,8 @@ func  (this *kucoin) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                     AddElementToObject(request, "startAt", since)
                 }
                 
-        response = (<-this.PrivateGetHfFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetHfFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "private_get_fills")) {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 if IsTrue(!IsEqual(since, nil)) {
@@ -3610,16 +3610,16 @@ func  (this *kucoin) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                     AddElementToObject(request, "startAt", since)
                 }
                 
-        response = (<-this.PrivateGetFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "private_get_limit_fills")) {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 // takes no params
                 // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
                 parseResponseData = true
                 
-        response = (<-this.PrivateGetLimitFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetLimitFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(ExchangeError(Add(this.Id, " fetchMyTradesMethod() invalid method")))
             }
@@ -4180,15 +4180,15 @@ func  (this *kucoin) FetchDeposits(optionalArgs ...interface{}) <- chan interfac
                 // if since is earlier than 2019-02-18T00:00:00Z
                 AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
                 
-        response = (<-this.PrivateGetHistDeposits(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetHistDeposits(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(since, nil)) {
                     AddElementToObject(request, "startAt", since)
                 }
                 
-        response = (<-this.PrivateGetDeposits(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetDeposits(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -4297,15 +4297,15 @@ func  (this *kucoin) FetchWithdrawals(optionalArgs ...interface{}) <- chan inter
                 // if since is earlier than 2019-02-18T00:00:00Z
                 AddElementToObject(request, "startAt", this.ParseToInt(Divide(since, 1000)))
                 
-        response = (<-this.PrivateGetHistWithdrawals(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetHistWithdrawals(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(since, nil)) {
                     AddElementToObject(request, "startAt", since)
                 }
                 
-        response = (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -4419,20 +4419,20 @@ func  (this *kucoin) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     AddElementToObject(request, "balanceCurrency", GetValue(currency, "id"))
                 }
                 
-        response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(cross) {
                 
-        response = (<-this.PrivateGetMarginAccount(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccount(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(currency, nil)) {
                     AddElementToObject(request, "currency", GetValue(currency, "id"))
                 }
                 AddElementToObject(request, "type", typeVar)
                 
-        response = (<-this.PrivateGetAccounts(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccounts(this.Extend(request, query)))
+                    PanicOnError(response)
             }
             //
             // Spot
@@ -4678,7 +4678,7 @@ func  (this *kucoin) Transfer(code interface{}, amount interface{}, fromAccount 
                 ch <- this.ParseTransfer(data, currency)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -4818,21 +4818,22 @@ func  (this *kucoin) ParseLedgerEntry(item interface{}, optionalArgs ...interfac
     var referenceId interface{} = nil
     if IsTrue(IsTrue(!IsEqual(context, nil)) && IsTrue(!IsEqual(context, ""))) {
         
-        {		ret__ := func(this *kucoin) (ret_ interface{}) {
-        		defer func() {
-        			if e := recover(); e != nil {
-                        if e == "break" {
-        				    return
-        			    }
-        				ret_ = func(this *kucoin) interface{} {
-        					// catch block:
-                                        referenceId = context
-                            return nil
-        				}(this)
-        			}
-        		}()
-        		// try block:
-                            var parsed interface{} = JsonParse(context)
+            {		
+                 func(this *kucoin) (ret_ interface{}) {
+        		    defer func() {
+                        if e := recover(); e != nil {
+                            if e == "break" {
+                                return
+                            }
+                            ret_ = func(this *kucoin) interface{} {
+                                // catch block:
+                                            referenceId = context
+                                return nil
+                            }(this)
+                        }
+                    }()
+        		    // try block:
+                                var parsed interface{} = JsonParse(context)
                     var orderId interface{} = this.SafeString(parsed, "orderId")
                     var tradeId interface{} = this.SafeString(parsed, "tradeId")
                     // transactions only have an orderId but for trades we wish to use tradeId
@@ -4841,12 +4842,10 @@ func  (this *kucoin) ParseLedgerEntry(item interface{}, optionalArgs ...interfac
                     } else {
                         referenceId = orderId
                     }
-        		return nil
-        	}(this)
-        	if ret__ != nil {
-        		return ret__
-        	}
-        }
+        		    return nil
+        	    }(this)
+            
+                }
     }
     var fee interface{} = nil
     var feeCost interface{} = this.SafeString(item, "fee")
@@ -4947,17 +4946,17 @@ func  (this *kucoin) FetchLedger(optionalArgs ...interface{}) <- chan interface{
             if IsTrue(hf) {
                 if IsTrue(!IsEqual(marginMode, nil)) {
                     
-        response = (<-this.PrivateGetHfMarginAccountLedgers(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfMarginAccountLedgers(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetHfAccountsLedgers(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetHfAccountsLedgers(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateGetAccountsLedgers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountsLedgers(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5113,12 +5112,12 @@ func  (this *kucoin) FetchBorrowInterest(optionalArgs ...interface{}) <- chan in
             var response interface{} = nil
             if IsTrue(IsEqual(marginMode, "isolated")) {
                 
-        response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetIsolatedAccounts(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetMarginAccounts(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccounts(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // Cross
@@ -5445,7 +5444,7 @@ func  (this *kucoin) ParseBorrowRateHistories(response interface{}, codes interf
             }
             var borrowRateStructure interface{} = this.ParseBorrowRate(item)
             var borrowRateHistoriesCode interface{} = GetValue(borrowRateHistories, code)
-            AppendToArray(&borrowRateHistoriesCode,borrowRateStructure)
+            AppendToArray(&borrowRateHistoriesCode, borrowRateStructure)
         }
     }
     var keys interface{} = ObjectKeys(borrowRateHistories)

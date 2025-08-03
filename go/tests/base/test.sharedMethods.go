@@ -628,10 +628,10 @@ import "github.com/ccxt/ccxt/go/v4"
         } else {
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(a)); i++ {
-                AppendToArray(&result,GetValue(a, i))
+                AppendToArray(&result, GetValue(a, i))
             }
             for j := 0; IsLessThan(j, GetArrayLength(b)); j++ {
-                AppendToArray(&result,GetValue(b, j))
+                AppendToArray(&result, GetValue(b, j))
             }
             return result
         }

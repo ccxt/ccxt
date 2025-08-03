@@ -8,10 +8,10 @@ type coinbaseadvanced struct {
 
 }
 
-func NewCoinbaseadvancedCore() coinbaseadvanced {
-   p := coinbaseadvanced{}
-   setDefaults(&p)
-   return p
+func NewCoinbaseadvancedCore() *coinbaseadvanced {
+    p := &coinbaseadvanced{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinbaseadvanced) Describe() interface{}  {

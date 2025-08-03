@@ -8,10 +8,10 @@ type kraken struct {
 
 }
 
-func NewKrakenCore() kraken {
-   p := kraken{}
-   setDefaults(&p)
-   return p
+func NewKrakenCore() *kraken {
+    p := &kraken{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *kraken) Describe() interface{}  {
@@ -524,9 +524,9 @@ func  (this *kraken) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PublicGetAssetPairs(params))
+            AppendToArray(&promises, this.PublicGetAssetPairs(params))
             if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
-                AppendToArray(&promises,this.LoadTimeDifference())
+                AppendToArray(&promises, this.LoadTimeDifference())
             }
         
             responses:= (<-promiseAll(promises))
@@ -620,7 +620,7 @@ func  (this *kraken) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 }
                 var status interface{} = this.SafeString(market, "status")
                 var isActive interface{} = IsEqual(status, "online")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "wsId": this.SafeString(market, "wsname"),
                     "symbol": Add(Add(base, "/"), quote),
@@ -1124,7 +1124,7 @@ func  (this *kraken) FetchTickers(optionalArgs ...interface{}) <- chan interface
                     var symbol interface{} = GetValue(symbols, i)
                     var market interface{} = GetValue(this.Markets, symbol)
                     if IsTrue(GetValue(market, "active")) {
-                        AppendToArray(&marketIds,GetValue(market, "id"))
+                        AppendToArray(&marketIds, GetValue(market, "id"))
                     }
                 }
                 AddElementToObject(request, "pair", Join(marketIds, ","))
@@ -1411,7 +1411,7 @@ func  (this *kraken) FetchLedger(optionalArgs ...interface{}) <- chan interface{
                 var key interface{} = GetValue(keys, i)
                 var value interface{} = GetValue(ledger, key)
                 AddElementToObject(value, "id", key)
-                AppendToArray(&items,value)
+                AppendToArray(&items, value)
             }
         
             ch <- this.ParseLedger(items, currency, since, limit)
@@ -1456,7 +1456,7 @@ func  (this *kraken) FetchLedgerEntriesByIds(ids interface{}, optionalArgs ...in
                 var key interface{} = GetValue(keys, i)
                 var value interface{} = GetValue(result, key)
                 AddElementToObject(value, "id", key)
-                AppendToArray(&items,value)
+                AppendToArray(&items, value)
             }
         
             ch <- this.ParseLedger(items)
@@ -1699,7 +1699,7 @@ func  (this *kraken) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             }
             var lastTrade interface{} = GetValue(trades, Subtract(length, 1))
             var lastTradeId interface{} = this.SafeString(result, "last")
-            AppendToArray(&lastTrade,lastTradeId)
+            AppendToArray(&lastTrade, lastTradeId)
             AddElementToObject(trades, Subtract(length, 1), lastTrade)
         
             ch <- this.ParseTrades(trades, market, since, limit)
@@ -2164,14 +2164,14 @@ func  (this *kraken) ParseOrder(order interface{}, optionalArgs ...interface{}) 
     for i := 0; IsLessThan(i, GetArrayLength(rawTrades)); i++ {
         var rawTrade interface{} = GetValue(rawTrades, i)
         if IsTrue(IsString(rawTrade)) {
-            AppendToArray(&trades,this.SafeTrade(map[string]interface{} {
+            AppendToArray(&trades, this.SafeTrade(map[string]interface{} {
                 "id": rawTrade,
                 "orderId": id,
                 "symbol": symbol,
                 "info": map[string]interface{} {},
             }))
         } else {
-            AppendToArray(&trades,rawTrade)
+            AppendToArray(&trades, rawTrade)
         }
     }
     // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2569,9 +2569,9 @@ func  (this *kraken) FetchOrderTrades(id interface{}, optionalArgs ...interface{
                 for i := 0; IsLessThan(i, GetArrayLength(orderTrades)); i++ {
                     var orderTrade interface{} = GetValue(orderTrades, i)
                     if IsTrue(IsString(orderTrade)) {
-                        AppendToArray(&tradeIds,orderTrade)
+                        AppendToArray(&tradeIds, orderTrade)
                     } else {
-                        AppendToArray(&tradeIds,GetValue(orderTrade, "id"))
+                        AppendToArray(&tradeIds, GetValue(orderTrade, "id"))
                     }
                 }
             }
@@ -2592,7 +2592,7 @@ func  (this *kraken) FetchOrderTrades(id interface{}, optionalArgs ...interface{
                 for k := 0; IsLessThan(k, batchSize); k++ {
                     var index interface{} = this.Sum(Multiply(j, batchSize), k)
                     if IsTrue(IsLessThan(index, numTradeIds)) {
-                        AppendToArray(&requestIds,GetValue(tradeIds, index))
+                        AppendToArray(&requestIds, GetValue(tradeIds, index))
                     }
                 }
                 var request interface{} = map[string]interface{} {
@@ -2675,7 +2675,7 @@ func  (this *kraken) FetchOrdersByIds(ids interface{}, optionalArgs ...interface
                 var order interface{} = this.ParseOrder(this.Extend(map[string]interface{} {
                     "id": id,
                 }, item))
-                AppendToArray(&orders,order)
+                AppendToArray(&orders, order)
             }
         
             ch <- orders
@@ -2807,34 +2807,33 @@ func  (this *kraken) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 request = this.Omit(request, "txid")
             }
             
-            {		ret__ := func(this *kraken) (ret_ interface{}) {
-            		defer func() {
-            			if e := recover(); e != nil {
-                            if e == "break" {
-            				    return
-            			    }
-            				ret_ = func(this *kraken) interface{} {
-            					// catch block:
-                                        if IsTrue(this.Last_http_response) {
+                {		
+                     func(this *kraken) (ret_ interface{}) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *kraken) interface{} {
+                                    // catch block:
+                                            if IsTrue(this.Last_http_response) {
                         if IsTrue(IsGreaterThanOrEqual(GetIndexOf(this.Last_http_response, "EOrder:Unknown order"), 0)) {
                             panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() error "), this.Last_http_response)))
                         }
                     }
                     panic(e)
-                                return nil
-            				}(this)
-            			}
-            		}()
-            		// try block:
-                            
-            response = (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
-            		return nil
-            	}(this)
-            	if ret__ != nil {
-            		return ret__
-            	}
-            }
+                                    
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                                
+                response = (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
+            		    return nil
+            	    }(this)
+                
+                    }
         
             ch <- this.SafeOrder(map[string]interface{} {
                 "info": response,
@@ -3065,7 +3064,7 @@ func  (this *kraken) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             for i := 0; IsLessThan(i, GetArrayLength(orderIds)); i++ {
                 var id interface{} = GetValue(orderIds, i)
                 var item interface{} = GetValue(open, id)
-                AppendToArray(&orders,this.Extend(map[string]interface{} {
+                AppendToArray(&orders, this.Extend(map[string]interface{} {
                     "id": id,
                 }, item))
             }
@@ -3176,7 +3175,7 @@ func  (this *kraken) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             for i := 0; IsLessThan(i, GetArrayLength(orderIds)); i++ {
                 var id interface{} = GetValue(orderIds, i)
                 var item interface{} = GetValue(closed, id)
-                AppendToArray(&orders,this.Extend(map[string]interface{} {
+                AppendToArray(&orders, this.Extend(map[string]interface{} {
                     "id": id,
                 }, item))
             }
@@ -3326,7 +3325,7 @@ func  (this *kraken) ParseTransactionsByType(typeVar interface{}, transactions i
         var transaction interface{} = this.ParseTransaction(this.Extend(map[string]interface{} {
             "type": typeVar,
         }, GetValue(transactions, i)))
-        AppendToArray(&result,transaction)
+        AppendToArray(&result, transaction)
     }
     return this.FilterByCurrencySinceLimit(result, code, since, limit)
 }
@@ -4130,9 +4129,9 @@ func  (this *kraken) HandleErrors(code interface{}, reason interface{}, url inte
                 if IsTrue(numErrors) {
                     var message interface{} = Add(Add(this.Id, " "), body)
                     for i := 0; IsLessThan(i, GetArrayLength(GetValue(response, "error"))); i++ {
-                        var error interface{} = GetValue(GetValue(response, "error"), i)
-                        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, message)
-                        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
+                        var err interface{} = GetValue(GetValue(response, "error"), i)
+                        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, message)
+                        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, message)
                     }
                     panic(ExchangeError(message))
                 }

@@ -8,10 +8,10 @@ type coinbaseexchange struct {
 
 }
 
-func NewCoinbaseexchangeCore() coinbaseexchange {
-   p := coinbaseexchange{}
-   setDefaults(&p)
-   return p
+func NewCoinbaseexchangeCore() *coinbaseexchange {
+    p := &coinbaseexchange{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinbaseexchange) Describe() interface{}  {
@@ -540,7 +540,7 @@ func  (this *coinbaseexchange) FetchMarkets(optionalArgs ...interface{}) <- chan
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var status interface{} = this.SafeString(market, "status")
-                AppendToArray(&result,this.Extend(GetValue(this.Fees, "trading"), map[string]interface{} {
+                AppendToArray(&result, this.Extend(GetValue(this.Fees, "trading"), map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -2126,8 +2126,8 @@ func  (this *coinbaseexchange) FetchDepositsWithdrawals(optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(IsEqual(id, nil)) {
                 
-        response = (<-this.PrivateGetTransfers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTransfers(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //    [
                 //        {
@@ -2164,8 +2164,8 @@ func  (this *coinbaseexchange) FetchDepositsWithdrawals(optionalArgs ...interfac
                 }
             } else {
                 
-        response = (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //    [
                 //        {
@@ -2395,8 +2395,8 @@ func  (this *coinbaseexchange) CreateDepositAddress(code interface{}, optionalAr
             var accounts interface{} = this.SafeValue(this.Options, "coinbaseAccounts")
             if IsTrue(IsEqual(accounts, nil)) {
                 
-        accounts = (<-this.PrivateGetCoinbaseAccounts())
-                PanicOnError(accounts)
+            accounts = (<-this.PrivateGetCoinbaseAccounts())
+                    PanicOnError(accounts)
                 AddElementToObject(this.Options, "coinbaseAccounts", accounts) // cache it
                 AddElementToObject(this.Options, "coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
             }
@@ -2458,27 +2458,26 @@ func  (this *coinbaseexchange) Sign(path interface{}, optionalArgs ...interface{
         var what interface{} = Add(Add(Add(nonce, method), request), payload)
         var secret interface{} = nil
         
-        {		ret__ := func(this *coinbaseexchange) (ret_ interface{}) {
-        		defer func() {
-        			if e := recover(); e != nil {
-                        if e == "break" {
-        				    return
-        			    }
-        				ret_ = func(this *coinbaseexchange) interface{} {
-        					// catch block:
-                                        panic(AuthenticationError(Add(this.Id, " sign() invalid base64 secret")))
-                            return nil
-        				}(this)
-        			}
-        		}()
-        		// try block:
-                            secret = this.Base64ToBinary(this.Secret)
-        		return nil
-        	}(this)
-        	if ret__ != nil {
-        		return ret__
-        	}
-        }
+            {		
+                 func(this *coinbaseexchange) (ret_ interface{}) {
+        		    defer func() {
+                        if e := recover(); e != nil {
+                            if e == "break" {
+                                return
+                            }
+                            ret_ = func(this *coinbaseexchange) interface{} {
+                                // catch block:
+                                            panic(AuthenticationError(Add(this.Id, " sign() invalid base64 secret")))
+                                
+                            }(this)
+                        }
+                    }()
+        		    // try block:
+                                secret = this.Base64ToBinary(this.Secret)
+        		    return nil
+        	    }(this)
+            
+                }
         var signature interface{} = this.Hmac(this.Encode(what), secret, sha256, "base64")
         headers = map[string]interface{} {
             "CB-ACCESS-KEY": this.ApiKey,

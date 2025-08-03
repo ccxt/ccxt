@@ -8,10 +8,10 @@ type bit2c struct {
 
 }
 
-func NewBit2cCore() bit2c {
-   p := bit2c{}
-   setDefaults(&p)
-   return p
+func NewBit2cCore() *bit2c {
+    p := &bit2c{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bit2c) Describe() interface{}  {
@@ -490,12 +490,12 @@ func  (this *bit2c) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(method, "public_get_exchanges_pair_trades")) {
                 
-        response = (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     [
@@ -1189,14 +1189,14 @@ func  (this *bit2c) HandleErrors(httpCode interface{}, reason interface{}, url i
     //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
     //     { "Error" : "No order found." }
     //
-    var error interface{} = this.SafeString(response, "error")
-    if IsTrue(IsEqual(error, nil)) {
-        error = this.SafeString(response, "Error")
+    var err interface{} = this.SafeString(response, "error")
+    if IsTrue(IsEqual(err, nil)) {
+        err = this.SafeString(response, "Error")
     }
-    if IsTrue(!IsEqual(error, nil)) {
+    if IsTrue(!IsEqual(err, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
         panic(ExchangeError(feedback))
     }
     return nil

@@ -8,10 +8,10 @@ type bitmex struct {
 
 }
 
-func NewBitmexCore() bitmex {
-   p := bitmex{}
-   setDefaults(&p)
-   return p
+func NewBitmexCore() *bitmex {
+    p := &bitmex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitmex) Describe() interface{}  {
@@ -1026,7 +1026,7 @@ func  (this *bitmex) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
                 // the exchange sometimes returns null price in the orderbook
                 if IsTrue(!IsEqual(price, nil)) {
                     var resultSide interface{} = GetValue(result, side)
-                    AppendToArray(&resultSide,[]interface{}{price, amount})
+                    AppendToArray(&resultSide, []interface{}{price, amount})
                 }
             }
             AddElementToObject(result, "bids", this.SortBy(GetValue(result, "bids"), 0, true))
@@ -2453,10 +2453,10 @@ func  (this *bitmex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             response:= (<-this.PrivateDeleteOrder(this.Extend(request, params)))
             PanicOnError(response)
             var order interface{} = this.SafeValue(response, 0, map[string]interface{} {})
-            var error interface{} = this.SafeString(order, "error")
-            if IsTrue(!IsEqual(error, nil)) {
-                if IsTrue(IsGreaterThanOrEqual(GetIndexOf(error, "Unable to cancel order due to existing state"), 0)) {
-                    panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() failed: "), error)))
+            var err interface{} = this.SafeString(order, "error")
+            if IsTrue(!IsEqual(err, nil)) {
+                if IsTrue(IsGreaterThanOrEqual(GetIndexOf(err, "Unable to cancel order due to existing state"), 0)) {
+                    panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() failed: "), err)))
                 }
             }
         
@@ -3044,7 +3044,7 @@ func  (this *bitmex) FetchFundingRates(optionalArgs ...interface{}) <- chan inte
                 var market interface{} = this.SafeMarket(marketId)
                 var swap interface{} = this.SafeBool(market, "swap", false)
                 if IsTrue(swap) {
-                    AppendToArray(&filteredResponse,item)
+                    AppendToArray(&filteredResponse, item)
                 }
             }
             symbols = this.MarketSymbols(symbols)
@@ -3585,8 +3585,8 @@ func  (this *bitmex) HandleErrors(code interface{}, reason interface{}, url inte
         panic(DDoSProtection(Add(Add(this.Id, " "), body)))
     }
     if IsTrue(IsGreaterThanOrEqual(code, 400)) {
-        var error interface{} = this.SafeValue(response, "error", map[string]interface{} {})
-        var message interface{} = this.SafeString(error, "message")
+        var err interface{} = this.SafeValue(response, "error", map[string]interface{} {})
+        var message interface{} = this.SafeString(err, "message")
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
