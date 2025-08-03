@@ -699,6 +699,49 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "with spotEndpoint",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT",
+                    8,
+                    {
+                        "spotEndpoint": "level2_100"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "with limit above 100",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v3/market/orderbook/level2?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT",
+                    150
+                ],
+                "output": null
+            },
+            {
+                "description": "with limit below 100",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT",
+                    50
+                ],
+                "output": null
+            },
+            {
+                "description": "with limit below 10",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT",
+                    8
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
