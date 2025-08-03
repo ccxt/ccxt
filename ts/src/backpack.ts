@@ -766,6 +766,7 @@ export default class backpack extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
+        const open = this.safeString (ticker, 'firstPrice');
         const last = this.safeString (ticker, 'lastPrice');
         const high = this.safeString (ticker, 'high');
         const low = this.safeString (ticker, 'low');
@@ -784,7 +785,7 @@ export default class backpack extends Exchange {
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
