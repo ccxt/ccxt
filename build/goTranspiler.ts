@@ -4,7 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, resolve } from 'path'
 import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { platform } from 'process'
-import fs, { readFileSync } from 'fs'
+import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
@@ -441,9 +441,9 @@ class NewTranspiler {
     }
 
     getWsRegexes() {
-        const exchangeNamePattern: string = allExchanges['ids'].map((e: string) => capitalize(e.replace(/\.ts$/, ''))).join('|');
         // hoplefully we won't need this in the future by having everything typed properly in the typescript side
         return [
+            [/([^a-zA-Z0-9])base\.([A-Za-z0-9]+)\(/g, `$1this.base.$2(`],  // changes 'base' to 'this.base'
             // --- Generic fixes for WS transpilation (Go) ---
             // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
             [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
@@ -451,7 +451,6 @@ class NewTranspiler {
             // await-style return (C#) → channel read in Go (return await foo; -> return <-$1)
             [/return await (\w+);/g, 'return <-$1'],
             
-            // new getValue(a, b)(c)  →  this.NewException(GetValue(a, b), c)
             [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
             
             // Casted access to subscriptions/futures/clients → exported Go field/prop
@@ -517,15 +516,10 @@ class NewTranspiler {
             [/orderbook, "nonce"/g, 'orderbook, "Nonce"'],
             [/AddElementToObject\(orderbook, "Nonce"/g, 'AddElementToObject(orderbook, "nonce"'],
             // Error constructors
-            [/New([A-Za-z0-9]+Error)\(/g, '$1('],
             [/NewInvalidNonce/g, 'InvalidNonce'],
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
-            [/NewUnsubscribeError/g, 'UnsubscribeError'],
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
-            
-            [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
-            
         ]
     }
     
@@ -751,7 +745,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `IOrderBook`;  // TODO: this right?
+            return `IOrderBook`;
         }
 
         if (name === 'fetchTime'){
@@ -1472,13 +1466,11 @@ ${constStatements.join('\n')}
             // 3) Promise-style resolver calls don't exist in Go – comment them.
             ["client.resolve", "// client.resolve"],
             ["this.number = Number;", "this.number = typeof(float);"], // tmp fix for c#
-            ["= new List<Task<List<object>>> {", "= NewList<Task<List<object?>>> {"],
             // 4) Translate the C# `throw new …` syntax into the helper used by Go.
             ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message);"],
             ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message);"],
             ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message);"],
             // 5) Fix error constructors - remove "New" prefix
-            [/NewUnsubscribeError/g, 'UnsubscribeError'],
             [/NewNotSupported/g, 'NotSupported'],
             [/NewInvalidNonce/g, 'InvalidNonce'],
             // WS fixes
@@ -1806,7 +1798,18 @@ type IExchange interface {
      * @returns A set of type and function names with braces.
      */
     extractTypeAndFuncNames(dirPath: string): Set<string> {
-        const results = new Set<string>(['Precise', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO', 'TRUNCATE', 'ROUND']);
+        const results = new Set<string>([
+            'Precise',
+            'DECIMAL_PLACES',
+            'SIGNIFICANT_DIGITS',
+            'TICK_SIZE',
+            'NO_PADDING',
+            'PAD_WITH_ZERO',
+            'TRUNCATE',
+            'ROUND',
+            'toFixed',
+            'throwDynamicException'
+        ]);
       
         const files = fs.readdirSync(dirPath);
         for (const file of files) {
@@ -1863,11 +1866,11 @@ type IExchange interface {
                     const declarationMatch = line.match(/^(func(?: \(\w+ \*?\w+\))? \w+)\s*(\(.*)/);
                     if (declarationMatch) {
                         const declaration = declarationMatch[1];
-                        return declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${match}`).replace(variadicRegex, (match) => `${packageName}.${match}`);
+                        return declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
                     }
                     return line;
                 }
-                return line.replace(regex, (match) => `${packageName}.${match}`);
+                return line.replace(regex, (match) => `${packageName}.${capitalize(match)}`);
             })
             .join("\n");
     }
@@ -1876,9 +1879,6 @@ type IExchange interface {
         const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
         let content = goVersion.content;
         const exchangeName = className;
-        const capitalizedExchangeName = capitalize(exchangeName);
-
-        // const isInheritedExchange = content.indexOf('')
 
         className = capitalize(className + 'Core');
 
@@ -1888,46 +1888,27 @@ type IExchange interface {
         let isAlias = this.isAliasExchange(exchangeName);
         const coreName = isAlias ? capitalize(baseClass) : 'ccxt.' + capitalize(baseClass);
 
-        // content = content.replace(/func\sNew(\w+)\(\)/g, 'func New$1Core()');
         if (!ws) {
-            // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
                 [/base\.Describe/gm, "this.Exchange.Describe"],
                 [/"\0"/gm, '"\/\/\" + "0"'], // check this later in bl3p
-                [/new Precise/gm, "NewPrecise"],
                 [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
-                [/<\-callDynamically/gm, '<-this.CallDynamically'], //fix this on the transpiler
+                [/<\-callDynamically/gm, '<-this.CallDynamically'],
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
             ])
         } else {
-            content = content.replace(new RegExp(`this\\.${exchangeName}Rest\\.`, 'g'), `this.${exchangeName}.`);                       // Removes 'Rest' suffix
-            content = content.replace(/([^a-zA-Z0-9])base\.([A-Za-z0-9]+)\(/g, `$1this.base.$2(`);                                      // changes 'base' to 'this.base'
             const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
-            content = content.replace(/type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n`);      // adds 'base exchangeName'
-            content = content.replace(/(p \:\= &.*$)/gm, `$1\n\tbase := &${coreName}{}\n\tp.base = base\n\tp.${baseClass} = base`);  // could go in ast-transpiler if there is always a parameter named base
             const wsRegexes = this.getWsRegexes();
-            content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, goVersion.imports);
-            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
-            // TODO: should be fixed earlier in the pipeline without a regex
-            content = this.regexAll(content, [
-                [/ccxt.setDefaults/gm, 'ccxt.SetDefaults'],
-                [/ccxt.promiseAll/gm, 'ccxt.PromiseAll'],
-                [/ccxt\.sha(256|384|512)/gm, 'ccxt.Sha$1'],
-                [/ccxt\.math(Min|Max)/gm, 'ccxt.Math$1'],
-                [/ccxt.keccak/gm, 'ccxt.Keccak'],
-                [/ccxt.secp256k1/gm, 'ccxt.Secp256k1'],
-                [/ccxt.throwDynamicException/gm, 'ccxt.ThrowDynamicException'],
-                [/ccxt.ed25519/gm, 'ccxt.Ed25519'],
-                [/ccxt.toFixed/gm, 'ccxt.ToFixed'],
-                [/ccxt.md5/gm, 'ccxt.Md5'],
-                [/throwDynamicException/gm, 'ccxt.ThrowDynamicException'],
-                [/toFixed/gm, 'ccxt.ToFixed'],
+            content = this.regexAll (content, [
+                [ /type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n` ],      // adds 'base exchangeName'
+                [ /(p \:\= &.*$)/gm, `$1\n\tbase := &${coreName}{}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
+                ...wsRegexes,
             ]);
+            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
         }
 
 
@@ -1954,27 +1935,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;
-    }
-
-    replaceImportedRestClasses (content: string, imports: any[]) {
-        for (const imp of imports) {
-            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
-            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
-            const name = imp.name;
-            if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, name.replace('Rest', ''));
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Additional cleanup: strip `Rest` suffixes that were missed above.
-        // 1) Constructors or function calls like `NewBinancecoinmRest(...)` → `NewBinancecoinm(...)`
-        content = content.replace(/New([A-Za-z0-9_]+)Rest\(/g, 'New$1(');
-        // 2) Any remaining standalone identifiers ending with `Rest` → drop the suffix.
-        content = content.replace(/\b([A-Za-z0-9_]+)Rest\b/g, '$1');
-        // ------------------------------------------------------------------
-
-        return content;
     }
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false) {
@@ -2088,10 +2048,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
-            // [/Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
-            // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
 
 
@@ -2187,7 +2145,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
-                // [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
