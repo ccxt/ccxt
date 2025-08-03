@@ -315,6 +315,11 @@ export default class Exchange {
     sleep = sleep;
     throttleProp = undefined
 
+    // Flags, indicating current state of the running exchange instance
+    authenticated = true;
+    bootstrapped = true;
+    offline = false;
+
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     http_proxy: string;
     http_proxy_callback: any;
@@ -1036,6 +1041,16 @@ export default class Exchange {
             controller.abort ();
         }, this.timeout);
         try {
+            if (isNode) {
+                if (process.env['EMULATE_OFFLINE']) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new this.FetchError ();
+                }
+                if (process.env['EMULATE_TIMEOUT']) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new this.AbortError ();
+                }
+            }
             const response = await fetchImplementation (url, params);
             clearTimeout (timeout);
             return this.handleRestResponse (response, url, method, headers, body);
@@ -1043,7 +1058,10 @@ export default class Exchange {
             if (e instanceof this.AbortError) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             } else if (e instanceof this.FetchError) {
+                this.offline = true
                 throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed');
+            } else if (e instanceof AuthenticationError) {
+                this.authenticated = false
             }
             throw e;
         }
@@ -1129,10 +1147,20 @@ export default class Exchange {
         let currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ();
+            try {
+                currencies = await this.fetchCurrencies ();
+            } catch (e) {
+                this.bootstrapped = false;
+            }
             this.options['cachedCurrencies'] = currencies;
         }
-        const markets = await this.fetchMarkets (params);
+        let markets: Market[];
+        try {
+            markets = await this.fetchMarkets (params);
+        } catch (e) {
+            this.bootstrapped = false;
+            throw e;
+        }
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
@@ -1807,6 +1835,8 @@ export default class Exchange {
         return {
             'alias': false, // whether this exchange is an alias to another exchange
             'api': undefined,
+            'authenticated': true,
+            'bootstrapped': true,
             'certified': false, // if certified by the CCXT dev team
             'commonCurrencies': {
                 'BCHSV': 'BSV',
@@ -2103,6 +2133,7 @@ export default class Exchange {
             'name': undefined,
             'paddingMode': NO_PADDING,
             'precisionMode': TICK_SIZE,
+            'offline': false,
             'pro': false, // if it is integrated with CCXT Pro for WebSocket support
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'requiredCredentials': {
