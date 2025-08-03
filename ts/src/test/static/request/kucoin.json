@@ -710,7 +710,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.kucoin.com/api/v3/market/orderbook/level2?symbol=BTC-USDT",
+                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=BTC-USDT",
                 "input": [
                     "BTC/USDT"
                 ]
