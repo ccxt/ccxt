@@ -128,16 +128,24 @@ export default class cryptocom extends cryptocomRest {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
-        let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['book_subscription_type'] = bookSubscriptionType;
         let bookUpdateFrequency = undefined;
-        let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
-        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
-        if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        if (bookUpdateFrequency !== undefined) {
+            if (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && bookUpdateFrequency !== 500) {
+                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription');
+            } else if (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency, [ 10, 100 ])) {
+                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 10 or 100 for SNAPSHOT_AND_UPDATE subscription');
+            }
+            params['params']['book_update_frequency'] = bookUpdateFrequency;
+        }
+        if (limit === undefined) {
+            limit = 50; // max
+        } else {
+            limit = this.findNearestCeiling ([ 10, 50 ], limit);
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
