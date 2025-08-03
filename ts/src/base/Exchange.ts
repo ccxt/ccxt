@@ -932,7 +932,17 @@ export default class Exchange {
             controller.abort ()
         }, this.timeout)
         try {
-            const response = await fetchImplementation (url, params)
+            if (isNode) {
+                if (process.env['EMULATE_OFFLINE']) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new this.FetchError ();
+                }
+                if (process.env['EMULATE_TIMEOUT']) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new this.AbortError ();
+                }
+            }
+            const response = await fetchImplementation (url, params);
             clearTimeout (timeout)
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {

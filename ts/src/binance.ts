@@ -10,6 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { isNode } from "./base/functions/platform";
 
 //  ---------------------------------------------------------------------------
 
@@ -11972,6 +11973,13 @@ export default class binance extends Exchange {
             return undefined; // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        if (isNode) {
+            if (process.env['EMULATE_AUTHENTICATION_FAIL']) {
+                response.code = '-2015';
+                response.msg = 'Invalid API-key, IP, or permissions for action.';
+                delete response.success;
+            }
+        }
         const success = this.safeBool (response, 'success', true);
         if (!success) {
             const messageNew = this.safeString (response, 'msg');
