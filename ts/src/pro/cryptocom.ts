@@ -135,10 +135,8 @@ export default class cryptocom extends cryptocomRest {
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency !== undefined) {
-            if (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && bookUpdateFrequency !== 500) {
-                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription');
-            } else if (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency, [ 10, 100 ])) {
-                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 10 or 100 for SNAPSHOT_AND_UPDATE subscription');
+            if ((bookSubscriptionType === 'SNAPSHOT' && bookUpdateFrequency !== 500) || (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency, [ 10, 100 ]))) {
+                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription, but for SNAPSHOT_AND_UPDATE subscription - 10 or 100');
             }
             params['params']['book_update_frequency'] = bookUpdateFrequency;
         }
