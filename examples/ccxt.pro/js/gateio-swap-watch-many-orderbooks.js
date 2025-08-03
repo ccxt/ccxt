@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('ccxt')
+import ccxt from 'ccxt';
 
 console.log ("CCXT Pro Version:", ccxt.version)
 
