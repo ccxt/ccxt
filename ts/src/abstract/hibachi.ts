@@ -29,6 +29,7 @@ interface Exchange {
     privateDeleteTradeOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteTradeOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeOrders (params?: {}): Promise<implicitReturnType>;
     privatePostCapitalWithdraw (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

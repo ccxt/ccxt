@@ -37,7 +37,7 @@ export default class hibachi extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -167,6 +167,7 @@ export default class hibachi extends Exchange {
                     },
                     'post': {
                         'trade/order': 1,
+                        'trade/orders': 1,
                         'capital/withdraw': 1,
                     },
                 },
@@ -940,6 +941,15 @@ export default class hibachi extends Exchange {
         });
     }
 
+    cancelOrderRequest (id: string) {
+        const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (id)).padStart (16, '0'));
+        const signature = this.signMessage (message, this.privateKey);
+        return {
+            'orderId': id,
+            'signature': signature,
+        };
+    }
+
     /**
      * @method
      * @name hibachi#cancelOrder
@@ -951,13 +961,8 @@ export default class hibachi extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (id)).padStart (16, '0'));
-        const signature = this.signMessage (message, this.privateKey);
-        const request: Dict = {
-            'accountId': this.getAccountId (),
-            'orderId': id,
-            'signature': signature,
-        };
+        const request: Dict = this.cancelOrderRequest (id);
+        request['accountId'] = this.getAccountId ();
         await this.privateDeleteTradeOrder (this.extend (request, params));
         // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
         //
@@ -967,6 +972,44 @@ export default class hibachi extends Exchange {
             'id': id,
             'status': 'canceled',
         });
+    }
+
+    /**
+     * @method
+     * @name hibachi#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, unused
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        const orders = [];
+        for (let i = 0; i < ids.length; i++) {
+            const orderRequest = this.cancelOrderRequest (ids[i]);
+            orderRequest['action'] = 'cancel';
+            orders.push (orderRequest);
+        }
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+            'orders': orders,
+        };
+        const response = await this.privatePostTradeOrders (this.extend (request, params));
+        //
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
+        //
+        const ret = [];
+        const responseOrders = this.safeList (response, 'orders');
+        for (let i = 0; i < responseOrders.length; i++) {
+            const responseOrder = responseOrders[i];
+            ret.push (this.safeOrder ({
+                'info': responseOrder,
+                'id': this.safeString (responseOrder, 'orderId'),
+                'status': 'canceled',
+            }));
+        }
+        return ret;
     }
 
     /**

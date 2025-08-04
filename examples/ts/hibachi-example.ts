@@ -114,7 +114,12 @@ async function example () {
     console.log('fetchFundingRateHistory', fundingRateHistory);
 
     // Batch orders
+    const order6 = await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.234, 1.234);
+    const order7 = await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1.012, 1.012);
+    const cancelOrders = await exchange.cancelOrders([order6.id, order7.id]);
+    console.log('cancelOrders', cancelOrders);
     await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.234, 1.234);
+    await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.012, 1.012);
     const cancelAll = await exchange.cancelAllOrders('ETH/USDT:USDT');
     console.log(cancelAll);
 
