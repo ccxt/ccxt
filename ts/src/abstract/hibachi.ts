@@ -27,6 +27,7 @@ interface Exchange {
     privateGetTradeOrders (params?: {}): Promise<implicitReturnType>;
     privatePutTradeOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteTradeOrder (params?: {}): Promise<implicitReturnType>;
+    privateDeleteTradeOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCapitalWithdraw (params?: {}): Promise<implicitReturnType>;
 }

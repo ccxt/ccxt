@@ -35,7 +35,7 @@ export default class hibachi extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
@@ -163,6 +163,7 @@ export default class hibachi extends Exchange {
                     },
                     'delete': {
                         'trade/order': 1,
+                        'trade/orders': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -966,6 +967,41 @@ export default class hibachi extends Exchange {
             'id': id,
             'status': 'canceled',
         });
+    }
+
+    /**
+     * @method
+     * @name hibachi#cancelAllOrders
+     * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
+     * @description cancel all open orders in a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.nonce ();
+        const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (nonce)).padStart (16, '0'));
+        const signature = this.signMessage (message, this.privateKey);
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+            'nonce': nonce,
+            'signature': signature,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['contractId'] = this.safeInteger (market, 'numericId');
+        }
+        const response = await this.privateDeleteTradeOrders (this.extend (request, params));
+        // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
+        //
+        // {}
+        //
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
 
     withdrawMessage (amount: number, maxFees: number, address: string) {

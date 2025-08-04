@@ -112,5 +112,11 @@ async function example () {
 
     const fundingRateHistory = await exchange.fetchFundingRateHistory('BTC/USDT:USDT', undefined, 2);
     console.log('fetchFundingRateHistory', fundingRateHistory);
+
+    // Batch orders
+    await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.234, 1.234);
+    const cancelAll = await exchange.cancelAllOrders('ETH/USDT:USDT');
+    console.log(cancelAll);
+
 }
 example ();
