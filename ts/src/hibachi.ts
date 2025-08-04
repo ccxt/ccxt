@@ -60,6 +60,7 @@ export default class hibachi extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -833,9 +834,8 @@ export default class hibachi extends Exchange {
         return message;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const nonce = this.nonce ();
         const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
         let sideInternal = '';
         if (side === 'sell') {
@@ -892,7 +892,8 @@ export default class hibachi extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const nonce = this.nonce ();
+        const request = this.createOrderRequest (nonce, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId ();
         const response = await this.privatePostTradeOrder (request);
         //
@@ -917,6 +918,7 @@ export default class hibachi extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
         await this.loadMarkets ();
+        const nonce = this.nonce ();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -926,8 +928,101 @@ export default class hibachi extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const orderRequest = this.createOrderRequest (nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
+            requestOrders.push (orderRequest);
+        }
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+            'orders': requestOrders,
+        };
+        const response = await this.privatePostTradeOrders (this.extend (request, params));
+        //
+        // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
+        //
+        const ret = [];
+        const responseOrders = this.safeList (response, 'orders');
+        for (let i = 0; i < responseOrders.length; i++) {
+            const responseOrder = responseOrders[i];
+            ret.push (this.safeOrder ({
+                'info': responseOrder,
+                'id': this.safeString (responseOrder, 'orderId'),
+                'status': 'pending',
+            }));
+        }
+        return ret;
+    }
+
+    editOrderRequest (nonce: number, id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
+        const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
+        const signature = this.signMessage (message, this.privateKey);
+        const request = {
+            'orderId': id,
+            'nonce': nonce,
+            'updatedQuantity': this.amountToPrecision (symbol, amount),
+            'updatedPrice': this.priceToPrecision (symbol, price),
+            'maxFeesPercent': this.numberToString (feeRate),
+            'signature': signature,
+        };
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name hibachi#editOrder
+     * @description edit a limit order that is not matched
+     * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell', should stay the same with original side
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.nonce ();
+        const request = this.editOrderRequest (nonce, id, symbol, type, side, amount, price, params);
+        request['accountId'] = this.getAccountId ();
+        await this.privatePutTradeOrder (request);
+        // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
+        //
+        // {}
+        //
+        return this.safeOrder ({
+            'id': id,
+            'status': 'pending',
+        });
+    }
+
+    /**
+     * @method
+     * @name hibachi#editOrders
+     * @description edit a list of trade orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+        await this.loadMarkets ();
+        const nonce = this.nonce ();
+        const requestOrders = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const id = this.safeString (rawOrder, 'id');
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.editOrderRequest (nonce + i, id, symbol, type, side, amount, price, orderParams);
+            orderRequest['action'] = 'modify';
             requestOrders.push (orderRequest);
         }
         const request: Dict = {
@@ -951,49 +1046,8 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    /**
-     * @method
-     * @name hibachi#editOrder
-     * @description edit a limit order that is not matched
-     * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type must be 'limit'
-     * @param {string} side 'buy' or 'sell', should stay the same with original side
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const nonce = this.nonce ();
-        const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
-        const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
-        const signature = this.signMessage (message, this.privateKey);
-        const request = {
-            'accountId': this.getAccountId (),
-            'orderId': id,
-            'nonce': nonce,
-            'updatedQuantity': this.amountToPrecision (symbol, amount),
-            'updatedPrice': this.priceToPrecision (symbol, price),
-            'maxFeesPercent': this.numberToString (feeRate),
-            'signature': signature,
-        };
-        await this.privatePutTradeOrder (this.extend (request, params));
-        // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
-        //
-        // {}
-        //
-        return this.safeOrder ({
-            'id': id,
-            'status': 'pending',
-        });
-    }
-
     cancelOrderRequest (id: string) {
-        const message = this.ethAbiEncode ([ 'int' ], [ this.convertToBigInt (id) ]).slice (-8);
+        const message = this.base16ToBinary (this.intToBase16 (this.convertToBigInt (id)).padStart (16, '0'));
         const signature = this.signMessage (message, this.privateKey);
         return {
             'orderId': id,

@@ -121,6 +121,13 @@ async function example () {
         {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.003, 'price': 1.003},
     ]);
     console.log('createOrders', createOrders);
+    const editOrders = await exchange.editOrders([
+        // @ts-expect-error OrderRequest lacks `id` but we expects it for editing
+        {'id': createOrders[0].id, 'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.111, 'price': 0.999},
+        // @ts-expect-error OrderRequest lacks `id` but we expects it for editing
+        {'id': createOrders[1].id, 'symbol': 'BTC/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.112, 'price': 0.998},
+    ]);
+    console.log('editOrders', editOrders);
     const cancelOrders = await exchange.cancelOrders([createOrders[0].id, createOrders[1].id]);
     console.log('cancelOrders', cancelOrders);
     const cancelAll = await exchange.cancelAllOrders('ETH/USDT:USDT');
