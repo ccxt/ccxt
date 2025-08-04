@@ -1501,7 +1501,7 @@ ${constStatements.join('\n')}
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
             return`    case "${exchange}":
-        ${exchange}Itf := &${coreName}{}
+        ${exchange}Itf := New${coreName}()
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
         })
@@ -2311,7 +2311,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const imports = 'import "github.com/ccxt/ccxt/go/v4"';
             const fileHeaders = [
-                namespace,
+                namespace, 
                 imports,
                 '',
                 this.createGeneratedHeader().join('\n'),
