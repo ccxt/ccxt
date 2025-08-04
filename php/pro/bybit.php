@@ -946,7 +946,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_order_book_for_symbols(?array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the orderbook $channel
@@ -1144,7 +1144,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_trades_for_symbols(?array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the trades channel
@@ -2367,7 +2367,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //   {
         //       "success" => false,
