@@ -653,7 +653,7 @@ export default class kucoin extends Exchange {
                     'fetchTickersFees': true,
                 },
                 'fetchOrderBook': {
-                    'spotEndpoint': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
+                    'spotLevel': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2138,25 +2138,25 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.spotEndpoint] if users want to manually choose specific endpoint: "level2", "level2_20" or "level2_100" (default is "level2_100")
+     * @param {object} [params.spotLevel] if users want to manually choose specific endpoint: "level2", "level2_20" or "level2_100" (default is "level2_100")
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = { 'symbol': market['id'] };
-        let endpoint = undefined;
-        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'spotEndpoint');
+        let spotLevel = undefined;
+        [ spotLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'spotLevel');
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
         } else {
             limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
         }
-        // we prioritize the `endpoint` param precedence over the `limit` parameter
-        if ((endpoint === undefined && limit === 20) || endpoint === 'level2_20') {
+        // we prioritize the `spotLevel` param precedence over the `limit` parameter
+        if ((spotLevel === undefined && limit === 20) || spotLevel === 'level2_20') {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
-        } else if ((endpoint === undefined && limit === 100) || endpoint === 'level2_100') {
+        } else if ((spotLevel === undefined && limit === 100) || spotLevel === 'level2_100') {
             response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
             // full orderbook, auth required for this endpoint
