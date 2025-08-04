@@ -8,10 +8,10 @@ type hashkey struct {
 
 }
 
-func NewHashkeyCore() hashkey {
-   p := hashkey{}
-   setDefaults(&p)
-   return p
+func NewHashkeyCore() *hashkey {
+    p := &hashkey{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *hashkey) Describe() interface{}  {
@@ -1425,8 +1425,8 @@ func  (this *hashkey) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                     AddElementToObject(request, "accountId", accountId)
                 }
                 
-        response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a symbol argument for swap markets")))
@@ -1435,12 +1435,12 @@ func  (this *hashkey) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 if IsTrue(!IsEqual(accountId, nil)) {
                     AddElementToObject(request, "subAccountId", accountId)
                     
-        response = (<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
@@ -1921,7 +1921,7 @@ func  (this *hashkey) FetchBalance(optionalArgs ...interface{}) <- chan interfac
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2753,7 +2753,7 @@ func  (this *hashkey) CreateOrder(symbol interface{}, typeVar interface{}, side 
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " createOrder() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2839,16 +2839,16 @@ func  (this *hashkey) CreateSpotOrder(symbol interface{}, typeVar interface{}, s
             if IsTrue(test) {
                 params = this.Omit(params, "test")
                 
-        response = (<-this.PrivatePostApiV1SpotOrderTest(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiV1SpotOrderTest(request))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(isMarketBuy) && IsTrue((IsEqual(cost, nil)))) {
                 
-        response = (<-this.PrivatePostApiV11SpotOrder(request))
-                PanicOnError(response) // the endpoint for market buy orders by amount
+            response = (<-this.PrivatePostApiV11SpotOrder(request))
+                    PanicOnError(response) // the endpoint for market buy orders by amount
             } else {
                 
-        response = (<-this.PrivatePostApiV1SpotOrder(request))
-                PanicOnError(response) // the endpoint for market buy orders by cost and other orders
+            response = (<-this.PrivatePostApiV1SpotOrder(request))
+                    PanicOnError(response) // the endpoint for market buy orders by cost and other orders
             }
         
             ch <- this.ParseOrder(response, market)
@@ -3099,7 +3099,7 @@ func  (this *hashkey) CreateOrders(orders interface{}, optionalArgs ...interface
                 if IsTrue(IsEqual(clientOrderId, nil)) {
                     AddElementToObject(orderRequest, "clientOrderId", this.Uuid()) // both spot and swap endpoints require clientOrderId
                 }
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var firstOrder interface{} = GetValue(ordersRequests, 0)
             var firstSymbol interface{} = this.SafeString(firstOrder, "symbol")
@@ -3110,12 +3110,12 @@ func  (this *hashkey) CreateOrders(orders interface{}, optionalArgs ...interface
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(this.Id, " "), "createOrderRequest() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
@@ -3124,7 +3124,7 @@ func  (this *hashkey) CreateOrders(orders interface{}, optionalArgs ...interface
             for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
                 var responseEntry interface{} = this.SafeDict(result, i, map[string]interface{} {})
                 var responseOrder interface{} = this.SafeDict(responseEntry, "order", map[string]interface{} {})
-                AppendToArray(&responseOrders,responseOrder)
+                AppendToArray(&responseOrders, responseOrder)
             }
         
             ch <- this.ParseOrders(responseOrders)
@@ -3178,8 +3178,8 @@ func  (this *hashkey) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var isTrigger interface{} = false
                 isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger);
@@ -3194,8 +3194,8 @@ func  (this *hashkey) CancelOrder(id interface{}, optionalArgs ...interface{}) <
                     AddElementToObject(request, "symbol", GetValue(market, "id"))
                 }
                 
-        response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
@@ -3245,12 +3245,12 @@ func  (this *hashkey) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
@@ -3302,8 +3302,8 @@ func  (this *hashkey) CancelOrders(ids interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 response = this.PrivateDeleteApiV1FuturesCancelOrderByIds(this.Extend(request))
             } else {
@@ -3370,8 +3370,8 @@ func  (this *hashkey) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                     AddElementToObject(request, "origClientOrderId", clientOrderId)
                 }
                 
-        response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var isTrigger interface{} = false
                 isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger);
@@ -3381,8 +3381,8 @@ func  (this *hashkey) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                     AddElementToObject(request, "type", "STOP")
                 }
                 
-        response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
@@ -3458,7 +3458,7 @@ func  (this *hashkey) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3508,8 +3508,8 @@ func  (this *hashkey) FetchOpenSpotOrders(optionalArgs ...interface{}) <- chan i
             if IsTrue(!IsEqual(accountId, nil)) {
                 AddElementToObject(request, "subAccountId", accountId)
                 
-        response = (<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(symbol, nil)) {
                     market = this.Market(symbol)
@@ -3519,8 +3519,8 @@ func  (this *hashkey) FetchOpenSpotOrders(optionalArgs ...interface{}) <- chan i
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrders(response, market, since, limit)
@@ -3590,12 +3590,12 @@ func  (this *hashkey) FetchOpenSwapOrders(optionalArgs ...interface{}) <- chan i
             if IsTrue(!IsEqual(accountId, nil)) {
                 AddElementToObject(request, "subAccountId", accountId)
                 
-        response = (<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrders(response, market, since, limit)
@@ -3678,8 +3678,8 @@ func  (this *hashkey) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) 
                     AddElementToObject(request, "accountId", accountId)
                 }
                 
-        response = (<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a symbol argument for swap markets")))
@@ -3697,12 +3697,12 @@ func  (this *hashkey) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) 
                 if IsTrue(!IsEqual(accountId, nil)) {
                     AddElementToObject(request, "subAccountId", accountId)
                     
-        response = (<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
@@ -4132,7 +4132,7 @@ func  (this *hashkey) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var entry interface{} = GetValue(response, i)
                 var timestamp interface{} = this.SafeInteger(entry, "settleTime")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(this.SafeString(entry, "symbol"), market, nil, "swap"),
                     "fundingRate": this.SafeNumber(entry, "settleRate"),
@@ -4515,7 +4515,7 @@ func  (this *hashkey) ParseMarketLeverageTiers(info interface{}, optionalArgs ..
     for i := 0; IsLessThan(i, GetArrayLength(riskLimits)); i++ {
         var tier interface{} = GetValue(riskLimits, i)
         var initialMarginRate interface{} = this.SafeString(tier, "initialMargin")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.Sum(i, 1),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "settle"),
@@ -4553,24 +4553,24 @@ func  (this *hashkey) FetchTradingFee(symbol interface{}, optionalArgs ...interf
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.FetchTradingFees(params))
-                PanicOnError(response)
+            response = (<-this.FetchTradingFees(params))
+                    PanicOnError(response)
         
                 ch <- this.SafeDict(response, symbol)
                 return nil
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(map[string]interface{} {
+            response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(map[string]interface{} {
             "symbol": GetValue(market, "id"),
         }, params)))
-                PanicOnError(response)
+                    PanicOnError(response)
         
                 ch <- this.ParseTradingFee(response, market)
                 return nil
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }

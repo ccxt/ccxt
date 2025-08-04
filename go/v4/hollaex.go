@@ -8,10 +8,10 @@ type hollaex struct {
 
 }
 
-func NewHollaexCore() hollaex {
-   p := hollaex{}
-   setDefaults(&p)
-   return p
+func NewHollaexCore() *hollaex {
+    p := &hollaex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *hollaex) Describe() interface{}  {
@@ -366,7 +366,7 @@ func  (this *hollaex) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var quoteId interface{} = this.SafeString(market, "pair_2")
                 var base interface{} = this.CommonCurrencyCode(ToUpper(baseId))
                 var quote interface{} = this.CommonCurrencyCode(ToUpper(quoteId))
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": this.SafeString(market, "name"),
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,

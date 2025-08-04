@@ -8,10 +8,10 @@ type phemex struct {
 
 }
 
-func NewPhemexCore() phemex {
-   p := phemex{}
-   setDefaults(&p)
-   return p
+func NewPhemexCore() *phemex {
+    p := &phemex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *phemex) Describe() interface{}  {
@@ -1076,7 +1076,7 @@ func  (this *phemex) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                     })
                     market = this.ParseSpotMarket(market)
                 }
-                AppendToArray(&result,market)
+                AppendToArray(&result, market)
             }
         
             ch <- result
@@ -1209,7 +1209,7 @@ func  (this *phemex) CustomParseOrderBook(orderbook interface{}, symbol interfac
         var orders interface{} = []interface{}{}
         var bidasks interface{} = this.SafeValue(orderbook, side)
         for k := 0; IsLessThan(k, GetArrayLength(bidasks)); k++ {
-            AppendToArray(&orders,this.CustomParseBidAsk(GetValue(bidasks, k), priceKey, amountKey, market))
+            AppendToArray(&orders, this.CustomParseBidAsk(GetValue(bidasks, k), priceKey, amountKey, market))
         }
         AddElementToObject(result, side, orders)
     }
@@ -1247,17 +1247,17 @@ func  (this *phemex) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             var isStableSettled interface{} = IsTrue((IsEqual(GetValue(market, "settle"), "USDT"))) || IsTrue((IsEqual(GetValue(market, "settle"), "USDC")))
             if IsTrue(IsTrue(GetValue(market, "linear")) && IsTrue(isStableSettled)) {
                 
-        response = (<-this.V2GetMdV2Orderbook(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2GetMdV2Orderbook(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsLessThanOrEqual(limit, 30)))) {
                     
-        response = (<-this.V1GetMdOrderbook(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1GetMdOrderbook(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.V1GetMdFullbook(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1GetMdFullbook(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1449,12 +1449,12 @@ func  (this *phemex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
                         AddElementToObject(request, "to", to)
                     }
                     
-        response = (<-this.PublicGetMdV2KlineList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetMdV2KlineList(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PublicGetMdV2KlineLast(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetMdV2KlineLast(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(!IsEqual(since, nil)) {
@@ -1465,8 +1465,8 @@ func  (this *phemex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
                     limit = this.ParseToInt(Divide(timeDelta, duration)) // setting limit to the number of candles after since
                 }
                 
-        response = (<-this.PublicGetMdV2Kline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMdV2Kline(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -1608,17 +1608,17 @@ func  (this *phemex) FetchTicker(symbol interface{}, optionalArgs ...interface{}
             if IsTrue(GetValue(market, "swap")) {
                 if IsTrue(IsTrue(GetValue(market, "inverse")) || IsTrue(IsEqual(GetValue(market, "settle"), "USD"))) {
                     
-        response = (<-this.V1GetMdTicker24hr(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1GetMdTicker24hr(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.V2GetMdV2Ticker24hr(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V2GetMdV2Ticker24hr(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.V1GetMdSpotTicker24hr(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GetMdSpotTicker24hr(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1712,16 +1712,16 @@ func  (this *phemex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "spot")) {
                 
-        response = (<-this.V1GetMdSpotTicker24hrAll(query))
-                PanicOnError(response)
+            response = (<-this.V1GetMdSpotTicker24hrAll(query))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsEqual(subType, "inverse")) || IsTrue(IsEqual(this.SafeString(market, "settle"), "USD"))) {
                 
-        response = (<-this.V1GetMdTicker24hrAll(query))
-                PanicOnError(response)
+            response = (<-this.V1GetMdTicker24hrAll(query))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V2GetMdV2Ticker24hrAll(query))
-                PanicOnError(response)
+            response = (<-this.V2GetMdV2Ticker24hrAll(query))
+                    PanicOnError(response)
             }
             var result interface{} = this.SafeList(response, "result", []interface{}{})
         
@@ -1764,12 +1764,12 @@ func  (this *phemex) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             var isStableSettled interface{} = IsTrue((IsEqual(GetValue(market, "settle"), "USDT"))) || IsTrue((IsEqual(GetValue(market, "settle"), "USDC")))
             if IsTrue(IsTrue(GetValue(market, "linear")) && IsTrue(isStableSettled)) {
                 
-        response = (<-this.V2GetMdV2Trade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2GetMdV2Trade(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1GetMdTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GetMdTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -2248,12 +2248,12 @@ func  (this *phemex) FetchBalance(optionalArgs ...interface{}) <- chan interface
                     AddElementToObject(request, "currency", GetValue(currency, "id"))
                     if IsTrue(IsEqual(GetValue(currency, "id"), "USDT")) {
                         
-        response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     var currency interface{} = this.SafeString(params, "currency")
@@ -2261,13 +2261,13 @@ func  (this *phemex) FetchBalance(optionalArgs ...interface{}) <- chan interface
                         panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchBalance() requires a code parameter or a currency or settle parameter for "), typeVar), " type")))
                     }
                     
-        response = (<-this.PrivateGetSpotWallets(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotWallets(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateGetSpotWallets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotWallets(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // usdt
@@ -2978,16 +2978,16 @@ func  (this *phemex) CreateOrder(symbol interface{}, typeVar interface{}, side i
             var response interface{} = nil
             if IsTrue(isStableSettled) {
                 
-        response = (<-this.PrivatePostGOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostGOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "contract")) {
                 
-        response = (<-this.PrivatePostOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostSpotOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -3149,16 +3149,16 @@ func  (this *phemex) EditOrder(id interface{}, symbol interface{}, typeVar inter
                     AddElementToObject(request, "posSide", "Merged")
                 }
                 
-        response = (<-this.PrivatePutGOrdersReplace(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutGOrdersReplace(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivatePutOrdersReplace(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutOrdersReplace(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePutSpotOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutSpotOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
@@ -3212,16 +3212,16 @@ func  (this *phemex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                     AddElementToObject(request, "posSide", "Merged")
                 }
                 
-        response = (<-this.PrivateDeleteGOrdersCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteGOrdersCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateDeleteOrdersCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteSpotOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteSpotOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
@@ -3267,16 +3267,16 @@ func  (this *phemex) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))) {
                 
-        response = (<-this.PrivateDeleteGOrdersAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteGOrdersAll(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteSpotOrdersAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteSpotOrdersAll(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- []interface{}{this.SafeOrder(map[string]interface{} {
@@ -3326,16 +3326,16 @@ func  (this *phemex) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             var response interface{} = nil
             if IsTrue(IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))) {
                 
-        response = (<-this.PrivateGetApiDataGFuturesOrdersByOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiDataGFuturesOrdersByOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetExchangeOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var order interface{} = data
@@ -3404,16 +3404,16 @@ func  (this *phemex) FetchOrders(optionalArgs ...interface{}) <- chan interface{
             if IsTrue(IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))) {
                 AddElementToObject(request, "currency", GetValue(market, "settle"))
                 
-        response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetApiDataSpotsOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiDataSpotsOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var rows interface{} = this.SafeList(data, "rows", data)
@@ -3465,44 +3465,43 @@ func  (this *phemex) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             }
             var response interface{} = nil
             
-            {		ret__ := func(this *phemex) (ret_ interface{}) {
-            		defer func() {
-            			if e := recover(); e != nil {
-                            if e == "break" {
-            				    return
-            			    }
-            				ret_ = func(this *phemex) interface{} {
-            					// catch block:
-                                        if IsTrue(IsInstance(e, OrderNotFound)) {
+                {		
+                     func(this *phemex) (ret_ interface{}) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *phemex) interface{} {
+                                    // catch block:
+                                            if IsTrue(IsInstance(e, OrderNotFound)) {
             
                         ch <- []interface{}{}
                         return nil
                     }
                     panic(e)
-                                return nil
-            				}(this)
-            			}
-            		}()
-            		// try block:
-                            if IsTrue(IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))) {
+                                    
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                                if IsTrue(IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))) {
                         
-            response = (<-this.PrivateGetGOrdersActiveList(this.Extend(request, params)))
-                        PanicOnError(response)
+                response = (<-this.PrivateGetGOrdersActiveList(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else if IsTrue(GetValue(market, "swap")) {
                         
-            response = (<-this.PrivateGetOrdersActiveList(this.Extend(request, params)))
-                        PanicOnError(response)
+                response = (<-this.PrivateGetOrdersActiveList(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-            response = (<-this.PrivateGetSpotOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+                response = (<-this.PrivateGetSpotOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
-            		return nil
-            	}(this)
-            	if ret__ != nil {
-            		return ret__
-            	}
-            }
+            		    return nil
+            	    }(this)
+                
+                    }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             if IsTrue(IsArray(data)) {
         
@@ -3514,7 +3513,7 @@ func  (this *phemex) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                 ch <- this.ParseOrders(rows, market, since, limit)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3567,16 +3566,16 @@ func  (this *phemex) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue((IsEqual(this.SafeString(market, "settle"), "USDT")))) {
                 AddElementToObject(request, "currency", this.SafeString(params, "settle", "USDT"))
                 
-        response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderV2OrderList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetExchangeSpotOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeSpotOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -3625,7 +3624,7 @@ func  (this *phemex) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
                 ch <- this.ParseOrders(rows, market, since, limit)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3683,16 +3682,16 @@ func  (this *phemex) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             var response interface{} = nil
             if IsTrue(isUSDTSettled) {
                 
-        response = (<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetExchangeSpotOrderTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetExchangeSpotOrderTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -4207,17 +4206,17 @@ func  (this *phemex) FetchPositions(optionalArgs ...interface{}) <- chan interfa
                 params = GetValue(methodparamsVariable,1)
                 if IsTrue(IsEqual(method, "privateGetGAccountsAccountPositions")) {
                     
-        response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetAccountsPositions(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetAccountsPositions(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountsAccountPositions(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -4300,7 +4299,7 @@ func  (this *phemex) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
                 var position interface{} = GetValue(positions, i)
-                AppendToArray(&result,this.ParsePosition(position))
+                AppendToArray(&result, this.ParsePosition(position))
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4497,12 +4496,12 @@ func  (this *phemex) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
             var isStableSettled interface{} = IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))
             if IsTrue(isStableSettled) {
                 
-        response = (<-this.PrivateGetApiDataGFuturesFundingFees(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiDataGFuturesFundingFees(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetApiDataFuturesFundingFees(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiDataFuturesFundingFees(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -4534,7 +4533,7 @@ func  (this *phemex) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
                 var timestamp interface{} = this.SafeInteger(entry, "createTime")
                 var execFee interface{} = this.SafeString2(entry, "execFeeEv", "execFeeRv")
                 var currencyCode interface{} = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeString(entry, "symbol"),
                     "code": currencyCode,
@@ -4597,12 +4596,12 @@ func  (this *phemex) FetchFundingRate(symbol interface{}, optionalArgs ...interf
             var response interface{} = map[string]interface{} {}
             if !IsTrue(GetValue(market, "linear")) {
                 
-        response = (<-this.V1GetMdTicker24hr(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GetMdTicker24hr(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V2GetMdV2Ticker24hr(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2GetMdV2Ticker24hr(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5019,7 +5018,7 @@ func  (this *phemex) ParseMarketLeverageTiers(info interface{}, optionalArgs ...
     for i := 0; IsLessThan(i, GetArrayLength(riskLimits)); i++ {
         var tier interface{} = GetValue(riskLimits, i)
         var maxNotional interface{} = this.SafeInteger(tier, "limit")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.Sum(i, 1),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "settle"),
@@ -5139,13 +5138,13 @@ func  (this *phemex) SetLeverage(leverage interface{}, optionalArgs ...interface
                     AddElementToObject(request, "shortLeverageRr", shortVar)
                 }
                 
-        response = (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "leverage", leverage)
                 
-        response = (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -5465,12 +5464,12 @@ func  (this *phemex) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
             var response interface{} = nil
             if IsTrue(isUsdtSettled) {
                 
-        response = (<-this.V2GetApiDataPublicDataFundingRateHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2GetApiDataPublicDataFundingRateHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1GetApiDataPublicDataFundingRateHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GetApiDataPublicDataFundingRateHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //    {
@@ -5494,7 +5493,7 @@ func  (this *phemex) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
             for i := 0; IsLessThan(i, GetArrayLength(rates)); i++ {
                 var item interface{} = GetValue(rates, i)
                 var timestamp interface{} = this.SafeInteger(item, "fundingTime")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": item,
                     "symbol": symbol,
                     "fundingRate": this.SafeNumber(item, "fundingRate"),
@@ -5983,9 +5982,9 @@ func  (this *phemex) HandleErrors(httpCode interface{}, reason interface{}, url 
     //     {"code":412,"msg":"Missing parameter - to","data":null}
     //     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
     //
-    var error interface{} = this.SafeValue(response, "error", response)
-    var errorCode interface{} = this.SafeString(error, "code")
-    var message interface{} = this.SafeString(error, "msg")
+    var err interface{} = this.SafeValue(response, "error", response)
+    var errorCode interface{} = this.SafeString(err, "code")
+    var message interface{} = this.SafeString(err, "msg")
     if IsTrue(IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "0")))) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

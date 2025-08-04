@@ -8,10 +8,10 @@ type defx struct {
 
 }
 
-func NewDefxCore() defx {
-   p := defx{}
-   setDefaults(&p)
-   return p
+func NewDefxCore() *defx {
+    p := &defx{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *defx) Describe() interface{}  {
@@ -1132,8 +1132,8 @@ func  (this *defx) ParseTrade(trade interface{}, optionalArgs ...interface{}) in
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    var time interface{} = this.SafeString(trade, "time")
-    var timestamp interface{} = this.SafeInteger(trade, "timestamp", this.Parse8601(time))
+    var timeVar interface{} = this.SafeString(trade, "time")
+    var timestamp interface{} = this.SafeInteger(trade, "timestamp", this.Parse8601(timeVar))
     var marketId interface{} = this.SafeString(trade, "symbol")
     market = this.SafeMarket(marketId, market)
     var symbol interface{} = GetValue(market, "symbol")

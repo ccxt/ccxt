@@ -8,10 +8,10 @@ type bitso struct {
 
 }
 
-func NewBitsoCore() bitso {
-   p := bitso{}
-   setDefaults(&p)
-   return p
+func NewBitsoCore() *bitso {
+    p := &bitso{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitso) Describe() interface{}  {
@@ -504,8 +504,8 @@ func  (this *bitso) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
                     var volume interface{} = this.SafeNumber(tier, "volume")
                     var takerFee interface{} = this.SafeNumber(tier, "taker")
                     var makerFee interface{} = this.SafeNumber(tier, "maker")
-                    AppendToArray(&takerFees,[]interface{}{volume, takerFee})
-                    AppendToArray(&makerFees,[]interface{}{volume, makerFee})
+                    AppendToArray(&takerFees, []interface{}{volume, takerFee})
+                    AppendToArray(&makerFees, []interface{}{volume, makerFee})
                     if IsTrue(IsEqual(j, 0)) {
                         AddElementToObject(fee, "taker", takerFee)
                         AddElementToObject(fee, "maker", makerFee)
@@ -518,7 +518,7 @@ func  (this *bitso) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
                 AddElementToObject(fee, "tiers", tiers)
                 // TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
                 var defaultPricePrecision interface{} = this.SafeNumber(GetValue(this.Options, "precision"), quote, GetValue(this.Options, "defaultPrecision"))
-                AppendToArray(&result,this.Extend(map[string]interface{} {
+                AppendToArray(&result, this.Extend(map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1305,7 +1305,7 @@ func  (this *bitso) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
                 var id interface{} = GetValue(payload, i)
-                AppendToArray(&orders,this.ParseOrder(id, market))
+                AppendToArray(&orders, this.ParseOrder(id, market))
             }
         
             ch <- orders
@@ -1348,7 +1348,7 @@ func  (this *bitso) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
             var canceledOrders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
                 var order interface{} = this.ParseOrder(GetValue(payload, i))
-                AppendToArray(&canceledOrders,order)
+                AppendToArray(&canceledOrders, order)
             }
         
             ch <- canceledOrders
@@ -2217,11 +2217,11 @@ func  (this *bitso) HandleErrors(httpCode interface{}, reason interface{}, url i
         }
         if !IsTrue(success) {
             var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
-            var error interface{} = this.SafeValue(response, "error")
-            if IsTrue(IsEqual(error, nil)) {
+            var err interface{} = this.SafeValue(response, "error")
+            if IsTrue(IsEqual(err, nil)) {
                 panic(ExchangeError(feedback))
             }
-            var code interface{} = this.SafeString(error, "code")
+            var code interface{} = this.SafeString(err, "code")
             this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
             panic(ExchangeError(feedback))
         }

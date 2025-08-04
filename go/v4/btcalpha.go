@@ -8,10 +8,10 @@ type btcalpha struct {
 
 }
 
-func NewBtcalphaCore() btcalpha {
-   p := btcalpha{}
-   setDefaults(&p)
-   return p
+func NewBtcalphaCore() *btcalpha {
+    p := &btcalpha{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *btcalpha) Describe() interface{}  {
@@ -539,7 +539,7 @@ func  (this *btcalpha) ParseBidsAsks(bidasks interface{}, optionalArgs ...interf
     for i := 0; IsLessThan(i, GetArrayLength(bidasks)); i++ {
         var bidask interface{} = GetValue(bidasks, i)
         if IsTrue(bidask) {
-            AppendToArray(&result,this.ParseBidAsk(bidask, priceKey, amountKey))
+            AppendToArray(&result, this.ParseBidAsk(bidask, priceKey, amountKey))
         }
     }
     return result
@@ -1342,11 +1342,11 @@ func  (this *btcalpha) HandleErrors(code interface{}, reason interface{}, url in
     //
     //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
     //
-    var error interface{} = this.SafeString(response, "error")
-    if IsTrue(!IsEqual(error, nil)) {
+    var err interface{} = this.SafeString(response, "error")
+    if IsTrue(!IsEqual(err, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
         panic(ExchangeError(feedback))
     }
     return nil

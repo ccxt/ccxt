@@ -8,10 +8,10 @@ type hitbtc struct {
 
 }
 
-func NewHitbtcCore() hitbtc {
-   p := hitbtc{}
-   setDefaults(&p)
-   return p
+func NewHitbtcCore() *hitbtc {
+    p := &hitbtc{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *hitbtc) Describe() interface{}  {
@@ -668,7 +668,7 @@ func  (this *hitbtc) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var stepString interface{} = this.SafeString(market, "tick_size")
                 var lot interface{} = this.ParseNumber(lotString)
                 var step interface{} = this.ParseNumber(stepString)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -992,16 +992,16 @@ func  (this *hitbtc) FetchBalance(optionalArgs ...interface{}) <- chan interface
             var response interface{} = nil
             if IsTrue(IsEqual(account, "wallet")) {
                 
-        response = (<-this.PrivateGetWalletBalance(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetWalletBalance(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(account, "spot")) {
                 
-        response = (<-this.PrivateGetSpotBalance(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotBalance(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(account, "derivatives")) {
                 
-        response = (<-this.PrivateGetFuturesBalance(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFuturesBalance(params))
+                    PanicOnError(response)
             } else {
                 var keys interface{} = ObjectKeys(accountsByType)
                 panic(BadRequest(Add(Add(this.Id, " fetchBalance() type parameter must be one of "), Join(keys, ", "))))
@@ -1215,12 +1215,12 @@ func  (this *hitbtc) FetchTrades(symbol interface{}, optionalArgs ...interface{}
                 market = this.Market(symbol)
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicGetPublicTradesSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicTradesSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetPublicTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             if IsTrue(!IsEqual(symbol, nil)) {
         
@@ -1298,21 +1298,21 @@ func  (this *hitbtc) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             params = this.Omit(params, []interface{}{"marginMode", "margin"})
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchMyTrades() not support this market type")))
                 }
@@ -1829,12 +1829,12 @@ func  (this *hitbtc) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
             var response interface{} = nil
             if IsTrue(IsEqual(GetValue(market, "type"), "spot")) {
                 
-        response = (<-this.PrivateGetSpotFeeSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotFeeSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(GetValue(market, "type"), "swap")) {
                 
-        response = (<-this.PrivateGetFuturesFeeSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFuturesFeeSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchTradingFee() not support this market type")))
             }
@@ -1876,12 +1876,12 @@ func  (this *hitbtc) FetchTradingFees(optionalArgs ...interface{}) <- chan inter
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateGetSpotFee(query))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotFee(query))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateGetFuturesFee(query))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFuturesFee(query))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchTradingFees() not support this market type")))
             }
@@ -1970,20 +1970,20 @@ func  (this *hitbtc) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(price, "mark")) {
                 
-        response = (<-this.PublicGetPublicFuturesCandlesMarkPriceSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicFuturesCandlesMarkPriceSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(price, "index")) {
                 
-        response = (<-this.PublicGetPublicFuturesCandlesIndexPriceSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicFuturesCandlesIndexPriceSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(price, "premiumIndex")) {
                 
-        response = (<-this.PublicGetPublicFuturesCandlesPremiumIndexSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicFuturesCandlesPremiumIndexSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetPublicCandlesSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetPublicCandlesSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2102,21 +2102,21 @@ func  (this *hitbtc) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchClosedOrders() not support this market type")))
                 }
@@ -2174,21 +2174,21 @@ func  (this *hitbtc) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchOrder() not support this market type")))
                 }
@@ -2271,21 +2271,21 @@ func  (this *hitbtc) FetchOrderTrades(id interface{}, optionalArgs ...interface{
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchOrderTrades() not support this market type")))
                 }
@@ -2384,21 +2384,21 @@ func  (this *hitbtc) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchOpenOrders() not support this market type")))
                 }
@@ -2474,21 +2474,21 @@ func  (this *hitbtc) FetchOpenOrder(id interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchOpenOrder() not support this market type")))
                 }
@@ -2543,21 +2543,21 @@ func  (this *hitbtc) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateDeleteSpotOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteSpotOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateDeleteFuturesOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteFuturesOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " cancelAllOrders() not support this market type")))
                 }
@@ -2614,21 +2614,21 @@ func  (this *hitbtc) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " cancelOrder() not support this market type")))
                 }
@@ -2680,21 +2680,21 @@ func  (this *hitbtc) EditOrder(id interface{}, symbol interface{}, typeVar inter
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "spot")) {
                     
-        response = (<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " editOrder() not support this market type")))
                 }
@@ -2754,16 +2754,16 @@ func  (this *hitbtc) CreateOrder(symbol interface{}, typeVar interface{}, side i
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivatePostFuturesOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostFuturesOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue((IsEqual(marketType, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) {
                 
-        response = (<-this.PrivatePostMarginOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarginOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostSpotOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrder(response, market)
@@ -3001,12 +3001,12 @@ func  (this *hitbtc) FetchMarginModes(optionalArgs ...interface{}) <- chan inter
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "margin")) {
                 
-        response = (<-this.PrivateGetMarginConfig(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginConfig(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateGetFuturesConfig(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFuturesConfig(params))
+                    PanicOnError(response)
             } else {
                 panic(BadSymbol(Add(this.Id, " fetchMarginModes () supports swap contracts and margin only")))
             }
@@ -3369,7 +3369,7 @@ func  (this *hitbtc) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                     var symbolInner interface{} = this.SafeSymbol(GetValue(marketInner, "symbol"))
                     var fundingRate interface{} = this.SafeNumber(entry, "funding_rate")
                     var datetime interface{} = this.SafeString(entry, "timestamp")
-                    AppendToArray(&rates,map[string]interface{} {
+                    AppendToArray(&rates, map[string]interface{} {
                         "info": entry,
                         "symbol": symbolInner,
                         "fundingRate": fundingRate,
@@ -3426,17 +3426,17 @@ func  (this *hitbtc) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesAccount(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesAccount(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchPositions() not support this market type")))
                 }
@@ -3475,7 +3475,7 @@ func  (this *hitbtc) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             //
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(response, i)))
+                AppendToArray(&result, this.ParsePosition(GetValue(response, i)))
             }
         
             ch <- result
@@ -3522,17 +3522,17 @@ func  (this *hitbtc) FetchPosition(symbol interface{}, optionalArgs ...interface
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(marketType, "swap")) {
                     
-        response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(marketType, "margin")) {
                     
-        response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchPosition() not support this market type")))
                 }
@@ -3746,7 +3746,7 @@ func  (this *hitbtc) FetchOpenInterests(optionalArgs ...interface{}) <- chan int
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var marketId interface{} = GetValue(markets, i)
                 var marketInner interface{} = this.SafeMarket(marketId)
-                AppendToArray(&results,this.ParseOpenInterest(GetValue(response, marketId), marketInner))
+                AppendToArray(&results, this.ParseOpenInterest(GetValue(response, marketId), marketInner))
             }
         
             ch <- this.FilterByArray(results, "symbol", symbols)
@@ -3939,12 +3939,12 @@ func  (this *hitbtc) ModifyMarginHelper(symbol interface{}, amount interface{}, 
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(marketType, "margin"))) || IsTrue((IsEqual(marketType, "spot")))) || IsTrue((IsEqual(marginMode, "isolated")))) {
                 
-        response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " modifyMarginHelper() not support this market type")))
             }
@@ -4110,21 +4110,21 @@ func  (this *hitbtc) FetchLeverage(symbol interface{}, optionalArgs ...interface
             var response interface{} = nil
             if IsTrue(!IsEqual(marginMode, nil)) {
                 
-        response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(GetValue(market, "type"), "spot")) {
                     
-        response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(GetValue(market, "type"), "swap")) {
                     
-        response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(GetValue(market, "type"), "margin")) {
                     
-        response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchLeverage() not support this market type")))
                 }
@@ -4438,11 +4438,11 @@ func  (this *hitbtc) HandleErrors(code interface{}, reason interface{}, url inte
     //       }
     //     }
     //
-    var error interface{} = this.SafeValue(response, "error")
-    var errorCode interface{} = this.SafeString(error, "code")
+    var err interface{} = this.SafeValue(response, "error")
+    var errorCode interface{} = this.SafeString(err, "code")
     if IsTrue(!IsEqual(errorCode, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        var message interface{} = this.SafeString2(error, "message", "description")
+        var message interface{} = this.SafeString2(err, "message", "description")
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
         panic(ExchangeError(feedback))
@@ -4483,12 +4483,12 @@ func  (this *hitbtc) Sign(path interface{}, optionalArgs ...interface{}) interfa
         var payload interface{} = []interface{}{method, Add("/api/3/", implodedPath)}
         if IsTrue(IsEqual(method, "GET")) {
             if IsTrue(!IsEqual(getRequest, nil)) {
-                AppendToArray(&payload,getRequest)
+                AppendToArray(&payload, getRequest)
             }
         } else {
-            AppendToArray(&payload,body)
+            AppendToArray(&payload, body)
         }
-        AppendToArray(&payload,timestamp)
+        AppendToArray(&payload, timestamp)
         var payloadString interface{} = Join(payload, "")
         var signature interface{} = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
         var secondPayload interface{} = Add(Add(Add(Add(this.ApiKey, ":"), signature), ":"), timestamp)

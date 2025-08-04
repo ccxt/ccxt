@@ -8,10 +8,10 @@ type novadax struct {
 
 }
 
-func NewNovadaxCore() novadax {
-   p := novadax{}
-   setDefaults(&p)
-   return p
+func NewNovadaxCore() *novadax {
+    p := &novadax{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *novadax) Describe() interface{}  {
@@ -1624,7 +1624,7 @@ func  (this *novadax) FetchAccounts(optionalArgs ...interface{}) <- chan interfa
                 var account interface{} = GetValue(data, i)
                 var accountId interface{} = this.SafeString(account, "subId")
                 var typeVar interface{} = this.SafeString(account, "subAccount")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": accountId,
                     "type": typeVar,
                     "currency": nil,

@@ -8,10 +8,10 @@ type ellipx struct {
 
 }
 
-func NewEllipxCore() ellipx {
-   p := ellipx{}
-   setDefaults(&p)
-   return p
+func NewEllipxCore() *ellipx {
+    p := &ellipx{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *ellipx) Describe() interface{}  {
@@ -1071,7 +1071,7 @@ func  (this *ellipx) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
             },
         })
                 var infos interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
-                AppendToArray(&infos,networkEntry)
+                AppendToArray(&infos, networkEntry)
                 AddElementToObject(GetValue(result, code), "info", infos)
             }
             // only after all entries are formed in currencies, restructure each entry

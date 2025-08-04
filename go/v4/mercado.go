@@ -8,10 +8,10 @@ type mercado struct {
 
 }
 
-func NewMercadoCore() mercado {
-   p := mercado{}
-   setDefaults(&p)
-   return p
+func NewMercadoCore() *mercado {
+    p := &mercado{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *mercado) Describe() interface{}  {
@@ -284,7 +284,7 @@ func  (this *mercado) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var id interface{} = Add(quote, base)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1165,7 +1165,7 @@ func  (this *mercado) OrdersToTrades(orders interface{}) interface{}  {
     for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
         var trades interface{} = this.SafeValue(GetValue(orders, i), "trades", []interface{}{})
         for y := 0; IsLessThan(y, GetArrayLength(trades)); y++ {
-            AppendToArray(&result,GetValue(trades, y))
+            AppendToArray(&result, GetValue(trades, y))
         }
     }
     return result

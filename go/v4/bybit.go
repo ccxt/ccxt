@@ -8,10 +8,10 @@ type bybit struct {
 
 }
 
-func NewBybitCore() bybit {
-   p := bybit{}
-   setDefaults(&p)
-   return p
+func NewBybitCore() *bybit {
+    p := &bybit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bybit) Describe() interface{}  {
@@ -1731,23 +1731,23 @@ func  (this *bybit) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
             for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
                 var marketType interface{} = GetValue(types, i)
                 if IsTrue(IsEqual(marketType, "spot")) {
-                    AppendToArray(&promisesUnresolved,this.FetchSpotMarkets(params))
+                    AppendToArray(&promisesUnresolved, this.FetchSpotMarkets(params))
                 } else if IsTrue(IsEqual(marketType, "linear")) {
-                    AppendToArray(&promisesUnresolved,this.FetchFutureMarkets(map[string]interface{} {
+                    AppendToArray(&promisesUnresolved, this.FetchFutureMarkets(map[string]interface{} {
                         "category": "linear",
                     }))
                 } else if IsTrue(IsEqual(marketType, "inverse")) {
-                    AppendToArray(&promisesUnresolved,this.FetchFutureMarkets(map[string]interface{} {
+                    AppendToArray(&promisesUnresolved, this.FetchFutureMarkets(map[string]interface{} {
                         "category": "inverse",
                     }))
                 } else if IsTrue(IsEqual(marketType, "option")) {
-                    AppendToArray(&promisesUnresolved,this.FetchOptionMarkets(map[string]interface{} {
+                    AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{} {
                         "baseCoin": "BTC",
                     }))
-                    AppendToArray(&promisesUnresolved,this.FetchOptionMarkets(map[string]interface{} {
+                    AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{} {
                         "baseCoin": "ETH",
                     }))
-                    AppendToArray(&promisesUnresolved,this.FetchOptionMarkets(map[string]interface{} {
+                    AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{} {
                         "baseCoin": "SOL",
                     }))
                 } else {
@@ -1786,12 +1786,12 @@ func  (this *bybit) FetchSpotMarkets(params interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(usePrivateInstrumentsInfo) {
                 
-        response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -1845,7 +1845,7 @@ func  (this *bybit) FetchSpotMarkets(params interface{}) <- chan interface{} {
                 var quotePrecision interface{} = this.SafeNumber(lotSizeFilter, "quotePrecision")
                 var marginTrading interface{} = this.SafeString(market, "marginTrading", "none")
                 var allowsMargin interface{} = !IsEqual(marginTrading, "none")
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -1916,8 +1916,8 @@ func  (this *bybit) FetchFutureMarkets(params interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(usePrivateInstrumentsInfo) {
                 
-        response = (<-this.PrivateGetV5MarketInstrumentsInfo(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5MarketInstrumentsInfo(params))
+                    PanicOnError(response)
             } else {
                 var linearPromises interface{} = []interface{}{this.PublicGetV5MarketInstrumentsInfo(params), this.PublicGetV5MarketInstrumentsInfo(this.Extend(params, map[string]interface{} {
             "status": "PreLaunch",
@@ -1937,12 +1937,12 @@ func  (this *bybit) FetchFutureMarkets(params interface{}) <- chan interface{} {
                     var responseInner interface{} = nil
                     if IsTrue(usePrivateInstrumentsInfo) {
                         
-        responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(params))
-                        PanicOnError(responseInner)
+            responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(params))
+                            PanicOnError(responseInner)
                     } else {
                         
-        responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(params))
-                        PanicOnError(responseInner)
+            responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(params))
+                            PanicOnError(responseInner)
                     }
                     var dataNew interface{} = this.SafeDict(responseInner, "result", map[string]interface{} {})
                     var rawMarkets interface{} = this.SafeList(dataNew, "list", []interface{}{})
@@ -2055,7 +2055,7 @@ func  (this *bybit) FetchFutureMarkets(params interface{}) <- chan interface{} {
                     symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
                 }
                 var contractSize interface{} = Ternary(IsTrue(inverse), this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty"), this.ParseNumber("1"))
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -2126,12 +2126,12 @@ func  (this *bybit) FetchOptionMarkets(params interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(usePrivateInstrumentsInfo) {
                 
-        response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "result", map[string]interface{} {})
             var markets interface{} = this.SafeList(data, "list", []interface{}{})
@@ -2144,12 +2144,12 @@ func  (this *bybit) FetchOptionMarkets(params interface{}) <- chan interface{} {
                         var responseInner interface{} = nil
                         if IsTrue(usePrivateInstrumentsInfo) {
                             
-        responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                            PanicOnError(responseInner)
+            responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                                PanicOnError(responseInner)
                         } else {
                             
-        responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
-                            PanicOnError(responseInner)
+            responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
+                                PanicOnError(responseInner)
                         }
                         var dataNew interface{} = this.SafeDict(responseInner, "result", map[string]interface{} {})
                         var rawMarkets interface{} = this.SafeList(dataNew, "list", []interface{}{})
@@ -2217,7 +2217,7 @@ func  (this *bybit) FetchOptionMarkets(params interface{}) <- chan interface{} {
                 var isActive interface{} =         (IsEqual(status, "Trading"))
                 var isInverse interface{} = IsEqual(base, settle)
                 if IsTrue(IsTrue(IsTrue(isActive) || IsTrue((GetValue(this.Options, "loadAllOptions")))) || IsTrue((GetValue(this.Options, "loadExpiredOptions")))) {
-                    AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                    AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                         "id": id,
                         "symbol": Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), optionLetter),
                         "base": base,
@@ -2537,7 +2537,7 @@ func  (this *bybit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
                         }
                         params = this.Omit(params, []interface{}{"code", "currency"})
                     }
-                    AppendToArray(&parsedSymbols,GetValue(market, "symbol"))
+                    AppendToArray(&parsedSymbols, GetValue(market, "symbol"))
                 }
             }
             var request interface{} = map[string]interface{} {}
@@ -2717,8 +2717,8 @@ func  (this *bybit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
             if IsTrue(GetValue(market, "spot")) {
                 AddElementToObject(request, "category", "spot")
                 
-        response = (<-this.PublicGetV5MarketKline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetV5MarketKline(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var price interface{} = this.SafeString(params, "price")
                 params = this.Omit(params, "price")
@@ -2731,20 +2731,20 @@ func  (this *bybit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
                 }
                 if IsTrue(IsEqual(price, "mark")) {
                     
-        response = (<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(price, "index")) {
                     
-        response = (<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(price, "premiumIndex")) {
                     
-        response = (<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PublicGetV5MarketKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetV5MarketKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -3059,7 +3059,7 @@ func  (this *bybit) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan
             for i := 0; IsLessThan(i, GetArrayLength(resultList)); i++ {
                 var entry interface{} = GetValue(resultList, i)
                 var timestamp interface{} = this.SafeInteger(entry, "fundingRateTimestamp")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(this.SafeString(entry, "symbol"), nil, nil, "swap"),
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -3659,20 +3659,20 @@ func  (this *bybit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(IsTrue(isSpot) && IsTrue((!IsEqual(marginMode, nil)))) {
                 
-        response = (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(isFunding) {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 AddElementToObject(request, "accountType", "FUND")
                 
-        response = (<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "accountType", unifiedType)
                 
-        response = (<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -4194,12 +4194,12 @@ func  (this *bybit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privatePostV5PositionTradingStop")) {
                 
-        response = (<-this.PrivatePostV5PositionTradingStop(orderRequest))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV5PositionTradingStop(orderRequest))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostV5OrderCreate(orderRequest))
-                PanicOnError(response) // already extended inside createOrderRequest
+            response = (<-this.PrivatePostV5OrderCreate(orderRequest))
+                    PanicOnError(response) // already extended inside createOrderRequest
             }
             //
             //     {
@@ -4471,7 +4471,7 @@ func  (this *bybit) CreateOrders(orders interface{}, optionalArgs ...interface{}
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
                 var rawOrder interface{} = GetValue(orders, i)
                 var marketId interface{} = this.SafeString(rawOrder, "symbol")
-                AppendToArray(&orderSymbols,marketId)
+                AppendToArray(&orderSymbols, marketId)
                 var typeVar interface{} = this.SafeString(rawOrder, "type")
                 var side interface{} = this.SafeString(rawOrder, "side")
                 var amount interface{} = this.SafeValue(rawOrder, "amount")
@@ -4479,7 +4479,7 @@ func  (this *bybit) CreateOrders(orders interface{}, optionalArgs ...interface{}
                 var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams, isUta)
                 Remove(orderRequest, "category")
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var symbols interface{} = this.MarketSymbols(orderSymbols, nil, false, true, true)
             var market interface{} = this.Market(GetValue(symbols, 0))
@@ -4712,7 +4712,7 @@ func  (this *bybit) EditOrders(orders interface{}, optionalArgs ...interface{}) 
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
                 var rawOrder interface{} = GetValue(orders, i)
                 var symbol interface{} = this.SafeString(rawOrder, "symbol")
-                AppendToArray(&orderSymbols,symbol)
+                AppendToArray(&orderSymbols, symbol)
                 var id interface{} = this.SafeString(rawOrder, "id")
                 var typeVar interface{} = this.SafeString(rawOrder, "type")
                 var side interface{} = this.SafeString(rawOrder, "side")
@@ -4721,7 +4721,7 @@ func  (this *bybit) EditOrders(orders interface{}, optionalArgs ...interface{}) 
                 var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, orderParams)
                 Remove(orderRequest, "category")
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
             var market interface{} = this.Market(GetValue(orderSymbols, 0))
@@ -4917,13 +4917,13 @@ func  (this *bybit) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
             var clientOrderIds interface{} = this.SafeList2(params, "clientOrderIds", "clientOids", []interface{}{})
             params = this.Omit(params, []interface{}{"clientOrderIds", "clientOids"})
             for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
-                AppendToArray(&ordersRequests,map[string]interface{} {
+                AppendToArray(&ordersRequests, map[string]interface{} {
                     "symbol": GetValue(market, "id"),
                     "orderLinkId": this.SafeString(clientOrderIds, i),
                 })
             }
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                AppendToArray(&ordersRequests,map[string]interface{} {
+                AppendToArray(&ordersRequests, map[string]interface{} {
                     "symbol": GetValue(market, "id"),
                     "orderId": this.SafeString(ids, i),
                 })
@@ -5082,7 +5082,7 @@ func  (this *bybit) CancelOrdersForSymbols(orders interface{}, optionalArgs ...i
                     "symbol": GetValue(market, "id"),
                 }
                 AddElementToObject(orderItem, idKey, Ternary(IsTrue((IsEqual(idKey, "orderId"))), id, clientOrderId))
-                AppendToArray(&ordersRequests,orderItem)
+                AppendToArray(&ordersRequests, orderItem)
             }
             var request interface{} = map[string]interface{} {
                 "category": category,
@@ -6709,17 +6709,17 @@ func  (this *bybit) FetchLedger(optionalArgs ...interface{}) <- chan interface{}
                 var unifiedMarginStatus interface{} = this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
                 if IsTrue(IsTrue(IsEqual(subType, "inverse")) && IsTrue((IsLessThan(unifiedMarginStatus, 5)))) {
                     
-        response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetV5AccountTransactionLog(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetV5AccountTransactionLog(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -7040,8 +7040,8 @@ func  (this *bybit) FetchPosition(symbol interface{}, optionalArgs ...interface{
             params = GetValue(typeVarparamsVariable,1)
             AddElementToObject(request, "category", typeVar)
             
-        response = (<-this.PrivateGetV5PositionList(this.Extend(request, params)))
-            PanicOnError(response)
+            response = (<-this.PrivateGetV5PositionList(this.Extend(request, params)))
+                PanicOnError(response)
             //
             //     {
             //         "retCode": 0,
@@ -7223,7 +7223,7 @@ func  (this *bybit) FetchPositions(optionalArgs ...interface{}) <- chan interfac
                     // futures only
                     rawPosition = this.SafeDict(rawPosition, "data")
                 }
-                AppendToArray(&results,this.ParsePosition(rawPosition))
+                AppendToArray(&results, this.ParsePosition(rawPosition))
             }
         
             ch <- this.FilterByArrayPositions(results, "symbol", symbols, false)
@@ -7563,8 +7563,8 @@ func  (this *bybit) SetMarginMode(marginMode interface{}, optionalArgs ...interf
                     "setMarginMode": marginMode,
                 }
                 
-        response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol parameter for non unified account")))
@@ -7583,8 +7583,8 @@ func  (this *bybit) SetMarginMode(marginMode interface{}, optionalArgs ...interf
                         "setMarginMode": marginMode,
                     }
                     
-        response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var typeVar interface{} = nil
                     typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params);
@@ -7627,8 +7627,8 @@ func  (this *bybit) SetMarginMode(marginMode interface{}, optionalArgs ...interf
                         "sellLeverage": sellLeverage,
                     }
                     
-        response = (<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
         
@@ -9160,7 +9160,7 @@ func  (this *bybit) ParseSettlements(settlements interface{}, market interface{}
     //
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
-        AppendToArray(&result,this.ParseSettlement(GetValue(settlements, i), market))
+        AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
     }
     return result
 }
@@ -9226,7 +9226,7 @@ func  (this *bybit) ParseVolatilityHistory(volatility interface{}) interface{}  
     for i := 0; IsLessThan(i, GetArrayLength(volatility)); i++ {
         var entry interface{} = GetValue(volatility, i)
         var timestamp interface{} = this.SafeInteger(entry, "time")
-        AppendToArray(&result,map[string]interface{} {
+        AppendToArray(&result, map[string]interface{} {
             "info": volatility,
             "timestamp": timestamp,
             "datetime": this.Iso8601(timestamp),
@@ -9713,7 +9713,7 @@ func  (this *bybit) FetchLeverageTiers(optionalArgs ...interface{}) <- chan inte
         
             data:= (<-this.GetLeverageTiersPaginated(symbol, this.Extend(map[string]interface{} {
             "paginate": true,
-            "paginationCalls": 40,
+            "paginationCalls": 50,
         }, params)))
             PanicOnError(data)
             symbols = this.MarketSymbols(symbols)
@@ -9785,7 +9785,7 @@ func  (this *bybit) ParseMarketLeverageTiers(info interface{}, optionalArgs ...i
         if IsTrue(!IsEqual(i, 0)) {
             minNotional = this.SafeNumber(GetValue(info, Subtract(i, 1)), "riskLimitValue")
         }
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.SafeInteger(tier, "id"),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "settle"),

@@ -8,10 +8,10 @@ type luno struct {
 
 }
 
-func NewLunoCore() luno {
-   p := luno{}
-   setDefaults(&p)
-   return p
+func NewLunoCore() *luno {
+    p := &luno{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *luno) Describe() interface{}  {
@@ -377,7 +377,7 @@ func  (this *luno) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
         })
                 // add entry in info
                 var info interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
-                AppendToArray(&info,networkEntry)
+                AppendToArray(&info, networkEntry)
                 AddElementToObject(GetValue(result, code), "info", info)
             }
             // only after all entries are formed in currencies, restructure each entry
@@ -440,7 +440,7 @@ func  (this *luno) FetchMarkets(optionalArgs ...interface{}) <- chan interface{}
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var status interface{} = this.SafeString(market, "trading_status")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -522,7 +522,7 @@ func  (this *luno) FetchAccounts(optionalArgs ...interface{}) <- chan interface{
                 var accountId interface{} = this.SafeString(account, "account_id")
                 var currencyId interface{} = this.SafeString(account, "asset")
                 var code interface{} = this.SafeCurrencyCode(currencyId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": accountId,
                     "type": nil,
                     "currency": code,
@@ -632,12 +632,12 @@ func  (this *luno) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             var response interface{} = nil
             if IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(IsLessThanOrEqual(limit, 100))) {
                 
-        response = (<-this.PublicGetOrderbookTop(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetOrderbookTop(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetOrderbook(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetOrderbook(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var timestamp interface{} = this.SafeInteger(response, "timestamp")
         
@@ -1406,15 +1406,15 @@ func  (this *luno) CreateOrder(symbol interface{}, typeVar interface{}, side int
                     AddElementToObject(request, "base_volume", this.AmountToPrecision(GetValue(market, "symbol"), amount))
                 }
                 
-        response = (<-this.PrivatePostMarketorder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMarketorder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "volume", this.AmountToPrecision(GetValue(market, "symbol"), amount))
                 AddElementToObject(request, "price", this.PriceToPrecision(GetValue(market, "symbol"), price))
                 AddElementToObject(request, "type", Ternary(IsTrue((IsEqual(side, "buy"))), "BID", "ASK"))
                 
-        response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.SafeOrder(map[string]interface{} {
@@ -1842,8 +1842,8 @@ func  (this *luno) HandleErrors(httpCode interface{}, reason interface{}, url in
     if IsTrue(IsEqual(response, nil)) {
         return nil
     }
-    var error interface{} = this.SafeValue(response, "error")
-    if IsTrue(!IsEqual(error, nil)) {
+    var err interface{} = this.SafeValue(response, "error")
+    if IsTrue(!IsEqual(err, nil)) {
         panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
     }
     return nil

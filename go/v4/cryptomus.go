@@ -8,10 +8,10 @@ type cryptomus struct {
 
 }
 
-func NewCryptomusCore() cryptomus {
-   p := cryptomus{}
-   setDefaults(&p)
-   return p
+func NewCryptomusCore() *cryptomus {
+    p := &cryptomus{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *cryptomus) Describe() interface{}  {
@@ -832,8 +832,8 @@ func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, sid
                     AddElementToObject(request, "quantity", amountToString)
                 }
                 
-        response = (<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "limit")) {
                 if IsTrue(IsEqual(price, nil)) {
                     panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a price parameter for a "), typeVar), " order")))
@@ -841,8 +841,8 @@ func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, sid
                 AddElementToObject(request, "quantity", amountToString)
                 AddElementToObject(request, "price", price)
                 
-        response = (<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a type parameter (limit or market)")))
             }
@@ -986,7 +986,7 @@ func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
                 var order interface{} = GetValue(result, i)
-                AppendToArray(&orders,this.ParseOrder(order, market))
+                AppendToArray(&orders, this.ParseOrder(order, market))
             }
         
             ch <- orders
@@ -1295,8 +1295,8 @@ func  (this *cryptomus) ParseFeeTiers(feeTiers interface{}, optionalArgs ...inte
         var maker interface{} = this.SafeString(tier, "maker_percent")
         maker = Precise.StringDiv(maker, "100")
         taker = Precise.StringDiv(taker, "100")
-        AppendToArray(&makerFees,[]interface{}{turnover, this.ParseNumber(maker)})
-        AppendToArray(&takerFees,[]interface{}{turnover, this.ParseNumber(taker)})
+        AppendToArray(&makerFees, []interface{}{turnover, this.ParseNumber(maker)})
+        AppendToArray(&takerFees, []interface{}{turnover, this.ParseNumber(taker)})
     }
     return map[string]interface{} {
         "maker": makerFees,

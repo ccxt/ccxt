@@ -8,10 +8,10 @@ type timex struct {
 
 }
 
-func NewTimexCore() timex {
-   p := timex{}
-   setDefaults(&p)
-   return p
+func NewTimexCore() *timex {
+    p := &timex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *timex) Describe() interface{}  {
@@ -1168,10 +1168,10 @@ func  (this *timex) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(changedOrders)); i++ {
                 var newOrder interface{} = this.SafeDict(GetValue(changedOrders, i), "newOrder")
-                AppendToArray(&orders,this.ParseOrder(newOrder))
+                AppendToArray(&orders, this.ParseOrder(newOrder))
             }
             for i := 0; IsLessThan(i, GetArrayLength(unchangedOrders)); i++ {
-                AppendToArray(&orders,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&orders, this.SafeOrder(map[string]interface{} {
                     "info": GetValue(unchangedOrders, i),
                     "id": GetValue(unchangedOrders, i),
                     "status": "unchanged",
@@ -2029,12 +2029,12 @@ func  (this *timex) HandleErrors(statusCode interface{}, statusText interface{},
         //     {"error":{"timestamp":"05.12.2019T04:03:25.419+0000","status":"FORBIDDEN","message":"Access denied","code":4300}}
         //
         var feedback interface{} = Add(Add(this.Id, " "), responseBody)
-        var error interface{} = this.SafeValue(response, "error")
-        if IsTrue(IsEqual(error, nil)) {
-            error = response
+        var err interface{} = this.SafeValue(response, "error")
+        if IsTrue(IsEqual(err, nil)) {
+            err = response
         }
-        var code interface{} = this.SafeString2(error, "code", "status")
-        var message interface{} = this.SafeString2(error, "message", "debugMessage")
+        var code interface{} = this.SafeString2(err, "code", "status")
+        var message interface{} = this.SafeString2(err, "message", "debugMessage")
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

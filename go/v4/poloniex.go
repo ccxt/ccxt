@@ -8,10 +8,10 @@ type poloniex struct {
 
 }
 
-func NewPoloniexCore() poloniex {
-   p := poloniex{}
-   setDefaults(&p)
-   return p
+func NewPoloniexCore() *poloniex {
+    p := &poloniex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *poloniex) Describe() interface{}  {
@@ -1338,10 +1338,10 @@ func  (this *poloniex) FetchCurrencies(optionalArgs ...interface{}) <- chan inte
                     for j := 0; IsLessThan(j, GetArrayLength(childChains)); j++ {
                         var childChainId interface{} = GetValue(childChains, j)
                         var childNetworkEntry interface{} = this.SafeDict(currenciesDict, childChainId)
-                        AppendToArray(&allChainEntries,childNetworkEntry)
+                        AppendToArray(&allChainEntries, childNetworkEntry)
                     }
                 }
-                AppendToArray(&allChainEntries,entry)
+                AppendToArray(&allChainEntries, entry)
                 var networks interface{} = map[string]interface{} {}
                 for j := 0; IsLessThan(j, GetArrayLength(allChainEntries)); j++ {
                     var chainEntry interface{} = GetValue(allChainEntries, j)
@@ -2026,7 +2026,7 @@ func  (this *poloniex) ParseOpenOrders(orders interface{}, market interface{}, r
             "side": GetValue(order, "type"),
             "price": GetValue(order, "rate"),
         })
-        AppendToArray(&result,this.ParseOrder(extended, market))
+        AppendToArray(&result, this.ParseOrder(extended, market))
     }
     return result
 }
@@ -2123,12 +2123,12 @@ func  (this *poloniex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
                 response = this.SafeList(raw, "data")
             } else if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateGetSmartorders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSmartorders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     [
@@ -2312,12 +2312,12 @@ func  (this *poloniex) CreateOrder(symbol interface{}, typeVar interface{}, side
                 response = this.SafeDict(responseInitial, "data")
             } else if IsTrue(!IsEqual(triggerPrice, nil)) {
                 
-        response = (<-this.PrivatePostSmartorders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSmartorders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2462,12 +2462,12 @@ func  (this *poloniex) EditOrder(id interface{}, symbol interface{}, typeVar int
             var response interface{} = nil
             if IsTrue(!IsEqual(triggerPrice, nil)) {
                 
-        response = (<-this.PrivatePutSmartordersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutSmartordersId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePutOrdersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePutOrdersId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -2545,12 +2545,12 @@ func  (this *poloniex) CancelOrder(id interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateDeleteSmartordersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteSmartordersId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteOrdersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2632,12 +2632,12 @@ func  (this *poloniex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             params = this.Omit(params, []interface{}{"trigger", "stop"})
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateDeleteSmartorders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteSmartorders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2708,13 +2708,13 @@ func  (this *poloniex) FetchOrder(id interface{}, optionalArgs ...interface{}) <
             var response interface{} = nil
             if IsTrue(isTrigger) {
                 
-        response = (<-this.PrivateGetSmartordersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSmartordersId(this.Extend(request, params)))
+                    PanicOnError(response)
                 response = this.SafeValue(response, 0)
             } else {
                 
-        response = (<-this.PrivateGetOrdersId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrdersId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3092,14 +3092,14 @@ func  (this *poloniex) FetchOrderBook(symbol interface{}, optionalArgs ...interf
                 if IsTrue(IsLessThan((Mod(i, 2)), 1)) {
                     var price interface{} = this.SafeNumber(asks, i)
                     var amount interface{} = this.SafeNumber(asks, this.Sum(i, 1))
-                    AppendToArray(&asksResult,[]interface{}{price, amount})
+                    AppendToArray(&asksResult, []interface{}{price, amount})
                 }
             }
             for i := 0; IsLessThan(i, GetArrayLength(bids)); i++ {
                 if IsTrue(IsLessThan((Mod(i, 2)), 1)) {
                     var price interface{} = this.SafeNumber(bids, i)
                     var amount interface{} = this.SafeNumber(bids, this.Sum(i, 1))
-                    AppendToArray(&bidsResult,[]interface{}{price, amount})
+                    AppendToArray(&bidsResult, []interface{}{price, amount})
                 }
             }
         

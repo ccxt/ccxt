@@ -1995,7 +1995,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {

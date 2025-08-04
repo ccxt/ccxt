@@ -896,7 +896,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "channel" => "error",

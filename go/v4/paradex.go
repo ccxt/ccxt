@@ -8,10 +8,10 @@ type paradex struct {
 
 }
 
-func NewParadexCore() paradex {
-   p := paradex{}
-   setDefaults(&p)
-   return p
+func NewParadexCore() *paradex {
+    p := &paradex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *paradex) Describe() interface{}  {
@@ -1806,13 +1806,13 @@ func  (this *paradex) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             if IsTrue(!IsEqual(clientOrderId, nil)) {
                 AddElementToObject(request, "client_id", clientOrderId)
                 
-        response = (<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "order_id", id)
                 
-        response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -1904,13 +1904,13 @@ func  (this *paradex) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             if IsTrue(!IsEqual(clientOrderId, nil)) {
                 AddElementToObject(request, "client_id", clientOrderId)
                 
-        response = (<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "order_id", id)
                 
-        response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2601,7 +2601,7 @@ func  (this *paradex) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
                 var row interface{} = GetValue(rows, i)
                 if IsTrue(IsEqual(GetValue(row, "kind"), "DEPOSIT")) {
-                    AppendToArray(&deposits,row)
+                    AppendToArray(&deposits, row)
                 }
             }
         
@@ -2693,7 +2693,7 @@ func  (this *paradex) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
                 var row interface{} = GetValue(rows, i)
                 if IsTrue(IsEqual(GetValue(row, "kind"), "WITHDRAWAL")) {
-                    AppendToArray(&deposits,row)
+                    AppendToArray(&deposits, row)
                 }
             }
         

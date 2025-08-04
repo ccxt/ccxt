@@ -8,10 +8,10 @@ type bitget struct {
 
 }
 
-func NewBitgetCore() bitget {
-   p := bitget{}
-   setDefaults(&p)
-   return p
+func NewBitgetCore() *bitget {
+    p := &bitget{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitget) Describe() interface{}  {
@@ -870,6 +870,7 @@ func  (this *bitget) Describe() interface{}  {
                 "4010": PermissionDenied,
                 "4001": ExchangeError,
                 "4002": ExchangeError,
+                "40020": BadRequest,
                 "30001": AuthenticationError,
                 "30002": AuthenticationError,
                 "30003": AuthenticationError,
@@ -1499,7 +1500,6 @@ func  (this *bitget) Describe() interface{}  {
                 "TRC20": "TRC20",
                 "ERC20": "ERC20",
                 "BEP20": "BSC",
-                "BSC": "BEP20",
                 "ATOM": "ATOM",
                 "ACA": "AcalaToken",
                 "APT": "Aptos",
@@ -1848,7 +1848,7 @@ func  (this *bitget) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                     ch <- retRes187419
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1873,14 +1873,14 @@ func  (this *bitget) FetchDefaultMarkets(params interface{}) <- chan interface{}
                 if IsTrue(IsTrue((IsEqual(typeVar, "swap"))) || IsTrue((IsEqual(typeVar, "future")))) {
                     var subTypes interface{} = []interface{}{"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"}
                     for j := 0; IsLessThan(j, GetArrayLength(subTypes)); j++ {
-                        AppendToArray(&promises,this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]interface{} {
+                        AppendToArray(&promises, this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]interface{} {
                             "productType": GetValue(subTypes, j),
                         })))
                     }
                 } else if IsTrue(IsEqual(typeVar, "spot")) {
-                    AppendToArray(&promises,this.PublicSpotGetV2SpotPublicSymbols(params))
+                    AppendToArray(&promises, this.PublicSpotGetV2SpotPublicSymbols(params))
                     fetchMargins = true
-                    AppendToArray(&promises,this.PublicMarginGetV2MarginCurrencies(params))
+                    AppendToArray(&promises, this.PublicMarginGetV2MarginCurrencies(params))
                 } else {
                     panic(NotSupported(Add(Add(Add(this.Id, " does not support "), typeVar), " market")))
                 }
@@ -2057,7 +2057,7 @@ func  (this *bitget) FetchDefaultMarkets(params interface{}) <- chan interface{}
                     minCost = this.SafeNumber(market, "minTradeUSDT")
                 }
                 var contractSize interface{} = Ternary(IsTrue(contract), 1, nil)
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": marketId,
                     "symbol": symbol,
                     "base": base,
@@ -2128,7 +2128,7 @@ func  (this *bitget) FetchUtaMarkets(params interface{}) <- chan interface{} {
                 var req interface{} = this.Extend(params, map[string]interface{} {
                     "category": GetValue(subTypes, i),
                 })
-                AppendToArray(&promises,this.PublicUtaGetV3MarketInstruments(req))
+                AppendToArray(&promises, this.PublicUtaGetV3MarketInstruments(req))
             }
         
             results:= (<-promiseAll(promises))
@@ -2315,7 +2315,7 @@ func  (this *bitget) FetchUtaMarkets(params interface{}) <- chan interface{} {
                     active = (IsTrue((IsEqual(status, "online"))) || IsTrue((IsEqual(status, "normal"))))
                 }
                 var contractSize interface{} = Ternary(IsTrue(contract), 1, nil)
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": marketId,
                     "symbol": symbol,
                     "base": base,
@@ -2548,19 +2548,19 @@ func  (this *bitget) FetchMarketLeverageTiers(symbol interface{}, optionalArgs .
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketPositionTier(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketPositionTier(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue((GetValue(market, "swap"))) || IsTrue((GetValue(market, "future")))) {
                 AddElementToObject(request, "productType", productType)
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicMixGetV2MixMarketQueryPositionLever(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketQueryPositionLever(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "isolated")) {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PrivateMarginGetV2MarginIsolatedTierData(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedTierData(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "cross")) {
                 var code interface{} = this.SafeString(params, "code")
                 if IsTrue(IsEqual(code, nil)) {
@@ -2570,8 +2570,8 @@ func  (this *bitget) FetchMarketLeverageTiers(symbol interface{}, optionalArgs .
                 var currency interface{} = this.Currency(code)
                 AddElementToObject(request, "coin", GetValue(currency, "id"))
                 
-        response = (<-this.PrivateMarginGetV2MarginCrossedTierData(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedTierData(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(BadRequest(Add(Add(this.Id, " fetchMarketLeverageTiers() symbol does not support market "), GetValue(market, "symbol"))))
             }
@@ -2718,7 +2718,7 @@ func  (this *bitget) ParseMarketLeverageTiers(info interface{}, optionalArgs ...
         var marginCurrency interface{} = this.SafeString2(item, "coin", "baseCoin")
         var currencyId interface{} = Ternary(IsTrue((!IsEqual(marginCurrency, nil))), marginCurrency, GetValue(market, "base"))
         var marketId interface{} = this.SafeString(item, "symbol")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.SafeInteger2(item, "level", "tier"),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": this.SafeCurrencyCode(currencyId),
@@ -3222,17 +3222,17 @@ func  (this *bitget) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketOrderbook(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketOrderbook(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PublicSpotGetV2SpotMarketOrderbook(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketOrderbook(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketMergeDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketMergeDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3455,17 +3455,17 @@ func  (this *bitget) FetchTicker(symbol interface{}, optionalArgs ...interface{}
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -3631,8 +3631,8 @@ func  (this *bitget) FetchMarkPrice(symbol interface{}, optionalArgs ...interfac
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketSymbolPrice(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketSymbolPrice(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -3699,17 +3699,17 @@ func  (this *bitget) FetchTickers(optionalArgs ...interface{}) <- chan interface
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsEqual(typeVar, "spot")) && IsTrue(IsEqual(passedSubType, nil))) {
                 
-        response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -4068,8 +4068,8 @@ func  (this *bitget) FetchTrades(symbol interface{}, optionalArgs ...interface{}
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 var spotOptions interface{} = this.SafeValue(options, "spot", map[string]interface{} {})
                 var defaultSpotMethod interface{} = this.SafeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory")
@@ -4083,12 +4083,12 @@ func  (this *bitget) FetchTrades(symbol interface{}, optionalArgs ...interface{}
                         AddElementToObject(request, "startTime", since)
                     }
                     
-        response = (<-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(spotMethod, "publicSpotGetV2SpotMarketFills")) {
                     
-        response = (<-this.PublicSpotGetV2SpotMarketFills(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketFills(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 var swapOptions interface{} = this.SafeValue(options, "swap", map[string]interface{} {})
@@ -4104,12 +4104,12 @@ func  (this *bitget) FetchTrades(symbol interface{}, optionalArgs ...interface{}
                         AddElementToObject(request, "startTime", since)
                     }
                     
-        response = (<-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(swapMethod, "publicMixGetV2MixMarketFills")) {
                     
-        response = (<-this.PublicMixGetV2MixMarketFills(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketFills(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -4269,12 +4269,12 @@ func  (this *bitget) FetchTradingFees(optionalArgs ...interface{}) <- chan inter
                 params = this.Omit(params, "margin")
                 if IsTrue(IsTrue((!IsEqual(marginMode, nil))) || IsTrue(margin)) {
                     
-        response = (<-this.PublicMarginGetV2MarginCurrencies(params))
-                    PanicOnError(response)
+            response = (<-this.PublicMarginGetV2MarginCurrencies(params))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PublicSpotGetV2SpotPublicSymbols(params))
-                    PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotPublicSymbols(params))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsTrue((IsEqual(marketType, "swap"))) || IsTrue((IsEqual(marketType, "future")))) {
                 var productType interface{} = nil
@@ -4283,8 +4283,8 @@ func  (this *bitget) FetchTradingFees(optionalArgs ...interface{}) <- chan inter
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(params, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketContracts(params))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketContracts(params))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " does not support "), marketType), " market")))
             }
@@ -4567,22 +4567,22 @@ func  (this *bitget) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketCandles(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 // checks if we need history endpoint
                 if IsTrue(historicalEndpointNeeded) {
                     
-        response = (<-this.PublicSpotGetV2SpotMarketHistoryCandles(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketHistoryCandles(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     if !IsTrue(limitDefined) {
                         AddElementToObject(request, "limit", 1000)
                         limit = 1000
                     }
                     
-        response = (<-this.PublicSpotGetV2SpotMarketCandles(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicSpotGetV2SpotMarketCandles(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 AddElementToObject(request, "productType", productType)
@@ -4595,31 +4595,31 @@ func  (this *bitget) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
                     // Recent endpoint for mark/index prices
                     // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
                     
-        response = (<-this.PublicMixGetV2MixMarketCandles(this.Extend(map[string]interface{} {
+            response = (<-this.PublicMixGetV2MixMarketCandles(this.Extend(map[string]interface{} {
             "kLineType": priceType,
         }, extended)))
-                    PanicOnError(response)
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(priceType, "mark")) {
                     
-        response = (<-this.PublicMixGetV2MixMarketHistoryMarkCandles(extended))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketHistoryMarkCandles(extended))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(priceType, "index")) {
                     
-        response = (<-this.PublicMixGetV2MixMarketHistoryIndexCandles(extended))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketHistoryIndexCandles(extended))
+                        PanicOnError(response)
                 } else {
                     if IsTrue(historicalEndpointNeeded) {
                         
-        response = (<-this.PublicMixGetV2MixMarketHistoryCandles(extended))
-                        PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketHistoryCandles(extended))
+                            PanicOnError(response)
                     } else {
                         if !IsTrue(limitDefined) {
                             AddElementToObject(extended, "limit", 1000)
                             limit = 1000
                         }
                         
-        response = (<-this.PublicMixGetV2MixMarketCandles(extended))
-                        PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketCandles(extended))
+                            PanicOnError(response)
                     }
                 }
             }
@@ -4679,8 +4679,8 @@ func  (this *bitget) FetchBalance(optionalArgs ...interface{}) <- chan interface
             params = GetValue(marginModeparamsVariable,1)
             if IsTrue(uta) {
                 
-        response = (<-this.PrivateUtaGetV3AccountAssets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3AccountAssets(this.Extend(request, params)))
+                    PanicOnError(response)
                 var results interface{} = this.SafeDict(response, "data", map[string]interface{} {})
                 var assets interface{} = this.SafeList(results, "assets", []interface{}{})
         
@@ -4693,20 +4693,20 @@ func  (this *bitget) FetchBalance(optionalArgs ...interface{}) <- chan interface
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixGetV2MixAccountAccounts(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixAccountAccounts(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "isolated")) {
                 
-        response = (<-this.PrivateMarginGetMarginV1IsolatedAccountAssets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetMarginV1IsolatedAccountAssets(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "cross")) {
                 
-        response = (<-this.PrivateMarginGetMarginV1CrossAccountAssets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetMarginV1CrossAccountAssets(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetV2SpotAccountAssets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotAccountAssets(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchBalance() does not support "), marketType), " accounts")))
             }
@@ -5438,46 +5438,46 @@ func  (this *bitget) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 var request interface{} = this.CreateUtaOrderRequest(symbol, typeVar, side, amount, price, params)
                 if IsTrue(isStopLossOrTakeProfitTrigger) {
                     
-        response = (<-this.callDynamically("privateUtaPostV3TradePlaceStrategyOrder", request))
-                    PanicOnError(response)
+            response = (<-this.callDynamically("privateUtaPostV3TradePlaceStrategyOrder", request))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateUtaPostV3TradePlaceOrder(request))
-                    PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradePlaceOrder(request))
+                        PanicOnError(response)
                 }
             } else {
                 var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
                 if IsTrue(GetValue(market, "spot")) {
                     if IsTrue(isTriggerOrder) {
                         
-        response = (<-this.PrivateSpotPostV2SpotTradePlacePlanOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradePlacePlanOrder(request))
+                            PanicOnError(response)
                     } else if IsTrue(IsEqual(marginMode, "isolated")) {
                         
-        response = (<-this.PrivateMarginPostV2MarginIsolatedPlaceOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginIsolatedPlaceOrder(request))
+                            PanicOnError(response)
                     } else if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginPostV2MarginCrossedPlaceOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginCrossedPlaceOrder(request))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateSpotPostV2SpotTradePlaceOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradePlaceOrder(request))
+                            PanicOnError(response)
                     }
                 } else {
                     if IsTrue(IsTrue(isTriggerOrder) || IsTrue(isTrailingPercentOrder)) {
                         
-        response = (<-this.PrivateMixPostV2MixOrderPlacePlanOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderPlacePlanOrder(request))
+                            PanicOnError(response)
                     } else if IsTrue(isStopLossOrTakeProfitTrigger) {
                         
-        response = (<-this.PrivateMixPostV2MixOrderPlaceTpslOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderPlaceTpslOrder(request))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateMixPostV2MixOrderPlaceOrder(request))
-                        PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderPlaceOrder(request))
+                            PanicOnError(response)
                     }
                 }
             }
@@ -5891,7 +5891,7 @@ func  (this *bitget) CreateUtaOrders(orders interface{}, optionalArgs ...interfa
                     }
                 }
                 var orderRequest interface{} = this.CreateUtaOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var market interface{} = this.Market(symbol)
         
@@ -5983,7 +5983,7 @@ func  (this *bitget) CreateOrders(orders interface{}, optionalArgs ...interface{
                     }
                 }
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -6004,20 +6004,20 @@ func  (this *bitget) CreateOrders(orders interface{}, optionalArgs ...interface{
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixPostV2MixOrderBatchPlaceOrder(request))
-                PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderBatchPlaceOrder(request))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "isolated")) {
                 
-        response = (<-this.PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(request))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(request))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "cross")) {
                 
-        response = (<-this.PrivateMarginPostV2MarginCrossedBatchPlaceOrder(request))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginCrossedBatchPlaceOrder(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateSpotPostV2SpotTradeBatchOrders(request))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeBatchOrders(request))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -6164,15 +6164,15 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                     }
                     params = this.Omit(params, []interface{}{"stopLossPrice", "takeProfitPrice"})
                     
-        response = (<-this.callDynamically("privateUtaPostV3TradeModifyStrategyOrder", this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.callDynamically("privateUtaPostV3TradeModifyStrategyOrder", this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     if IsTrue(!IsEqual(price, nil)) {
                         AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                     }
                     
-        response = (<-this.PrivateUtaPostV3TradeModifyOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradeModifyOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "spot")) {
                 if IsTrue(IsEqual(triggerPrice, nil)) {
@@ -6195,8 +6195,8 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                 AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
                 AddElementToObject(request, "executePrice", this.PriceToPrecision(symbol, price))
                 
-        response = (<-this.PrivateSpotPostV2SpotTradeModifyPlanOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeModifyPlanOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(IsTrue((!IsTrue(GetValue(market, "swap")))) && IsTrue((!IsTrue(GetValue(market, "future"))))) {
                     panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders")))
@@ -6218,8 +6218,8 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                     }
                     AddElementToObject(request, "newCallbackRatio", trailingPercent)
                     
-        response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsTrue(isTakeProfitOrder) || IsTrue(isStopLossOrder)) {
                     AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                     AddElementToObject(request, "size", this.AmountToPrecision(symbol, amount))
@@ -6232,8 +6232,8 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                         AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, takeProfitPrice))
                     }
                     
-        response = (<-this.PrivateMixPostV2MixOrderModifyTpslOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderModifyTpslOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(isTriggerOrder) {
                     AddElementToObject(request, "newTriggerPrice", this.PriceToPrecision(symbol, triggerPrice))
                     if IsTrue(isStopLoss) {
@@ -6253,8 +6253,8 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                         AddElementToObject(request, "newStopSurplusTriggerType", tpType)
                     }
                     
-        response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderModifyPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var defaultNewClientOrderId interface{} = this.Uuid()
                     var newClientOrderId interface{} = this.SafeString2(params, "newClientOid", "newClientOrderId", defaultNewClientOrderId)
@@ -6269,8 +6269,8 @@ func  (this *bitget) EditOrder(id interface{}, symbol interface{}, typeVar inter
                         AddElementToObject(request, "newPresetStopSurplusPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
                     }
                     
-        response = (<-this.PrivateMixPostV2MixOrderModifyOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderModifyOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -6353,12 +6353,12 @@ func  (this *bitget) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 AddElementToObject(request, "orderId", id)
                 if IsTrue(trigger) {
                     
-        response = (<-this.callDynamically("privateUtaPostV3TradeCancelStrategyOrder", this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.callDynamically("privateUtaPostV3TradeCancelStrategyOrder", this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateUtaPostV3TradeCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradeCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsTrue((GetValue(market, "swap"))) || IsTrue((GetValue(market, "future")))) {
                 var productType interface{} = nil
@@ -6371,44 +6371,44 @@ func  (this *bitget) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                     var orderId interface{} = map[string]interface{} {
                         "orderId": id,
                     }
-                    AppendToArray(&orderIdList,orderId)
+                    AppendToArray(&orderIdList, orderId)
                     AddElementToObject(request, "orderIdList", orderIdList)
                 }
                 if IsTrue(trailing) {
                     var planType interface{} = this.SafeString(params, "planType", "track_plan")
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(trigger) {
                     
-        response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateMixPostV2MixOrderCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(GetValue(market, "spot")) {
                 if IsTrue(!IsEqual(marginMode, nil)) {
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         
-        response = (<-this.PrivateMarginPostV2MarginIsolatedCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginIsolatedCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginPostV2MarginCrossedCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginCrossedCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     if IsTrue(trigger) {
                         
-        response = (<-this.PrivateSpotPostV2SpotTradeCancelPlanOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeCancelPlanOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateSpotPostV2SpotTradeCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 }
             } else {
@@ -6511,7 +6511,7 @@ func  (this *bitget) CancelUtaOrders(ids interface{}, optionalArgs ...interface{
                     "symbol": GetValue(market, "id"),
                     "category": productType,
                 }
-                AppendToArray(&requestList,order)
+                AppendToArray(&requestList, order)
             }
         
             response:= (<-this.PrivateUtaPostV3TradeCancelBatch(requestList))
@@ -6594,7 +6594,7 @@ func  (this *bitget) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 var orderId interface{} = map[string]interface{} {
                     "orderId": individualId,
                 }
-                AppendToArray(&orderIdList,orderId)
+                AppendToArray(&orderIdList, orderId)
             }
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -6609,17 +6609,17 @@ func  (this *bitget) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 if IsTrue(!IsEqual(marginMode, nil)) {
                     if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginPostV2MarginCrossedBatchCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginCrossedBatchCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateMarginPostV2MarginIsolatedBatchCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostV2MarginIsolatedBatchCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     
-        response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 var productType interface{} = nil
@@ -6629,12 +6629,12 @@ func  (this *bitget) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 AddElementToObject(request, "productType", productType)
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -6721,18 +6721,18 @@ func  (this *bitget) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaPostV3TradeCancelSymbolOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradeCancelSymbolOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 if IsTrue(!IsEqual(marginMode, nil)) {
                     if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     if IsTrue(trigger) {
@@ -6740,12 +6740,12 @@ func  (this *bitget) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                             "symbolList": []interface{}{GetValue(market, "id")},
                         }
                         
-        response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(this.Extend(stopRequest, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(this.Extend(stopRequest, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateSpotPostV2SpotTradeCancelSymbolOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotPostV2SpotTradeCancelSymbolOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                     //
                     //     {
@@ -6773,12 +6773,12 @@ func  (this *bitget) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
                 AddElementToObject(request, "productType", productType)
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderCancelPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderBatchCancelOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             var data interface{} = this.SafeDict(response, "data")
@@ -6836,12 +6836,12 @@ func  (this *bitget) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             params = GetValue(utaparamsVariable,1)
             if IsTrue(uta) {
                 
-        response = (<-this.PrivateUtaGetV3TradeOrderInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3TradeOrderInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PrivateSpotGetV2SpotTradeOrderInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeOrderInfo(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 var productType interface{} = nil
@@ -6850,8 +6850,8 @@ func  (this *bitget) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixGetV2MixOrderDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderDetail(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchOrder() does not support "), GetValue(market, "type")), " orders")))
             }
@@ -6978,6 +6978,10 @@ func  (this *bitget) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
                 }
             }
             var dataList interface{} = this.SafeList(response, "data", []interface{}{})
+            var dataListLength interface{} =     GetArrayLength(dataList)
+            if IsTrue(IsEqual(dataListLength, 0)) {
+                panic(OrderNotFound(Add(Add(Add(Add(this.Id, " fetchOrder() could not find order id "), id), " in "), this.Json(response))))
+            }
             var first interface{} = this.SafeDict(dataList, 0, map[string]interface{} {})
         
             ch <- this.ParseOrder(first, market)
@@ -7024,8 +7028,8 @@ func  (this *bitget) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes63818 := (<-this.LoadMarkets())
-            PanicOnError(retRes63818)
+            retRes63858 := (<-this.LoadMarkets())
+            PanicOnError(retRes63858)
             var market interface{} = nil
             var typeVar interface{} = nil
             var request interface{} = map[string]interface{} {}
@@ -7067,9 +7071,9 @@ func  (this *bitget) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                     cursorSent = "idLessThan"
                 }
         
-                    retRes641619 :=  (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))
-                    PanicOnError(retRes641619)
-                    ch <- retRes641619
+                    retRes642019 :=  (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))
+                    PanicOnError(retRes642019)
+                    ch <- retRes642019
                     return nil
             }
             var response interface{} = nil
@@ -7107,12 +7111,12 @@ func  (this *bitget) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                 AddElementToObject(request, "category", productType)
                 if IsTrue(trigger) {
                     
-        response = (<-this.callDynamically("privateUtaGetV3TradeUnfilledStrategyOrders", this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.callDynamically("privateUtaGetV3TradeUnfilledStrategyOrders", this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateUtaGetV3TradeUnfilledOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3TradeUnfilledOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(typeVar, "spot")) {
                 if IsTrue(!IsEqual(marginMode, nil)) {
@@ -7122,22 +7126,22 @@ func  (this *bitget) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                     }
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         
-        response = (<-this.PrivateMarginGetV2MarginIsolatedOpenOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedOpenOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginGetV2MarginCrossedOpenOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedOpenOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     if IsTrue(trigger) {
                         
-        response = (<-this.PrivateSpotGetV2SpotTradeCurrentPlanOrder(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeCurrentPlanOrder(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateSpotGetV2SpotTradeUnfilledOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeUnfilledOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 }
             } else {
@@ -7146,18 +7150,18 @@ func  (this *bitget) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                     var planType interface{} = this.SafeString(params, "planType", "track_plan")
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(isTrigger) {
                     var planType interface{} = this.SafeString(params, "planType", "normal_plan")
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersPlanPending(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersPending(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersPending(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -7480,8 +7484,8 @@ func  (this *bitget) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes67818 := (<-this.LoadMarkets())
-            PanicOnError(retRes67818)
+            retRes67858 := (<-this.LoadMarkets())
+            PanicOnError(retRes67858)
         
             orders:= (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
             PanicOnError(orders)
@@ -7529,8 +7533,8 @@ func  (this *bitget) FetchCanceledOrders(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes68108 := (<-this.LoadMarkets())
-            PanicOnError(retRes68108)
+            retRes68148 := (<-this.LoadMarkets())
+            PanicOnError(retRes68148)
         
             orders:= (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
             PanicOnError(orders)
@@ -7585,14 +7589,14 @@ func  (this *bitget) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <
             params = GetValue(utaparamsVariable,1)
             if IsTrue(uta) {
         
-                    retRes684419 :=  (<-this.FetchUtaCanceledAndClosedOrders(symbol, since, limit, params))
-                    PanicOnError(retRes684419)
-                    ch <- retRes684419
+                    retRes684819 :=  (<-this.FetchUtaCanceledAndClosedOrders(symbol, since, limit, params))
+                    PanicOnError(retRes684819)
+                    ch <- retRes684819
                     return nil
             }
         
-            retRes68468 := (<-this.LoadMarkets())
-            PanicOnError(retRes68468)
+            retRes68508 := (<-this.LoadMarkets())
+            PanicOnError(retRes68508)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -7621,9 +7625,9 @@ func  (this *bitget) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <
                     cursorReceived = "endId"
                 }
         
-                    retRes686819 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))
-                    PanicOnError(retRes686819)
-                    ch <- retRes686819
+                    retRes687219 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))
+                    PanicOnError(retRes687219)
+                    ch <- retRes687219
                     return nil
             }
             var response interface{} = nil
@@ -7655,12 +7659,12 @@ func  (this *bitget) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <
                     }
                     if IsTrue(IsEqual(marginMode, "isolated")) {
                         
-        response = (<-this.PrivateMarginGetV2MarginIsolatedHistoryOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedHistoryOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else if IsTrue(IsEqual(marginMode, "cross")) {
                         
-        response = (<-this.PrivateMarginGetV2MarginCrossedHistoryOrders(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedHistoryOrders(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else if IsTrue(trigger) {
                     if IsTrue(IsEqual(symbol, nil)) {
@@ -7676,12 +7680,12 @@ func  (this *bitget) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <
                         AddElementToObject(request, "endTime", now)
                     }
                     
-        response = (<-this.PrivateSpotGetV2SpotTradeHistoryPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeHistoryPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateSpotGetV2SpotTradeHistoryOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeHistoryOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 var productType interface{} = nil
@@ -7694,18 +7698,18 @@ func  (this *bitget) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <
                     var planType interface{} = this.SafeString(params, "planType", "track_plan")
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsTrue(trigger) || IsTrue(planTypeDefined)) {
                     var planType interface{} = this.SafeString(params, "planType", "normal_plan")
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersPlanHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateMixGetV2MixOrderOrdersHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderOrdersHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -7923,8 +7927,8 @@ func  (this *bitget) FetchUtaCanceledAndClosedOrders(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes71288 := (<-this.LoadMarkets())
-            PanicOnError(retRes71288)
+            retRes71328 := (<-this.LoadMarkets())
+            PanicOnError(retRes71328)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -7951,9 +7955,9 @@ func  (this *bitget) FetchUtaCanceledAndClosedOrders(optionalArgs ...interface{}
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes714819 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))
-                    PanicOnError(retRes714819)
-                    ch <- retRes714819
+                    retRes715219 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))
+                    PanicOnError(retRes715219)
+                    ch <- retRes715219
                     return nil
             }
             requestparamsVariable := this.HandleUntilOption("endTime", request, params);
@@ -7970,12 +7974,12 @@ func  (this *bitget) FetchUtaCanceledAndClosedOrders(optionalArgs ...interface{}
             params = this.Omit(params, []interface{}{"stop", "trigger"})
             if IsTrue(trigger) {
                 
-        response = (<-this.callDynamically("privateUtaGetV3TradeHistoryStrategyOrders", this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.callDynamically("privateUtaGetV3TradeHistoryStrategyOrders", this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateUtaGetV3TradeHistoryOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3TradeHistoryOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // uta
@@ -8099,8 +8103,8 @@ func  (this *bitget) FetchLedger(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes72708 := (<-this.LoadMarkets())
-            PanicOnError(retRes72708)
+            retRes72748 := (<-this.LoadMarkets())
+            PanicOnError(retRes72748)
             var symbol interface{} = this.SafeString(params, "symbol")
             params = this.Omit(params, "symbol")
             var market interface{} = nil
@@ -8121,9 +8125,9 @@ func  (this *bitget) FetchLedger(optionalArgs ...interface{}) <- chan interface{
                     cursorReceived = "endId"
                 }
         
-                    retRes728619 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
-                    PanicOnError(retRes728619)
-                    ch <- retRes728619
+                    retRes729019 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
+                    PanicOnError(retRes729019)
+                    ch <- retRes729019
                     return nil
             }
             var currency interface{} = nil
@@ -8144,8 +8148,8 @@ func  (this *bitget) FetchLedger(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(symbol, nil)) {
                     AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -8156,8 +8160,8 @@ func  (this *bitget) FetchLedger(optionalArgs ...interface{}) <- chan interface{
                 params = GetValue(productTypeparamsVariable,1)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixAccountBill(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -8364,8 +8368,8 @@ func  (this *bitget) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes74978 := (<-this.LoadMarkets())
-            PanicOnError(retRes74978)
+            retRes75018 := (<-this.LoadMarkets())
+            PanicOnError(retRes75018)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             requestparamsVariable := this.HandleUntilOption("endTime", request, params);
@@ -8401,16 +8405,16 @@ func  (this *bitget) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                     cursorSent = "idLessThan"
                 }
         
-                    retRes752619 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
-                    PanicOnError(retRes752619)
-                    ch <- retRes752619
+                    retRes753019 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
+                    PanicOnError(retRes753019)
+                    ch <- retRes753019
                     return nil
             }
             var response interface{} = nil
             if IsTrue(uta) {
                 
-        response = (<-this.PrivateUtaGetV3TradeFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3TradeFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 if IsTrue(GetValue(market, "spot")) {
@@ -8420,17 +8424,17 @@ func  (this *bitget) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                         }
                         if IsTrue(IsEqual(marginMode, "isolated")) {
                             
-        response = (<-this.PrivateMarginGetV2MarginIsolatedFills(this.Extend(request, params)))
-                            PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedFills(this.Extend(request, params)))
+                                PanicOnError(response)
                         } else if IsTrue(IsEqual(marginMode, "cross")) {
                             
-        response = (<-this.PrivateMarginGetV2MarginCrossedFills(this.Extend(request, params)))
-                            PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedFills(this.Extend(request, params)))
+                                PanicOnError(response)
                         }
                     } else {
                         
-        response = (<-this.PrivateSpotGetV2SpotTradeFills(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateSpotGetV2SpotTradeFills(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     var productType interface{} = nil
@@ -8439,8 +8443,8 @@ func  (this *bitget) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
                     params = GetValue(productTypeparamsVariable,1)
                     AddElementToObject(request, "productType", productType)
                     
-        response = (<-this.PrivateMixGetV2MixOrderFills(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixOrderFills(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -8617,8 +8621,8 @@ func  (this *bitget) FetchPosition(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes77108 := (<-this.LoadMarkets())
-            PanicOnError(retRes77108)
+            retRes77148 := (<-this.LoadMarkets())
+            PanicOnError(retRes77148)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -8636,8 +8640,8 @@ func  (this *bitget) FetchPosition(symbol interface{}, optionalArgs ...interface
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3PositionCurrentPosition(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -8682,8 +8686,8 @@ func  (this *bitget) FetchPosition(symbol interface{}, optionalArgs ...interface
                 AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixGetV2MixPositionSinglePosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixPositionSinglePosition(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -8749,17 +8753,17 @@ func  (this *bitget) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes78208 := (<-this.LoadMarkets())
-            PanicOnError(retRes78208)
+            retRes78248 := (<-this.LoadMarkets())
+            PanicOnError(retRes78248)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes782419 :=  (<-this.FetchPaginatedCallCursor("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
-                    PanicOnError(retRes782419)
-                    ch <- retRes782419
+                    retRes782819 :=  (<-this.FetchPaginatedCallCursor("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
+                    PanicOnError(retRes782819)
+                    ch <- retRes782819
                     return nil
             }
             var method interface{} = nil
@@ -8804,16 +8808,16 @@ func  (this *bitget) FetchPositions(optionalArgs ...interface{}) <- chan interfa
                 }
                 AddElementToObject(request, "marginCoin", marginCoin)
                 
-        response = (<-this.PrivateMixGetV2MixPositionAllPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixPositionAllPosition(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 isHistory = true
                 if IsTrue(!IsEqual(market, nil)) {
                     AddElementToObject(request, "symbol", GetValue(market, "id"))
                 }
                 
-        response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // privateMixGetV2MixPositionAllPosition
@@ -8886,7 +8890,7 @@ func  (this *bitget) FetchPositions(optionalArgs ...interface{}) <- chan interfa
             }
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(position)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(position, i), market))
+                AppendToArray(&result, this.ParsePosition(GetValue(position, i), market))
             }
             symbols = this.MarketSymbols(symbols)
         
@@ -9152,8 +9156,8 @@ func  (this *bitget) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
             }
         
-            retRes81908 := (<-this.LoadMarkets())
-            PanicOnError(retRes81908)
+            retRes81948 := (<-this.LoadMarkets())
+            PanicOnError(retRes81948)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -9174,8 +9178,8 @@ func  (this *bitget) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketHistoryFundRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketHistoryFundRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -9201,9 +9205,9 @@ func  (this *bitget) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 params = GetValue(paginateparamsVariable,1)
                 if IsTrue(paginate) {
         
-                        retRes822923 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
-                        PanicOnError(retRes822923)
-                        ch <- retRes822923
+                        retRes823323 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
+                        PanicOnError(retRes823323)
+                        ch <- retRes823323
                         return nil
                 }
                 if IsTrue(!IsEqual(limit, nil)) {
@@ -9211,8 +9215,8 @@ func  (this *bitget) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 }
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketHistoryFundRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketHistoryFundRate(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -9235,7 +9239,7 @@ func  (this *bitget) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var symbolInner interface{} = this.SafeSymbol(marketId, market)
                 var timestamp interface{} = this.SafeInteger2(entry, "fundingTime", "fundingRateTimestamp")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": symbolInner,
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -9272,8 +9276,8 @@ func  (this *bitget) FetchFundingRate(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes82848 := (<-this.LoadMarkets())
-            PanicOnError(retRes82848)
+            retRes82888 := (<-this.LoadMarkets())
+            PanicOnError(retRes82888)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "swap")) {
                 panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -9292,8 +9296,8 @@ func  (this *bitget) FetchFundingRate(symbol interface{}, optionalArgs ...interf
             params = GetValue(utaparamsVariable,1)
             if IsTrue(uta) {
                 
-        response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 var method interface{} = nil
@@ -9302,12 +9306,12 @@ func  (this *bitget) FetchFundingRate(symbol interface{}, optionalArgs ...interf
                 params = GetValue(methodparamsVariable,1)
                 if IsTrue(IsEqual(method, "publicMixGetV2MixMarketCurrentFundRate")) {
                     
-        response = (<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketCurrentFundRate(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(method, "publicMixGetV2MixMarketFundingTime")) {
                     
-        response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -9339,8 +9343,8 @@ func  (this *bitget) FetchFundingRates(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes83738 := (<-this.LoadMarkets())
-            PanicOnError(retRes83738)
+            retRes83778 := (<-this.LoadMarkets())
+            PanicOnError(retRes83778)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
                 var symbol interface{} = this.SafeValue(symbols, 0)
@@ -9514,8 +9518,8 @@ func  (this *bitget) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes85258 := (<-this.LoadMarkets())
-            PanicOnError(retRes85258)
+            retRes85298 := (<-this.LoadMarkets())
+            PanicOnError(retRes85298)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
             }
@@ -9525,9 +9529,9 @@ func  (this *bitget) FetchFundingHistory(optionalArgs ...interface{}) <- chan in
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes853219 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
-                    PanicOnError(retRes853219)
-                    ch <- retRes853219
+                    retRes853619 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
+                    PanicOnError(retRes853619)
+                    ch <- retRes853619
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -9629,7 +9633,7 @@ func  (this *bitget) ParseFundingHistories(contracts interface{}, optionalArgs .
         if IsTrue(!IsEqual(business, "contract_settle_fee")) {
             continue
         }
-        AppendToArray(&result,this.ParseFundingHistory(contract, market))
+        AppendToArray(&result, this.ParseFundingHistory(contract, market))
     }
     var sorted interface{} = this.SortBy(result, "timestamp")
     var symbol interface{} = nil
@@ -9646,8 +9650,8 @@ func  (this *bitget) ModifyMarginHelper(symbol interface{}, amount interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes86278 := (<-this.LoadMarkets())
-            PanicOnError(retRes86278)
+            retRes86318 := (<-this.LoadMarkets())
+            PanicOnError(retRes86318)
             var holdSide interface{} = this.SafeString(params, "holdSide")
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
@@ -9736,9 +9740,9 @@ func  (this *bitget) ReduceMargin(symbol interface{}, amount interface{}, option
                 panic(ArgumentsRequired(Add(this.Id, " reduceMargin() requires a holdSide parameter, either long or short")))
             }
         
-                retRes870015 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-                PanicOnError(retRes870015)
-                ch <- retRes870015
+                retRes870415 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+                PanicOnError(retRes870415)
+                ch <- retRes870415
                 return nil
         
             }()
@@ -9766,9 +9770,9 @@ func  (this *bitget) AddMargin(symbol interface{}, amount interface{}, optionalA
                 panic(ArgumentsRequired(Add(this.Id, " addMargin() requires a holdSide parameter, either long or short")))
             }
         
-                retRes871815 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-                PanicOnError(retRes871815)
-                ch <- retRes871815
+                retRes872215 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+                PanicOnError(retRes872215)
+                ch <- retRes872215
                 return nil
         
             }()
@@ -9791,8 +9795,8 @@ func  (this *bitget) FetchLeverage(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes87318 := (<-this.LoadMarkets())
-            PanicOnError(retRes87318)
+            retRes87358 := (<-this.LoadMarkets())
+            PanicOnError(retRes87358)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -9883,8 +9887,8 @@ func  (this *bitget) SetLeverage(leverage interface{}, optionalArgs ...interface
                 panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
             }
         
-            retRes88048 := (<-this.LoadMarkets())
-            PanicOnError(retRes88048)
+            retRes88088 := (<-this.LoadMarkets())
+            PanicOnError(retRes88088)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -9912,14 +9916,14 @@ func  (this *bitget) SetLeverage(leverage interface{}, optionalArgs ...interface
                 AddElementToObject(request, "coin", GetValue(market, "settleId"))
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaPostV3AccountSetLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3AccountSetLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixPostV2MixAccountSetLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixAccountSetLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -9958,8 +9962,8 @@ func  (this *bitget) SetMarginMode(marginMode interface{}, optionalArgs ...inter
                 panic(ArgumentsRequired(Add(this.Id, " setMarginMode() marginMode must be either isolated or crossed (cross)")))
             }
         
-            retRes88788 := (<-this.LoadMarkets())
-            PanicOnError(retRes88788)
+            retRes88828 := (<-this.LoadMarkets())
+            PanicOnError(retRes88828)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -10018,8 +10022,8 @@ func  (this *bitget) SetPositionMode(hedged interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes89208 := (<-this.LoadMarkets())
-            PanicOnError(retRes89208)
+            retRes89248 := (<-this.LoadMarkets())
+            PanicOnError(retRes89248)
             var posMode interface{} = Ternary(IsTrue(hedged), "hedge_mode", "one_way_mode")
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
@@ -10038,14 +10042,14 @@ func  (this *bitget) SetPositionMode(hedged interface{}, optionalArgs ...interfa
             if IsTrue(uta) {
                 AddElementToObject(request, "holdMode", posMode)
                 
-        response = (<-this.PrivateUtaPostV3AccountSetHoldMode(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3AccountSetHoldMode(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "posMode", posMode)
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixPostV2MixAccountSetPositionMode(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixAccountSetPositionMode(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -10073,8 +10077,8 @@ func  (this *bitget) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes89738 := (<-this.LoadMarkets())
-            PanicOnError(retRes89738)
+            retRes89778 := (<-this.LoadMarkets())
+            PanicOnError(retRes89778)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "contract")) {
                 panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -10094,13 +10098,13 @@ func  (this *bitget) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PublicUtaGetV3MarketOpenInterest(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketOpenInterest(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketOpenInterest(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketOpenInterest(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
@@ -10179,8 +10183,8 @@ func  (this *bitget) FetchTransfers(optionalArgs ...interface{}) <- chan interfa
                 panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
             }
         
-            retRes90848 := (<-this.LoadMarkets())
-            PanicOnError(retRes90848)
+            retRes90888 := (<-this.LoadMarkets())
+            PanicOnError(retRes90888)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTransfers", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -10257,8 +10261,8 @@ func  (this *bitget) Transfer(code interface{}, amount interface{}, fromAccount 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes91448 := (<-this.LoadMarkets())
-            PanicOnError(retRes91448)
+            retRes91488 := (<-this.LoadMarkets())
+            PanicOnError(retRes91488)
             var currency interface{} = this.Currency(code)
             var accountsByType interface{} = this.SafeValue(this.Options, "accountsByType", map[string]interface{} {})
             var fromType interface{} = this.SafeString(accountsByType, fromAccount)
@@ -10432,8 +10436,8 @@ func  (this *bitget) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes92968 := (<-this.LoadMarkets())
-            PanicOnError(retRes92968)
+            retRes93008 := (<-this.LoadMarkets())
+            PanicOnError(retRes93008)
         
             response:= (<-this.PublicSpotGetV2SpotPublicCoins(params))
             PanicOnError(response)
@@ -10492,8 +10496,8 @@ func  (this *bitget) BorrowCrossMargin(code interface{}, amount interface{}, opt
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes93428 := (<-this.LoadMarkets())
-            PanicOnError(retRes93428)
+            retRes93468 := (<-this.LoadMarkets())
+            PanicOnError(retRes93468)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -10541,8 +10545,8 @@ func  (this *bitget) BorrowIsolatedMargin(symbol interface{}, code interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes93778 := (<-this.LoadMarkets())
-            PanicOnError(retRes93778)
+            retRes93818 := (<-this.LoadMarkets())
+            PanicOnError(retRes93818)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -10593,8 +10597,8 @@ func  (this *bitget) RepayIsolatedMargin(symbol interface{}, code interface{}, a
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes94158 := (<-this.LoadMarkets())
-            PanicOnError(retRes94158)
+            retRes94198 := (<-this.LoadMarkets())
+            PanicOnError(retRes94198)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -10645,8 +10649,8 @@ func  (this *bitget) RepayCrossMargin(code interface{}, amount interface{}, opti
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes94538 := (<-this.LoadMarkets())
-            PanicOnError(retRes94538)
+            retRes94578 := (<-this.LoadMarkets())
+            PanicOnError(retRes94578)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -10763,17 +10767,17 @@ func  (this *bitget) FetchMyLiquidations(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes95488 := (<-this.LoadMarkets())
-            PanicOnError(retRes95488)
+            retRes95528 := (<-this.LoadMarkets())
+            PanicOnError(retRes95528)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes955219 :=  (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
-                    PanicOnError(retRes955219)
-                    ch <- retRes955219
+                    retRes955619 :=  (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
+                    PanicOnError(retRes955619)
+                    ch <- retRes955619
                     return nil
             }
             var market interface{} = nil
@@ -10810,12 +10814,12 @@ func  (this *bitget) FetchMyLiquidations(optionalArgs ...interface{}) <- chan in
                 }
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "cross")) {
                 
-        response = (<-this.PrivateMarginGetV2MarginCrossedLiquidationHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedLiquidationHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // isolated
@@ -10945,8 +10949,8 @@ func  (this *bitget) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs ..
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes97018 := (<-this.LoadMarkets())
-            PanicOnError(retRes97018)
+            retRes97058 := (<-this.LoadMarkets())
+            PanicOnError(retRes97058)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -11079,8 +11083,8 @@ func  (this *bitget) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes98208 := (<-this.LoadMarkets())
-            PanicOnError(retRes98208)
+            retRes98248 := (<-this.LoadMarkets())
+            PanicOnError(retRes98248)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -11093,8 +11097,8 @@ func  (this *bitget) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
             params = GetValue(utaparamsVariable,1)
             if IsTrue(uta) {
                 
-        response = (<-this.PublicUtaGetV3MarketMarginLoans(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketMarginLoans(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -11110,8 +11114,8 @@ func  (this *bitget) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
                 result = this.SafeDict(response, "data", map[string]interface{} {})
             } else {
                 
-        response = (<-this.PrivateMarginGetV2MarginCrossedInterestRateAndLimit(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedInterestRateAndLimit(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -11223,17 +11227,17 @@ func  (this *bitget) FetchBorrowInterest(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes99378 := (<-this.LoadMarkets())
-            PanicOnError(retRes99378)
+            retRes99418 := (<-this.LoadMarkets())
+            PanicOnError(retRes99418)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchBorrowInterest", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes994119 :=  (<-this.FetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
-                    PanicOnError(retRes994119)
-                    ch <- retRes994119
+                    retRes994519 :=  (<-this.FetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
+                    PanicOnError(retRes994519)
+                    ch <- retRes994519
                     return nil
             }
             var market interface{} = nil
@@ -11265,12 +11269,12 @@ func  (this *bitget) FetchBorrowInterest(optionalArgs ...interface{}) <- chan in
                 }
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PrivateMarginGetV2MarginIsolatedInterestHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginIsolatedInterestHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marginMode, "cross")) {
                 
-        response = (<-this.PrivateMarginGetV2MarginCrossedInterestHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMarginGetV2MarginCrossedInterestHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // isolated
@@ -11401,8 +11405,8 @@ func  (this *bitget) ClosePosition(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes100888 := (<-this.LoadMarkets())
-            PanicOnError(retRes100888)
+            retRes100928 := (<-this.LoadMarkets())
+            PanicOnError(retRes100928)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -11422,16 +11426,16 @@ func  (this *bitget) ClosePosition(symbol interface{}, optionalArgs ...interface
                 }
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(side, nil)) {
                     AddElementToObject(request, "holdSide", side)
                 }
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var order interface{} = this.SafeList2(data, "successList", "list", []interface{}{})
@@ -11461,8 +11465,8 @@ func  (this *bitget) CloseAllPositions(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes101608 := (<-this.LoadMarkets())
-            PanicOnError(retRes101608)
+            retRes101648 := (<-this.LoadMarkets())
+            PanicOnError(retRes101648)
             var request interface{} = map[string]interface{} {}
             var productType interface{} = nil
             var uta interface{} = nil
@@ -11476,13 +11480,13 @@ func  (this *bitget) CloseAllPositions(optionalArgs ...interface{}) <- chan inte
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaPostV3TradeClosePositions(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixPostV2MixOrderClosePositions(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var orderInfo interface{} = this.SafeList2(data, "successList", "list", []interface{}{})
@@ -11510,8 +11514,8 @@ func  (this *bitget) FetchMarginMode(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes102218 := (<-this.LoadMarkets())
-            PanicOnError(retRes102218)
+            retRes102258 := (<-this.LoadMarkets())
+            PanicOnError(retRes102258)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -11601,8 +11605,8 @@ func  (this *bitget) FetchPositionsHistory(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes102898 := (<-this.LoadMarkets())
-            PanicOnError(retRes102898)
+            retRes102938 := (<-this.LoadMarkets())
+            PanicOnError(retRes102938)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             var productType interface{} = nil
@@ -11633,12 +11637,12 @@ func  (this *bitget) FetchPositionsHistory(optionalArgs ...interface{}) <- chan 
             if IsTrue(uta) {
                 AddElementToObject(request, "category", productType)
                 
-        response = (<-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             var responseList interface{} = this.SafeList(data, "list", []interface{}{})
@@ -11671,8 +11675,8 @@ func  (this *bitget) FetchConvertQuote(fromCode interface{}, toCode interface{},
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes103968 := (<-this.LoadMarkets())
-            PanicOnError(retRes103968)
+            retRes104008 := (<-this.LoadMarkets())
+            PanicOnError(retRes104008)
             var request interface{} = map[string]interface{} {
                 "fromCoin": fromCode,
                 "toCoin": toCode,
@@ -11733,8 +11737,8 @@ func  (this *bitget) CreateConvertTrade(id interface{}, fromCode interface{}, to
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes104428 := (<-this.LoadMarkets())
-            PanicOnError(retRes104428)
+            retRes104468 := (<-this.LoadMarkets())
+            PanicOnError(retRes104468)
             var price interface{} = this.SafeString2(params, "price", "cnvtPrice")
             if IsTrue(IsEqual(price, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " createConvertTrade() requires a price parameter")))
@@ -11803,8 +11807,8 @@ func  (this *bitget) FetchConvertTradeHistory(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes104928 := (<-this.LoadMarkets())
-            PanicOnError(retRes104928)
+            retRes104968 := (<-this.LoadMarkets())
+            PanicOnError(retRes104968)
             var request interface{} = map[string]interface{} {}
             var msInDay interface{} = 86400000
             var now interface{} = this.Milliseconds()
@@ -11931,8 +11935,8 @@ func  (this *bitget) FetchConvertCurrencies(optionalArgs ...interface{}) <- chan
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes106038 := (<-this.LoadMarkets())
-            PanicOnError(retRes106038)
+            retRes106078 := (<-this.LoadMarkets())
+            PanicOnError(retRes106078)
         
             response:= (<-this.PrivateConvertGetV2ConvertCurrencies(params))
             PanicOnError(response)
@@ -12012,8 +12016,8 @@ func  (this *bitget) FetchFundingInterval(symbol interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes106708 := (<-this.LoadMarkets())
-            PanicOnError(retRes106708)
+            retRes106748 := (<-this.LoadMarkets())
+            PanicOnError(retRes106748)
             var market interface{} = this.Market(symbol)
             var productType interface{} = nil
             productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
@@ -12029,13 +12033,13 @@ func  (this *bitget) FetchFundingInterval(symbol interface{}, optionalArgs ...in
             params = GetValue(utaparamsVariable,1)
             if IsTrue(uta) {
                 
-        response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicUtaGetV3MarketCurrentFundRate(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "productType", productType)
                 
-        response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketFundingTime(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
             var first interface{} = this.SafeDict(data, 0, map[string]interface{} {})
@@ -12075,8 +12079,8 @@ func  (this *bitget) FetchLongShortRatioHistory(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes107368 := (<-this.LoadMarkets())
-            PanicOnError(retRes107368)
+            retRes107408 := (<-this.LoadMarkets())
+            PanicOnError(retRes107408)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -12087,12 +12091,12 @@ func  (this *bitget) FetchLongShortRatioHistory(optionalArgs ...interface{}) <- 
             var response interface{} = nil
             if IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) {
                 
-        response = (<-this.PublicMixGetV2MixMarketAccountLongShort(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMixGetV2MixMarketAccountLongShort(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicMarginGetV2MarginMarketLongShortRatio(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicMarginGetV2MarginMarketLongShortRatio(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         

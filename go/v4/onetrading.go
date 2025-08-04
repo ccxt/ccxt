@@ -8,10 +8,10 @@ type onetrading struct {
 
 }
 
-func NewOnetradingCore() onetrading {
-   p := onetrading{}
-   setDefaults(&p)
-   return p
+func NewOnetradingCore() *onetrading {
+    p := &onetrading{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *onetrading) Describe() interface{}  {
@@ -545,7 +545,7 @@ func  (this *onetrading) FetchTradingFees(optionalArgs ...interface{}) <- chan i
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -678,8 +678,8 @@ func  (this *onetrading) ParseFeeTiers(feeTiers interface{}, optionalArgs ...int
         var maker interface{} = this.SafeString(tier, "maker_fee")
         maker = Precise.StringDiv(maker, "100")
         taker = Precise.StringDiv(taker, "100")
-        AppendToArray(&makerFees,[]interface{}{volume, this.ParseNumber(maker)})
-        AppendToArray(&takerFees,[]interface{}{volume, this.ParseNumber(taker)})
+        AppendToArray(&makerFees, []interface{}{volume, this.ParseNumber(maker)})
+        AppendToArray(&takerFees, []interface{}{volume, this.ParseNumber(taker)})
     }
     return map[string]interface{} {
         "maker": makerFees,
@@ -1451,12 +1451,12 @@ func  (this *onetrading) CancelOrder(id interface{}, optionalArgs ...interface{}
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privateDeleteAccountOrdersOrderId")) {
                 
-        response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteAccountOrdersOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteAccountOrdersClientClientId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //

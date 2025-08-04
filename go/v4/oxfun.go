@@ -8,10 +8,10 @@ type oxfun struct {
 
 }
 
-func NewOxfunCore() oxfun {
-   p := oxfun{}
-   setDefaults(&p)
-   return p
+func NewOxfunCore() *oxfun {
+    p := &oxfun{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *oxfun) Describe() interface{}  {
@@ -485,8 +485,8 @@ func  (this *oxfun) ParseMarkets(markets interface{}) interface{}  {
         var market interface{} = GetValue(markets, i)
         var marketId interface{} = this.SafeString(market, "marketCode")
         if !IsTrue((this.InArray(marketId, marketIds))) {
-            AppendToArray(&marketIds,marketId)
-            AppendToArray(&result,this.ParseMarket(market))
+            AppendToArray(&marketIds, marketId)
+            AppendToArray(&result, this.ParseMarket(market))
         }
     }
     return result
@@ -715,7 +715,7 @@ func  (this *oxfun) FetchCurrencies(optionalArgs ...interface{}) <- chan interfa
         })
                 }
                 var infos interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
-                AppendToArray(&infos,currency)
+                AppendToArray(&infos, currency)
                 AddElementToObject(GetValue(result, code), "info", infos)
             }
             // only after all entries are formed in currencies, restructure each entry
@@ -1513,7 +1513,7 @@ func  (this *oxfun) ParseMarketLeverageTiers(info interface{}, optionalArgs ...i
     var tiers interface{} = []interface{}{}
     for j := 0; IsLessThan(j, GetArrayLength(listOfTiers)); j++ {
         var tier interface{} = GetValue(listOfTiers, j)
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.SafeNumber(tier, "tier"),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "settle"),
@@ -2300,7 +2300,7 @@ func  (this *oxfun) ParseTransactions(transactions interface{}, optionalArgs ...
     for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
         AddElementToObject(transactions, i, this.Extend(GetValue(transactions, i), params))
         var transaction interface{} = this.ParseTransaction(GetValue(transactions, i), currency)
-        AppendToArray(&result,transaction)
+        AppendToArray(&result, transaction)
     }
     result = this.SortBy(result, "timestamp")
     var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
@@ -2840,7 +2840,7 @@ func  (this *oxfun) CreateOrders(orders interface{}, optionalArgs ...interface{}
                 var price interface{} = this.SafeNumber(rawOrder, "price")
                 var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var request interface{} = map[string]interface{} {
                 "responseType": "FULL",
@@ -3200,7 +3200,7 @@ func  (this *oxfun) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
                     "marketCode": marketId,
                     "orderId": GetValue(ids, i),
                 }
-                AppendToArray(&orders,order)
+                AppendToArray(&orders, order)
             }
             AddElementToObject(request, "orders", orders)
         

@@ -8,10 +8,10 @@ type bithumb struct {
 
 }
 
-func NewBithumbCore() bithumb {
-   p := bithumb{}
-   setDefaults(&p)
-   return p
+func NewBithumbCore() *bithumb {
+    p := &bithumb{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bithumb) Describe() interface{}  {
@@ -284,7 +284,7 @@ func  (this *bithumb) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var request interface{} = map[string]interface{} {
                     "quoteId": GetValue(quotes, i),
                 }
-                AppendToArray(&promises,this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
+                AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
             }
         
             results:= (<-promiseAll(promises))
@@ -356,7 +356,7 @@ func  (this *bithumb) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                         "created": nil,
                         "info": market,
                     }, extension)
-                    AppendToArray(&result,entry)
+                    AppendToArray(&result, entry)
                 }
             }
         
@@ -556,7 +556,7 @@ func  (this *bithumb) FetchTickers(optionalArgs ...interface{}) <- chan interfac
                 var request interface{} = map[string]interface{} {
                     "quoteId": GetValue(quotes, i),
                 }
-                AppendToArray(&promises,this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
+                AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
             }
         
             responses:= (<-promiseAll(promises))

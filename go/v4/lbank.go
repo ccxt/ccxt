@@ -8,10 +8,10 @@ type lbank struct {
 
 }
 
-func NewLbankCore() lbank {
-   p := lbank{}
-   setDefaults(&p)
-   return p
+func NewLbankCore() *lbank {
+    p := &lbank{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *lbank) Describe() interface{}  {
@@ -361,12 +361,12 @@ func  (this *lbank) FetchTime(optionalArgs ...interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "swap")) {
                 
-        response = (<-this.ContractPublicGetCfdOpenApiV1PubGetTime(params))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetCfdOpenApiV1PubGetTime(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.SpotPublicGetTimestamp(params))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetTimestamp(params))
+                    PanicOnError(response)
             }
         
                 //
@@ -573,7 +573,7 @@ func  (this *lbank) FetchSpotMarkets(optionalArgs ...interface{}) <- chan interf
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var symbol interface{} = Add(Add(base, "/"), quote)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": marketId,
                     "symbol": symbol,
                     "base": base,
@@ -683,7 +683,7 @@ func  (this *lbank) FetchSwapMarkets(optionalArgs ...interface{}) <- chan interf
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var settle interface{} = this.SafeCurrencyCode(settleId)
                 var symbol interface{} = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": marketId,
                     "symbol": symbol,
                     "base": base,
@@ -905,13 +905,13 @@ func  (this *lbank) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "productGroup", "SwapU")
                 
-        response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketData(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketData(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", "all")
                 
-        response = (<-this.SpotPublicGetTicker24hr(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetTicker24hr(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1004,13 +1004,13 @@ func  (this *lbank) FetchOrderBook(symbol interface{}, optionalArgs ...interface
             if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "depth", limit)
                 
-        response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "size", limit)
                 
-        response = (<-this.SpotPublicGetDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1223,12 +1223,12 @@ func  (this *lbank) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(method, "spotPublicGetSupplementTrades")) {
                 
-        response = (<-this.SpotPublicGetSupplementTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetSupplementTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.SpotPublicGetTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //      {
@@ -1641,16 +1641,16 @@ func  (this *lbank) FetchBalance(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(IsEqual(method, "spotPrivatePostSupplementUserInfoAccount")) {
                 
-        response = (<-this.SpotPrivatePostSupplementUserInfoAccount())
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostSupplementUserInfoAccount())
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "spotPrivatePostUserInfo")) {
                 
-        response = (<-this.SpotPrivatePostUserInfo())
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostUserInfo())
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.SpotPrivatePostSupplementUserInfo())
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostSupplementUserInfo())
+                    PanicOnError(response)
             }
         
                 //
@@ -1902,12 +1902,12 @@ func  (this *lbank) CreateOrder(symbol interface{}, typeVar interface{}, side in
             var response interface{} = nil
             if IsTrue(IsEqual(method, "spotPrivatePostCreateOrder")) {
                 
-        response = (<-this.SpotPrivatePostCreateOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostCreateOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostSupplementCreateOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //      {
@@ -2238,7 +2238,7 @@ func  (this *lbank) FetchOrderDefault(id interface{}, optionalArgs ...interface{
             } else {
                 panic(BadRequest(Add(this.Id, " fetchOrder() can only fetch one order at a time")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2624,12 +2624,12 @@ func  (this *lbank) FetchDepositAddress(code interface{}, optionalArgs ...interf
             var response interface{} = nil
             if IsTrue(IsEqual(method, "fetchDepositAddressSupplement")) {
                 
-        response = (<-this.FetchDepositAddressSupplement(code, params))
-                PanicOnError(response)
+            response = (<-this.FetchDepositAddressSupplement(code, params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FetchDepositAddressDefault(code, params))
-                PanicOnError(response)
+            response = (<-this.FetchDepositAddressDefault(code, params))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -3094,17 +3094,17 @@ func  (this *lbank) FetchTransactionFees(optionalArgs ...interface{}) <- chan in
                 params = this.Omit(params, "method")
                 if IsTrue(IsEqual(method, "fetchPublicTransactionFees")) {
                     
-        result = (<-this.FetchPublicTransactionFees(params))
-                    PanicOnError(result)
+            result = (<-this.FetchPublicTransactionFees(params))
+                        PanicOnError(result)
                 } else {
                     
-        result = (<-this.FetchPrivateTransactionFees(params))
-                    PanicOnError(result)
+            result = (<-this.FetchPrivateTransactionFees(params))
+                        PanicOnError(result)
                 }
             } else {
                 
-        result = (<-this.FetchPublicTransactionFees(params))
-                PanicOnError(result)
+            result = (<-this.FetchPublicTransactionFees(params))
+                    PanicOnError(result)
             }
         
             ch <- result
@@ -3290,17 +3290,17 @@ func  (this *lbank) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- cha
                 params = this.Omit(params, "method")
                 if IsTrue(IsEqual(method, "fetchPublicDepositWithdrawFees")) {
                     
-        response = (<-this.FetchPublicDepositWithdrawFees(codes, params))
-                    PanicOnError(response)
+            response = (<-this.FetchPublicDepositWithdrawFees(codes, params))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.FetchPrivateDepositWithdrawFees(codes, params))
-                    PanicOnError(response)
+            response = (<-this.FetchPrivateDepositWithdrawFees(codes, params))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.FetchPublicDepositWithdrawFees(codes, params))
-                PanicOnError(response)
+            response = (<-this.FetchPublicDepositWithdrawFees(codes, params))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -3445,7 +3445,7 @@ func  (this *lbank) ParsePublicDepositWithdrawFees(response interface{}, optiona
                         AddElementToObject(result, code, this.DepositWithdrawFee([]interface{}{fee}))
                     } else {
                         var resultCodeInfo interface{} = GetValue(GetValue(result, code), "info")
-                        AppendToArray(&resultCodeInfo,fee)
+                        AppendToArray(&resultCodeInfo, fee)
                     }
                     var networkCode interface{} = this.NetworkIdToCode(this.SafeString(fee, "chain"))
                     if IsTrue(!IsEqual(networkCode, nil)) {

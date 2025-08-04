@@ -8,10 +8,10 @@ type krakenfutures struct {
 
 }
 
-func NewKrakenfuturesCore() krakenfutures {
-   p := krakenfutures{}
-   setDefaults(&p)
-   return p
+func NewKrakenfuturesCore() *krakenfutures {
+    p := &krakenfutures{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *krakenfutures) Describe() interface{}  {
@@ -410,7 +410,7 @@ func  (this *krakenfutures) FetchMarkets(optionalArgs ...interface{}) <- chan in
                         symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
                     }
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -466,7 +466,7 @@ func  (this *krakenfutures) FetchMarkets(optionalArgs ...interface{}) <- chan in
             var currencies interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(settlementCurrencies)); i++ {
                 var code interface{} = GetValue(settlementCurrencies, i)
-                AppendToArray(&currencies,map[string]interface{} {
+                AppendToArray(&currencies, map[string]interface{} {
                     "id": ToLower(code),
                     "numericId": nil,
                     "code": code,
@@ -913,7 +913,7 @@ func  (this *krakenfutures) FetchTrades(symbol interface{}, optionalArgs ...inte
                     var event interface{} = this.SafeDict(element, "event", map[string]interface{} {})
                     var executionContainer interface{} = this.SafeDict(event, "Execution", map[string]interface{} {})
                     var rawTrade interface{} = this.SafeDict(executionContainer, "execution", map[string]interface{} {})
-                    AppendToArray(&rawTrades,rawTrade)
+                    AppendToArray(&rawTrades, rawTrade)
                 }
             } else {
                 requestparamsVariable := this.HandleUntilOption("lastTime", request, params);
@@ -1268,7 +1268,7 @@ func  (this *krakenfutures) CreateOrders(orders interface{}, optionalArgs ...int
                 }
                 AddElementToObject(extendedParams, "order", "send")
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var request interface{} = map[string]interface{} {
                 "batchOrder": ordersRequests,
@@ -1423,14 +1423,14 @@ func  (this *krakenfutures) CancelOrders(ids interface{}, optionalArgs ...interf
             var clientOrderIdsLength interface{} =     GetArrayLength(clientOrderIds)
             if IsTrue(IsGreaterThan(clientOrderIdsLength, 0)) {
                 for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
-                    AppendToArray(&orders,map[string]interface{} {
+                    AppendToArray(&orders, map[string]interface{} {
                         "order": "cancel",
                         "cliOrdId": GetValue(clientOrderIds, i),
                     })
                 }
             } else {
                 for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                    AppendToArray(&orders,map[string]interface{} {
+                    AppendToArray(&orders, map[string]interface{} {
                         "order": "cancel",
                         "order_id": GetValue(ids, i),
                     })
@@ -1541,7 +1541,7 @@ func  (this *krakenfutures) CancelAllOrders(optionalArgs ...interface{}) <- chan
             for i := 0; IsLessThan(i, GetArrayLength(orderEvents)); i++ {
                 var orderEvent interface{} = this.SafeDict(orderEvents, 0)
                 var order interface{} = this.SafeDict(orderEvent, "order", map[string]interface{} {})
-                AppendToArray(&orders,order)
+                AppendToArray(&orders, order)
             }
         
             ch <- this.ParseOrders(orders)
@@ -1686,7 +1686,7 @@ func  (this *krakenfutures) FetchClosedOrders(optionalArgs ...interface{}) <- ch
                     var filled interface{} = this.SafeString(innerOrder, "filled")
                     if IsTrue(!IsEqual(filled, "0")) {
                         AddElementToObject(innerOrder, "status", "closed") // status not available in the response
-                        AppendToArray(&closedOrders,innerOrder)
+                        AppendToArray(&closedOrders, innerOrder)
                     }
                 }
             }
@@ -1749,20 +1749,20 @@ func  (this *krakenfutures) FetchCanceledOrders(optionalArgs ...interface{}) <- 
                     var filled interface{} = this.SafeString(innerOrder, "filled")
                     if IsTrue(IsEqual(filled, "0")) {
                         AddElementToObject(innerOrder, "status", "canceled") // status not available in the response
-                        AppendToArray(&canceledAndRejected,innerOrder)
+                        AppendToArray(&canceledAndRejected, innerOrder)
                     }
                 }
                 var orderCanceled interface{} = this.SafeDict(event, "OrderCancelled")
                 if IsTrue(!IsEqual(orderCanceled, nil)) {
                     var innerOrder interface{} = this.SafeDict(orderCanceled, "order", map[string]interface{} {})
                     AddElementToObject(innerOrder, "status", "canceled") // status not available in the response
-                    AppendToArray(&canceledAndRejected,innerOrder)
+                    AppendToArray(&canceledAndRejected, innerOrder)
                 }
                 var orderRejected interface{} = this.SafeDict(event, "OrderRejected")
                 if IsTrue(!IsEqual(orderRejected, nil)) {
                     var innerOrder interface{} = this.SafeDict(orderRejected, "order", map[string]interface{} {})
                     AddElementToObject(innerOrder, "status", "rejected") // status not available in the response
-                    AppendToArray(&canceledAndRejected,innerOrder)
+                    AppendToArray(&canceledAndRejected, innerOrder)
                 }
             }
         
@@ -2082,7 +2082,7 @@ func  (this *krakenfutures) ParseOrder(order interface{}, optionalArgs ...interf
         for i := 0; IsLessThan(i, GetArrayLength(orderEvents)); i++ {
             var item interface{} = GetValue(orderEvents, i)
             if IsTrue(IsEqual(this.SafeString(item, "type"), "EXECUTION")) {
-                AppendToArray(&executions,item)
+                AppendToArray(&executions, item)
             }
             // Final order (after placement / editing / execution / canceling)
             var orderTrigger interface{} = this.SafeValue(item, "orderTrigger")
@@ -2544,7 +2544,7 @@ func  (this *krakenfutures) FetchFundingRates(optionalArgs ...interface{}) <- ch
                 }
                 var market interface{} = this.SafeMarket(entry_symbol)
                 var parsed interface{} = this.ParseFundingRate(entry, market)
-                AppendToArray(&fundingRates,parsed)
+                AppendToArray(&fundingRates, parsed)
             }
         
             ch <- this.IndexBy(fundingRates, "symbol")
@@ -2669,7 +2669,7 @@ func  (this *krakenfutures) FetchFundingRateHistory(optionalArgs ...interface{})
             for i := 0; IsLessThan(i, GetArrayLength(rates)); i++ {
                 var item interface{} = GetValue(rates, i)
                 var datetime interface{} = this.SafeString(item, "timestamp")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": item,
                     "symbol": symbol,
                     "fundingRate": this.SafeNumber(item, "relativeFundingRate"),
@@ -2743,7 +2743,7 @@ func  (this *krakenfutures) ParsePositions(response interface{}, optionalArgs ..
     var positions interface{} = this.SafeValue(response, "openPositions")
     for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
         var position interface{} = this.ParsePosition(GetValue(positions, i))
-        AppendToArray(&result,position)
+        AppendToArray(&result, position)
     }
     return result
 }
@@ -2938,7 +2938,7 @@ func  (this *krakenfutures) ParseMarketLeverageTiers(info interface{}, optionalA
             var previousTier interface{} = GetValue(tiers, Subtract(tiersLength, 1))
             AddElementToObject(previousTier, "maxNotional", minNotional)
         }
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.Sum(i, 1),
             "symbol": this.SafeSymbol(marketId, market),
             "currency": GetValue(market, "quote"),
@@ -3063,15 +3063,15 @@ func  (this *krakenfutures) Transfer(code interface{}, amount interface{}, fromA
                 }
                 AddElementToObject(request, "currency", GetValue(currency, "id"))
                 
-        response = (<-this.PrivatePostWithdrawal(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostWithdrawal(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "fromAccount", this.ParseAccount(fromAccount))
                 AddElementToObject(request, "toAccount", this.ParseAccount(toAccount))
                 AddElementToObject(request, "unit", GetValue(currency, "id"))
                 
-        response = (<-this.PrivatePostTransfer(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTransfer(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //    {

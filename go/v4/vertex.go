@@ -8,10 +8,10 @@ type vertex struct {
 
 }
 
-func NewVertexCore() vertex {
-   p := vertex{}
-   setDefaults(&p)
-   return p
+func NewVertexCore() *vertex {
+    p := &vertex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *vertex) Describe() interface{}  {
@@ -634,7 +634,7 @@ func  (this *vertex) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
                 var symbol interface{} = GetValue(symbols, i)
                 var rawMarket interface{} = this.SafeDict(markets, symbol, map[string]interface{} {})
-                AppendToArray(&result,this.ParseMarket(rawMarket))
+                AppendToArray(&result, this.ParseMarket(rawMarket))
             }
         
             ch <- result
@@ -1659,7 +1659,7 @@ func  (this *vertex) FetchOpenInterests(optionalArgs ...interface{}) <- chan int
                     var parsedTickerId interface{} = Split(tickerId, "-")
                     var currentSymbol interface{} = Add(GetValue(parsedTickerId, 0), "/USDC:USDC")
                     if !IsTrue(this.InArray(currentSymbol, symbols)) {
-                        AppendToArray(&symbols,currentSymbol)
+                        AppendToArray(&symbols, currentSymbol)
                     }
                 }
             }
@@ -1671,8 +1671,8 @@ func  (this *vertex) FetchOpenInterests(optionalArgs ...interface{}) <- chan int
                     var market interface{} = this.Market(GetValue(symbols, j))
                     var tickerId interface{} = Add(GetValue(market, "base"), "_USDC")
                     if IsTrue(IsEqual(GetValue(marketInner, "marketId"), tickerId)) {
-                        AppendToArray(&parsedSymbols,GetValue(market, "symbol"))
-                        AppendToArray(&results,this.ParseOpenInterest(openInterest, market))
+                        AppendToArray(&parsedSymbols, GetValue(market, "symbol"))
+                        AppendToArray(&results, this.ParseOpenInterest(openInterest, market))
                     }
                 }
             }
@@ -2124,12 +2124,12 @@ func  (this *vertex) CreateOrder(symbol interface{}, typeVar interface{}, side i
                 }
                 AddElementToObject(GetValue(request, "place_order"), "trigger", trigger)
                 
-        response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // {
@@ -2537,15 +2537,15 @@ func  (this *vertex) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.V1TriggerPostQuery(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1TriggerPostQuery(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 this.CheckRequiredArgument("fetchOpenOrders", symbol, "symbol")
                 AddElementToObject(request, "type", "subaccount_orders")
                 AddElementToObject(request, "sender", this.ConvertAddressToSender(userAddress))
                 
-        response = (<-this.V1GatewayPostQuery(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GatewayPostQuery(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             var orders interface{} = this.SafeList(data, "orders")
@@ -2724,12 +2724,12 @@ func  (this *vertex) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- []interface{}{this.SafeOrder(map[string]interface{} {
@@ -2817,7 +2817,7 @@ func  (this *vertex) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
             var productIds interface{} = GetValue(cancels, "productIds")
             var marketIdNum interface{} = this.ParseToNumeric(marketId)
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                AppendToArray(&productIds,marketIdNum)
+                AppendToArray(&productIds, marketIdNum)
             }
             var request interface{} = map[string]interface{} {
                 "cancel_orders": map[string]interface{} {
@@ -2835,12 +2835,12 @@ func  (this *vertex) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1TriggerPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1GatewayPostExecute(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- response
@@ -3318,7 +3318,7 @@ func  (this *vertex) FetchPositions(optionalArgs ...interface{}) <- chan interfa
                 if IsTrue(IsEqual(GetValue(position, "contractSize"), 0)) {
                     continue
                 }
-                AppendToArray(&result,position)
+                AppendToArray(&result, position)
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)

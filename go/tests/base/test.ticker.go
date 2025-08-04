@@ -32,8 +32,8 @@ import "github.com/ccxt/ccxt/go/v4"
         var emptyAllowedFor interface{} = []interface{}{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
         // trick csharp-transpiler for string
         if !IsTrue((Contains(ToString(method),"BidsAsks"))) {
-            AppendToArray(&emptyAllowedFor,"bid")
-            AppendToArray(&emptyAllowedFor,"ask")
+            AppendToArray(&emptyAllowedFor, "bid")
+            AppendToArray(&emptyAllowedFor, "ask")
         }
         AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
         AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
