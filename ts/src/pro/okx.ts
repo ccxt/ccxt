@@ -2355,7 +2355,7 @@ export default class okx extends okxRest {
             client.reject (e);
             return false;
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {
