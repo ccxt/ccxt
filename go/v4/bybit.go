@@ -9713,7 +9713,7 @@ func  (this *bybit) FetchLeverageTiers(optionalArgs ...interface{}) <- chan inte
         
             data:= (<-this.GetLeverageTiersPaginated(symbol, this.Extend(map[string]interface{} {
             "paginate": true,
-            "paginationCalls": 40,
+            "paginationCalls": 50,
         }, params)))
             PanicOnError(data)
             symbols = this.MarketSymbols(symbols)
