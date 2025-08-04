@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -48,6 +48,7 @@ export default class hibachi extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -832,21 +833,7 @@ export default class hibachi extends Exchange {
         return message;
     }
 
-    /**
-     * @method
-     * @name hibachi#createOrder
-     * @description create a trade order
-     * @see https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const nonce = this.nonce ();
         const feeRate = Math.max (this.safeNumber (market, 'taker'), this.safeNumber (market, 'maker'));
@@ -863,7 +850,6 @@ export default class hibachi extends Exchange {
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
-            'accountId': this.getAccountId (),
             'symbol': this.safeString (market, 'id'),
             'nonce': nonce,
             'side': sideInternal,
@@ -888,7 +874,27 @@ export default class hibachi extends Exchange {
             request['triggerPrice'] = triggerPrice;
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
-        const response = await this.privatePostTradeOrder (this.extend (request, params));
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name hibachi#createOrder
+     * @description create a trade order
+     * @see https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        request['accountId'] = this.getAccountId ();
+        const response = await this.privatePostTradeOrder (request);
         //
         // {
         //     "orderId": "578721673790138368"
@@ -898,6 +904,51 @@ export default class hibachi extends Exchange {
             'id': this.safeString (response, 'orderId'),
             'status': 'pending',
         });
+    }
+
+    /**
+     * @method
+     * @name hibachi#createOrders
+     * @description *contract only* create a list of trade orders
+     * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+        await this.loadMarkets ();
+        const requestOrders = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            orderRequest['action'] = 'place';
+            requestOrders.push (orderRequest);
+        }
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+            'orders': requestOrders,
+        };
+        const response = await this.privatePostTradeOrders (this.extend (request, params));
+        //
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
+        //
+        const ret = [];
+        const responseOrders = this.safeList (response, 'orders');
+        for (let i = 0; i < responseOrders.length; i++) {
+            const responseOrder = responseOrders[i];
+            ret.push (this.safeOrder ({
+                'info': responseOrder,
+                'id': this.safeString (responseOrder, 'orderId'),
+                'status': 'pending',
+            }));
+        }
+        return ret;
     }
 
     /**
@@ -942,7 +993,7 @@ export default class hibachi extends Exchange {
     }
 
     cancelOrderRequest (id: string) {
-        const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (id)).padStart (16, '0'));
+        const message = this.ethAbiEncode ([ 'int' ], [ this.convertToBigInt (id) ]).slice (-8);
         const signature = this.signMessage (message, this.privateKey);
         return {
             'orderId': id,

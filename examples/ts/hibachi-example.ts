@@ -114,12 +114,15 @@ async function example () {
     console.log('fetchFundingRateHistory', fundingRateHistory);
 
     // Batch orders
-    const order6 = await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.234, 1.234);
-    const order7 = await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1.012, 1.012);
-    const cancelOrders = await exchange.cancelOrders([order6.id, order7.id]);
+    const createOrders = await exchange.createOrders([
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.234, 'price': 1.234},
+        {'symbol': 'BTC/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.001, 'price': 1.001},
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.002, 'price': 1.002},
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.003, 'price': 1.003},
+    ]);
+    console.log('createOrders', createOrders);
+    const cancelOrders = await exchange.cancelOrders([createOrders[0].id, createOrders[1].id]);
     console.log('cancelOrders', cancelOrders);
-    await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.234, 1.234);
-    await exchange.createOrder('ETH/USDT:USDT', 'limit', 'buy', 1.012, 1.012);
     const cancelAll = await exchange.cancelAllOrders('ETH/USDT:USDT');
     console.log(cancelAll);
 
