@@ -920,7 +920,7 @@ export default class bybit extends bybitRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBookForSymbols (symbols: Strings, params = {}): Promise<any> {
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel = 'orderbook.';
