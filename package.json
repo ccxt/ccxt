@@ -32,7 +32,7 @@
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildGO": "go build -C go ./v4",
-    "formatGO": "cd go && go fmt ./v4 ./tests",
+    "formatGO": "go fmt -C go v4 tests",
     "transpileGO": "tsx build/goTranspiler.ts",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
