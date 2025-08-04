@@ -3,7 +3,7 @@
 
 import dydxRest from '../dydx.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -18,7 +18,7 @@ export default class dydx extends dydxRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -89,7 +89,7 @@ export default class dydx extends dydxRest {
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const content = this.safeDict (message, 'contents', {});
+        const content = this.safeDict (message, 'contents');
         const rawTrades = this.safeList (content, 'trades', []);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -136,6 +136,84 @@ export default class dydx extends dydxRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name dydx#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.dydx.xyz/indexer-client/websockets#orders
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const messageHash = 'orderbook:' + market['symbol'];
+        const request: Dict = {
+            'type': 'subscribe',
+            'channel': 'v4_orderbook',
+            'id': market['id'],
+        };
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // {
+        //     "type": "subscribed",
+        //     "connection_id": "7af140fb-b33d-4f0e-8f4c-30f16337b360",
+        //     "message_id": 1,
+        //     "channel": "v4_orderbook",
+        //     "id": "BTC-USD",
+        //     "contents": {
+        //         "bids": [
+        //             {
+        //                 "price": "114623",
+        //                 "size": "0.1112"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "114624",
+        //                 "size": "0.0872"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const marketId = this.safeString (message, 'id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const content = this.safeDict (message, 'contents');
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ();
+        }
+        orderbook['symbol'] = symbol;
+        const asks = this.safeList (content, 'asks', []);
+        const bids = this.safeList (content, 'bids', []);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
+        orderbook['nonce'] = this.safeInteger (message, 'message_id');
+        const messageHash = 'orderbook:' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        if (Array.isArray (delta)) {
+            const price = this.safeFloat (delta, 0);
+            const amount = this.safeFloat (delta, 1);
+            bookside.store (price, amount);
+        } else {
+            const bidAsk = this.parseBidAsk (delta, 'price', 'size');
+            bookside.storeArray (bidAsk);
+        }
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {
@@ -164,6 +242,7 @@ export default class dydx extends dydxRest {
             const topic = this.safeString (message, 'channel');
             const methods: Dict = {
                 'v4_trades': this.handleTrades,
+                'v4_orderbook': this.handleOrderBook,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
