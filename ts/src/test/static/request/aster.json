@@ -303,9 +303,9 @@
                 "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
                 "input": [
                     "BTC/USDT:USDT",
-                    1
+                    3
                 ],
-                "output": "symbol=BTCUSDT&amount=1&type=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+                "output": "symbol=BTCUSDT&amount=3&type=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
         ],
         "reduceMargin": [
@@ -315,9 +315,9 @@
                 "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
                 "input": [
                     "BTC/USDT:USDT",
-                    1
+                    3
                 ],
-                "output": "symbol=BTCUSDT&amount=1&type=2&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+                "output": "symbol=BTCUSDT&amount=3&type=2&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
             }
         ],
         "cancelAllOrders": [

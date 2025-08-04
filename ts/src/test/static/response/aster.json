@@ -349,7 +349,9 @@
                         "optionType": null,
                         "precision": {
                             "amount": 0.001,
-                            "price": 0.1
+                            "price": 0.1,
+                            "base": 0.00000001,
+                            "quote": 0.00000001
                         },
                         "limits": {
                             "leverage": {
@@ -357,23 +359,27 @@
                                 "max": null
                             },
                             "amount": {
-                                "min": null,
-                                "max": null
+                                "min": 0.001,
+                                "max": 100
                             },
                             "price": {
-                                "min": null,
-                                "max": null
+                                "min": 1,
+                                "max": 1000000
                             },
                             "cost": {
-                                "min": null,
+                                "min": 5,
                                 "max": null
+                            },
+                            "market": {
+                                "min": 0.001,
+                                "max": 10
                             }
                         },
                         "marginModes": {
                             "cross": null,
                             "isolated": null
                         },
-                        "created": null,
+                        "created": 1627628400000,
                         "info": {
                             "symbol": "BTCUSDT",
                             "pair": "BTCUSDT",
@@ -1076,7 +1082,9 @@
             {
                 "description": "setPositionMode",
                 "method": "setPositionMode",
-                "input": [],
+                "input": [
+                    true
+                ],
                 "httpResponse": {
                     "code": 200,
                     "msg": "success"

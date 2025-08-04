@@ -47,7 +47,7 @@ export default class aster extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePosition': false,  // exchange specific closePosition parameter for binance createOrder is not synonymous with how CCXT uses closePositions
+                'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': false,
@@ -607,7 +607,9 @@ export default class aster extends Exchange {
             const symbol = base + '/' + quote + ':' + settle;
             const status = this.safeString (market, 'status');
             const active = status === 'TRADING';
-            result.push (this.safeMarketStructure ({
+            const filters = this.safeList (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
+            const entry = this.safeMarketStructure ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -636,6 +638,8 @@ export default class aster extends Exchange {
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -655,9 +659,37 @@ export default class aster extends Exchange {
                         'max': undefined,
                     },
                 },
-                'created': undefined,
+                'created': this.safeInteger (market, 'onboardDate'),
                 'info': market,
-            }));
+            });
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+                entry['limits']['price'] = {
+                    'min': this.safeNumber (filter, 'minPrice'),
+                    'max': this.safeNumber (filter, 'maxPrice'),
+                };
+                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
+            }
+            if ('LOT_SIZE' in filtersByType) {
+                const filter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
+                entry['limits']['amount'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+                entry['limits']['market'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
+            if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) {
+                const filter = this.safeDict2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+                entry['limits']['cost']['min'] = this.safeNumber (filter, 'notional');
+            }
+            result.push (entry);
         }
         return result;
     }
@@ -1382,10 +1414,10 @@ export default class aster extends Exchange {
         //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         //     }
         //
-        const dualSidePosition = this.safeString (response, 'dualSidePosition');
+        const dualSidePosition = this.safeBool (response, 'dualSidePosition');
         return {
             'info': response,
-            'hedged': (dualSidePosition === 'true'),
+            'hedged': (dualSidePosition === true),
         };
     }
 
