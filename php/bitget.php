@@ -1533,7 +1533,6 @@ class bitget extends Exchange {
                     'ERC20' => 'ERC20',
                     'BEP20' => 'BSC',
                     // 'BEP20' => 'BEP20', // different for BEP20
-                    'BSC' => 'BEP20',
                     'ATOM' => 'ATOM',
                     'ACA' => 'AcalaToken',
                     'APT' => 'Aptos',
