@@ -23,6 +23,7 @@ const promisedWriteFile = promisify (fs.writeFile);
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
 const exchangeIds = exchanges.ids
+const exchangeIdsWs = exchanges.ws
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -53,7 +54,6 @@ if (platform === 'win32') {
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
-const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
 const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
@@ -1494,9 +1494,9 @@ ${constStatements.join('\n')}
     }
 
 
-    createDynamicInstanceFile(){
-        const dynamicInstanceFile = DYNAMIC_INSTANCE_FILE;
-        const exchanges = ['Exchange'].concat(exchangeIds);
+    createDynamicInstanceFile(ws = false){
+        const dynamicInstanceFile = `./go/v4${ws ? '/ws' : ''}/exchange_dynamic.go`;
+        const exchanges = ws ? exchangeIdsWs : ['Exchange'].concat(exchangeIds);
         
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
@@ -1507,7 +1507,7 @@ ${constStatements.join('\n')}
         })
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${ws ? 'ccxt.' : ''}ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
     default:
@@ -1516,7 +1516,8 @@ ${caseStatements.join('\n')}
 }
 `
         const file = [
-            'package ccxt',
+            `package ccxt${ws ? 'ws' : ''}`,
+            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             this.createGeneratedHeader().join('\n'),
             '',
             functionDecl,
@@ -1648,10 +1649,11 @@ type IExchange interface {
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
+        const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges };
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
-        this.transpileBaseMethods(TS_BASE_FILE, true)
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        this.transpileBaseMethods(TS_BASE_FILE, true);
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
+        this.createDynamicInstanceFile(true);
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
