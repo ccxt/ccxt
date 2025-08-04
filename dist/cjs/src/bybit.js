@@ -8352,7 +8352,7 @@ class bybit extends bybit$1 {
             }
             symbol = market['symbol'];
         }
-        const data = await this.getLeverageTiersPaginated(symbol, this.extend({ 'paginate': true, 'paginationCalls': 40 }, params));
+        const data = await this.getLeverageTiersPaginated(symbol, this.extend({ 'paginate': true, 'paginationCalls': 50 }, params));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
