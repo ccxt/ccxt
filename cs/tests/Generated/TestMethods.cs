@@ -913,6 +913,24 @@ public partial class testMainClass
         }
     }
 
+    public async virtual Task<object> testReturnResponseHeaders(Exchange exchange)
+    {
+        if (isTrue(!isEqual(exchange.id, "binance")))
+        {
+            return false;  // this test is only for binance exchange for now
+        }
+        exchange.returnResponseHeaders = true;
+        object ticker = await exchange.fetchTicker("BTC/USDT");
+        object info = getValue(ticker, "info");
+        object headers = getValue(info, "responseHeaders");
+        object headersKeys = new List<object>(((IDictionary<string,object>)headers).Keys);
+        assert(isGreaterThan(getArrayLength(headersKeys), 0), "Response headers should not be empty");
+        object headerValues = new List<object>(((IDictionary<string,object>)headers).Values);
+        assert(isGreaterThan(getArrayLength(headerValues), 0), "Response headers values should not be empty");
+        exchange.returnResponseHeaders = false;
+        return true;
+    }
+
     public async virtual Task<object> startTest(Exchange exchange, object symbol)
     {
         // we do not need to test aliases
@@ -921,6 +939,7 @@ public partial class testMainClass
             return true;
         }
         this.checkConstructor(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);
@@ -2036,7 +2055,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object brokerId = getValue(spotOrderRequest, "broker_id");
         object idString = ((object)id).ToString();

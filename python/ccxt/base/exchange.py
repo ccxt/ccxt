@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.94'
+__version__ = '4.4.98'
 
 # -----------------------------------------------------------------------------
 
@@ -229,6 +229,7 @@ class Exchange(object):
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     }
     headers = None
+    returnResponseHeaders = False
     origin = '*'  # CORS origin
     MAX_VALUE = float('inf')
     #
@@ -579,6 +580,8 @@ class Exchange(object):
             if self.verbose:
                 self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+            if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:
+                json_response['responseHeaders'] = headers
             response.raise_for_status()
 
         except Timeout as e:
@@ -2130,6 +2133,17 @@ class Exchange(object):
                 'watchLiquidations': None,
                 'watchLiquidationsForSymbols': None,
                 'watchMyLiquidations': None,
+                'unWatchOrders': None,
+                'unWatchTrades': None,
+                'unWatchTradesForSymbols': None,
+                'unWatchOHLCVForSymbols': None,
+                'unWatchOrderBookForSymbols': None,
+                'unWatchPositions': None,
+                'unWatchOrderBook': None,
+                'unWatchTickers': None,
+                'unWatchMyTrades': None,
+                'unWatchTicker': None,
+                'unWatchOHLCV': None,
                 'watchMyLiquidationsForSymbols': None,
                 'withdraw': None,
                 'ws': None,
@@ -2615,6 +2629,9 @@ class Exchange(object):
 
     def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
+
+    def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -3584,18 +3601,7 @@ class Exchange(object):
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
-    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
-        """
-        calculates the presumptive fee that would be charged for an order
-        :param str symbol: unified market symbol
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-        :param float price: the price for the order to be filled at, in units of the quote currency
-        :param str takerOrMaker: 'taker' or 'maker'
-        :param dict params:
-        :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-        """
+    def calculate_fee_with_rate(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', feeRate: Num = None, params={}):
         if type == 'market' and takerOrMaker == 'maker':
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
@@ -3624,7 +3630,7 @@ class Exchange(object):
         # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if type == 'market':
             takerOrMaker = 'taker'
-        rate = self.safe_string(market, takerOrMaker)
+        rate = self.number_to_string(feeRate) if (feeRate is not None) else self.safe_string(market, takerOrMaker)
         cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
@@ -3632,6 +3638,20 @@ class Exchange(object):
             'rate': self.parse_number(rate),
             'cost': self.parse_number(cost),
         }
+
+    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
+        """
+        calculates the presumptive fee that would be charged for an order
+        :param str symbol: unified market symbol
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        :param float price: the price for the order to be filled at, in units of the quote currency
+        :param str takerOrMaker: 'taker' or 'maker'
+        :param dict params:
+        :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        """
+        return self.calculate_fee_with_rate(symbol, type, side, amount, price, takerOrMaker, None, params)
 
     def safe_liquidation(self, liquidation: dict, market: Market = None):
         contracts = self.safe_string(liquidation, 'contracts')
@@ -3671,6 +3691,21 @@ class Exchange(object):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def create_ccxt_trade_id(self, timestamp=None, side=None, amount=None, price=None, takerOrMaker=None):
+        # self approach is being used by multiple exchanges(mexc, woo, coinsbit, dydx, ...)
+        id = None
+        if timestamp is not None:
+            id = self.number_to_string(timestamp)
+            if side is not None:
+                id += '-' + side
+            if amount is not None:
+                id += '-' + self.number_to_string(amount)
+            if price is not None:
+                id += '-' + self.number_to_string(price)
+            if takerOrMaker is not None:
+                id += '-' + takerOrMaker
+        return id
 
     def parsed_fee_and_fees(self, container: Any):
         fee = self.safe_dict(container, 'fee')
@@ -5495,10 +5530,10 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
-    def fetch_deposits(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    def fetch_withdrawals(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -6426,7 +6461,7 @@ class Exchange(object):
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
@@ -6988,6 +7023,14 @@ class Exchange(object):
                 self.myTrades = None
             elif topic == 'orders' and (self.orders is not None):
                 self.orders = None
+            elif topic == 'positions' and (self.positions is not None):
+                self.positions = None
+                clients = list(self.clients.values())
+                for i in range(0, len(clients)):
+                    client = clients[i]
+                    futures = self.safe_dict(client, 'futures')
+                    if (futures is not None) and ('fetchPositionsSnapshot' in futures):
+                        del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):

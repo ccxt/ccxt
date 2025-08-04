@@ -8,10 +8,10 @@ type coinbaseexchange struct {
 
 }
 
-func NewCoinbaseexchangeCore() coinbaseexchange {
-   p := coinbaseexchange{}
-   setDefaults(&p)
-   return p
+func NewCoinbaseexchangeCore() *coinbaseexchange {
+    p := &coinbaseexchange{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinbaseexchange) Describe() interface{}  {
@@ -540,7 +540,7 @@ func  (this *coinbaseexchange) FetchMarkets(optionalArgs ...interface{}) <- chan
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var status interface{} = this.SafeString(market, "status")
-                AppendToArray(&result,this.Extend(GetValue(this.Fees, "trading"), map[string]interface{} {
+                AppendToArray(&result, this.Extend(GetValue(this.Fees, "trading"), map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1794,10 +1794,13 @@ func  (this *coinbaseexchange) CancelOrder(id interface{}, optionalArgs ...inter
                 AddElementToObject(request, "product_id", GetValue(market, "symbol")) // the request will be more performant if you include it
             }
         
-                retRes160515 :=  (<-this.callDynamically(method, this.Extend(request, params)))
-                PanicOnError(retRes160515)
-                ch <- retRes160515
-                return nil
+            response:= (<-this.callDynamically(method, this.Extend(request, params)))
+            PanicOnError(response)
+        
+            ch <- this.SafeOrder(map[string]interface{} {
+                "info": response,
+            })
+            return nil
         
             }()
             return ch
@@ -1821,8 +1824,8 @@ func  (this *coinbaseexchange) CancelAllOrders(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16188 := (<-this.LoadMarkets())
-            PanicOnError(retRes16188)
+            retRes16198 := (<-this.LoadMarkets())
+            PanicOnError(retRes16198)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1830,10 +1833,13 @@ func  (this *coinbaseexchange) CancelAllOrders(optionalArgs ...interface{}) <- c
                 AddElementToObject(request, "product_id", GetValue(market, "symbol")) // the request will be more performant if you include it
             }
         
-                retRes162515 :=  (<-this.PrivateDeleteOrders(this.Extend(request, params)))
-                PanicOnError(retRes162515)
-                ch <- retRes162515
-                return nil
+            response:= (<-this.PrivateDeleteOrders(this.Extend(request, params)))
+            PanicOnError(response)
+        
+            ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
+            return nil
         
             }()
             return ch
@@ -1846,9 +1852,9 @@ func  (this *coinbaseexchange) FetchPaymentMethods(optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes162915 :=  (<-this.PrivateGetPaymentMethods(params))
-                PanicOnError(retRes162915)
-                ch <- retRes162915
+                retRes163115 :=  (<-this.PrivateGetPaymentMethods(params))
+                PanicOnError(retRes163115)
+                ch <- retRes163115
                 return nil
         
             }()
@@ -1881,8 +1887,8 @@ func  (this *coinbaseexchange) Withdraw(code interface{}, amount interface{}, ad
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes16488 := (<-this.LoadMarkets())
-            PanicOnError(retRes16488)
+            retRes16508 := (<-this.LoadMarkets())
+            PanicOnError(retRes16508)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
@@ -2027,11 +2033,11 @@ func  (this *coinbaseexchange) FetchLedger(optionalArgs ...interface{}) <- chan 
                 panic(ArgumentsRequired(Add(this.Id, " fetchLedger() requires a code param")))
             }
         
-            retRes17748 := (<-this.LoadMarkets())
-            PanicOnError(retRes17748)
+            retRes17768 := (<-this.LoadMarkets())
+            PanicOnError(retRes17768)
         
-            retRes17758 := (<-this.LoadAccounts())
-            PanicOnError(retRes17758)
+            retRes17778 := (<-this.LoadAccounts())
+            PanicOnError(retRes17778)
             var currency interface{} = this.Currency(code)
             var accountsByCurrencyCode interface{} = this.IndexBy(this.Accounts, "code")
             var account interface{} = this.SafeValue(accountsByCurrencyCode, code)
@@ -2092,11 +2098,11 @@ func  (this *coinbaseexchange) FetchDepositsWithdrawals(optionalArgs ...interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes18238 := (<-this.LoadMarkets())
-            PanicOnError(retRes18238)
+            retRes18258 := (<-this.LoadMarkets())
+            PanicOnError(retRes18258)
         
-            retRes18248 := (<-this.LoadAccounts())
-            PanicOnError(retRes18248)
+            retRes18268 := (<-this.LoadAccounts())
+            PanicOnError(retRes18268)
             var currency interface{} = nil
             var id interface{} = this.SafeString(params, "id") // account id
             if IsTrue(IsEqual(id, nil)) {
@@ -2120,8 +2126,8 @@ func  (this *coinbaseexchange) FetchDepositsWithdrawals(optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(IsEqual(id, nil)) {
                 
-        response = (<-this.PrivateGetTransfers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTransfers(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //    [
                 //        {
@@ -2158,8 +2164,8 @@ func  (this *coinbaseexchange) FetchDepositsWithdrawals(optionalArgs ...interfac
                 }
             } else {
                 
-        response = (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //    [
                 //        {
@@ -2223,11 +2229,11 @@ func  (this *coinbaseexchange) FetchDeposits(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes193015 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]interface{} {
+                retRes193215 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]interface{} {
                 "type": "deposit",
             }, params)))
-                PanicOnError(retRes193015)
-                ch <- retRes193015
+                PanicOnError(retRes193215)
+                ch <- retRes193215
                 return nil
         
             }()
@@ -2259,11 +2265,11 @@ func  (this *coinbaseexchange) FetchWithdrawals(optionalArgs ...interface{}) <- 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes194615 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]interface{} {
+                retRes194815 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(map[string]interface{} {
                 "type": "withdraw",
             }, params)))
-                PanicOnError(retRes194615)
-                ch <- retRes194615
+                PanicOnError(retRes194815)
+                ch <- retRes194815
                 return nil
         
             }()
@@ -2383,14 +2389,14 @@ func  (this *coinbaseexchange) CreateDepositAddress(code interface{}, optionalAr
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes20568 := (<-this.LoadMarkets())
-            PanicOnError(retRes20568)
+            retRes20588 := (<-this.LoadMarkets())
+            PanicOnError(retRes20588)
             var currency interface{} = this.Currency(code)
             var accounts interface{} = this.SafeValue(this.Options, "coinbaseAccounts")
             if IsTrue(IsEqual(accounts, nil)) {
                 
-        accounts = (<-this.PrivateGetCoinbaseAccounts())
-                PanicOnError(accounts)
+            accounts = (<-this.PrivateGetCoinbaseAccounts())
+                    PanicOnError(accounts)
                 AddElementToObject(this.Options, "coinbaseAccounts", accounts) // cache it
                 AddElementToObject(this.Options, "coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
             }
@@ -2452,27 +2458,26 @@ func  (this *coinbaseexchange) Sign(path interface{}, optionalArgs ...interface{
         var what interface{} = Add(Add(Add(nonce, method), request), payload)
         var secret interface{} = nil
         
-        {		ret__ := func(this *coinbaseexchange) (ret_ interface{}) {
-        		defer func() {
-        			if e := recover(); e != nil {
-                        if e == "break" {
-        				    return
-        			    }
-        				ret_ = func(this *coinbaseexchange) interface{} {
-        					// catch block:
-                                        panic(AuthenticationError(Add(this.Id, " sign() invalid base64 secret")))
-                            return nil
-        				}(this)
-        			}
-        		}()
-        		// try block:
-                            secret = this.Base64ToBinary(this.Secret)
-        		return nil
-        	}(this)
-        	if ret__ != nil {
-        		return ret__
-        	}
-        }
+            {		
+                 func(this *coinbaseexchange) (ret_ interface{}) {
+        		    defer func() {
+                        if e := recover(); e != nil {
+                            if e == "break" {
+                                return
+                            }
+                            ret_ = func(this *coinbaseexchange) interface{} {
+                                // catch block:
+                                            panic(AuthenticationError(Add(this.Id, " sign() invalid base64 secret")))
+                                
+                            }(this)
+                        }
+                    }()
+        		    // try block:
+                                secret = this.Base64ToBinary(this.Secret)
+        		    return nil
+        	    }(this)
+            
+                }
         var signature interface{} = this.Hmac(this.Encode(what), secret, sha256, "base64")
         headers = map[string]interface{} {
             "CB-ACCESS-KEY": this.ApiKey,

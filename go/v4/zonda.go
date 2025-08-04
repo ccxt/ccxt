@@ -8,10 +8,10 @@ type zonda struct {
 
 }
 
-func NewZondaCore() zonda {
-   p := zonda{}
-   setDefaults(&p)
-   return p
+func NewZondaCore() *zonda {
+    p := &zonda{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *zonda) Describe() interface{}  {
@@ -778,12 +778,12 @@ func  (this *zonda) FetchTicker(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(fetchTickerMethod, method)) {
                 
-        response = (<-this.V1_01PublicGetTradingTickerSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PublicGetTradingTickerSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(fetchTickerMethod, "v1_01PublicGetTradingStatsSymbol")) {
                 
-        response = (<-this.V1_01PublicGetTradingStatsSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PublicGetTradingStatsSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " fetchTicker params[\"method\"] must be \"v1_01PublicGetTradingTickerSymbol\" or \"v1_01PublicGetTradingStatsSymbol\"")))
             }
@@ -824,12 +824,12 @@ func  (this *zonda) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(IsEqual(fetchTickersMethod, method)) {
                 
-        response = (<-this.V1_01PublicGetTradingTicker(params))
-                PanicOnError(response)
+            response = (<-this.V1_01PublicGetTradingTicker(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(fetchTickersMethod, "v1_01PublicGetTradingStats")) {
                 
-        response = (<-this.V1_01PublicGetTradingStats(params))
-                PanicOnError(response)
+            response = (<-this.V1_01PublicGetTradingStats(params))
+                    PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " fetchTickers params[\"method\"] must be \"v1_01PublicGetTradingTicker\" or \"v1_01PublicGetTradingStats\"")))
             }
@@ -868,7 +868,7 @@ func  (this *zonda) FetchLedger(optionalArgs ...interface{}) <- chan interface{}
             var balanceCurrencies interface{} = []interface{}{}
             if IsTrue(!IsEqual(code, nil)) {
                 var currency interface{} = this.Currency(code)
-                AppendToArray(&balanceCurrencies,GetValue(currency, "id"))
+                AppendToArray(&balanceCurrencies, GetValue(currency, "id"))
             }
             var request interface{} = map[string]interface{} {
                 "balanceCurrencies": balanceCurrencies,
@@ -1485,12 +1485,12 @@ func  (this *zonda) CreateOrder(symbol interface{}, typeVar interface{}, side in
                 }
                 AddElementToObject(request, "stopRate", this.PriceToPrecision(symbol, stopLossPrice))
                 
-        response = (<-this.V1_01PrivatePostTradingStopOfferSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PrivatePostTradingStopOfferSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1_01PrivatePostTradingOfferSymbol(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PrivatePostTradingOfferSymbol(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // unfilled (open order)
@@ -1918,15 +1918,15 @@ func  (this *zonda) Withdraw(code interface{}, amount interface{}, address inter
             if IsTrue(this.IsFiat(code)) {
                 // request['swift'] = params['swift']; // Bank identifier, if required.
                 
-        response = (<-this.V1_01PrivatePostApiPaymentsWithdrawalsFiat(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PrivatePostApiPaymentsWithdrawalsFiat(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(tag, nil)) {
                     AddElementToObject(request, "tag", tag)
                 }
                 
-        response = (<-this.V1_01PrivatePostApiPaymentsWithdrawalsCrypto(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1_01PrivatePostApiPaymentsWithdrawalsCrypto(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -2086,8 +2086,8 @@ func  (this *zonda) HandleErrors(httpCode interface{}, reason interface{}, url i
             var errors interface{} = this.SafeValue(response, "errors")
             var feedback interface{} = Add(Add(this.Id, " "), body)
             for i := 0; IsLessThan(i, GetArrayLength(errors)); i++ {
-                var error interface{} = GetValue(errors, i)
-                this.ThrowExactlyMatchedException(this.Exceptions, error, feedback)
+                var err interface{} = GetValue(errors, i)
+                this.ThrowExactlyMatchedException(this.Exceptions, err, feedback)
             }
             panic(ExchangeError(feedback))
         }

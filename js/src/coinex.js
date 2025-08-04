@@ -729,6 +729,7 @@ export default class coinex extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
+                const networkCode = this.networkIdToCode(networkId, code);
                 if (networkId === undefined) {
                     continue;
                 }
@@ -740,7 +741,7 @@ export default class coinex extends Exchange {
                 const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
                 const network = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'name': undefined,
                     'active': canDepositChain && canWithdrawChain,
                     'deposit': canDepositChain,
@@ -763,7 +764,7 @@ export default class coinex extends Exchange {
                     },
                     'info': chain,
                 };
-                networks[networkId] = network;
+                networks[networkCode] = network;
             }
             result[code] = this.safeCurrencyStructure({
                 'id': currencyId,

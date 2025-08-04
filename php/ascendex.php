@@ -2521,9 +2521,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $this->safe_order(array(
+        return array( $this->safe_order(array(
             'info' => $response,
-        ));
+        )) );
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {

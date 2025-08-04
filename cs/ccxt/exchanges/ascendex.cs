@@ -2679,9 +2679,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

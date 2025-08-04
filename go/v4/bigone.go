@@ -8,10 +8,10 @@ type bigone struct {
 
 }
 
-func NewBigoneCore() bigone {
-   p := bigone{}
-   setDefaults(&p)
-   return p
+func NewBigoneCore() *bigone {
+    p := &bigone{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bigone) Describe() interface{}  {
@@ -592,7 +592,7 @@ func  (this *bigone) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var quoteId interface{} = this.SafeString(quoteAsset, "symbol")
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": this.SafeString(market, "name"),
                     "uuid": this.SafeString(market, "id"),
                     "symbol": Add(Add(base, "/"), quote),
@@ -653,7 +653,7 @@ func  (this *bigone) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var settle interface{} = this.SafeCurrencyCode(settleId)
                 var inverse interface{} = this.SafeBool(market, "isInverse")
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": marketId,
                     "symbol": Add(Add(Add(Add(base, "/"), quote), ":"), settle),
                     "base": base,
@@ -848,7 +848,7 @@ func  (this *bigone) FetchTicker(symbol interface{}, optionalArgs ...interface{}
                 ch <- this.SafeValue(tickers, symbol)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -924,8 +924,8 @@ func  (this *bigone) FetchTickers(optionalArgs ...interface{}) <- chan interface
                 data = this.SafeList(response, "data", []interface{}{})
             } else {
                 
-        data = (<-this.ContractPublicGetInstruments(params))
-                PanicOnError(data)
+            data = (<-this.ContractPublicGetInstruments(params))
+                    PanicOnError(data)
             }
             var tickers interface{} = this.ParseTickers(data, symbols)
         
@@ -998,8 +998,8 @@ func  (this *bigone) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
                     "symbol": GetValue(market, "id"),
                 }
                 
-        response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params)))
+                    PanicOnError(response)
         
                         //
                 //    {
@@ -1038,8 +1038,8 @@ func  (this *bigone) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
                     AddElementToObject(request, "limit", limit) // default 50, max 200
                 }
                 
-        response = (<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code":0,
@@ -1059,7 +1059,7 @@ func  (this *bigone) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
                 ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "bids", "asks", "price", "quantity")
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1069,7 +1069,7 @@ func  (this *bigone) ParseContractBidsAsks(bidsAsks interface{}) interface{}  {
     for i := 0; IsLessThan(i, GetArrayLength(bidsAsksKeys)); i++ {
         var price interface{} = GetValue(bidsAsksKeys, i)
         var amount interface{} = GetValue(bidsAsks, price)
-        AppendToArray(&result,[]interface{}{this.ParseNumber(price), this.ParseNumber(amount)})
+        AppendToArray(&result, []interface{}{this.ParseNumber(price), this.ParseNumber(amount)})
     }
     return result
 }
@@ -1446,12 +1446,12 @@ func  (this *bigone) FetchBalance(optionalArgs ...interface{}) <- chan interface
             var response interface{} = nil
             if IsTrue(IsTrue(IsEqual(typeVar, "funding")) || IsTrue(IsEqual(typeVar, "fund"))) {
                 
-        response = (<-this.PrivateGetFundAccounts(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetFundAccounts(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAccounts(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccounts(params))
+                    PanicOnError(response)
             }
         
                 //
@@ -1809,7 +1809,7 @@ func  (this *bigone) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(cancelled)); i++ {
                 var orderId interface{} = GetValue(cancelled, i)
-                AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&result, this.SafeOrder(map[string]interface{} {
                     "info": orderId,
                     "id": orderId,
                     "status": "canceled",
@@ -1817,7 +1817,7 @@ func  (this *bigone) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             }
             for i := 0; IsLessThan(i, GetArrayLength(failed)); i++ {
                 var orderId interface{} = GetValue(failed, i)
-                AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&result, this.SafeOrder(map[string]interface{} {
                     "info": orderId,
                     "id": orderId,
                     "status": "failed",

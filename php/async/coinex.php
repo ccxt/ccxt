@@ -734,6 +734,7 @@ class coinex extends Exchange {
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($networkId === null) {
                         continue;
                     }
@@ -745,7 +746,7 @@ class coinex extends Exchange {
                     $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
                     $network = array(
                         'id' => $networkId,
-                        'network' => $networkId,
+                        'network' => $networkCode,
                         'name' => null,
                         'active' => $canDepositChain && $canWithdrawChain,
                         'deposit' => $canDepositChain,
@@ -768,7 +769,7 @@ class coinex extends Exchange {
                         ),
                         'info' => $chain,
                     );
-                    $networks[$networkId] = $network;
+                    $networks[$networkCode] = $network;
                 }
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $currencyId,

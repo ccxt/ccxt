@@ -8,10 +8,10 @@ type tradeogre struct {
 
 }
 
-func NewTradeogreCore() tradeogre {
-   p := tradeogre{}
-   setDefaults(&p)
-   return p
+func NewTradeogreCore() *tradeogre {
+    p := &tradeogre{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *tradeogre) Describe() interface{}  {
@@ -318,7 +318,7 @@ func  (this *tradeogre) FetchMarkets(optionalArgs ...interface{}) <- chan interf
                     "created": nil,
                     "info": rawMarket,
                 })
-                AppendToArray(&result,market)
+                AppendToArray(&result, market)
             }
         
             ch <- result
@@ -522,12 +522,12 @@ func  (this *tradeogre) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                 params = this.Omit(params, "until")
                 AddElementToObject(request, "timestamp", this.ParseToInt(Divide(until, 1000)))
                 
-        response = (<-this.PublicGetChartIntervalMarketTimestamp(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetChartIntervalMarketTimestamp(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetChartIntervalMarket(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetChartIntervalMarket(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -629,7 +629,7 @@ func  (this *tradeogre) ParseBidsAsks(bidasks interface{}, optionalArgs ...inter
         var priceString interface{} = this.SafeString(prices, i)
         var price interface{} = this.SafeNumber(prices, i)
         var volume interface{} = this.SafeNumber(bidasks, priceString)
-        AppendToArray(&result,[]interface{}{price, volume})
+        AppendToArray(&result, []interface{}{price, volume})
     }
     return result
 }
@@ -725,8 +725,8 @@ func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interf
             var currency interface{} = this.SafeString(params, "currency")
             if IsTrue(!IsEqual(currency, nil)) {
                 
-        response = (<-this.PrivatePostAccountBalance(params))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAccountBalance(params))
+                    PanicOnError(response)
                 var singleCurrencyresult interface{} = map[string]interface{} {
                     "info": response,
                 }
@@ -741,8 +741,8 @@ func  (this *tradeogre) FetchBalance(optionalArgs ...interface{}) <- chan interf
                 return nil
             } else {
                 
-        response = (<-this.PrivateGetAccountBalances(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountBalances(params))
+                    PanicOnError(response)
             }
             var result interface{} = this.SafeDict(response, "balances", map[string]interface{} {})
         
@@ -813,12 +813,12 @@ func  (this *tradeogre) CreateOrder(symbol interface{}, typeVar interface{}, sid
             var response interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {
                 
-        response = (<-this.PrivatePostOrderBuy(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrderBuy(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrderSell(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrderSell(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrder(response, market)
@@ -1068,8 +1068,8 @@ func  (this *tradeogre) HandleErrors(code interface{}, reason interface{}, url i
     if IsTrue(IsEqual(successString, "true")) {
         return nil
     }
-    var error interface{} = this.SafeValue(response, "error")
-    var errorCode interface{} = this.SafeString(error, "code")
+    var err interface{} = this.SafeValue(response, "error")
+    var errorCode interface{} = this.SafeString(err, "code")
     var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
     this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
     panic(ExchangeError(feedback))

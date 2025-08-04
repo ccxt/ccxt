@@ -740,6 +740,7 @@ class coinex(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
+                networkCode = self.network_id_to_code(networkId, code)
                 if networkId is None:
                     continue
                 precisionString = self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))
@@ -750,7 +751,7 @@ class coinex(Exchange, ImplicitAPI):
                 canWithdrawChain = self.safe_bool(chain, 'withdraw_enabled')
                 network: dict = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'name': None,
                     'active': canDepositChain and canWithdrawChain,
                     'deposit': canDepositChain,
@@ -773,7 +774,7 @@ class coinex(Exchange, ImplicitAPI):
                     },
                     'info': chain,
                 }
-                networks[networkId] = network
+                networks[networkCode] = network
             result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,

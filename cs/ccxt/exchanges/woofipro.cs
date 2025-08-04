@@ -1901,9 +1901,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return new List<object>() {new Dictionary<string, object>() {
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
-}};
+})};
     }
 
     /**

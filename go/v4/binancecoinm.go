@@ -8,10 +8,10 @@ type binancecoinm struct {
 
 }
 
-func NewBinancecoinmCore() binancecoinm {
-   p := binancecoinm{}
-   setDefaults(&p)
-   return p
+func NewBinancecoinmCore() *binancecoinm {
+    p := &binancecoinm{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *binancecoinm) Describe() interface{}  {
@@ -32,7 +32,9 @@ func  (this *binancecoinm) Describe() interface{}  {
             "createStopMarketOrder": true,
         },
         "options": map[string]interface{} {
-            "fetchMarkets": []interface{}{"inverse"},
+            "fetchMarkets": map[string]interface{} {
+                "types": []interface{}{"inverse"},
+            },
             "defaultSubType": "inverse",
             "leverageBrackets": nil,
         },
@@ -47,9 +49,9 @@ func  (this *binancecoinm) TransferIn(code interface{}, amount interface{}, opti
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes3915 :=  (<-this.FuturesTransfer(code, amount, 3, params))
-                PanicOnError(retRes3915)
-        ch <- retRes3915
+                retRes4315 :=  (<-this.FuturesTransfer(code, amount, 3, params))
+                PanicOnError(retRes4315)
+        ch <- retRes4315
                 return nil
         
             }()
@@ -64,9 +66,9 @@ func  (this *binancecoinm) TransferOut(code interface{}, amount interface{}, opt
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes4415 :=  (<-this.FuturesTransfer(code, amount, 4, params))
-                PanicOnError(retRes4415)
-        ch <- retRes4415
+                retRes4815 :=  (<-this.FuturesTransfer(code, amount, 4, params))
+                PanicOnError(retRes4815)
+        ch <- retRes4815
                 return nil
         
             }()

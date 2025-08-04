@@ -265,6 +265,7 @@ class phemex extends phemex$1 {
                         // swap
                         'orders/replace': 1,
                         'g-orders/replace': 1,
+                        'g-orders/create': 1,
                         'positions/leverage': 5,
                         'g-positions/leverage': 5,
                         'g-positions/switch-pos-mode-sync': 5,
@@ -1219,7 +1220,8 @@ class phemex extends phemex$1 {
             // 'id': 123456789, // optional request id
         };
         let response = undefined;
-        if (market['linear'] && market['settle'] === 'USDT') {
+        const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
+        if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
         }
         else {
@@ -1363,7 +1365,8 @@ class phemex extends phemex$1 {
         };
         const until = this.safeInteger2(params, 'until', 'to');
         params = this.omit(params, ['until']);
-        const usesSpecialFromToEndpoint = ((market['linear'] || market['settle'] === 'USDT')) && ((since !== undefined) || (until !== undefined));
+        const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
+        const usesSpecialFromToEndpoint = ((market['linear'] || isStableSettled)) && ((since !== undefined) || (until !== undefined));
         let maxLimit = 1000;
         if (usesSpecialFromToEndpoint) {
             maxLimit = 2000;
@@ -1373,7 +1376,7 @@ class phemex extends phemex$1 {
         }
         request['limit'] = Math.min(limit, maxLimit);
         let response = undefined;
-        if (market['linear'] || market['settle'] === 'USDT') {
+        if (market['linear'] || isStableSettled) {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe(timeframe);
                 if (since !== undefined) {
@@ -1648,7 +1651,8 @@ class phemex extends phemex$1 {
             // 'id': 123456789, // optional request id
         };
         let response = undefined;
-        if (market['linear'] && market['settle'] === 'USDT') {
+        const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
+        if (market['linear'] && isStableSettled) {
             response = await this.v2GetMdV2Trade(this.extend(request, params));
         }
         else {
@@ -1893,7 +1897,7 @@ class phemex extends phemex$1 {
             }
             id = this.safeString2(trade, 'execId', 'execID');
             orderId = this.safeString(trade, 'orderID');
-            if (market['settle'] === 'USDT') {
+            if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
                 const sideId = this.safeStringLower(trade, 'side');
                 if ((sideId === 'buy') || (sideId === 'sell')) {
                     side = sideId;
@@ -2668,6 +2672,7 @@ class phemex extends phemex$1 {
         const stopLossDefined = (stopLoss !== undefined);
         const takeProfit = this.safeValue(params, 'takeProfit');
         const takeProfitDefined = (takeProfit !== undefined);
+        const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
@@ -2680,7 +2685,7 @@ class phemex extends phemex$1 {
         }
         const triggerPrice = this.safeStringN(params, ['stopPx', 'stopPrice', 'triggerPrice']);
         if (triggerPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
+            if (isStableSettled) {
                 request['stopPxRp'] = this.priceToPrecision(symbol, triggerPrice);
             }
             else {
@@ -2747,7 +2752,7 @@ class phemex extends phemex$1 {
             }
             posSide = this.capitalize(posSide);
             request['posSide'] = posSide;
-            if (market['settle'] === 'USDT') {
+            if (isStableSettled) {
                 request['orderQtyRq'] = amount;
             }
             else {
@@ -2786,7 +2791,7 @@ class phemex extends phemex$1 {
                     if (stopLossTriggerPrice === undefined) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
-                    if (market['settle'] === 'USDT') {
+                    if (isStableSettled) {
                         request['stopLossRp'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                     }
                     else {
@@ -2806,7 +2811,7 @@ class phemex extends phemex$1 {
                     if (takeProfitTriggerPrice === undefined) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
-                    if (market['settle'] === 'USDT') {
+                    if (isStableSettled) {
                         request['takeProfitRp'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                     }
                     else {
@@ -2824,7 +2829,7 @@ class phemex extends phemex$1 {
             }
         }
         if ((type === 'Limit') || (type === 'StopLimit') || (type === 'LimitIfTouched')) {
-            if (market['settle'] === 'USDT') {
+            if (isStableSettled) {
                 request['priceRp'] = this.priceToPrecision(symbol, price);
             }
             else {
@@ -2834,7 +2839,7 @@ class phemex extends phemex$1 {
         }
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         if (takeProfitPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
+            if (isStableSettled) {
                 request['takeProfitRp'] = this.priceToPrecision(symbol, takeProfitPrice);
             }
             else {
@@ -2844,7 +2849,7 @@ class phemex extends phemex$1 {
         }
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         if (stopLossPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
+            if (isStableSettled) {
                 request['stopLossRp'] = this.priceToPrecision(symbol, stopLossPrice);
             }
             else {
@@ -2853,7 +2858,7 @@ class phemex extends phemex$1 {
             params = this.omit(params, 'stopLossPrice');
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (isStableSettled) {
             response = await this.privatePostGOrders(this.extend(request, params));
         }
         else if (market['contract']) {
@@ -2964,7 +2969,7 @@ class phemex extends phemex$1 {
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdID');
         params = this.omit(params, ['clientOrderId', 'clOrdID']);
-        const isUSDTSettled = (market['settle'] === 'USDT');
+        const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
@@ -2972,7 +2977,7 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         if (price !== undefined) {
-            if (isUSDTSettled) {
+            if (isStableSettled) {
                 request['priceRp'] = this.priceToPrecision(market['symbol'], price);
             }
             else {
@@ -2986,7 +2991,7 @@ class phemex extends phemex$1 {
             request['baseQtyEV'] = finalQty;
         }
         else if (amount !== undefined) {
-            if (isUSDTSettled) {
+            if (isStableSettled) {
                 request['orderQtyRq'] = this.amountToPrecision(market['symbol'], amount);
             }
             else {
@@ -2995,7 +3000,7 @@ class phemex extends phemex$1 {
         }
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (triggerPrice !== undefined) {
-            if (isUSDTSettled) {
+            if (isStableSettled) {
                 request['stopPxRp'] = this.priceToPrecision(symbol, triggerPrice);
             }
             else {
@@ -3004,7 +3009,7 @@ class phemex extends phemex$1 {
         }
         params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         let response = undefined;
-        if (isUSDTSettled) {
+        if (isStableSettled) {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
@@ -3049,7 +3054,7 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
@@ -3091,7 +3096,7 @@ class phemex extends phemex$1 {
             request['untriggerred'] = trigger;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
             //
             //    {
@@ -3157,7 +3162,7 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
         else if (market['spot']) {
@@ -3213,7 +3218,7 @@ class phemex extends phemex$1 {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             request['currency'] = market['settle'];
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
@@ -3252,7 +3257,7 @@ class phemex extends phemex$1 {
         };
         let response = undefined;
         try {
-            if (market['settle'] === 'USDT') {
+            if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, params));
             }
             else if (market['swap']) {
@@ -4117,8 +4122,8 @@ class phemex extends phemex$1 {
             request['limit'] = limit;
         }
         let response = undefined;
-        const isUsdt = market['settle'] === 'USDT';
-        if (isUsdt) {
+        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        if (isStableSettled) {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
         }
         else {
@@ -4171,8 +4176,8 @@ class phemex extends phemex$1 {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        const isUsdt = market['settle'] === 'USDT';
-        if (!isUsdt) {
+        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        if (!isStableSettled) {
             const currency = this.safeCurrency(currencyCode);
             const scale = this.safeString(currency['info'], 'valueScale');
             const tickPrecision = this.parsePrecision(scale);
@@ -4371,8 +4376,8 @@ class phemex extends phemex$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap'] || market['settle'] === 'USDT') {
-            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap (non USDT based) contracts only');
+        if (!market['swap'] || market['settle'] === 'USDT' || market['settle'] === 'USDC') {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
         }
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
@@ -4628,7 +4633,7 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             }
@@ -4870,7 +4875,7 @@ class phemex extends phemex$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const isUsdtSettled = market['settle'] === 'USDT';
+        const isUsdtSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
         if (!market['swap']) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }

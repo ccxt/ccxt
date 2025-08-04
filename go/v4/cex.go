@@ -8,10 +8,10 @@ type cex struct {
 
 }
 
-func NewCexCore() cex {
-   p := cex{}
-   setDefaults(&p)
-   return p
+func NewCexCore() *cex {
+    p := &cex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *cex) Describe() interface{}  {
@@ -315,7 +315,7 @@ func  (this *cex) FetchCurrencies(optionalArgs ...interface{}) <- chan interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
             var promises interface{} = []interface{}{}
-            AppendToArray(&promises,this.PublicPostGetCurrenciesInfo(params))
+            AppendToArray(&promises, this.PublicPostGetCurrenciesInfo(params))
             //
             //    {
             //        "ok": "ok",
@@ -330,7 +330,7 @@ func  (this *cex) FetchCurrencies(optionalArgs ...interface{}) <- chan interface
             //            },
             //            ...
             //
-            AppendToArray(&promises,this.PublicPostGetProcessingInfo(params))
+            AppendToArray(&promises, this.PublicPostGetProcessingInfo(params))
             //
             //    {
             //        "ok": "ok",
@@ -1691,7 +1691,7 @@ func  (this *cex) CancelAllOrders(optionalArgs ...interface{}) <- chan interface
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
                 var id interface{} = GetValue(ids, i)
-                AppendToArray(&orders,map[string]interface{} {
+                AppendToArray(&orders, map[string]interface{} {
                     "clientOrderId": id,
                 })
             }
@@ -1957,12 +1957,12 @@ func  (this *cex) Transfer(code interface{}, amount interface{}, fromAccount int
             var transfer interface{} = nil
             if IsTrue(IsTrue(!IsEqual(toAccount, "")) && IsTrue(!IsEqual(fromAccount, ""))) {
                 
-        transfer = (<-this.TransferBetweenSubAccounts(code, amount, fromAccount, toAccount, params))
-                PanicOnError(transfer)
+            transfer = (<-this.TransferBetweenSubAccounts(code, amount, fromAccount, toAccount, params))
+                    PanicOnError(transfer)
             } else {
                 
-        transfer = (<-this.TransferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params))
-                PanicOnError(transfer)
+            transfer = (<-this.TransferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params))
+                    PanicOnError(transfer)
             }
             var fillResponseFromRequest interface{} = this.HandleOption("transfer", "fillResponseFromRequest", true)
             if IsTrue(fillResponseFromRequest) {
@@ -1999,12 +1999,12 @@ func  (this *cex) TransferBetweenMainAndSubAccount(code interface{}, amount inte
             var response interface{} = nil
             if IsTrue(fromMain) {
                 
-        response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostDoDepositFundsFromWallet(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostDoWithdrawalFundsToWallet(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             // both endpoints return the same structure, the only difference is that
             // the "accountId" is filled with the "subAccount"
@@ -2234,11 +2234,11 @@ func  (this *cex) HandleErrors(code interface{}, reason interface{}, url interfa
             panic(NullResponse(Add(Add(this.Id, " returned unparsed response: "), body)))
         }
     }
-    var error interface{} = this.SafeString(response, "error")
-    if IsTrue(!IsEqual(error, nil)) {
+    var err interface{} = this.SafeString(response, "error")
+    if IsTrue(!IsEqual(err, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
         panic(ExchangeError(feedback))
     }
     // check errors in order-engine (the responses are not standard, so we parse here)

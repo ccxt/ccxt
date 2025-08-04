@@ -41,6 +41,9 @@ func MarketClosed(v ...interface{}) error {
 func ManualInteractionNeeded(v ...interface{}) error {
     return NewError("ManualInteractionNeeded", v...)
 }
+func RestrictedLocation(v ...interface{}) error {
+    return NewError("RestrictedLocation", v...)
+}
 func InsufficientFunds(v ...interface{}) error {
     return NewError("InsufficientFunds", v...)
 }
@@ -147,6 +150,8 @@ func CreateError(err string, v ...interface{}) error {
         return MarketClosed(v...)
     case "ManualInteractionNeeded":
         return ManualInteractionNeeded(v...)
+    case "RestrictedLocation":
+        return RestrictedLocation(v...)
     case "InsufficientFunds":
         return InsufficientFunds(v...)
     case "InvalidAddress":
@@ -217,6 +222,7 @@ func CreateError(err string, v ...interface{}) error {
    MarginModeAlreadySetErrType ErrorType = "MarginModeAlreadySet"
    MarketClosedErrType ErrorType = "MarketClosed"
    ManualInteractionNeededErrType ErrorType = "ManualInteractionNeeded"
+   RestrictedLocationErrType ErrorType = "RestrictedLocation"
    InsufficientFundsErrType ErrorType = "InsufficientFunds"
    InvalidAddressErrType ErrorType = "InvalidAddress"
    AddressPendingErrType ErrorType = "AddressPending"

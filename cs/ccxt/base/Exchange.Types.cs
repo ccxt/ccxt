@@ -15,7 +15,19 @@ class Helper
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
-            if (info is IDictionary<string, object>)
+            if (info is ccxt.pro.IOrderBook)
+            {
+                var copy = (info as ccxt.pro.IOrderBook).Copy();
+                // return new Dictionary<string, object> { concurrentDict as IDictionary<string, object> };
+                var newInfo = new Dictionary<string, object>();
+                foreach (var kvp in copy)
+                {
+                    newInfo.Add(kvp.Key, kvp.Value);
+                }
+                return newInfo;
+
+            }
+            else if (info is IDictionary<string, object>)
             {
                 return new Dictionary<string, object>(info as IDictionary<string, object>);
             }

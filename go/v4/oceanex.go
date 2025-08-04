@@ -8,10 +8,10 @@ type oceanex struct {
 
 }
 
-func NewOceanexCore() oceanex {
-   p := oceanex{}
-   setDefaults(&p)
-   return p
+func NewOceanexCore() *oceanex {
+    p := &oceanex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *oceanex) Describe() interface{}  {

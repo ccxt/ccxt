@@ -8,10 +8,10 @@ type paymium struct {
 
 }
 
-func NewPaymiumCore() paymium {
-   p := paymium{}
-   setDefaults(&p)
-   return p
+func NewPaymiumCore() *paymium {
+    p := &paymium{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *paymium) Describe() interface{}  {

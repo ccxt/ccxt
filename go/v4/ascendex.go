@@ -8,10 +8,10 @@ type ascendex struct {
 
 }
 
-func NewAscendexCore() ascendex {
-   p := ascendex{}
-   setDefaults(&p)
-   return p
+func NewAscendexCore() *ascendex {
+    p := &ascendex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *ascendex) Describe() interface{}  {
@@ -703,7 +703,7 @@ func  (this *ascendex) FetchSpotMarkets(optionalArgs ...interface{}) <- chan int
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var fee interface{} = this.SafeNumber(market, "commissionReserveRate")
                 var marginTradable interface{} = this.SafeBool(market, "marginTradable", false)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -828,7 +828,7 @@ func  (this *ascendex) FetchContractMarkets(optionalArgs ...interface{}) <- chan
                 var priceFilter interface{} = this.SafeDict(market, "priceFilter")
                 var lotSizeFilter interface{} = this.SafeDict(market, "lotSizeFilter")
                 var fee interface{} = this.SafeNumber(market, "commissionReserveRate")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -943,8 +943,8 @@ func  (this *ascendex) FetchAccounts(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(IsEqual(accountGroup, nil)) {
                 
-        response = (<-this.V1PrivateGetInfo(params))
-                PanicOnError(response)
+            response = (<-this.V1PrivateGetInfo(params))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code":0,
@@ -1084,12 +1084,12 @@ func  (this *ascendex) FetchBalance(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(marketType, "spot"))) || IsTrue((IsEqual(marketType, "margin")))) {
                 
-        response = (<-this.V1PrivateAccountCategoryGetBalance(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryGetBalance(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.V2PrivateAccountGroupGetFuturesPosition(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupGetFuturesPosition(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchBalance() is not currently supported for "), marketType), " markets")))
             }
@@ -1149,7 +1149,7 @@ func  (this *ascendex) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                 ch <- this.ParseBalance(response)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1350,12 +1350,12 @@ func  (this *ascendex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "spot")) {
                 
-        response = (<-this.V1PublicGetTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PublicGetTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V2PublicGetFuturesTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2PublicGetFuturesTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -1992,12 +1992,12 @@ func  (this *ascendex) CreateOrder(symbol interface{}, typeVar interface{}, side
             var response interface{} = nil
             if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.V2PrivateAccountGroupPostFuturesOrder(request))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupPostFuturesOrder(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1PrivateAccountCategoryPostOrder(request))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryPostOrder(request))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2127,7 +2127,7 @@ func  (this *ascendex) CreateOrders(orders interface{}, optionalArgs ...interfac
                     }
                 }
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var market interface{} = this.Market(symbol)
             var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{} {})
@@ -2146,8 +2146,8 @@ func  (this *ascendex) CreateOrders(orders interface{}, optionalArgs ...interfac
                 AddElementToObject(request, "account-category", accountCategory)
                 AddElementToObject(request, "orders", ordersRequests)
                 
-        response = (<-this.V1PrivateAccountCategoryPostOrderBatch(request))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryPostOrderBatch(request))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2225,13 +2225,13 @@ func  (this *ascendex) FetchOrder(id interface{}, optionalArgs ...interface{}) <
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
                 
-        response = (<-this.V1PrivateAccountCategoryGetOrderStatus(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryGetOrderStatus(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "account-category", accountCategory)
                 
-        response = (<-this.V2PrivateAccountGroupGetFuturesOrderStatus(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupGetFuturesOrderStatus(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchOrder() is not currently supported for "), typeVar), " markets")))
             }
@@ -2360,13 +2360,13 @@ func  (this *ascendex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
                 
-        response = (<-this.V1PrivateAccountCategoryGetOrderOpen(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryGetOrderOpen(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "account-category", accountCategory)
                 
-        response = (<-this.V2PrivateAccountGroupGetFuturesOrderOpen(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupGetFuturesOrderOpen(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchOpenOrders() is not currently supported for "), typeVar), " markets")))
             }
@@ -2447,7 +2447,7 @@ func  (this *ascendex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inte
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var order interface{} = this.ParseOrder(GetValue(data, i), market)
-                AppendToArray(&orders,order)
+                AppendToArray(&orders, order)
             }
         
             ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -2523,16 +2523,16 @@ func  (this *ascendex) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.V1PrivateAccountCategoryGetOrderHistCurrent(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryGetOrderHistCurrent(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "v2PrivateDataGetOrderHist")) {
                 AddElementToObject(request, "account", accountCategory)
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.V2PrivateDataGetOrderHist(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateDataGetOrderHist(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "v2PrivateAccountGroupGetFuturesOrderHistCurrent")) {
                 AddElementToObject(request, "account-group", accountGroup)
                 AddElementToObject(request, "account-category", accountCategory)
@@ -2540,8 +2540,8 @@ func  (this *ascendex) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
                     AddElementToObject(request, "pageSize", limit)
                 }
                 
-        response = (<-this.V2PrivateAccountGroupGetFuturesOrderHistCurrent(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupGetFuturesOrderHistCurrent(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchClosedOrders() is not currently supported for "), typeVar), " markets")))
             }
@@ -2701,13 +2701,13 @@ func  (this *ascendex) CancelOrder(id interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
                 
-        response = (<-this.V1PrivateAccountCategoryDeleteOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryDeleteOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "account-category", accountCategory)
                 
-        response = (<-this.V2PrivateAccountGroupDeleteFuturesOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupDeleteFuturesOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " cancelOrder() is not currently supported for "), typeVar), " markets")))
             }
@@ -2830,13 +2830,13 @@ func  (this *ascendex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))) {
                 
-        response = (<-this.V1PrivateAccountCategoryDeleteOrderAll(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateAccountCategoryDeleteOrderAll(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 AddElementToObject(request, "account-category", accountCategory)
                 
-        response = (<-this.V2PrivateAccountGroupDeleteFuturesOrderAll(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.V2PrivateAccountGroupDeleteFuturesOrderAll(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " cancelAllOrders() is not currently supported for "), typeVar), " markets")))
             }
@@ -2875,9 +2875,9 @@ func  (this *ascendex) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             //         }
             //     }
             //
-        ch <- this.SafeOrder(map[string]interface{} {
-                "info": response,
-            })
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()
@@ -3289,7 +3289,7 @@ func  (this *ascendex) FetchPositions(optionalArgs ...interface{}) <- chan inter
             var position interface{} = this.SafeList(data, "contracts", []interface{}{})
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(position)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(position, i)))
+                AppendToArray(&result, this.ParsePosition(GetValue(position, i)))
             }
             symbols = this.MarketSymbols(symbols)
         
@@ -3786,7 +3786,7 @@ func  (this *ascendex) ParseMarketLeverageTiers(info interface{}, optionalArgs .
     for i := 0; IsLessThan(i, GetArrayLength(marginRequirements)); i++ {
         var tier interface{} = GetValue(marginRequirements, i)
         var initialMarginRate interface{} = this.SafeString(tier, "initialMarginRate")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.Sum(i, 1),
             "symbol": this.SafeSymbol(marketId, market, nil, "contract"),
             "currency": GetValue(market, "quote"),
@@ -4362,8 +4362,8 @@ func  (this *ascendex) HandleErrors(httpCode interface{}, reason interface{}, ur
     //
     var code interface{} = this.SafeString(response, "code")
     var message interface{} = this.SafeString(response, "message")
-    var error interface{} = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
-    if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
+    var err interface{} = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
+    if IsTrue(IsTrue(err) || IsTrue((!IsEqual(message, nil)))) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

@@ -1700,7 +1700,7 @@ class okcoin extends Exchange {
         $advanced = $this->safe_value($params, 'advanced');
         if ($trigger || $advanced) {
             $orderInner = $this->cancel_orders(array( $id ), $symbol, $params);
-            return $this->safe_value($orderInner, 0);
+            return $this->safe_dict($orderInner, 0);
         }
         $market = $this->market($symbol);
         $request = array(

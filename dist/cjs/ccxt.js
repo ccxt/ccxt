@@ -68,6 +68,7 @@ var digifinex = require('./src/digifinex.js');
 var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
+var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
@@ -193,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.94';
+const version = '4.4.98';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -252,6 +253,7 @@ const exchanges = {
     'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
+    'foxbit': foxbit,
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
@@ -425,6 +427,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.alpaca = alpaca;
@@ -483,6 +486,7 @@ exports.digifinex = digifinex;
 exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
+exports.foxbit = foxbit;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;

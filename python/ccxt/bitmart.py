@@ -3083,7 +3083,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         if market['swap']:
-            return response
+            return self.safe_order({'info': response})
         data = self.safe_value(response, 'data')
         if data is True:
             return self.safe_order({'id': id}, market)
@@ -3200,7 +3200,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:

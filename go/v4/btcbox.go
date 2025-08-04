@@ -8,10 +8,10 @@ type btcbox struct {
 
 }
 
-func NewBtcboxCore() btcbox {
-   p := btcbox{}
-   setDefaults(&p)
-   return p
+func NewBtcboxCore() *btcbox {
+    p := &btcbox{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *btcbox) Describe() interface{}  {
@@ -251,7 +251,7 @@ func  (this *btcbox) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var fee interface{} = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
                 var details interface{} = this.SafeDict(result2Data, id, map[string]interface{} {})
                 var tradeDetails interface{} = this.SafeDict(details, "trade", map[string]interface{} {})
-                AppendToArray(&markets,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&markets, this.SafeMarketStructure(map[string]interface{} {
                     "id": id,
                     "uppercaseId": nil,
                     "symbol": symbol,

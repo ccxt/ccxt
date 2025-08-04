@@ -8,10 +8,10 @@ type okcoin struct {
 
 }
 
-func NewOkcoinCore() okcoin {
-   p := okcoin{}
-   setDefaults(&p)
-   return p
+func NewOkcoinCore() *okcoin {
+    p := &okcoin{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *okcoin) Describe() interface{}  {
@@ -896,7 +896,7 @@ func  (this *okcoin) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
                 ch <- result
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1232,12 +1232,12 @@ func  (this *okcoin) FetchTrades(symbol interface{}, optionalArgs ...interface{}
             var response interface{} = nil
             if IsTrue(IsEqual(method, "publicGetMarketTrades")) {
                 
-        response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -1316,12 +1316,12 @@ func  (this *okcoin) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(method, "publicGetMarketCandles")) {
                 
-        response = (<-this.PublicGetMarketCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMarketCandles(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -1414,12 +1414,12 @@ func  (this *okcoin) FetchBalance(optionalArgs ...interface{}) <- chan interface
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "funding")) {
                 
-        response = (<-this.PrivateGetAssetBalances(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAssetBalances(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAccountBalance(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountBalance(this.Extend(request, query)))
+                    PanicOnError(response)
             }
             //
             //  {
@@ -1448,7 +1448,7 @@ func  (this *okcoin) FetchBalance(optionalArgs ...interface{}) <- chan interface
                 ch <- this.ParseTradingBalance(response)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1590,16 +1590,16 @@ func  (this *okcoin) CreateOrder(symbol interface{}, typeVar interface{}, side i
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privatePostTradeOrder")) {
                 
-        response = (<-this.PrivatePostTradeOrder(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTradeOrder(request))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "privatePostTradeOrderAlgo")) {
                 
-        response = (<-this.PrivatePostTradeOrderAlgo(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTradeOrderAlgo(request))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "privatePostTradeBatchOrders")) {
                 
-        response = (<-this.PrivatePostTradeBatchOrders(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTradeBatchOrders(request))
+                    PanicOnError(response)
             } else {
                 panic(ExchangeError(Add(this.Id, " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")))
             }
@@ -1860,7 +1860,7 @@ func  (this *okcoin) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 orderInner:= (<-this.CancelOrders([]interface{}{id}, symbol, params))
                 PanicOnError(orderInner)
         
-                ch <- this.SafeValue(orderInner, 0)
+                ch <- this.SafeDict(orderInner, 0)
                 return nil
             }
             var market interface{} = this.Market(symbol)
@@ -1939,7 +1939,7 @@ func  (this *okcoin) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 ids = this.ParseIds(ids)
                 if IsTrue(!IsEqual(algoIds, nil)) {
                     for i := 0; IsLessThan(i, GetArrayLength(algoIds)); i++ {
-                        AppendToArray(&request,map[string]interface{} {
+                        AppendToArray(&request, map[string]interface{} {
                             "algoId": GetValue(algoIds, i),
                             "instId": GetValue(market, "id"),
                         })
@@ -1947,12 +1947,12 @@ func  (this *okcoin) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 }
                 for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
                     if IsTrue(IsTrue(trigger) || IsTrue(advanced)) {
-                        AppendToArray(&request,map[string]interface{} {
+                        AppendToArray(&request, map[string]interface{} {
                             "algoId": GetValue(ids, i),
                             "instId": GetValue(market, "id"),
                         })
                     } else {
-                        AppendToArray(&request,map[string]interface{} {
+                        AppendToArray(&request, map[string]interface{} {
                             "ordId": GetValue(ids, i),
                             "instId": GetValue(market, "id"),
                         })
@@ -1960,7 +1960,7 @@ func  (this *okcoin) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
                 }
             } else {
                 for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
-                    AppendToArray(&request,map[string]interface{} {
+                    AppendToArray(&request, map[string]interface{} {
                         "instId": GetValue(market, "id"),
                         "clOrdId": GetValue(clientOrderIds, i),
                     })
@@ -1969,16 +1969,16 @@ func  (this *okcoin) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivatePostTradeCancelAlgos(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTradeCancelAlgos(request))
+                    PanicOnError(response)
             } else if IsTrue(advanced) {
                 
-        response = (<-this.PrivatePostTradeCancelAdvanceAlgos(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostTradeCancelAdvanceAlgos(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostTradeCancelBatchOrders(request))
-                PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+            response = (<-this.PrivatePostTradeCancelBatchOrders(request))
+                    PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
             }
             //
             //     {
@@ -2259,12 +2259,12 @@ func  (this *okcoin) FetchOrder(id interface{}, optionalArgs ...interface{}) <- 
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetTradeOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeValue(response, "data", []interface{}{})
             var order interface{} = this.SafeDict(data, 0)
@@ -2323,12 +2323,12 @@ func  (this *okcoin) FetchOpenOrders(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetTradeOrdersPending(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrdersPending(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -2386,8 +2386,8 @@ func  (this *okcoin) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var method interface{} = nil
                 methodparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
@@ -2395,12 +2395,12 @@ func  (this *okcoin) FetchClosedOrders(optionalArgs ...interface{}) <- chan inte
                 params = GetValue(methodparamsVariable,1)
                 if IsTrue(IsEqual(method, "privateGetTradeOrdersHistory")) {
                     
-        response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //     {
@@ -3228,12 +3228,12 @@ func  (this *okcoin) FetchMyTrades(optionalArgs ...interface{}) <- chan interfac
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privateGetTradeFillsHistory")) {
                 
-        response = (<-this.PrivateGetTradeFillsHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeFillsHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetTradeFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetTradeFills(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -3327,16 +3327,16 @@ func  (this *okcoin) FetchLedger(optionalArgs ...interface{}) <- chan interface{
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privateGetAccountBillsArchive")) {
                 
-        response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "privateGetAssetBills")) {
                 
-        response = (<-this.PrivateGetAssetBills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAssetBills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
@@ -3568,9 +3568,9 @@ func  (this *okcoin) HandleErrors(httpCode interface{}, reason interface{}, url 
         var feedback interface{} = Add(Add(this.Id, " "), body)
         var data interface{} = this.SafeValue(response, "data", []interface{}{})
         for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-            var error interface{} = GetValue(data, i)
-            var errorCode interface{} = this.SafeString(error, "sCode")
-            var message interface{} = this.SafeString(error, "sMsg")
+            var err interface{} = GetValue(data, i)
+            var errorCode interface{} = this.SafeString(err, "sCode")
+            var message interface{} = this.SafeString(err, "sMsg")
             this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
             this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
         }

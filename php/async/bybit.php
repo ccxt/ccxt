@@ -1029,7 +1029,9 @@ class bybit extends Exchange {
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
-                'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'linear', 'inverse', 'option' ),
+                ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
@@ -1732,9 +1734,17 @@ class bybit extends Exchange {
                 Async\await($this->load_time_difference());
             }
             $promisesUnresolved = array();
-            $fetchMarkets = $this->safe_list($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
-            for ($i = 0; $i < count($fetchMarkets); $i++) {
-                $marketType = $fetchMarkets[$i];
+            $types = null;
+            $defaultTypes = array( 'spot', 'linear', 'inverse', 'option' );
+            $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+            if ($fetchMarketsOptions !== null) {
+                $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultTypes);
+            } else {
+                // for backward-compatibility
+                $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
+            }
+            for ($i = 0; $i < count($types); $i++) {
+                $marketType = $types[$i];
                 if ($marketType === 'spot') {
                     $promisesUnresolved[] = $this->fetch_spot_markets($params);
                 } elseif ($marketType === 'linear') {
@@ -1746,7 +1756,7 @@ class bybit extends Exchange {
                     $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'ETH' ));
                     $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'SOL' ));
                 } else {
-                    throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
+                    throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $marketType . '" is not a supported market type');
                 }
             }
             $promises = Async\await(Promise\all($promisesUnresolved));
@@ -4864,7 +4874,7 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $orders = $this->safe_list($result, 'list');
             if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
-                return $response;
+                return array( $this->safe_order(array( 'info' => $response )) );
             }
             return $this->parse_orders($orders, $market);
         }) ();
@@ -8513,7 +8523,7 @@ class bybit extends Exchange {
                 }
                 $symbol = $market['symbol'];
             }
-            $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params)));
+            $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 50 ), $params)));
             $symbols = $this->market_symbols($symbols);
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();

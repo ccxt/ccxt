@@ -695,6 +695,7 @@ public partial class okx : Exchange
                     { "51137", typeof(InvalidOrder) },
                     { "51138", typeof(InvalidOrder) },
                     { "51139", typeof(InvalidOrder) },
+                    { "51155", typeof(RestrictedLocation) },
                     { "51156", typeof(BadRequest) },
                     { "51159", typeof(BadRequest) },
                     { "51162", typeof(InvalidOrder) },
@@ -1050,7 +1051,9 @@ public partial class okx : Exchange
                 } },
                 { "createOrder", "privatePostTradeBatchOrders" },
                 { "createMarketBuyOrderRequiresPrice", false },
-                { "fetchMarkets", new List<object>() {"spot", "future", "swap", "option"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "future", "swap", "option"} },
+                } },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "defaultType", "spot" },
@@ -1470,7 +1473,15 @@ public partial class okx : Exchange
         {
             await this.loadTimeDifference();
         }
-        object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
+        object types = new List<object>() {"spot", "future", "swap", "option"};
+        object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOption, null)))
+        {
+            types = this.safeList(fetchMarketsOption, "types", types);
+        } else
+        {
+            types = this.safeList(this.options, "fetchMarkets", types); // backward-support
+        }
         object promises = new List<object>() {};
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
@@ -3595,7 +3606,7 @@ public partial class okx : Exchange
         if (isTrue(isTrue(trigger) || isTrue(trailing)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         object market = this.market(symbol);

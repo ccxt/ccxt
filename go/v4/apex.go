@@ -8,10 +8,10 @@ type apex struct {
 
 }
 
-func NewApexCore() apex {
-   p := apex{}
-   setDefaults(&p)
-   return p
+func NewApexCore() *apex {
+    p := &apex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *apex) Describe() interface{}  {
@@ -1271,7 +1271,7 @@ func  (this *apex) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan 
                 var entry interface{} = GetValue(resultList, i)
                 var timestamp interface{} = this.SafeInteger(entry, "fundingTimestamp")
                 var marketId interface{} = this.SafeString(entry, "symbol")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(marketId, market),
                     "fundingRate": this.SafeNumber(entry, "rate"),
@@ -1755,7 +1755,7 @@ func  (this *apex) Transfer(code interface{}, amount interface{}, fromAccount in
                 })
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1810,7 +1810,7 @@ func  (this *apex) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
-            ch <- data
+            ch <- []interface{}{this.ParseOrder(data, market)}
             return nil
         
             }()
@@ -1842,17 +1842,17 @@ func  (this *apex) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
                 AddElementToObject(request, "id", clientOrderId)
                 params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
                 
-        response = (<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "id", id)
                 
-        response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
-            ch <- data
+            ch <- this.SafeOrder(data)
             return nil
         
             }()
@@ -1889,13 +1889,13 @@ func  (this *apex) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
                 AddElementToObject(request, "id", clientOrderId)
                 params = this.Omit(params, []interface{}{"clientId", "clientOrderId", "client_order_id"})
                 
-        response = (<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "id", id)
                 
-        response = (<-this.PrivateGetV3Order(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetV3Order(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         

@@ -2064,6 +2064,21 @@
         ],
         "fetchTickers": [
             {
+                "description": "rolling tickers",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/api/v3/ticker?symbols=%5B%22BTCUSDT%22%2C%22ETHUSDT%22%5D",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ],
+                    {
+                        "rolling": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot fetch tickers with symbols",
                 "method": "fetchTickers",
                 "url": "https://testnet.binance.vision/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",

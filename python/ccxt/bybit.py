@@ -1040,7 +1040,9 @@ class bybit(Exchange, ImplicitAPI):
             'options': {
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
-                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'linear', 'inverse', 'option'],
+                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -1701,9 +1703,16 @@ class bybit(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         promisesUnresolved = []
-        fetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
-        for i in range(0, len(fetchMarkets)):
-            marketType = fetchMarkets[i]
+        types = None
+        defaultTypes = ['spot', 'linear', 'inverse', 'option']
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        if fetchMarketsOptions is not None:
+            types = self.safe_list(fetchMarketsOptions, 'types', defaultTypes)
+        else:
+            # for backward-compatibility
+            types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
+        for i in range(0, len(types)):
+            marketType = types[i]
             if marketType == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif marketType == 'linear':
@@ -4576,7 +4585,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         orders = self.safe_list(result, 'list')
         if not isinstance(orders, list):
-            return response
+            return [self.safe_order({'info': response})]
         return self.parse_orders(orders, market)
 
     def fetch_order_classic(self, id: str, symbol: Str = None, params={}) -> Order:
@@ -7925,7 +7934,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
+        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 50}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

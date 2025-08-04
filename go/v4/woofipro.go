@@ -8,10 +8,10 @@ type woofipro struct {
 
 }
 
-func NewWoofiproCore() woofipro {
-   p := woofipro{}
-   setDefaults(&p)
-   return p
+func NewWoofiproCore() *woofipro {
+    p := &woofipro{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *woofipro) Describe() interface{}  {
@@ -1164,7 +1164,7 @@ func  (this *woofipro) FetchFundingRateHistory(optionalArgs ...interface{}) <- c
                 var entry interface{} = GetValue(result, i)
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var timestamp interface{} = this.SafeInteger(entry, "funding_rate_timestamp")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(marketId),
                     "fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -1616,7 +1616,7 @@ func  (this *woofipro) CreateOrderRequest(symbol interface{}, typeVar interface{
                 "type": "LIMIT",
                 "reduce_only": true,
             }
-            AppendToArray(&childOrders,stopLossOrder)
+            AppendToArray(&childOrders, stopLossOrder)
         }
         if IsTrue(!IsEqual(takeProfit, nil)) {
             var takeProfitPrice interface{} = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
@@ -1627,7 +1627,7 @@ func  (this *woofipro) CreateOrderRequest(symbol interface{}, typeVar interface{
                 "type": "LIMIT",
                 "reduce_only": true,
             }
-            AppendToArray(&outterOrder,takeProfitOrder)
+            AppendToArray(&outterOrder, takeProfitOrder)
         }
         AddElementToObject(request, "child_orders", []interface{}{outterOrder})
     }
@@ -1677,12 +1677,12 @@ func  (this *woofipro) CreateOrder(symbol interface{}, typeVar interface{}, side
             var response interface{} = nil
             if IsTrue(isConditional) {
                 
-        response = (<-this.V1PrivatePostAlgoOrder(request))
-                PanicOnError(response)
+            response = (<-this.V1PrivatePostAlgoOrder(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1PrivatePostOrder(request))
-                PanicOnError(response)
+            response = (<-this.V1PrivatePostOrder(request))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data")
             AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
@@ -1731,7 +1731,7 @@ func  (this *woofipro) CreateOrders(orders interface{}, optionalArgs ...interfac
                     panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
                 }
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var request interface{} = map[string]interface{} {
                 "orders": ordersRequests,
@@ -1818,8 +1818,8 @@ func  (this *woofipro) EditOrder(id interface{}, symbol interface{}, typeVar int
             var response interface{} = nil
             if IsTrue(isConditional) {
                 
-        response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "side", ToUpper(side))
@@ -1844,8 +1844,8 @@ func  (this *woofipro) EditOrder(id interface{}, symbol interface{}, typeVar int
                 // request['side'] = side.toUpperCase ();
                 // request['symbol'] = market['id'];
                 
-        response = (<-this.V1PrivatePutOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivatePutOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // {
@@ -1913,26 +1913,26 @@ func  (this *woofipro) CancelOrder(id interface{}, optionalArgs ...interface{}) 
                     AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
                     params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
                     
-        response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     AddElementToObject(request, "order_id", id)
                     
-        response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(isByClientOrder) {
                     AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
                     params = this.Omit(params, []interface{}{"clOrdID", "clientOrderId", "client_order_id"})
                     
-        response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     AddElementToObject(request, "order_id", id)
                     
-        response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -2002,13 +2002,13 @@ func  (this *woofipro) CancelOrders(ids interface{}, optionalArgs ...interface{}
             if IsTrue(clientOrderIds) {
                 AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
                 
-        response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "order_ids", Join(ids, ","))
                 
-        response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2061,12 +2061,12 @@ func  (this *woofipro) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 // trigger
@@ -2084,9 +2084,9 @@ func  (this *woofipro) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
             //     }
             // }
             //
-        ch <- []interface{}{map[string]interface{} {
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
             "info": response,
-        }}
+        })}
             return nil
         
             }()
@@ -2132,25 +2132,25 @@ func  (this *woofipro) FetchOrder(id interface{}, optionalArgs ...interface{}) <
                 if IsTrue(clientOrderId) {
                     AddElementToObject(request, "client_order_id", clientOrderId)
                     
-        response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     AddElementToObject(request, "oid", id)
                     
-        response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 if IsTrue(clientOrderId) {
                     AddElementToObject(request, "client_order_id", clientOrderId)
                     
-        response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     AddElementToObject(request, "oid", id)
                     
-        response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -2258,12 +2258,12 @@ func  (this *woofipro) FetchOrders(optionalArgs ...interface{}) <- chan interfac
             var response interface{} = nil
             if IsTrue(isTrigger) {
                 
-        response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V1PrivateGetOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V1PrivateGetOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {

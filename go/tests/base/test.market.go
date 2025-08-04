@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestMarket(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, market interface{})  {
+    func TestMarket(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, market interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btcusd",
             "symbol": "BTC/USD",
@@ -76,20 +76,20 @@ import "github.com/ccxt/ccxt/go/v4"
         //
         var emptyAllowedFor interface{} = []interface{}{"margin"}
         if !IsTrue(contract) {
-            AppendToArray(&emptyAllowedFor,"contractSize")
-            AppendToArray(&emptyAllowedFor,"linear")
-            AppendToArray(&emptyAllowedFor,"inverse")
-            AppendToArray(&emptyAllowedFor,"quanto")
-            AppendToArray(&emptyAllowedFor,"settle")
-            AppendToArray(&emptyAllowedFor,"settleId")
+            AppendToArray(&emptyAllowedFor, "contractSize")
+            AppendToArray(&emptyAllowedFor, "linear")
+            AppendToArray(&emptyAllowedFor, "inverse")
+            AppendToArray(&emptyAllowedFor, "quanto")
+            AppendToArray(&emptyAllowedFor, "settle")
+            AppendToArray(&emptyAllowedFor, "settleId")
         }
         if IsTrue(!IsTrue(future) && !IsTrue(option)) {
-            AppendToArray(&emptyAllowedFor,"expiry")
-            AppendToArray(&emptyAllowedFor,"expiryDatetime")
+            AppendToArray(&emptyAllowedFor, "expiry")
+            AppendToArray(&emptyAllowedFor, "expiryDatetime")
         }
         if !IsTrue(option) {
-            AppendToArray(&emptyAllowedFor,"optionType")
-            AppendToArray(&emptyAllowedFor,"strike")
+            AppendToArray(&emptyAllowedFor, "optionType")
+            AppendToArray(&emptyAllowedFor, "strike")
         }
         AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor)
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")

@@ -8,10 +8,10 @@ type delta struct {
 
 }
 
-func NewDeltaCore() delta {
-   p := delta{}
-   setDefaults(&p)
-   return p
+func NewDeltaCore() *delta {
+    p := &delta{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *delta) Describe() interface{}  {
@@ -894,7 +894,7 @@ func  (this *delta) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
                     }
                 }
                 var state interface{} = this.SafeString(market, "state")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "numericId": numericId,
                     "symbol": symbol,
@@ -2448,12 +2448,12 @@ func  (this *delta) FetchOrdersWithMethod(method interface{}, optionalArgs ...in
             var response interface{} = nil
             if IsTrue(IsEqual(method, "privateGetOrders")) {
                 
-        response = (<-this.PrivateGetOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(method, "privateGetOrdersHistory")) {
                 
-        response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3621,7 +3621,7 @@ func  (this *delta) ParseSettlement(settlement interface{}, market interface{}) 
 func  (this *delta) ParseSettlements(settlements interface{}, market interface{}) interface{}  {
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
-        AppendToArray(&result,this.ParseSettlement(GetValue(settlements, i), market))
+        AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
     }
     return result
 }
@@ -4155,8 +4155,8 @@ func  (this *delta) HandleErrors(code interface{}, reason interface{}, url inter
     //
     // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
     //
-    var error interface{} = this.SafeDict(response, "error", map[string]interface{} {})
-    var errorCode interface{} = this.SafeString(error, "code")
+    var err interface{} = this.SafeDict(response, "error", map[string]interface{} {})
+    var errorCode interface{} = this.SafeString(err, "code")
     if IsTrue(!IsEqual(errorCode, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

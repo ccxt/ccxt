@@ -8,10 +8,10 @@ type coinspot struct {
 
 }
 
-func NewCoinspotCore() coinspot {
-   p := coinspot{}
-   setDefaults(&p)
-   return p
+func NewCoinspotCore() *coinspot {
+    p := &coinspot{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinspot) Describe() interface{}  {
@@ -29,33 +29,61 @@ func  (this *coinspot) Describe() interface{}  {
             "future": false,
             "option": false,
             "addMargin": false,
+            "borrowCrossMargin": false,
+            "borrowIsolatedMargin": false,
+            "borrowMargin": false,
             "cancelOrder": true,
             "closeAllPositions": false,
             "closePosition": false,
             "createMarketOrder": false,
             "createOrder": true,
+            "createOrderWithTakeProfitAndStopLoss": false,
+            "createOrderWithTakeProfitAndStopLossWs": false,
+            "createPostOnlyOrder": false,
             "createReduceOnlyOrder": false,
             "createStopLimitOrder": false,
             "createStopMarketOrder": false,
             "createStopOrder": false,
             "fetchBalance": true,
+            "fetchBorrowInterest": false,
+            "fetchBorrowRate": false,
             "fetchBorrowRateHistories": false,
             "fetchBorrowRateHistory": false,
+            "fetchBorrowRates": false,
+            "fetchBorrowRatesPerSymbol": false,
             "fetchCrossBorrowRate": false,
             "fetchCrossBorrowRates": false,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
             "fetchIndexOHLCV": false,
             "fetchIsolatedBorrowRate": false,
             "fetchIsolatedBorrowRates": false,
+            "fetchIsolatedPositions": false,
             "fetchLeverage": false,
+            "fetchLeverages": false,
             "fetchLeverageTiers": false,
+            "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
+            "fetchMarginAdjustmentHistory": false,
             "fetchMarginMode": false,
+            "fetchMarginModes": false,
+            "fetchMarketLeverageTiers": false,
             "fetchMarkOHLCV": false,
+            "fetchMarkPrices": false,
+            "fetchMyLiquidations": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": true,
+            "fetchOpenInterest": false,
             "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
+            "fetchOption": false,
+            "fetchOptionChain": false,
             "fetchOrderBook": true,
             "fetchPosition": false,
             "fetchPositionHistory": false,
@@ -65,13 +93,19 @@ func  (this *coinspot) Describe() interface{}  {
             "fetchPositionsHistory": false,
             "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchTicker": true,
             "fetchTickers": true,
             "fetchTrades": true,
             "fetchTradingFee": false,
             "fetchTradingFees": false,
+            "fetchVolatilityHistory": false,
             "reduceMargin": false,
+            "repayCrossMargin": false,
+            "repayIsolatedMargin": false,
+            "repayMargin": false,
             "setLeverage": false,
+            "setMargin": false,
             "setMarginMode": false,
             "setPositionMode": false,
             "ws": false,
@@ -339,8 +373,8 @@ func  (this *coinspot) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2358 := (<-this.LoadMarkets())
-            PanicOnError(retRes2358)
+            retRes2698 := (<-this.LoadMarkets())
+            PanicOnError(retRes2698)
             var method interface{} = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
         
             response:= (<-this.callDynamically(method, params))
@@ -388,8 +422,8 @@ func  (this *coinspot) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes2688 := (<-this.LoadMarkets())
-            PanicOnError(retRes2688)
+            retRes3028 := (<-this.LoadMarkets())
+            PanicOnError(retRes3028)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "cointype": GetValue(market, "id"),
@@ -458,8 +492,8 @@ func  (this *coinspot) FetchTicker(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3238 := (<-this.LoadMarkets())
-            PanicOnError(retRes3238)
+            retRes3578 := (<-this.LoadMarkets())
+            PanicOnError(retRes3578)
             var market interface{} = this.Market(symbol)
         
             response:= (<-this.PublicGetLatest(params))
@@ -506,8 +540,8 @@ func  (this *coinspot) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3558 := (<-this.LoadMarkets())
-            PanicOnError(retRes3558)
+            retRes3898 := (<-this.LoadMarkets())
+            PanicOnError(retRes3898)
         
             response:= (<-this.PublicGetLatest(params))
             PanicOnError(response)
@@ -570,8 +604,8 @@ func  (this *coinspot) FetchTrades(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes4018 := (<-this.LoadMarkets())
-            PanicOnError(retRes4018)
+            retRes4358 := (<-this.LoadMarkets())
+            PanicOnError(retRes4358)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "cointype": GetValue(market, "id"),
@@ -620,8 +654,8 @@ func  (this *coinspot) FetchMyTrades(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes4318 := (<-this.LoadMarkets())
-            PanicOnError(retRes4318)
+            retRes4658 := (<-this.LoadMarkets())
+            PanicOnError(retRes4658)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -769,8 +803,8 @@ func  (this *coinspot) CreateOrder(symbol interface{}, typeVar interface{}, side
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5638 := (<-this.LoadMarkets())
-            PanicOnError(retRes5638)
+            retRes5978 := (<-this.LoadMarkets())
+            PanicOnError(retRes5978)
             var method interface{} = Add("privatePostMy", this.Capitalize(side))
             if IsTrue(IsEqual(typeVar, "market")) {
                 panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
@@ -782,10 +816,11 @@ func  (this *coinspot) CreateOrder(symbol interface{}, typeVar interface{}, side
                 "rate": price,
             }
         
-                retRes57415 :=  (<-this.callDynamically(method, this.Extend(request, params)))
-                PanicOnError(retRes57415)
-                ch <- retRes57415
-                return nil
+            response:= (<-this.callDynamically(method, this.Extend(request, params)))
+            PanicOnError(response)
+        
+            ch <- this.ParseOrder(response)
+            return nil
         
             }()
             return ch
@@ -821,12 +856,12 @@ func  (this *coinspot) CancelOrder(id interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {
                 
-        response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostMySellCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMySellCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //

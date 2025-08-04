@@ -433,10 +433,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -505,10 +505,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout

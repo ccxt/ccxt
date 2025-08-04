@@ -174,6 +174,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1810,7 +1811,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -2964,10 +2965,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
                 raise NotSupported(self.id + ' transfer() only support spot <> swap transfer')
             strAmount = self.number_to_string(amount)
-            vaultAddress = None
-            vaultAddress, params = self.handle_option_and_params(params, 'transfer', 'vaultAddress')
-            vaultAddress = self.format_vault_address(vaultAddress)
+            vaultAddress = self.safe_string_2(params, 'vaultAddress', 'subAccountAddress')
             if vaultAddress is not None:
+                vaultAddress = self.format_vault_address(vaultAddress)
                 strAmount = strAmount + ' subaccount:' + vaultAddress
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload: dict = {
@@ -2994,10 +2994,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             transferResponse = await self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount
-        if code is not None:
-            code = code.upper()
-            if code != 'USDC':
-                raise NotSupported(self.id + ' transfer() only support USDC')
         isDeposit = False
         subAccountAddress = None
         if fromAccount == 'main':
@@ -3008,24 +3004,44 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' transfer() only support main <> subaccount transfer')
         self.check_address(subAccountAddress)
-        usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
-        action = {
-            'type': 'subAccountTransfer',
-            'subAccountUser': subAccountAddress,
-            'isDeposit': isDeposit,
-            'usd': usd,
-        }
-        sig = self.sign_l1_action(action, nonce)
-        request: dict = {
-            'action': action,
-            'nonce': nonce,
-            'signature': sig,
-        }
-        response = await self.privatePostExchange(request)
-        #
-        # {'response': {'type': 'default'}, 'status': 'ok'}
-        #
-        return self.parse_transfer(response)
+        if code is None or code.upper() == 'USDC':
+            # Transfer USDC with subAccountTransfer
+            usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
+            action = {
+                'type': 'subAccountTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'usd': usd,
+            }
+            sig = self.sign_l1_action(action, nonce)
+            request: dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            }
+            response = await self.privatePostExchange(request)
+            #
+            # {'response': {'type': 'default'}, 'status': 'ok'}
+            #
+            return self.parse_transfer(response)
+        else:
+            # Transfer non-USDC with subAccountSpotTransfer
+            symbol = self.symbol(code)
+            action = {
+                'type': 'subAccountSpotTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'token': symbol,
+                'amount': self.number_to_string(amount),
+            }
+            sig = self.sign_l1_action(action, nonce)
+            request: dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            }
+            response = await self.privatePostExchange(request)
+            return self.parse_transfer(response)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -3600,7 +3616,7 @@ class hyperliquid(Exchange, ImplicitAPI):
     def coin_to_market_id(self, coin: Str):
         if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
-        return coin + '/USDC:USDC'
+        return self.safe_currency_code(coin) + '/USDC:USDC'
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:

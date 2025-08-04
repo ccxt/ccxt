@@ -8,10 +8,10 @@ type bequant struct {
 
 }
 
-func NewBequantCore() bequant {
-   p := bequant{}
-   setDefaults(&p)
-   return p
+func NewBequantCore() *bequant {
+    p := &bequant{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bequant) Describe() interface{}  {

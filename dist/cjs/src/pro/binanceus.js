@@ -40,7 +40,9 @@ class binanceus extends binance {
                 'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }

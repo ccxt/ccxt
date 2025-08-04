@@ -8,10 +8,10 @@ type bitteam struct {
 
 }
 
-func NewBitteamCore() bitteam {
-   p := bitteam{}
-   setDefaults(&p)
-   return p
+func NewBitteamCore() *bitteam {
+    p := &bitteam{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitteam) Describe() interface{}  {
@@ -1642,7 +1642,7 @@ func  (this *bitteam) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var rawTicker interface{} = GetValue(response, i)
                 var ticker interface{} = this.ParseTicker(rawTicker)
-                AppendToArray(&tickers,ticker)
+                AppendToArray(&tickers, ticker)
             }
         
             ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)

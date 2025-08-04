@@ -141,7 +141,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name derive#cancelAllOrders
@@ -153,7 +153,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name derive#fetchOrders

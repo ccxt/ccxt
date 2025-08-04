@@ -8,10 +8,10 @@ type binanceusdm struct {
 
 }
 
-func NewBinanceusdmCore() binanceusdm {
-   p := binanceusdm{}
-   setDefaults(&p)
-   return p
+func NewBinanceusdmCore() *binanceusdm {
+    p := &binanceusdm{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *binanceusdm) Describe() interface{}  {
@@ -32,7 +32,9 @@ func  (this *binanceusdm) Describe() interface{}  {
             "createStopMarketOrder": true,
         },
         "options": map[string]interface{} {
-            "fetchMarkets": []interface{}{"linear"},
+            "fetchMarkets": map[string]interface{} {
+                "types": []interface{}{"linear"},
+            },
             "defaultSubType": "linear",
             "leverageBrackets": nil,
             "marginTypes": map[string]interface{} {},
@@ -56,9 +58,9 @@ func  (this *binanceusdm) TransferIn(code interface{}, amount interface{}, optio
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes5315 :=  (<-this.FuturesTransfer(code, amount, 1, params))
-                PanicOnError(retRes5315)
-        ch <- retRes5315
+                retRes5515 :=  (<-this.FuturesTransfer(code, amount, 1, params))
+                PanicOnError(retRes5515)
+        ch <- retRes5515
                 return nil
         
             }()
@@ -73,9 +75,9 @@ func  (this *binanceusdm) TransferOut(code interface{}, amount interface{}, opti
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes5815 :=  (<-this.FuturesTransfer(code, amount, 2, params))
-                PanicOnError(retRes5815)
-        ch <- retRes5815
+                retRes6015 :=  (<-this.FuturesTransfer(code, amount, 2, params))
+                PanicOnError(retRes6015)
+        ch <- retRes6015
                 return nil
         
             }()

@@ -8,10 +8,10 @@ type coincheck struct {
 
 }
 
-func NewCoincheckCore() coincheck {
-   p := coincheck{}
-   setDefaults(&p)
-   return p
+func NewCoincheckCore() *coincheck {
+    p := &coincheck{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coincheck) Describe() interface{}  {
@@ -336,7 +336,7 @@ func  (this *coincheck) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             var parsedOrders interface{} = this.ParseOrders(rawOrders, market, since, limit)
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(parsedOrders)); i++ {
-                AppendToArray(&result,this.Extend(GetValue(parsedOrders, i), map[string]interface{} {
+                AppendToArray(&result, this.Extend(GetValue(parsedOrders, i), map[string]interface{} {
                     "status": "open",
                 }))
             }
@@ -1159,9 +1159,9 @@ func  (this *coincheck) HandleErrors(httpCode interface{}, reason interface{}, u
     //
     var success interface{} = this.SafeBool(response, "success", true)
     if !IsTrue(success) {
-        var error interface{} = this.SafeString(response, "error")
+        var err interface{} = this.SafeString(response, "error")
         var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
-        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
         panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
     }

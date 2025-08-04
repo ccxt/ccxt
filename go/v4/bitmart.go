@@ -8,10 +8,10 @@ type bitmart struct {
 
 }
 
-func NewBitmartCore() bitmart {
-   p := bitmart{}
-   setDefaults(&p)
-   return p
+func NewBitmartCore() *bitmart {
+    p := &bitmart{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitmart) Describe() interface{}  {
@@ -933,7 +933,7 @@ func  (this *bitmart) FetchSpotMarkets(optionalArgs ...interface{}) <- chan inte
                 var minSellCost interface{} = this.SafeString(market, "min_sell_amount")
                 var minCost interface{} = Precise.StringMax(minBuyCost, minSellCost)
                 var baseMinSize interface{} = this.SafeNumber(market, "base_min_size")
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": id,
                     "numericId": numericId,
                     "symbol": symbol,
@@ -1063,7 +1063,7 @@ func  (this *bitmart) FetchContractMarkets(optionalArgs ...interface{}) <- chan 
                 if IsTrue(!IsTrue(isFutures) && IsTrue((IsEqual(expiry, 0)))) {
                     expiry = nil
                 }
-                AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
                     "id": id,
                     "numericId": nil,
                     "symbol": symbol,
@@ -1623,13 +1623,13 @@ func  (this *bitmart) FetchTicker(symbol interface{}, optionalArgs ...interface{
             if IsTrue(GetValue(market, "swap")) {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicGetContractPublicDetails(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetContractPublicDetails(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "spot")) {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicGetSpotQuotationV3Ticker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetSpotQuotationV3Ticker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchTicker() does not support "), GetValue(market, "type")), " markets, only spot and swap markets are accepted")))
             }
@@ -1685,12 +1685,12 @@ func  (this *bitmart) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "spot")) {
                 
-        response = (<-this.PublicGetSpotQuotationV3Tickers(params))
-                PanicOnError(response)
+            response = (<-this.PublicGetSpotQuotationV3Tickers(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 
-        response = (<-this.PublicGetContractPublicDetails(params))
-                PanicOnError(response)
+            response = (<-this.PublicGetContractPublicDetails(params))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchTickers() does not support "), typeVar), " markets, only spot and swap markets are accepted")))
             }
@@ -1754,12 +1754,12 @@ func  (this *bitmart) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
                     AddElementToObject(request, "limit", limit) // default 35, max 50
                 }
                 
-        response = (<-this.PublicGetSpotQuotationV3Books(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetSpotQuotationV3Books(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PublicGetContractPublicDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetContractPublicDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchOrderBook() does not support "), GetValue(market, "type")), " markets, only spot and swap markets are accepted")))
             }
@@ -2127,17 +2127,17 @@ func  (this *bitmart) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
                 if IsTrue(IsEqual(price, "mark")) {
                     params = this.Omit(params, "price")
                     
-        response = (<-this.PublicGetContractPublicMarkpriceKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetContractPublicMarkpriceKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PublicGetContractPublicKline(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicGetContractPublicKline(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 
-        response = (<-this.PublicGetSpotQuotationV3Klines(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetSpotQuotationV3Klines(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2246,8 +2246,8 @@ func  (this *bitmart) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                     AddElementToObject(request, "endTime", until)
                 }
                 
-        response = (<-this.PrivatePostSpotV4QueryTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4QueryTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
@@ -2259,8 +2259,8 @@ func  (this *bitmart) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
                     AddElementToObject(request, "end_time", until)
                 }
                 
-        response = (<-this.PrivateGetContractPrivateTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchMyTrades() does not support "), typeVar), " orders, only spot and swap orders are accepted")))
             }
@@ -2452,20 +2452,20 @@ func  (this *bitmart) FetchBalance(optionalArgs ...interface{}) <- chan interfac
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateGetSpotV1Wallet(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotV1Wallet(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateGetContractPrivateAssetsDetail(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateAssetsDetail(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "account")) {
                 
-        response = (<-this.PrivateGetAccountV1Wallet(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetAccountV1Wallet(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "margin")) {
                 
-        response = (<-this.PrivateGetSpotV1MarginIsolatedAccount(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetSpotV1MarginIsolatedAccount(params))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchBalance() does not support "), marketType), " markets, only spot, swap and account and margin markets are accepted")))
             }
@@ -2897,12 +2897,12 @@ func  (this *bitmart) CreateOrder(symbol interface{}, typeVar interface{}, side 
                 var spotRequest interface{} = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
                 if IsTrue(IsEqual(marginMode, "isolated")) {
                     
-        response = (<-this.PrivatePostSpotV1MarginSubmitOrder(spotRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSpotV1MarginSubmitOrder(spotRequest))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostSpotV2SubmitOrder(spotRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSpotV2SubmitOrder(spotRequest))
+                        PanicOnError(response)
                 }
             } else {
                 var swapRequest interface{} = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2910,20 +2910,20 @@ func  (this *bitmart) CreateOrder(symbol interface{}, typeVar interface{}, side 
                 if IsTrue(!IsEqual(activationPrice, nil)) {
                     // if type is trailing
                     
-        response = (<-this.PrivatePostContractPrivateSubmitTrailOrder(swapRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateSubmitTrailOrder(swapRequest))
+                        PanicOnError(response)
                 } else if IsTrue(isTriggerOrder) {
                     
-        response = (<-this.PrivatePostContractPrivateSubmitPlanOrder(swapRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateSubmitPlanOrder(swapRequest))
+                        PanicOnError(response)
                 } else if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
                     
-        response = (<-this.PrivatePostContractPrivateSubmitTpSlOrder(swapRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateSubmitTpSlOrder(swapRequest))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostContractPrivateSubmitOrder(swapRequest))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateSubmitOrder(swapRequest))
+                        PanicOnError(response)
                 }
             }
             //
@@ -2998,7 +2998,7 @@ func  (this *bitmart) CreateOrders(orders interface{}, optionalArgs ...interface
                 var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateSpotOrderRequest(marketId, typeVar, side, amount, price, orderParams)
                 orderRequest = this.Omit(orderRequest, []interface{}{"symbol"}) // not needed because it goes in the outter object
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -3032,7 +3032,7 @@ func  (this *bitmart) CreateOrders(orders interface{}, optionalArgs ...interface
                 var order interface{} = this.SafeOrder(map[string]interface{} {
                     "id": orderId,
                 }, market)
-                AppendToArray(&parsedOrders,order)
+                AppendToArray(&parsedOrders, order)
             }
         
             ch <- parsedOrders
@@ -3319,24 +3319,24 @@ func  (this *bitmart) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PrivatePostSpotV3CancelOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV3CancelOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
                 var trailing interface{} = this.SafeBool(params, "trailing")
                 params = this.Omit(params, []interface{}{"stop", "trigger"})
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivatePostContractPrivateCancelPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateCancelPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(trailing) {
                     
-        response = (<-this.PrivatePostContractPrivateCancelTrailOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateCancelTrailOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostContractPrivateCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             // swap
@@ -3364,7 +3364,9 @@ func  (this *bitmart) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             //
             if IsTrue(GetValue(market, "swap")) {
         
-                ch <- response
+                ch <- this.SafeOrder(map[string]interface{} {
+                    "info": response,
+                })
                 return nil
             }
             var data interface{} = this.SafeValue(response, "data")
@@ -3463,7 +3465,7 @@ func  (this *bitmart) CancelOrders(ids interface{}, optionalArgs ...interface{})
             var successIds interface{} = this.SafeList(data, "successIds", []interface{}{})
             for i := 0; IsLessThan(i, GetArrayLength(successIds)); i++ {
                 var id interface{} = GetValue(successIds, i)
-                AppendToArray(&allOrders,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&allOrders, this.SafeOrder(map[string]interface{} {
                     "id": id,
                     "status": "canceled",
                 }, market))
@@ -3471,7 +3473,7 @@ func  (this *bitmart) CancelOrders(ids interface{}, optionalArgs ...interface{})
             var failIds interface{} = this.SafeList(data, "failIds", []interface{}{})
             for i := 0; IsLessThan(i, GetArrayLength(failIds)); i++ {
                 var id interface{} = GetValue(failIds, i)
-                AppendToArray(&allOrders,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&allOrders, this.SafeOrder(map[string]interface{} {
                     "id": id,
                     "status": "failed",
                 }, market))
@@ -3519,15 +3521,15 @@ func  (this *bitmart) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             params = GetValue(typeVarparamsVariable,1)
             if IsTrue(IsEqual(typeVar, "spot")) {
                 
-        response = (<-this.PrivatePostSpotV4CancelAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4CancelAll(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
                 }
                 
-        response = (<-this.PrivatePostContractPrivateCancelOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateCancelOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -3548,7 +3550,9 @@ func  (this *bitmart) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
             //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
             //     }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()
@@ -3699,8 +3703,8 @@ func  (this *bitmart) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                     AddElementToObject(request, "endTime", until)
                 }
                 
-        response = (<-this.PrivatePostSpotV4QueryOpenOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4QueryOpenOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "limit", mathMin(limit, 100))
@@ -3709,8 +3713,8 @@ func  (this *bitmart) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 params = this.Omit(params, []interface{}{"stop", "trigger"})
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivateGetContractPrivateCurrentPlanOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateCurrentPlanOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var trailing interface{} = this.SafeBool(params, "trailing", false)
                     var orderType interface{} = this.SafeString(params, "orderType")
@@ -3722,8 +3726,8 @@ func  (this *bitmart) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                         AddElementToObject(request, "type", orderType)
                     }
                     
-        response = (<-this.PrivateGetContractPrivateGetOpenOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateGetOpenOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchOpenOrders() does not support "), typeVar), " orders, only spot and swap orders are accepted")))
@@ -3856,12 +3860,12 @@ func  (this *bitmart) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
                     AddElementToObject(request, "orderMode", "iso_margin")
                 }
                 
-        response = (<-this.PrivatePostSpotV4QueryHistoryOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4QueryHistoryOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateGetContractPrivateOrderHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateOrderHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -3948,12 +3952,12 @@ func  (this *bitmart) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 }
                 if IsTrue(!IsEqual(clientOrderId, nil)) {
                     
-        response = (<-this.PrivatePostSpotV4QueryClientOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4QueryClientOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostSpotV4QueryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostSpotV4QueryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 if IsTrue(IsEqual(symbol, nil)) {
@@ -3971,8 +3975,8 @@ func  (this *bitmart) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "order_id", id)
                 
-        response = (<-this.PrivateGetContractPrivateOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetContractPrivateOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -4904,12 +4908,12 @@ func  (this *bitmart) Transfer(code interface{}, amount interface{}, fromAccount
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(fromAccount, "margin"))) || IsTrue((IsEqual(toAccount, "margin")))) {
                 
-        response = (<-this.PrivatePostSpotV1MarginIsolatedTransfer(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostSpotV1MarginIsolatedTransfer(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue((IsEqual(fromAccount, "swap"))) || IsTrue((IsEqual(toAccount, "swap")))) {
                 
-        response = (<-this.PrivatePostAccountV1TransferContract(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostAccountV1TransferContract(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // margin
@@ -5434,7 +5438,7 @@ func  (this *bitmart) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var symbolInner interface{} = this.SafeSymbol(marketId, market, "-", "swap")
                 var timestamp interface{} = this.SafeInteger(entry, "funding_time")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": symbolInner,
                     "fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -5617,7 +5621,7 @@ func  (this *bitmart) FetchPositions(optionalArgs ...interface{}) <- chan interf
             var positions interface{} = this.SafeList(response, "data", []interface{}{})
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(positions, i)))
+                AppendToArray(&result, this.ParsePosition(GetValue(positions, i)))
             }
             symbols = this.MarketSymbols(symbols)
         
@@ -5771,7 +5775,7 @@ func  (this *bitmart) FetchMyLiquidations(optionalArgs ...interface{}) <- chan i
                 var entry interface{} = GetValue(data, i)
                 var checkLiquidation interface{} = this.SafeString(entry, "type")
                 if IsTrue(IsEqual(checkLiquidation, "liquidate")) {
-                    AppendToArray(&result,entry)
+                    AppendToArray(&result, entry)
                 }
             }
         
@@ -5900,8 +5904,8 @@ func  (this *bitmart) EditOrder(id interface{}, symbol interface{}, typeVar inte
                 AddElementToObject(request, "type", typeVar)
                 AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
                 
-        response = (<-this.PrivatePostContractPrivateModifyPlanOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateModifyPlanOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
                 AddElementToObject(request, "category", typeVar)
                 if IsTrue(isStopLoss) {
@@ -5910,8 +5914,8 @@ func  (this *bitmart) EditOrder(id interface{}, symbol interface{}, typeVar inte
                     AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, takeProfitPrice))
                 }
                 
-        response = (<-this.PrivatePostContractPrivateModifyTpSlOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateModifyTpSlOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(isPresetStopLoss) || IsTrue(isPresetTakeProfit)) {
                 if IsTrue(isPresetStopLoss) {
                     AddElementToObject(request, "preset_stop_loss_price_type", this.SafeInteger(params, "price_type", 1))
@@ -5921,8 +5925,8 @@ func  (this *bitmart) EditOrder(id interface{}, symbol interface{}, typeVar inte
                     AddElementToObject(request, "preset_take_profit_price", this.PriceToPrecision(symbol, presetTakeProfit))
                 }
                 
-        response = (<-this.PrivatePostContractPrivateModifyPresetPlanOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateModifyPresetPlanOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(isLimitOrder) {
                 AddElementToObject(request, "order_id", this.ParseToInt(id)) // reparse id as int this endpoint is the only one requiring it
                 if IsTrue(!IsEqual(amount, nil)) {
@@ -5932,8 +5936,8 @@ func  (this *bitmart) EditOrder(id interface{}, symbol interface{}, typeVar inte
                     AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                 }
                 
-        response = (<-this.PrivatePostContractPrivateModifyLimitOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostContractPrivateModifyLimitOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " editOrder() only supports limit, trigger, stop loss and take profit orders")))
             }
@@ -6199,7 +6203,7 @@ func  (this *bitmart) ParseFundingHistories(contracts interface{}, optionalArgs 
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(contracts)); i++ {
         var contract interface{} = GetValue(contracts, i)
-        AppendToArray(&result,this.ParseFundingHistory(contract, market))
+        AppendToArray(&result, this.ParseFundingHistory(contract, market))
     }
     var sorted interface{} = this.SortBy(result, "timestamp")
     return this.FilterBySinceLimit(sorted, since, limit)
@@ -6256,7 +6260,7 @@ func  (this *bitmart) FetchWithdrawAddresses(code interface{}, optionalArgs ...i
                 var noteMatch interface{} = IsTrue((IsEqual(note, nil))) || IsTrue((IsEqual(GetValue(address, "note"), note)))
                 var networkMatch interface{} = IsTrue((IsEqual(networkCode, nil))) || IsTrue((IsEqual(GetValue(address, "network"), networkCode)))
                 if IsTrue(IsTrue(noteMatch) && IsTrue(networkMatch)) {
-                    AppendToArray(&addresses,address)
+                    AppendToArray(&addresses, address)
                 }
             }
         

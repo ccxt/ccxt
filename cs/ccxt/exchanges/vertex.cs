@@ -2539,7 +2539,9 @@ public partial class vertex : Exchange
         {
             response = await this.v1GatewayPostExecute(this.extend(request, parameters));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -2556,7 +2558,10 @@ public partial class vertex : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        object order = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", order },
+        });
     }
 
     /**
