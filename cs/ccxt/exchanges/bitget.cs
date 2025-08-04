@@ -862,6 +862,7 @@ public partial class bitget : Exchange
                     { "4010", typeof(PermissionDenied) },
                     { "4001", typeof(ExchangeError) },
                     { "4002", typeof(ExchangeError) },
+                    { "40020", typeof(BadRequest) },
                     { "30001", typeof(AuthenticationError) },
                     { "30002", typeof(AuthenticationError) },
                     { "30003", typeof(AuthenticationError) },
@@ -6828,6 +6829,11 @@ public partial class bitget : Exchange
             }
         }
         object dataList = this.safeList(response, "data", new List<object>() {});
+        object dataListLength = getArrayLength(dataList);
+        if (isTrue(isEqual(dataListLength, 0)))
+        {
+            throw new OrderNotFound ((string)add(add(add(add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
+        }
         object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
