@@ -8,10 +8,10 @@ type mexc struct {
 
 }
 
-func NewMexcCore() mexc {
-   p := mexc{}
-   setDefaults(&p)
-   return p
+func NewMexcCore() *mexc {
+    p := &mexc{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *mexc) Describe() interface{}  {
@@ -801,8 +801,8 @@ func  (this *mexc) FetchStatus(optionalArgs ...interface{}) <- chan interface{} 
             var updated interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.SpotPublicGetPing(query))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetPing(query))
+                    PanicOnError(response)
                 //
                 //     {}
                 //
@@ -811,8 +811,8 @@ func  (this *mexc) FetchStatus(optionalArgs ...interface{}) <- chan interface{} 
                 status = Ternary(IsTrue(length), this.Json(response), "ok")
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.ContractPublicGetPing(query))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetPing(query))
+                    PanicOnError(response)
                 //
                 //     {"success":true,"code":"0","data":"1648124374985"}
                 //
@@ -854,8 +854,8 @@ func  (this *mexc) FetchTime(optionalArgs ...interface{}) <- chan interface{} {
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.SpotPublicGetTime(query))
-                PanicOnError(response)
+            response = (<-this.SpotPublicGetTime(query))
+                    PanicOnError(response)
         
                         //
                 //     {"serverTime": "1647519277579"}
@@ -864,8 +864,8 @@ func  (this *mexc) FetchTime(optionalArgs ...interface{}) <- chan interface{} {
                 return nil
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.ContractPublicGetPing(query))
-                PanicOnError(response)
+            response = (<-this.ContractPublicGetPing(query))
+                    PanicOnError(response)
         
                         //
                 //     {"success":true,"code":"0","data":"1648124374985"}
@@ -1112,7 +1112,7 @@ func  (this *mexc) FetchSpotMarkets(optionalArgs ...interface{}) <- chan interfa
                 var makerCommission interface{} = this.SafeNumber(market, "makerCommission")
                 var takerCommission interface{} = this.SafeNumber(market, "takerCommission")
                 var maxQuoteAmount interface{} = this.SafeNumber(market, "maxQuoteAmount")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1250,7 +1250,7 @@ func  (this *mexc) FetchSwapMarkets(optionalArgs ...interface{}) <- chan interfa
                 var settle interface{} = this.SafeCurrencyCode(settleId)
                 var state interface{} = this.SafeString(market, "state")
                 var isLinear interface{} = IsEqual(quote, settle)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(Add(Add(base, "/"), quote), ":"), settle),
                     "base": base,
@@ -1465,16 +1465,16 @@ func  (this *mexc) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
                 params = this.Omit(params, []interface{}{"method"})
                 if IsTrue(IsEqual(method, "spotPublicGetAggTrades")) {
                     
-        trades = (<-this.SpotPublicGetAggTrades(this.Extend(request, params)))
-                    PanicOnError(trades)
+            trades = (<-this.SpotPublicGetAggTrades(this.Extend(request, params)))
+                        PanicOnError(trades)
                 } else if IsTrue(IsEqual(method, "spotPublicGetHistoricalTrades")) {
                     
-        trades = (<-this.SpotPublicGetHistoricalTrades(this.Extend(request, params)))
-                    PanicOnError(trades)
+            trades = (<-this.SpotPublicGetHistoricalTrades(this.Extend(request, params)))
+                        PanicOnError(trades)
                 } else if IsTrue(IsEqual(method, "spotPublicGetTrades")) {
                     
-        trades = (<-this.SpotPublicGetTrades(this.Extend(request, params)))
-                    PanicOnError(trades)
+            trades = (<-this.SpotPublicGetTrades(this.Extend(request, params)))
+                        PanicOnError(trades)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchTrades() not support this method")))
                 }
@@ -1757,16 +1757,16 @@ func  (this *mexc) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
                 var response interface{} = nil
                 if IsTrue(IsEqual(priceType, "default")) {
                     
-        response = (<-this.ContractPublicGetKlineSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.ContractPublicGetKlineSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(priceType, "index")) {
                     
-        response = (<-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(priceType, "mark")) {
                     
-        response = (<-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     panic(NotSupported(Add(this.Id, " fetchOHLCV() not support this price type, [default, index, mark]")))
                 }
@@ -1840,8 +1840,8 @@ func  (this *mexc) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             }
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        tickers = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
-                PanicOnError(tickers)
+            tickers = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
+                    PanicOnError(tickers)
             } else if IsTrue(IsEqual(marketType, "swap")) {
         
                 response:= (<-this.ContractPublicGetTicker(this.Extend(request, query)))
@@ -1916,8 +1916,8 @@ func  (this *mexc) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
             }
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        ticker = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
-                PanicOnError(ticker)
+            ticker = (<-this.SpotPublicGetTicker24hr(this.Extend(request, query)))
+                    PanicOnError(ticker)
             } else if IsTrue(IsEqual(marketType, "swap")) {
         
                 response:= (<-this.ContractPublicGetTicker(this.Extend(request, query)))
@@ -2109,8 +2109,8 @@ func  (this *mexc) FetchBidsAsks(optionalArgs ...interface{}) <- chan interface{
             var tickers interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        tickers = (<-this.SpotPublicGetTickerBookTicker(query))
-                PanicOnError(tickers)
+            tickers = (<-this.SpotPublicGetTickerBookTicker(query))
+                    PanicOnError(tickers)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " fetchBidsAsks() is not available for "), marketType), " markets")))
             }
@@ -2253,7 +2253,7 @@ func  (this *mexc) CreateOrder(symbol interface{}, typeVar interface{}, side int
                     ch <- retRes226319
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2358,12 +2358,12 @@ func  (this *mexc) CreateSpotOrder(market interface{}, typeVar interface{}, side
             var response interface{} = nil
             if IsTrue(test) {
                 
-        response = (<-this.SpotPrivatePostOrderTest(request))
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostOrderTest(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.SpotPrivatePostOrder(request))
-                PanicOnError(response)
+            response = (<-this.SpotPrivatePostOrder(request))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2520,12 +2520,12 @@ func  (this *mexc) CreateSwapOrder(market interface{}, typeVar interface{}, side
                 AddElementToObject(request, "trend", this.SafeInteger(params, "trend", 1))
                 AddElementToObject(request, "orderType", this.SafeInteger(params, "orderType", 1))
                 
-        response = (<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPrivatePostPlanorderPlace(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.ContractPrivatePostOrderSubmit(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPrivatePostOrderSubmit(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // Swap
@@ -2589,7 +2589,7 @@ func  (this *mexc) CreateOrders(orders interface{}, optionalArgs ...interface{})
                 marginMode = GetValue(marginModeparamsVariable,0);
                 params = GetValue(marginModeparamsVariable,1)
                 var orderRequest interface{} = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var request interface{} = map[string]interface{} {
                 "batchOrders": this.Json(ordersRequests),
@@ -2672,12 +2672,12 @@ func  (this *mexc) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
                         panic(BadRequest(Add(Add(Add(this.Id, " fetchOrder() does not support marginMode "), marginMode), " for spot-margin trading")))
                     }
                     
-        data = (<-this.SpotPrivateGetMarginOrder(this.Extend(request, query)))
-                    PanicOnError(data)
+            data = (<-this.SpotPrivateGetMarginOrder(this.Extend(request, query)))
+                        PanicOnError(data)
                 } else {
                     
-        data = (<-this.SpotPrivateGetOrder(this.Extend(request, query)))
-                    PanicOnError(data)
+            data = (<-this.SpotPrivateGetOrder(this.Extend(request, query)))
+                        PanicOnError(data)
                 }
             } else if IsTrue(GetValue(market, "swap")) {
                 AddElementToObject(request, "order_id", id)
@@ -2789,12 +2789,12 @@ func  (this *mexc) FetchOrders(optionalArgs ...interface{}) <- chan interface{} 
                         panic(BadRequest(Add(Add(Add(this.Id, " fetchOrders() does not support marginMode "), marginMode), " for spot-margin trading")))
                     }
                     
-        response = (<-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner)))
+                        PanicOnError(response)
                 }
         
                         //
@@ -2948,7 +2948,7 @@ func  (this *mexc) FetchOrders(optionalArgs ...interface{}) <- chan interface{} 
                 ch <- this.ParseOrders(merged, market, since, limit, params)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3019,7 +3019,7 @@ func  (this *mexc) FetchOrdersByIds(ids interface{}, optionalArgs ...interface{}
                 ch <- this.ParseOrders(data, market)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3076,12 +3076,12 @@ func  (this *mexc) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
                         panic(BadRequest(Add(Add(Add(this.Id, " fetchOpenOrders() does not support marginMode "), marginMode), " for spot-margin trading")))
                     }
                     
-        response = (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
+                        PanicOnError(response)
                 }
         
                         //
@@ -3142,7 +3142,7 @@ func  (this *mexc) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
         ch <- retRes304719
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3249,7 +3249,7 @@ func  (this *mexc) FetchOrdersByState(state interface{}, optionalArgs ...interfa
                     ch <- retRes309719
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3311,12 +3311,12 @@ func  (this *mexc) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
                         panic(BadRequest(Add(Add(Add(this.Id, " cancelOrder() does not support marginMode "), marginMode), " for spot-margin trading")))
                     }
                     
-        data = (<-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query)))
-                    PanicOnError(data)
+            data = (<-this.SpotPrivateDeleteMarginOrder(this.Extend(requestInner, query)))
+                        PanicOnError(data)
                 } else {
                     
-        data = (<-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query)))
-                    PanicOnError(data)
+            data = (<-this.SpotPrivateDeleteOrder(this.Extend(requestInner, query)))
+                        PanicOnError(data)
                 }
             } else {
                 // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -3325,12 +3325,12 @@ func  (this *mexc) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
                 var response interface{} = nil
                 if IsTrue(IsEqual(method, "contractPrivatePostOrderCancel")) {
                     
-        response = (<-this.ContractPrivatePostOrderCancel([]interface{}{id}))
-                    PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
+            response = (<-this.ContractPrivatePostOrderCancel([]interface{}{id}))
+                        PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
                 } else if IsTrue(IsEqual(method, "contractPrivatePostPlanorderCancel")) {
                     
-        response = (<-this.ContractPrivatePostPlanorderCancel([]interface{}{id}))
-                    PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
+            response = (<-this.ContractPrivatePostPlanorderCancel([]interface{}{id}))
+                        PanicOnError(response) // the request cannot be changed or extended. This is the only way to send.
                 } else {
                     panic(NotSupported(Add(this.Id, " cancelOrder() not support this method")))
                 }
@@ -3410,7 +3410,7 @@ func  (this *mexc) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-
                 ch <- this.ParseOrders(data, market)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3458,12 +3458,12 @@ func  (this *mexc) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
                         panic(BadRequest(Add(Add(Add(this.Id, " cancelAllOrders() does not support marginMode "), marginMode), " for spot-margin trading")))
                     }
                     
-        response = (<-this.SpotPrivateDeleteMarginOpenOrders(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateDeleteMarginOpenOrders(this.Extend(request, query)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, query)))
+                        PanicOnError(response)
                 }
         
                         //
@@ -3515,12 +3515,12 @@ func  (this *mexc) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
                 var response interface{} = nil
                 if IsTrue(IsEqual(method, "contractPrivatePostOrderCancelAll")) {
                     
-        response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, query)))
+                        PanicOnError(response)
                 } else if IsTrue(IsEqual(method, "contractPrivatePostPlanorderCancelAll")) {
                     
-        response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, query)))
-                    PanicOnError(response)
+            response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, query)))
+                        PanicOnError(response)
                 }
                 //
                 //     {
@@ -3533,7 +3533,7 @@ func  (this *mexc) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
                 ch <- this.ParseOrders(data, market)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3894,7 +3894,7 @@ func  (this *mexc) FetchAccounts(optionalArgs ...interface{}) <- chan interface{
                 var account interface{} = GetValue(data, i)
                 var currencyId interface{} = this.SafeString2(account, "asset", "currency")
                 var code interface{} = this.SafeCurrencyCode(currencyId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": this.SafeString(account, "id"),
                     "type": this.SafeString(account, "type"),
                     "code": code,
@@ -4131,16 +4131,16 @@ func  (this *mexc) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                 AddElementToObject(request, "symbols", parsedSymbols)
                 params = this.Omit(params, []interface{}{"symbol", "symbols"})
                 
-        response = (<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.SpotPrivateGetAccount(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.SpotPrivateGetAccount(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.ContractPrivateGetAccountAssets(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.ContractPrivateGetAccountAssets(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchBalance() not support this method")))
             }
@@ -4289,8 +4289,8 @@ func  (this *mexc) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
                     AddElementToObject(request, "endTime", until)
                 }
                 
-        trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, params)))
-                PanicOnError(trades)
+            trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, params)))
+                    PanicOnError(trades)
             } else {
                 if IsTrue(!IsEqual(since, nil)) {
                     AddElementToObject(request, "start_time", since)
@@ -4382,8 +4382,8 @@ func  (this *mexc) FetchOrderTrades(id interface{}, optionalArgs ...interface{})
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "orderId", id)
                 
-        trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, query)))
-                PanicOnError(trades)
+            trades = (<-this.SpotPrivateGetMyTrades(this.Extend(request, query)))
+                    PanicOnError(trades)
             } else {
                 AddElementToObject(request, "order_id", id)
         
@@ -4633,7 +4633,7 @@ func  (this *mexc) FetchFundingHistory(optionalArgs ...interface{}) <- chan inte
             for i := 0; IsLessThan(i, GetArrayLength(resultList)); i++ {
                 var entry interface{} = GetValue(resultList, i)
                 var timestamp interface{} = this.SafeInteger(entry, "settleTime")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": entry,
                     "symbol": symbol,
                     "code": nil,
@@ -4841,7 +4841,7 @@ func  (this *mexc) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan 
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var symbolInner interface{} = this.SafeSymbol(marketId)
                 var timestamp interface{} = this.SafeInteger(entry, "settleTime")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": symbolInner,
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -5000,7 +5000,7 @@ func  (this *mexc) ParseMarketLeverageTiers(info interface{}, optionalArgs ...in
     }
     for Precise.StringLt(floor, maxVol) {
         var cap interface{} = Precise.StringAdd(floor, riskIncrVol)
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
             "symbol": this.SafeSymbol(marketId, market, nil, "contract"),
             "currency": this.SafeCurrencyCode(quoteId),

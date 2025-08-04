@@ -892,6 +892,7 @@ export default class bitget extends Exchange {
                     // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
                     '4001': ExchangeError, // no data received in 30s
                     '4002': ExchangeError, // Buffer full. cannot write data
+                    '40020': BadRequest, // {"code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null}
                     // --------------------------------------------------------
                     '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
                     '30002': AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
@@ -1538,7 +1539,6 @@ export default class bitget extends Exchange {
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
                     // 'BEP20': 'BEP20', // different for BEP20
-                    'BSC': 'BEP20',
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
@@ -6348,6 +6348,10 @@ export default class bitget extends Exchange {
             }
         }
         const dataList = this.safeList (response, 'data', []);
+        const dataListLength = dataList.length;
+        if (dataListLength === 0) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json (response));
+        }
         const first = this.safeDict (dataList, 0, {});
         return this.parseOrder (first, market);
         // const first = this.safeDict (data, 0, data);

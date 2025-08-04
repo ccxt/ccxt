@@ -8,10 +8,10 @@ type whitebit struct {
 
 }
 
-func NewWhitebitCore() whitebit {
-   p := whitebit{}
-   setDefaults(&p)
-   return p
+func NewWhitebitCore() *whitebit {
+    p := &whitebit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *whitebit) Describe() interface{}  {
@@ -1059,12 +1059,12 @@ func  (this *whitebit) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(IsEqual(method, "v4PublicGetTicker")) {
                 
-        response = (<-this.V4PublicGetTicker(params))
-                PanicOnError(response)
+            response = (<-this.V4PublicGetTicker(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V2PublicGetTicker(params))
-                PanicOnError(response)
+            response = (<-this.V2PublicGetTicker(params))
+                    PanicOnError(response)
             }
             //
             //      "BCH_RUB": {
@@ -1301,7 +1301,7 @@ func  (this *whitebit) FetchMyTrades(optionalArgs ...interface{}) <- chan interf
                 ch <- this.FilterBySinceLimit(results, since, limit, "timestamp")
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1679,18 +1679,18 @@ func  (this *whitebit) CreateOrder(symbol interface{}, typeVar interface{}, side
                     // stop limit order
                     AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                     
-        response = (<-this.V4PrivatePostOrderStopLimit(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderStopLimit(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     // stop market order
                     if IsTrue(useCollateralEndpoint) {
                         
-        response = (<-this.V4PrivatePostOrderCollateralTriggerMarket(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderCollateralTriggerMarket(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.V4PrivatePostOrderStopMarket(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderStopMarket(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 }
             } else {
@@ -1699,28 +1699,28 @@ func  (this *whitebit) CreateOrder(symbol interface{}, typeVar interface{}, side
                     AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
                     if IsTrue(useCollateralEndpoint) {
                         
-        response = (<-this.V4PrivatePostOrderCollateralLimit(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderCollateralLimit(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.V4PrivatePostOrderNew(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderNew(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     // market order
                     if IsTrue(useCollateralEndpoint) {
                         
-        response = (<-this.V4PrivatePostOrderCollateralMarket(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderCollateralMarket(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         if IsTrue(!IsEqual(cost, nil)) {
                             
-        response = (<-this.V4PrivatePostOrderMarket(this.Extend(request, params)))
-                            PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderMarket(this.Extend(request, params)))
+                                PanicOnError(response)
                         } else {
                             
-        response = (<-this.V4PrivatePostOrderStockMarket(this.Extend(request, params)))
-                            PanicOnError(response)
+            response = (<-this.V4PrivatePostOrderStockMarket(this.Extend(request, params)))
+                                PanicOnError(response)
                         }
                     }
                 }
@@ -1911,12 +1911,12 @@ func  (this *whitebit) CancelAllOrders(optionalArgs ...interface{}) <- chan inte
                 isMargin = GetValue(isMarginparamsVariable,0);
                 params = GetValue(isMarginparamsVariable,1)
                 if IsTrue(isMargin) {
-                    AppendToArray(&requestType,"margin")
+                    AppendToArray(&requestType, "margin")
                 } else {
-                    AppendToArray(&requestType,"spot")
+                    AppendToArray(&requestType, "spot")
                 }
             } else if IsTrue(IsEqual(typeVar, "swap")) {
-                AppendToArray(&requestType,"futures")
+                AppendToArray(&requestType, "futures")
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " cancelAllOrders() does not support "), typeVar), " type")))
             }
@@ -2035,8 +2035,8 @@ func  (this *whitebit) FetchBalance(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.V4PrivatePostCollateralAccountBalance(params))
-                PanicOnError(response)
+            response = (<-this.V4PrivatePostCollateralAccountBalance(params))
+                    PanicOnError(response)
             } else {
                 var options interface{} = this.SafeValue(this.Options, "fetchBalance", map[string]interface{} {})
                 var defaultAccount interface{} = this.SafeString(options, "account")
@@ -2044,12 +2044,12 @@ func  (this *whitebit) FetchBalance(optionalArgs ...interface{}) <- chan interfa
                 params = this.Omit(params, []interface{}{"account", "type"})
                 if IsTrue(IsTrue(IsEqual(account, "main")) || IsTrue(IsEqual(account, "funding"))) {
                     
-        response = (<-this.V4PrivatePostMainAccountBalance(params))
-                    PanicOnError(response)
+            response = (<-this.V4PrivatePostMainAccountBalance(params))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.V4PrivatePostTradeAccountBalance(params))
-                    PanicOnError(response)
+            response = (<-this.V4PrivatePostTradeAccountBalance(params))
+                        PanicOnError(response)
                 }
             }
         
@@ -2214,7 +2214,7 @@ func  (this *whitebit) FetchClosedOrders(optionalArgs ...interface{}) <- chan in
                 var orders interface{} = GetValue(response, marketId)
                 for j := 0; IsLessThan(j, GetArrayLength(orders)); j++ {
                     var order interface{} = this.ParseOrder(GetValue(orders, j), marketNew)
-                    AppendToArray(&results,this.Extend(order, map[string]interface{} {
+                    AppendToArray(&results, this.Extend(order, map[string]interface{} {
                         "status": "closed",
                     }))
                 }
@@ -2449,12 +2449,12 @@ func  (this *whitebit) FetchDepositAddress(code interface{}, optionalArgs ...int
                     panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")))
                 }
                 
-        response = (<-this.V4PrivatePostMainAccountFiatDepositUrl(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V4PrivatePostMainAccountFiatDepositUrl(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V4PrivatePostMainAccountAddress(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V4PrivatePostMainAccountAddress(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // fiat
@@ -3377,7 +3377,7 @@ func  (this *whitebit) ParseFundingHistories(contracts interface{}, optionalArgs
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(contracts)); i++ {
         var contract interface{} = GetValue(contracts, i)
-        AppendToArray(&result,this.ParseFundingHistory(contract, market))
+        AppendToArray(&result, this.ParseFundingHistory(contract, market))
     }
     var sorted interface{} = this.SortBy(result, "timestamp")
     return this.FilterBySinceLimit(sorted, since, limit)

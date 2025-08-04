@@ -8,10 +8,10 @@ type foxbit struct {
 
 }
 
-func NewFoxbitCore() foxbit {
-   p := foxbit{}
-   setDefaults(&p)
-   return p
+func NewFoxbitCore() *foxbit {
+    p := &foxbit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *foxbit) Describe() interface{}  {
@@ -1262,7 +1262,7 @@ func  (this *foxbit) CreateOrders(orders interface{}, optionalArgs ...interface{
                 if IsTrue(IsTrue(IsEqual(typeVar, "LIMIT")) || IsTrue(IsEqual(typeVar, "STOP_LIMIT"))) {
                     AddElementToObject(request, "price", this.PriceToPrecision(symbol, this.SafeString(order, "price")))
                 }
-                AppendToArray(&ordersRequests,this.Extend(request, orderParams))
+                AppendToArray(&ordersRequests, this.Extend(request, orderParams))
             }
             var createOrdersRequest interface{} = map[string]interface{} {
                 "data": ordersRequests,
@@ -2510,17 +2510,17 @@ func  (this *foxbit) HandleErrors(httpCode interface{}, reason interface{}, url 
     if IsTrue(IsEqual(response, nil)) {
         return nil
     }
-    var error interface{} = this.SafeDict(response, "error")
-    var code interface{} = this.SafeString(error, "code")
-    var details interface{} = this.SafeList(error, "details")
-    var message interface{} = this.SafeString(error, "message")
+    var err interface{} = this.SafeDict(response, "error")
+    var code interface{} = this.SafeString(err, "code")
+    var details interface{} = this.SafeList(err, "details")
+    var message interface{} = this.SafeString(err, "message")
     var detailsString interface{} = ""
     if IsTrue(details) {
         for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
             detailsString = Add(Add(detailsString, GetValue(details, i)), " ")
         }
     }
-    if IsTrue(!IsEqual(error, nil)) {
+    if IsTrue(!IsEqual(err, nil)) {
         var feedback interface{} = Add(Add(Add(Add(this.Id, " "), message), " details: "), detailsString)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), detailsString, feedback)

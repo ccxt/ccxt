@@ -8,10 +8,10 @@ type ndax struct {
 
 }
 
-func NewNdaxCore() ndax {
-   p := ndax{}
-   setDefaults(&p)
-   return p
+func NewNdaxCore() *ndax {
+    p := &ndax{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *ndax) Describe() interface{}  {
@@ -717,7 +717,7 @@ func  (this *ndax) ParseOrderBook(orderbook interface{}, symbol interface{}, opt
         var levelSide interface{} = this.SafeInteger(level, 9)
         var side interface{} = Ternary(IsTrue(levelSide), asksKey, bidsKey)
         var resultSide interface{} = GetValue(result, side)
-        AppendToArray(&resultSide,bidask)
+        AppendToArray(&resultSide, bidask)
     }
     AddElementToObject(result, "bids", this.SortBy(GetValue(result, "bids"), 0, true))
     AddElementToObject(result, "asks", this.SortBy(GetValue(result, "asks"), 0))
@@ -1259,7 +1259,7 @@ func  (this *ndax) FetchAccounts(optionalArgs ...interface{}) <- chan interface{
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var accountId interface{} = this.SafeString(response, i)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": accountId,
                     "type": nil,
                     "currency": nil,

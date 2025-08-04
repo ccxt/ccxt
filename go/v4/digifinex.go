@@ -8,10 +8,10 @@ type digifinex struct {
 
 }
 
-func NewDigifinexCore() digifinex {
-   p := digifinex{}
-   setDefaults(&p)
-   return p
+func NewDigifinexCore() *digifinex {
+    p := &digifinex{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *digifinex) Describe() interface{}  {
@@ -521,11 +521,11 @@ func  (this *digifinex) FetchMarketsV2(optionalArgs ...interface{}) <- chan inte
             query := GetValue(marginModequeryVariable,1)
             var promisesRaw interface{} = []interface{}{}
             if IsTrue(!IsEqual(marginMode, nil)) {
-                AppendToArray(&promisesRaw,this.PublicSpotGetMarginSymbols(query))
+                AppendToArray(&promisesRaw, this.PublicSpotGetMarginSymbols(query))
             } else {
-                AppendToArray(&promisesRaw,this.PublicSpotGetTradesSymbols(query))
+                AppendToArray(&promisesRaw, this.PublicSpotGetTradesSymbols(query))
             }
-            AppendToArray(&promisesRaw,this.PublicSwapGetPublicInstruments(params))
+            AppendToArray(&promisesRaw, this.PublicSwapGetPublicInstruments(params))
         
             promises:= (<-promiseAll(promisesRaw))
             PanicOnError(promises)
@@ -624,7 +624,7 @@ func  (this *digifinex) FetchMarketsV2(optionalArgs ...interface{}) <- chan inte
                         isAllowed = 1
                     }
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -716,7 +716,7 @@ func  (this *digifinex) FetchMarketsV1(optionalArgs ...interface{}) <- chan inte
                 quoteId := GetValue(baseIdquoteIdVariable,1)
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -845,16 +845,16 @@ func  (this *digifinex) FetchBalance(optionalArgs ...interface{}) <- chan interf
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginAssets(query))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginAssets(query))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotAssets(query))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotAssets(query))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetAccountBalance(query))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetAccountBalance(query))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchBalance() not support this market type")))
             }
@@ -938,13 +938,13 @@ func  (this *digifinex) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             if IsTrue(IsEqual(marketType, "swap")) {
                 AddElementToObject(request, "instrument_id", GetValue(market, "id"))
                 
-        response = (<-this.PublicSwapGetPublicDepth(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PublicSwapGetPublicDepth(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1036,12 +1036,12 @@ func  (this *digifinex) FetchTickers(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "swap")) {
                 
-        response = (<-this.PublicSwapGetPublicTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSwapGetPublicTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicSpotGetTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1135,13 +1135,13 @@ func  (this *digifinex) FetchTicker(symbol interface{}, optionalArgs ...interfac
             if IsTrue(GetValue(market, "swap")) {
                 AddElementToObject(request, "instrument_id", GetValue(market, "id"))
                 
-        response = (<-this.PublicSwapGetPublicTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSwapGetPublicTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicSpotGetTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1525,13 +1525,13 @@ func  (this *digifinex) FetchTrades(symbol interface{}, optionalArgs ...interfac
             if IsTrue(GetValue(market, "swap")) {
                 AddElementToObject(request, "instrument_id", GetValue(market, "id"))
                 
-        response = (<-this.PublicSwapGetPublicTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSwapGetPublicTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 
-        response = (<-this.PublicSpotGetTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1641,8 +1641,8 @@ func  (this *digifinex) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                     AddElementToObject(request, "limit", mathMin(limit, 100))
                 }
                 
-        response = (<-this.PublicSwapGetPublicCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSwapGetPublicCandles(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var until interface{} = this.SafeInteger(params, "until")
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1675,8 +1675,8 @@ func  (this *digifinex) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                 }
                 params = this.Omit(params, "until")
                 
-        response = (<-this.PublicSpotGetKline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetKline(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1757,17 +1757,17 @@ func  (this *digifinex) CreateOrder(symbol interface{}, typeVar interface{}, sid
             var response interface{} = nil
             if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateSwapPostTradeOrderPlace(request))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapPostTradeOrderPlace(request))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(marginMode, nil)) {
                     
-        response = (<-this.PrivateSpotPostMarginOrderNew(request))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotPostMarginOrderNew(request))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateSpotPostSpotOrderNew(request))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotPostSpotOrderNew(request))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1848,22 +1848,22 @@ func  (this *digifinex) CreateOrders(orders interface{}, optionalArgs ...interfa
                     }
                 }
                 var orderRequest interface{} = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             var response interface{} = nil
             if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PrivateSwapPostTradeBatchOrder(ordersRequests))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapPostTradeBatchOrder(ordersRequests))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "market", Ternary(IsTrue((!IsEqual(marginMode, nil))), "margin", "spot"))
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "list", this.Json(ordersRequests))
                 
-        response = (<-this.PrivateSpotPostMarketOrderBatchNew(request))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostMarketOrderBatchNew(request))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1900,7 +1900,7 @@ func  (this *digifinex) CreateOrders(orders interface{}, optionalArgs ...interfa
                 AddElementToObject(individualOrder, "instrument_id", GetValue(market, "id"))
                 AddElementToObject(individualOrder, "amount", this.SafeNumber(rawOrder, "amount"))
                 AddElementToObject(individualOrder, "price", this.SafeNumber(rawOrder, "price"))
-                AppendToArray(&result,individualOrder)
+                AppendToArray(&result, individualOrder)
             }
         
             ch <- this.ParseOrders(result, market)
@@ -2108,16 +2108,16 @@ func  (this *digifinex) CancelOrder(id interface{}, optionalArgs ...interface{})
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotPostMarginOrderCancel(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostMarginOrderCancel(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapPostTradeCancelOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapPostTradeCancelOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " cancelOrder() not support this market type")))
             }
@@ -2160,25 +2160,25 @@ func  (this *digifinex) CancelOrder(id interface{}, optionalArgs ...interface{})
                 })
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
 func  (this *digifinex) ParseCancelOrders(response interface{}) interface{}  {
     var success interface{} = this.SafeList(response, "success")
-    var error interface{} = this.SafeList(response, "error")
+    var err interface{} = this.SafeList(response, "error")
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
         var order interface{} = GetValue(success, i)
-        AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+        AppendToArray(&result, this.SafeOrder(map[string]interface{} {
             "info": order,
             "id": order,
             "status": "canceled",
         }))
     }
-    for i := 0; IsLessThan(i, GetArrayLength(error)); i++ {
-        var order interface{} = GetValue(error, i)
-        AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+    for i := 0; IsLessThan(i, GetArrayLength(err)); i++ {
+        var order interface{} = GetValue(err, i)
+        AppendToArray(&result, this.SafeOrder(map[string]interface{} {
             "info": order,
             "id": this.SafeString2(order, "order-id", "order_id"),
             "status": "failed",
@@ -2447,16 +2447,16 @@ func  (this *digifinex) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginOrderCurrent(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginOrderCurrent(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotOrderCurrent(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotOrderCurrent(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetTradeOpenOrders(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetTradeOpenOrders(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchOpenOrders() not support this market type")))
             }
@@ -2580,16 +2580,16 @@ func  (this *digifinex) FetchOrders(optionalArgs ...interface{}) <- chan interfa
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginOrderHistory(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginOrderHistory(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotOrderHistory(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotOrderHistory(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetTradeHistoryOrders(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetTradeHistoryOrders(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchOrders() not support this market type")))
             }
@@ -2700,16 +2700,16 @@ func  (this *digifinex) FetchOrder(id interface{}, optionalArgs ...interface{}) 
             if IsTrue(IsTrue((!IsEqual(marginMode, nil))) || IsTrue((IsEqual(marketType, "margin")))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotOrder(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotOrder(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetTradeOrderInfo(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetTradeOrderInfo(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchOrder() not support this market type")))
             }
@@ -2834,16 +2834,16 @@ func  (this *digifinex) FetchMyTrades(optionalArgs ...interface{}) <- chan inter
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginMytrades(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginMytrades(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotMytrades(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotMytrades(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetTradeHistoryTrades(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetTradeHistoryTrades(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchMyTrades() not support this market type")))
             }
@@ -3015,16 +3015,16 @@ func  (this *digifinex) FetchLedger(optionalArgs ...interface{}) <- chan interfa
             if IsTrue(IsTrue(!IsEqual(marginMode, nil)) || IsTrue(IsEqual(marketType, "margin"))) {
                 marketType = "margin"
                 
-        response = (<-this.PrivateSpotGetMarginFinancelog(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginFinancelog(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivateSpotGetSpotFinancelog(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetSpotFinancelog(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetAccountFinanceRecord(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetAccountFinanceRecord(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchLedger() not support this market type")))
             }
@@ -3177,12 +3177,12 @@ func  (this *digifinex) FetchTransactionsByType(typeVar interface{}, optionalArg
             var response interface{} = nil
             if IsTrue(IsEqual(typeVar, "deposit")) {
                 
-        response = (<-this.PrivateSpotGetDepositHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetDepositHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateSpotGetWithdrawHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetWithdrawHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3470,8 +3470,8 @@ func  (this *digifinex) Transfer(code interface{}, amount interface{}, fromAccou
                 //     }
                 //
                 
-        response = (<-this.PrivateSwapPostAccountTransfer(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapPostAccountTransfer(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "currency_mark", currencyId)
                 AddElementToObject(request, "num", amountString)
@@ -3483,8 +3483,8 @@ func  (this *digifinex) Transfer(code interface{}, amount interface{}, fromAccou
                 //     }
                 //
                 
-        response = (<-this.PrivateSpotPostTransfer(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPostTransfer(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseTransfer(response, currency)
@@ -3971,7 +3971,7 @@ func  (this *digifinex) FetchFundingRateHistory(optionalArgs ...interface{}) <- 
                 var marketId interface{} = this.SafeString(data, "instrument_id")
                 var symbolInner interface{} = this.SafeSymbol(marketId)
                 var timestamp interface{} = this.SafeInteger(entry, "time")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": symbolInner,
                     "fundingRate": this.SafeNumber(entry, "rate"),
@@ -4110,12 +4110,12 @@ func  (this *digifinex) FetchPositions(optionalArgs ...interface{}) <- chan inte
             var response interface{} = nil
             if IsTrue(IsTrue(IsEqual(marketType, "spot")) || IsTrue(IsEqual(marketType, "margin"))) {
                 
-        response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPositions() not support this market type")))
             }
@@ -4176,7 +4176,7 @@ func  (this *digifinex) FetchPositions(optionalArgs ...interface{}) <- chan inte
             var positions interface{} = this.SafeValue(response, positionRequest, []interface{}{})
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(positions, i), market))
+                AppendToArray(&result, this.ParsePosition(GetValue(positions, i), market))
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4222,12 +4222,12 @@ func  (this *digifinex) FetchPosition(symbol interface{}, optionalArgs ...interf
             var response interface{} = nil
             if IsTrue(IsTrue(IsEqual(marketType, "spot")) || IsTrue(IsEqual(marketType, "margin"))) {
                 
-        response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 
-        response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query)))
-                PanicOnError(response)
+            response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPosition() not support this market type")))
             }
@@ -4296,7 +4296,7 @@ func  (this *digifinex) FetchPosition(symbol interface{}, optionalArgs ...interf
                 ch <- position
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -4672,7 +4672,7 @@ func  (this *digifinex) ParseMarketLeverageTiers(info interface{}, optionalArgs 
         var tier interface{} = GetValue(brackets, i)
         var marketId interface{} = this.SafeString(info, "instrument_id")
         market = this.SafeMarket(marketId, market)
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.Sum(i, 1),
             "symbol": this.SafeSymbol(marketId, market, nil, "swap"),
             "currency": GetValue(market, "settle"),
@@ -4819,7 +4819,7 @@ func  (this *digifinex) ParseDepositWithdrawFees(response interface{}, optionalA
                 AddElementToObject(GetValue(depositWithdrawFees, code), "info", []interface{}{})
             }
             var depositWithdrawInfo interface{} = GetValue(GetValue(depositWithdrawFees, code), "info")
-            AppendToArray(&depositWithdrawInfo,entry)
+            AppendToArray(&depositWithdrawInfo, entry)
             var networkId interface{} = this.SafeString(entry, "chain")
             var withdrawFee interface{} = this.SafeValue(entry, "min_withdraw_fee")
             var withdrawResult interface{} = map[string]interface{} {

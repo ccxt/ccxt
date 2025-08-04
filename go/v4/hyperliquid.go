@@ -8,10 +8,10 @@ type hyperliquid struct {
 
 }
 
-func NewHyperliquidCore() hyperliquid {
-   p := hyperliquid{}
-   setDefaults(&p)
-   return p
+func NewHyperliquidCore() *hyperliquid {
+    p := &hyperliquid{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *hyperliquid) Describe() interface{}  {
@@ -499,7 +499,7 @@ func  (this *hyperliquid) FetchSwapMarkets(optionalArgs ...interface{}) <- chan 
             for i := 0; IsLessThan(i, GetArrayLength(universe)); i++ {
                 var data interface{} = this.Extend(this.SafeDict(universe, i, map[string]interface{} {}), this.SafeDict(assetCtxs, i, map[string]interface{} {}))
                 AddElementToObject(data, "baseId", i)
-                AppendToArray(&result,data)
+                AppendToArray(&result, data)
             }
         
             ch <- this.ParseMarkets(result)
@@ -662,7 +662,7 @@ func  (this *hyperliquid) FetchSpotMarkets(optionalArgs ...interface{}) <- chan 
                 var pricePrecisionStr interface{} = this.NumberToString(pricePrecision)
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
                 var baseId interface{} = this.NumberToString(Add(index, 10000))
-                AppendToArray(&markets,this.SafeMarketStructure(map[string]interface{} {
+                AppendToArray(&markets, this.SafeMarketStructure(map[string]interface{} {
                     "id": marketName,
                     "symbol": symbol,
                     "base": base,
@@ -1040,16 +1040,16 @@ func  (this *hyperliquid) FetchTickers(optionalArgs ...interface{}) <- chan inte
             params = this.Omit(params, "type")
             if IsTrue(IsEqual(typeVar, "spot")) {
                 
-        response = (<-this.FetchSpotMarkets(params))
-                PanicOnError(response)
+            response = (<-this.FetchSpotMarkets(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(typeVar, "swap")) {
                 
-        response = (<-this.FetchSwapMarkets(params))
-                PanicOnError(response)
+            response = (<-this.FetchSwapMarkets(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FetchMarkets(params))
-                PanicOnError(response)
+            response = (<-this.FetchMarkets(params))
+                    PanicOnError(response)
             }
             // same response as under "fetchMarkets"
             var result interface{} = map[string]interface{} {}
@@ -1128,7 +1128,7 @@ func  (this *hyperliquid) FetchFundingRates(optionalArgs ...interface{}) <- chan
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(universe)); i++ {
                 var data interface{} = this.Extend(this.SafeDict(universe, i, map[string]interface{} {}), this.SafeDict(assetCtxs, i, map[string]interface{} {}))
-                AppendToArray(&result,data)
+                AppendToArray(&result, data)
             }
         
             ch <- this.ParseFundingRates(result, symbols)
@@ -1643,32 +1643,31 @@ func  (this *hyperliquid) HandleBuilderFeeApproval() <- chan interface{} {
             return nil
         }
         
-        {		ret__ := func(this *hyperliquid) (ret_ interface{}) {
-        		defer func() {
-        			if e := recover(); e != nil {
-                        if e == "break" {
-        				    return
-        			    }
-        				ret_ = func(this *hyperliquid) interface{} {
-        					// catch block:
-                                AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
-                            return nil
-        				}(this)
-        			}
-        		}()
-        		// try block:
-                    var builder interface{} = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+            {		
+                 func(this *hyperliquid) (ret_ interface{}) {
+        		    defer func() {
+                        if e := recover(); e != nil {
+                            if e == "break" {
+                                return
+                            }
+                            ret_ = func(this *hyperliquid) interface{} {
+                                // catch block:
+                                    AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+                                return nil
+                            }(this)
+                        }
+                    }()
+        		    // try block:
+                        var builder interface{} = this.SafeString(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
             var maxFeeRate interface{} = this.SafeString(this.Options, "feeRate", "0.01%")
         
             retRes146612 := (<-this.ApproveBuilderFee(builder, maxFeeRate))
             PanicOnError(retRes146612)
             AddElementToObject(this.Options, "approvedBuilderFee", true)
-        		return nil
-        	}(this)
-        	if ret__ != nil {
-        		return ret__
-        	}
-        }
+        		    return nil
+        	    }(this)
+            
+                }
         
         ch <- true
         return nil
@@ -1897,7 +1896,7 @@ func  (this *hyperliquid) CreateOrdersRequest(orders interface{}, optionalArgs .
         var isTrigger interface{} =         (IsTrue(stopLoss) || IsTrue(takeProfit))
         orderParams = this.Omit(orderParams, []interface{}{"stopLoss", "takeProfit"})
         var mainOrderObj interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-        AppendToArray(&orderReq,mainOrderObj)
+        AppendToArray(&orderReq, mainOrderObj)
         if IsTrue(isTrigger) {
             // grouping opposed orders for sl/tp
             var stopLossOrderTriggerPrice interface{} = this.SafeStringN(stopLoss, []interface{}{"triggerPrice", "stopPrice"})
@@ -1919,14 +1918,14 @@ func  (this *hyperliquid) CreateOrdersRequest(orders interface{}, optionalArgs .
                     "takeProfitPrice": takeProfitOrderTriggerPrice,
                     "reduceOnly": true,
                 }))
-                AppendToArray(&orderReq,orderObj)
+                AppendToArray(&orderReq, orderObj)
             }
             if IsTrue(!IsEqual(stopLoss, nil)) {
                 var orderObj interface{} = this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]interface{} {
                     "stopLossPrice": stopLossOrderTriggerPrice,
                     "reduceOnly": true,
                 }))
-                AppendToArray(&orderReq,orderObj)
+                AppendToArray(&orderReq, orderObj)
             }
         }
     }
@@ -2041,7 +2040,7 @@ func  (this *hyperliquid) CancelOrders(ids interface{}, optionalArgs ...interfac
                 }
                 AddElementToObject(cancelAction, "type", "cancelByCloid")
                 for i := 0; IsLessThan(i, GetArrayLength(clientOrderId)); i++ {
-                    AppendToArray(&cancelReq,map[string]interface{} {
+                    AppendToArray(&cancelReq, map[string]interface{} {
                         "asset": baseId,
                         "cloid": GetValue(clientOrderId, i),
                     })
@@ -2049,7 +2048,7 @@ func  (this *hyperliquid) CancelOrders(ids interface{}, optionalArgs ...interfac
             } else {
                 AddElementToObject(cancelAction, "type", "cancel")
                 for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                    AppendToArray(&cancelReq,map[string]interface{} {
+                    AppendToArray(&cancelReq, map[string]interface{} {
                         "a": baseId,
                         "o": this.ParseToNumeric(GetValue(ids, i)),
                     })
@@ -2090,7 +2089,7 @@ func  (this *hyperliquid) CancelOrders(ids interface{}, optionalArgs ...interfac
             var orders interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(statuses)); i++ {
                 var status interface{} = GetValue(statuses, i)
-                AppendToArray(&orders,this.SafeOrder(map[string]interface{} {
+                AppendToArray(&orders, this.SafeOrder(map[string]interface{} {
                     "info": status,
                     "status": status,
                 }))
@@ -2155,7 +2154,7 @@ func  (this *hyperliquid) CancelOrdersForSymbols(orders interface{}, optionalArg
                 var cancelObj interface{} = map[string]interface{} {}
                 AddElementToObject(cancelObj, assetKey, this.ParseToNumeric(GetValue(market, "baseId")))
                 AddElementToObject(cancelObj, idKey, Ternary(IsTrue(cancelByCloid), clientOrderId, this.ParseToNumeric(id)))
-                AppendToArray(&cancelReq,cancelObj)
+                AppendToArray(&cancelReq, cancelObj)
             }
             AddElementToObject(cancelAction, "type", Ternary(IsTrue(cancelByCloid), "cancelByCloid", "cancel"))
             AddElementToObject(cancelAction, "cancels", cancelReq)
@@ -2353,7 +2352,7 @@ func  (this *hyperliquid) EditOrdersRequest(orders interface{}, optionalArgs ...
             "oid": this.ParseToInt(id),
             "order": orderReq,
         }
-        AppendToArray(&modifies,modifyReq)
+        AppendToArray(&modifies, modifyReq)
     }
     var nonce interface{} = this.Milliseconds()
     var modifyAction interface{} = map[string]interface{} {
@@ -2614,7 +2613,7 @@ func  (this *hyperliquid) FetchFundingRateHistory(optionalArgs ...interface{}) <
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var entry interface{} = GetValue(response, i)
                 var timestamp interface{} = this.SafeInteger(entry, "time")
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(nil, market),
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -2696,7 +2695,7 @@ func  (this *hyperliquid) FetchOpenOrders(optionalArgs ...interface{}) <- chan i
                 if IsTrue(IsEqual(this.SafeString(order, "status"), nil)) {
                     AddElementToObject(extendOrder, "ccxtStatus", "open")
                 }
-                AppendToArray(&orderWithStatus,this.Extend(order, extendOrder))
+                AppendToArray(&orderWithStatus, this.Extend(order, extendOrder))
             }
         
             ch <- this.ParseOrders(orderWithStatus, market, since, limit)
@@ -3050,8 +3049,8 @@ func  (this *hyperliquid) ParseOrder(order interface{}, optionalArgs ...interfac
     //
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    var error interface{} = this.SafeString(order, "error")
-    if IsTrue(!IsEqual(error, nil)) {
+    var err interface{} = this.SafeString(order, "error")
+    if IsTrue(!IsEqual(err, nil)) {
         return this.SafeOrder(map[string]interface{} {
             "info": order,
             "status": "rejected",
@@ -3379,7 +3378,7 @@ func  (this *hyperliquid) FetchPositions(optionalArgs ...interface{}) <- chan in
             var data interface{} = this.SafeList(response, "assetPositions", []interface{}{})
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-                AppendToArray(&result,this.ParsePosition(GetValue(data, i), nil))
+                AppendToArray(&result, this.ParsePosition(GetValue(data, i), nil))
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -3870,7 +3869,7 @@ func  (this *hyperliquid) Transfer(code interface{}, amount interface{}, fromAcc
                 ch <- this.ParseTransfer(response)
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -4627,7 +4626,7 @@ func  (this *hyperliquid) ExtractTypeFromDelta(optionalArgs ...interface{}) inte
     for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
         var record interface{} = GetValue(data, i)
         AddElementToObject(record, "type", GetValue(GetValue(record, "delta"), "type"))
-        AppendToArray(&records,record)
+        AppendToArray(&records, record)
     }
     return records
 }
@@ -4678,12 +4677,12 @@ func  (this *hyperliquid) HandleErrors(code interface{}, reason interface{}, url
     // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
     //
     var status interface{} = this.SafeString(response, "status", "")
-    var error interface{} = this.SafeString(response, "error")
+    var err interface{} = this.SafeString(response, "error")
     var message interface{} = nil
     if IsTrue(IsEqual(status, "err")) {
         message = this.SafeString(response, "response")
-    } else if IsTrue(!IsEqual(error, nil)) {
-        message = error
+    } else if IsTrue(!IsEqual(err, nil)) {
+        message = err
     } else {
         var responsePayload interface{} = this.SafeDict(response, "response", map[string]interface{} {})
         var data interface{} = this.SafeDict(responsePayload, "data", map[string]interface{} {})

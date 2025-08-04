@@ -8,10 +8,10 @@ type huobi struct {
 
 }
 
-func NewHuobiCore() huobi {
-   p := huobi{}
-   setDefaults(&p)
-   return p
+func NewHuobiCore() *huobi {
+    p := &huobi{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *huobi) Describe() interface{}  {

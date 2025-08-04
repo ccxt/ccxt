@@ -8,10 +8,10 @@ type coincatch struct {
 
 }
 
-func NewCoincatchCore() coincatch {
-   p := coincatch{}
-   setDefaults(&p)
-   return p
+func NewCoincatchCore() *coincatch {
+    p := &coincatch{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coincatch) Describe() interface{}  {
@@ -628,7 +628,7 @@ func  (this *coincatch) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var currecy interface{} = GetValue(data, i)
                 var currencyId interface{} = this.SafeString(currecy, "coinName")
-                AppendToArray(&currenciesIds,currencyId)
+                AppendToArray(&currenciesIds, currencyId)
                 var code interface{} = this.SafeCurrencyCode(currencyId)
                 var networks interface{} = this.SafeList(currecy, "chains")
                 var parsedNetworks interface{} = map[string]interface{} {}
@@ -844,8 +844,8 @@ func  (this *coincatch) FetchMarkets(optionalArgs ...interface{}) <- chan interf
             var swapMarkets interface{} = []interface{}{}
             AddElementToObject(request, "productType", "umcbl")
             
-        response = (<-this.PublicGetApiMixV1MarketContracts(this.Extend(request, params)))
-            PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketContracts(this.Extend(request, params)))
+                PanicOnError(response)
             //
             //     {
             //         "code": "00000",
@@ -884,8 +884,8 @@ func  (this *coincatch) FetchMarkets(optionalArgs ...interface{}) <- chan interf
             var swapUMCBL interface{} = this.SafeList(response, "data", []interface{}{})
             AddElementToObject(request, "productType", "dmcbl")
             
-        response = (<-this.PublicGetApiMixV1MarketContracts(this.Extend(request, params)))
-            PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketContracts(this.Extend(request, params)))
+                PanicOnError(response)
             //
             //     {
             //         "code":"00000",
@@ -933,7 +933,7 @@ func  (this *coincatch) FetchMarkets(optionalArgs ...interface{}) <- chan interf
                     var obj interface{} = map[string]interface{} {
                         "supportMarginCoins": []interface{}{settle},
                     }
-                    AppendToArray(&swapDMCBLExtended,this.Extend(market, obj))
+                    AppendToArray(&swapDMCBLExtended, this.Extend(market, obj))
                 }
             }
             swapMarkets = this.ArrayConcat(swapUMCBL, swapDMCBLExtended)
@@ -1146,12 +1146,12 @@ func  (this *coincatch) FetchTicker(symbol interface{}, optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PublicGetApiSpotV1MarketTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiSpotV1MarketTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PublicGetApiMixV1MarketTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(this.Id, " "), "fetchTicker() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
@@ -1197,8 +1197,8 @@ func  (this *coincatch) FetchTickers(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PublicGetApiSpotV1MarketTickers(params))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiSpotV1MarketTickers(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var productType interface{} = "umcbl"
                 productTypeparamsVariable := this.HandleOptionAndParams(params, methodName, "productType", productType);
@@ -1208,8 +1208,8 @@ func  (this *coincatch) FetchTickers(optionalArgs ...interface{}) <- chan interf
                     "productType": productType,
                 }
                 
-        response = (<-this.PublicGetApiMixV1MarketTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
@@ -1343,12 +1343,12 @@ func  (this *coincatch) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PublicGetApiSpotV1MarketMergeDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiSpotV1MarketMergeDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PublicGetApiMixV1MarketMergeDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketMergeDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
@@ -1422,8 +1422,8 @@ func  (this *coincatch) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                     AddElementToObject(request, "before", until)
                 }
                 
-        response = (<-this.PublicGetApiSpotV1MarketCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiSpotV1MarketCandles(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -1467,8 +1467,8 @@ func  (this *coincatch) FetchOHLCV(symbol interface{}, optionalArgs ...interface
                     AddElementToObject(request, "kLineType", "market mark index")
                 }
                 
-        response = (<-this.PublicGetApiMixV1MarketCandles(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketCandles(this.Extend(request, params)))
+                    PanicOnError(response)
         
                         //
                 //     [
@@ -1489,7 +1489,7 @@ func  (this *coincatch) FetchOHLCV(symbol interface{}, optionalArgs ...interface
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -1551,12 +1551,12 @@ func  (this *coincatch) FetchTrades(symbol interface{}, optionalArgs ...interfac
             var response interface{} = nil
             if IsTrue(GetValue(market, "spot")) {
                 
-        response = (<-this.PublicGetApiSpotV1MarketFillsHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiSpotV1MarketFillsHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "swap")) {
                 
-        response = (<-this.PublicGetApiMixV1MarketFillsHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetApiMixV1MarketFillsHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
@@ -1810,7 +1810,7 @@ func  (this *coincatch) FetchFundingRateHistory(optionalArgs ...interface{}) <- 
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var entry interface{} = GetValue(data, i)
                 var timestamp interface{} = this.SafeInteger(entry, "settleTime")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(this.SafeString(entry, "symbol"), market, nil, "swap"),
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -1871,8 +1871,8 @@ func  (this *coincatch) FetchBalance(optionalArgs ...interface{}) <- chan interf
                 //     }
                 //
                 
-        response = (<-this.PrivateGetApiSpotV1AccountAssets(params))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiSpotV1AccountAssets(params))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var productType interface{} = "umcbl"
                 productTypeparamsVariable := this.HandleOptionAndParams(params, methodName, "productType", productType);
@@ -1907,8 +1907,8 @@ func  (this *coincatch) FetchBalance(optionalArgs ...interface{}) <- chan interf
                 //     }
                 //
                 
-        response = (<-this.PrivateGetApiMixV1AccountAccounts(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1AccountAccounts(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
@@ -2534,7 +2534,7 @@ func  (this *coincatch) CreateOrder(symbol interface{}, typeVar interface{}, sid
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, " createOrder() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2575,8 +2575,8 @@ func  (this *coincatch) CreateSpotOrder(symbol interface{}, typeVar interface{},
             var response interface{} = nil
             if IsTrue(isPlanOrer) {
                 
-        response = (<-this.PrivatePostApiSpotV1PlanPlacePlan(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1PlanPlacePlan(request))
+                    PanicOnError(response)
             } else {
                 //
                 //     {
@@ -2590,8 +2590,8 @@ func  (this *coincatch) CreateSpotOrder(symbol interface{}, typeVar interface{},
                 //     }
                 //
                 
-        response = (<-this.PrivatePostApiSpotV1TradeOrders(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeOrders(request))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             var market interface{} = this.Market(symbol)
@@ -2798,16 +2798,16 @@ func  (this *coincatch) CreateSwapOrder(symbol interface{}, typeVar interface{},
             var response interface{} = nil
             if IsTrue(IsEqual(endpointType, "trigger")) {
                 
-        response = (<-this.PrivatePostApiMixV1PlanPlacePlan(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1PlanPlacePlan(request))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(endpointType, "tpsl")) {
                 
-        response = (<-this.PrivatePostApiMixV1PlanPlaceTPSL(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1PlanPlaceTPSL(request))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostApiMixV1OrderPlaceOrder(request))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderPlaceOrder(request))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3081,7 +3081,7 @@ func  (this *coincatch) CreateOrders(orders interface{}, optionalArgs ...interfa
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
                 var rawOrder interface{} = GetValue(orders, i)
                 var symbol interface{} = this.SafeString(rawOrder, "symbol")
-                AppendToArray(&symbols,symbol)
+                AppendToArray(&symbols, symbol)
                 var typeVar interface{} = this.SafeString(rawOrder, "type")
                 var side interface{} = this.SafeString(rawOrder, "side")
                 var amount interface{} = this.SafeNumber(rawOrder, "amount")
@@ -3096,7 +3096,7 @@ func  (this *coincatch) CreateOrders(orders interface{}, optionalArgs ...interfa
                 if IsTrue(IsEqual(clientOrderId, nil)) {
                     AddElementToObject(orderRequest, "clientOrderId", this.Uuid()) // both spot and swap endpoints require clientOrderId
                 }
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             symbols = this.Unique(symbols)
             var symbolsLength interface{} =     GetArrayLength(symbols)
@@ -3115,8 +3115,8 @@ func  (this *coincatch) CreateOrders(orders interface{}, optionalArgs ...interfa
             if IsTrue(IsEqual(marketType, "spot")) {
                 AddElementToObject(request, "orderList", ordersRequests)
                 
-        response = (<-this.PrivatePostApiSpotV1TradeBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -3151,8 +3151,8 @@ func  (this *coincatch) CreateOrders(orders interface{}, optionalArgs ...interfa
                 AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                 AddElementToObject(request, "orderDataList", ordersRequests)
                 
-        response = (<-this.PrivatePostApiMixV1OrderBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -3247,7 +3247,7 @@ func  (this *coincatch) EditOrder(id interface{}, symbol interface{}, typeVar in
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), GetValue(market, "type")), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3390,8 +3390,8 @@ func  (this *coincatch) FetchOrder(id interface{}, optionalArgs ...interface{}) 
             if IsTrue(IsEqual(marketType, "spot")) {
                 // user could query cancelled/filled order details within 24 hours, After 24 hours should use fetchOrders
                 
-        response = (<-this.PrivatePostApiSpotV1TradeOrderInfo(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeOrderInfo(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -3449,8 +3449,8 @@ func  (this *coincatch) FetchOrder(id interface{}, optionalArgs ...interface{}) 
                     AddElementToObject(request, "clientOid", clientOrderId)
                 }
                 
-        response = (<-this.PrivateGetApiMixV1OrderDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderDetail(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -3557,7 +3557,7 @@ func  (this *coincatch) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3783,12 +3783,12 @@ func  (this *coincatch) FetchOpenSwapOrders(optionalArgs ...interface{}) <- chan
                     //     }
                     //
                     
-        response = (<-this.PrivateGetApiMixV1PlanCurrentPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1PlanCurrentPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateGetApiMixV1OrderCurrent(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderCurrent(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(isTrigger) {
                 panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a symbol argument for swap trigger orders")))
@@ -3840,8 +3840,8 @@ func  (this *coincatch) FetchOpenSwapOrders(optionalArgs ...interface{}) <- chan
                 //     }
                 //
                 
-        response = (<-this.PrivateGetApiMixV1OrderMarginCoinCurrent(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderMarginCoinCurrent(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeList(response, "data", []interface{}{})
         
@@ -3912,7 +3912,7 @@ func  (this *coincatch) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
             }
-                return nil
+        
             }()
             return ch
         }
@@ -4171,8 +4171,8 @@ func  (this *coincatch) FetchCanceledAndClosedSwapOrders(optionalArgs ...interfa
                     AddElementToObject(request, "productType", productType)
                 }
                 
-        response = (<-this.PrivateGetApiMixV1PlanHistoryPlan(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1PlanHistoryPlan(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -4214,16 +4214,16 @@ func  (this *coincatch) FetchCanceledAndClosedSwapOrders(optionalArgs ...interfa
                     market = this.Market(symbol)
                     AddElementToObject(request, "symbol", GetValue(market, "id"))
                     
-        response = (<-this.PrivateGetApiMixV1OrderHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     if IsTrue(IsEqual(productType, nil)) {
                         productType = "umcbl" // is mandatory for current endpoint
                     }
                     AddElementToObject(request, "productType", productType)
                     
-        response = (<-this.PrivateGetApiMixV1OrderHistoryProductType(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderHistoryProductType(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
                 //
                 //     {
@@ -4334,12 +4334,12 @@ func  (this *coincatch) CancelOrder(id interface{}, optionalArgs ...interface{})
             if IsTrue(IsEqual(marketType, "spot")) {
                 if IsTrue(trigger) {
                     
-        response = (<-this.PrivatePostApiSpotV1PlanCancelPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1PlanCancelPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostApiSpotV1TradeCancelOrderV2(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeCancelOrderV2(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var planType interface{} = nil
@@ -4353,12 +4353,12 @@ func  (this *coincatch) CancelOrder(id interface{}, optionalArgs ...interface{})
                     }
                     AddElementToObject(request, "planType", planType)
                     
-        response = (<-this.PrivatePostApiMixV1PlanCancelPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1PlanCancelPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostApiMixV1OrderCancelOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderCancelOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
@@ -4423,8 +4423,8 @@ func  (this *coincatch) CancelAllOrders(optionalArgs ...interface{}) <- chan int
                         AddElementToObject(request, "symbols", []interface{}{GetValue(market, "id")})
                     }
                     
-        response = (<-this.PrivatePostApiSpotV1PlanBatchCancelPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1PlanBatchCancelPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                     //
                     //     {
                     //         "code": "00000",
@@ -4457,8 +4457,8 @@ func  (this *coincatch) CancelAllOrders(optionalArgs ...interface{}) <- chan int
                     //     }
                     //
                     
-        response = (<-this.PrivatePostApiSpotV1TradeCancelSymbolOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeCancelSymbolOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 var productType interface{} = "umcbl"
@@ -4479,18 +4479,18 @@ func  (this *coincatch) CancelAllOrders(optionalArgs ...interface{}) <- chan int
                     AddElementToObject(request, "planType", planType)
                     if IsTrue(!IsEqual(symbol, nil)) {
                         
-        response = (<-this.PrivatePostApiMixV1PlanCancelSymbolPlan(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1PlanCancelSymbolPlan(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivatePostApiMixV1PlanCancelAllPlan(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1PlanCancelAllPlan(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else if IsTrue(!IsEqual(symbol, nil)) {
                     AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                     
-        response = (<-this.PrivatePostApiMixV1OrderCancelSymbolOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderCancelSymbolOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var marginCoin interface{} = nil
                     if IsTrue(IsEqual(productType, "umcbl")) {
@@ -4505,8 +4505,8 @@ func  (this *coincatch) CancelAllOrders(optionalArgs ...interface{}) <- chan int
                     }
                     AddElementToObject(request, "marginCoin", marginCoin)
                     
-        response = (<-this.PrivatePostApiMixV1OrderCancelAllOrders(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderCancelAllOrders(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
                 //
                 //     {
@@ -4583,8 +4583,8 @@ func  (this *coincatch) CancelOrders(ids interface{}, optionalArgs ...interface{
             var result interface{} = nil
             if IsTrue(IsEqual(marketType, "spot")) {
                 
-        response = (<-this.PrivatePostApiSpotV1TradeCancelBatchOrdersV2(this.Extend(request)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeCancelBatchOrdersV2(this.Extend(request)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -4613,8 +4613,8 @@ func  (this *coincatch) CancelOrders(ids interface{}, optionalArgs ...interface{
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 AddElementToObject(request, "marginCoin", GetValue(market, "settleId"))
                 
-        response = (<-this.PrivatePostApiMixV1OrderCancelBatchOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiMixV1OrderCancelBatchOrders(this.Extend(request, params)))
+                    PanicOnError(response)
                 //
                 //     {
                 //         "code": "00000",
@@ -4649,7 +4649,7 @@ func  (this *coincatch) GetResultFromBatchCancelingSwapOrders(response interface
         var resultItem interface{} = map[string]interface{} {
             "orderId": orderId,
         }
-        AppendToArray(&result,resultItem)
+        AppendToArray(&result, resultItem)
     }
     return result
 }
@@ -4924,7 +4924,7 @@ func  (this *coincatch) ParseFeeDetailString(feeDetailString interface{}) interf
                 var currency interface{} = this.SafeCurrencyCode(currencyId)
                 var feeEntry interface{} = this.SafeDict(feeDetail, currencyId, map[string]interface{} {})
                 var amount interface{} = Precise.StringAbs(this.SafeString(feeEntry, "totalFee"))
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "currency": currency,
                     "amount": amount,
                 })
@@ -5019,8 +5019,8 @@ func  (this *coincatch) FetchMyTrades(optionalArgs ...interface{}) <- chan inter
                 //     }
                 //
                 
-        response = (<-this.PrivatePostApiSpotV1TradeFills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostApiSpotV1TradeFills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsEqual(marketType, "swap")) {
                 if IsTrue(!IsEqual(since, nil)) {
                     AddElementToObject(params, "startTime", since)
@@ -5063,8 +5063,8 @@ func  (this *coincatch) FetchMyTrades(optionalArgs ...interface{}) <- chan inter
                     //     }
                     //
                     
-        response = (<-this.PrivateGetApiMixV1OrderFills(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderFills(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     var productType interface{} = "umcbl"
                     productType = this.HandleOption(methodName, "productType", productType)
@@ -5096,8 +5096,8 @@ func  (this *coincatch) FetchMyTrades(optionalArgs ...interface{}) <- chan inter
                     //     }
                     //
                     
-        response = (<-this.PrivateGetApiMixV1OrderAllFills(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateGetApiMixV1OrderAllFills(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
@@ -5840,7 +5840,7 @@ func  (this *coincatch) FetchPositions(optionalArgs ...interface{}) <- chan inte
                     var marketId interface{} = GetValue(marketIds, i)
                     var parts interface{} = Split(marketId, "_")
                     var marketProductType interface{} = this.SafeString(parts, 1)
-                    AppendToArray(&productTypes,marketProductType)
+                    AppendToArray(&productTypes, marketProductType)
                 }
                 productTypes = this.Unique(productTypes)
                 var arrayLength interface{} =         GetArrayLength(productTypes)
@@ -5993,13 +5993,14 @@ func  (this *coincatch) SafeMarketCustom(marketId interface{}, optionalArgs ...i
     settleId := GetArg(optionalArgs, 1, nil)
     _ = settleId
     
-    {		ret__ := func(this *coincatch) (ret_ interface{}) {
-    		defer func() {
-    			if e := recover(); e != nil {
-                    if e == "break" {
-    				    return
-    			    }
-    				ret_ = func(this *coincatch) interface{} {
+        {		
+             func(this *coincatch) (ret_ interface{}) {
+    		    defer func() {
+                    if e := recover(); e != nil {
+                        if e == "break" {
+                            return
+                        }
+                        ret_ = func(this *coincatch) interface{} {
             var marketsWithCurrentId interface{} = this.SafeList(this.Markets_by_id, marketId, []interface{}{})
             if IsTrue(IsEqual(settleId, nil)) {
                 market = GetValue(marketsWithCurrentId, 0) // if settleId is not provided, return the first market with the current id
@@ -6012,17 +6013,15 @@ func  (this *coincatch) SafeMarketCustom(marketId interface{}, optionalArgs ...i
                     }
                 }
             }
-                        return nil
-    				}(this)
-    			}
-    		}()
-                    market = this.SafeMarket(marketId, market)
-    		return nil
-    	}(this)
-    	if ret__ != nil {
-    		return ret__
-    	}
-    }
+                            return nil
+                        }(this)
+                    }
+                }()
+                        market = this.SafeMarket(marketId, market)
+    		    return nil
+    	    }(this)
+        
+            }
     return market
 }
 /**

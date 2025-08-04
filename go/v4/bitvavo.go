@@ -8,10 +8,10 @@ type bitvavo struct {
 
 }
 
-func NewBitvavoCore() bitvavo {
-   p := bitvavo{}
-   setDefaults(&p)
-   return p
+func NewBitvavoCore() *bitvavo {
+    p := &bitvavo{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitvavo) Describe() interface{}  {
@@ -467,7 +467,7 @@ func  (this *bitvavo) ParseMarkets(markets interface{}) interface{}  {
         var status interface{} = this.SafeString(market, "status")
         var baseCurrency interface{} = this.SafeValue(currenciesById, baseId)
         var basePrecision interface{} = this.SafeInteger(baseCurrency, "precision")
-        AppendToArray(&result,this.SafeMarketStructure(map[string]interface{} {
+        AppendToArray(&result, this.SafeMarketStructure(map[string]interface{} {
             "id": id,
             "symbol": Add(Add(base, "/"), quote),
             "base": base,
@@ -2651,10 +2651,10 @@ func  (this *bitvavo) HandleErrors(httpCode interface{}, reason interface{}, url
     //     {"errorCode":205,"error":"symbol parameter is invalid."}
     //
     var errorCode interface{} = this.SafeString(response, "errorCode")
-    var error interface{} = this.SafeString(response, "error")
+    var err interface{} = this.SafeString(response, "error")
     if IsTrue(!IsEqual(errorCode, nil)) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
         panic(ExchangeError(feedback))
     }

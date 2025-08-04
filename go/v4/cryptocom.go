@@ -8,10 +8,10 @@ type cryptocom struct {
 
 }
 
-func NewCryptocomCore() cryptocom {
-   p := cryptocom{}
-   setDefaults(&p)
-   return p
+func NewCryptocomCore() *cryptocom {
+    p := &cryptocom{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *cryptocom) Describe() interface{}  {
@@ -526,35 +526,34 @@ func  (this *cryptocom) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             }
             var response interface{} = map[string]interface{} {}
             
-            {		ret__ := func(this *cryptocom) (ret_ interface{}) {
-            		defer func() {
-            			if e := recover(); e != nil {
-                            if e == "break" {
-            				    return
-            			    }
-            				ret_ = func(this *cryptocom) interface{} {
-            					// catch block:
-                                        if IsTrue(IsInstance(e, ExchangeError)) {
+                {		
+                     func(this *cryptocom) (ret_ interface{}) {
+            		    defer func() {
+                            if e := recover(); e != nil {
+                                if e == "break" {
+                                    return
+                                }
+                                ret_ = func(this *cryptocom) interface{} {
+                                    // catch block:
+                                            if IsTrue(IsInstance(e, ExchangeError)) {
             
                                     // sub-accounts can't access this endpoint
                         // {"code":"10001","msg":"SYS_ERROR"}
             return nil
                     }
                     panic(e)
-                                return nil
-            				}(this)
-            			}
-            		}()
-            		// try block:
-                            
-            response = (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
-                    PanicOnError(response)
-            		return nil
-            	}(this)
-            	if ret__ != nil {
-            		return ret__
-            	}
-            }
+                                    
+                                }(this)
+                            }
+                        }()
+            		    // try block:
+                                
+                response = (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
+                        PanicOnError(response)
+            		    return nil
+            	    }(this)
+                
+                    }
             //
             //    {
             //        "id": "1747502328559",
@@ -803,7 +802,7 @@ func  (this *cryptocom) FetchMarkets(optionalArgs ...interface{}) <- chan interf
                     symbol = Add(Add(Add(Add(Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), symbolOptionType)
                     contract = true
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": this.SafeString(market, "symbol"),
                     "symbol": symbol,
                     "base": base,
@@ -1668,7 +1667,7 @@ func  (this *cryptocom) CreateOrders(orders interface{}, optionalArgs ...interfa
                 var price interface{} = this.SafeValue(rawOrder, "price")
                 var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
             var contigency interface{} = this.SafeString(params, "contingency_type", "LIST")
             var request interface{} = map[string]interface{} {
@@ -2044,7 +2043,7 @@ func  (this *cryptocom) CancelOrders(ids interface{}, optionalArgs ...interface{
                     "instrument_name": GetValue(market, "id"),
                     "order_id": ToString(id),
                 }
-                AppendToArray(&orderRequests,order)
+                AppendToArray(&orderRequests, order)
             }
             var request interface{} = map[string]interface{} {
                 "contingency_type": "LIST",
@@ -2090,7 +2089,7 @@ func  (this *cryptocom) CancelOrdersForSymbols(orders interface{}, optionalArgs 
                     "instrument_name": GetValue(market, "id"),
                     "order_id": ToString(id),
                 }
-                AppendToArray(&orderRequests,orderItem)
+                AppendToArray(&orderRequests, orderItem)
             }
             var request interface{} = map[string]interface{} {
                 "contingency_type": "LIST",
@@ -2482,7 +2481,7 @@ func  (this *cryptocom) FetchDepositAddress(code interface{}, optionalArgs ...in
                 ch <- GetValue(depositAddresses, GetValue(keys, 0))
                 return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -3360,7 +3359,7 @@ func  (this *cryptocom) FetchAccounts(optionalArgs ...interface{}) <- chan inter
             var result interface{} = this.SafeDict(response, "result", map[string]interface{} {})
             var masterAccount interface{} = this.SafeDict(result, "master_account", map[string]interface{} {})
             var accounts interface{} = this.SafeList(result, "sub_account_list", []interface{}{})
-            AppendToArray(&accounts,masterAccount)
+            AppendToArray(&accounts, masterAccount)
         
             ch <- this.ParseAccounts(accounts, params)
             return nil
@@ -3507,7 +3506,7 @@ func  (this *cryptocom) ParseSettlements(settlements interface{}, market interfa
     //
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
-        AppendToArray(&result,this.ParseSettlement(GetValue(settlements, i), market))
+        AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
     }
     return result
 }
@@ -3691,7 +3690,7 @@ func  (this *cryptocom) FetchFundingRateHistory(optionalArgs ...interface{}) <- 
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var entry interface{} = GetValue(data, i)
                 var timestamp interface{} = this.SafeInteger(entry, "t")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": this.SafeSymbol(marketId, market),
                     "fundingRate": this.SafeNumber(entry, "v"),
@@ -3834,7 +3833,7 @@ func  (this *cryptocom) FetchPositions(optionalArgs ...interface{}) <- chan inte
                 var entry interface{} = GetValue(positions, i)
                 var marketId interface{} = this.SafeString(entry, "instrument_name")
                 var marketInner interface{} = this.SafeMarket(marketId, nil, nil, "contract")
-                AppendToArray(&result,this.ParsePosition(entry, marketInner))
+                AppendToArray(&result, this.ParsePosition(entry, marketInner))
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", nil, false)

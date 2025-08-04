@@ -911,6 +911,7 @@ class bitget(Exchange, ImplicitAPI):
                     # '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
                     '4001': ExchangeError,  # no data received in 30s
                     '4002': ExchangeError,  # Buffer full. cannot write data
+                    '40020': BadRequest,  # {"code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null}
                     # --------------------------------------------------------
                     '30001': AuthenticationError,  # {"code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
                     '30002': AuthenticationError,  # {"code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
@@ -1557,7 +1558,6 @@ class bitget(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
                     # 'BEP20': 'BEP20',  # different for BEP20
-                    'BSC': 'BEP20',
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
@@ -6077,6 +6077,9 @@ class bitget(Exchange, ImplicitAPI):
             if not isinstance(data, list):
                 return self.parse_order(data, market)
         dataList = self.safe_list(response, 'data', [])
+        dataListLength = len(dataList)
+        if dataListLength == 0:
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id + ' in ' + self.json(response))
         first = self.safe_dict(dataList, 0, {})
         return self.parse_order(first, market)
         # first = self.safe_dict(data, 0, data)

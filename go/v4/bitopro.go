@@ -8,10 +8,10 @@ type bitopro struct {
 
 }
 
-func NewBitoproCore() bitopro {
-   p := bitopro{}
-   setDefaults(&p)
-   return p
+func NewBitoproCore() *bitopro {
+    p := &bitopro{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitopro) Describe() interface{}  {
@@ -1046,7 +1046,7 @@ func  (this *bitopro) InsertMissingCandles(candles interface{}, distance interfa
     for IsTrue((IsLessThan(resultLength, limit))) && IsTrue((IsLessThan(i, candleLength))) {
         var candle interface{} = GetValue(candles, i)
         if IsTrue(IsEqual(GetValue(candle, 0), timestamp)) {
-            AppendToArray(&result,candle)
+            AppendToArray(&result, candle)
             i = this.Sum(i, 1)
         } else {
             var copy interface{} = this.ArrayConcat([]interface{}{}, copyFrom)
@@ -1056,7 +1056,7 @@ func  (this *bitopro) InsertMissingCandles(candles interface{}, distance interfa
             AddElementToObject(copy, 2, GetValue(copy, 4))
             AddElementToObject(copy, 3, GetValue(copy, 4))
             AddElementToObject(copy, 5, this.ParseNumber("0"))
-            AppendToArray(&result,copy)
+            AppendToArray(&result, copy)
         }
         timestamp = this.Sum(timestamp, Multiply(distance, 1000))
         resultLength = GetArrayLength(result)
@@ -1369,7 +1369,7 @@ func  (this *bitopro) ParseCancelOrders(data interface{}) interface{}  {
         var marketId interface{} = GetValue(dataKeys, i)
         var orderIds interface{} = GetValue(data, marketId)
         for j := 0; IsLessThan(j, GetArrayLength(orderIds)); j++ {
-            AppendToArray(&orders,this.SafeOrder(map[string]interface{} {
+            AppendToArray(&orders, this.SafeOrder(map[string]interface{} {
                 "info": GetValue(orderIds, j),
                 "id": GetValue(orderIds, j),
                 "symbol": this.SafeSymbol(marketId),
@@ -1455,12 +1455,12 @@ func  (this *bitopro) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 var market interface{} = this.Market(symbol)
                 AddElementToObject(request, "pair", GetValue(market, "id"))
                 
-        response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
         
@@ -2270,9 +2270,9 @@ func  (this *bitopro) HandleErrors(code interface{}, reason interface{}, url int
         return nil
     }
     var feedback interface{} = Add(Add(this.Id, " "), body)
-    var error interface{} = this.SafeString(response, "error")
-    this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
-    this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
+    var err interface{} = this.SafeString(response, "error")
+    this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+    this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
     panic(ExchangeError(feedback))
 }
 

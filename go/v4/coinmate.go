@@ -8,10 +8,10 @@ type coinmate struct {
 
 }
 
-func NewCoinmateCore() coinmate {
-   p := coinmate{}
-   setDefaults(&p)
-   return p
+func NewCoinmateCore() *coinmate {
+    p := &coinmate{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinmate) Describe() interface{}  {
@@ -293,7 +293,7 @@ func  (this *coinmate) FetchMarkets(optionalArgs ...interface{}) <- chan interfa
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var symbol interface{} = Add(Add(base, "/"), quote)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,

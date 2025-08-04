@@ -8,10 +8,10 @@ type coinspot struct {
 
 }
 
-func NewCoinspotCore() coinspot {
-   p := coinspot{}
-   setDefaults(&p)
-   return p
+func NewCoinspotCore() *coinspot {
+    p := &coinspot{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinspot) Describe() interface{}  {
@@ -856,12 +856,12 @@ func  (this *coinspot) CancelOrder(id interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(IsEqual(side, "buy")) {
                 
-        response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMyBuyCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostMySellCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostMySellCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //

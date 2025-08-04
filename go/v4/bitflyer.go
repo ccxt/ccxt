@@ -8,10 +8,10 @@ type bitflyer struct {
 
 }
 
-func NewBitflyerCore() bitflyer {
-   p := bitflyer{}
-   setDefaults(&p)
-   return p
+func NewBitflyerCore() *bitflyer {
+    p := &bitflyer{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitflyer) Describe() interface{}  {
@@ -311,7 +311,7 @@ func  (this *bitflyer) FetchMarkets(optionalArgs ...interface{}) <- chan interfa
                         symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
                     }
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,

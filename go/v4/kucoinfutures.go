@@ -8,10 +8,10 @@ type kucoinfutures struct {
 
 }
 
-func NewKucoinfuturesCore() kucoinfutures {
-   p := kucoinfutures{}
-   setDefaults(&p)
-   return p
+func NewKucoinfuturesCore() *kucoinfutures {
+    p := &kucoinfutures{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *kucoinfutures) Describe() interface{}  {
@@ -574,7 +574,7 @@ func  (this *kucoinfutures) FetchMarkets(optionalArgs ...interface{}) <- chan in
                     var quoteMaxSizeString interface{} = this.SafeString(market, "quoteMaxSize")
                     limitPriceMax = this.ParseNumber(Precise.StringDiv(quoteMaxSizeString, baseMinSizeString))
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": symbol,
                     "base": base,
@@ -1006,12 +1006,12 @@ func  (this *kucoinfutures) FetchTickers(optionalArgs ...interface{}) <- chan in
             var response interface{} = nil
             if IsTrue(IsEqual(method, "futuresPublicGetAllTickers")) {
                 
-        response = (<-this.FuturesPublicGetAllTickers(params))
-                PanicOnError(response)
+            response = (<-this.FuturesPublicGetAllTickers(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FuturesPublicGetContractsActive(params))
-                PanicOnError(response)
+            response = (<-this.FuturesPublicGetContractsActive(params))
+                    PanicOnError(response)
             }
             //
             //    {
@@ -1303,7 +1303,7 @@ func  (this *kucoinfutures) FetchFundingHistory(optionalArgs ...interface{}) <- 
             for i := 0; IsLessThan(i, GetArrayLength(dataList)); i++ {
                 var listItem interface{} = GetValue(dataList, i)
                 var timestamp interface{} = this.SafeInteger(listItem, "timePoint")
-                AppendToArray(&fees,map[string]interface{} {
+                AppendToArray(&fees, map[string]interface{} {
                     "info": listItem,
                     "symbol": symbol,
                     "code": this.SafeCurrencyCode(this.SafeString(listItem, "settleCurrency")),
@@ -1759,17 +1759,17 @@ func  (this *kucoinfutures) CreateOrder(symbol interface{}, typeVar interface{},
             var response interface{} = nil
             if IsTrue(testOrder) {
                 
-        response = (<-this.FuturesPrivatePostOrdersTest(orderRequest))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivatePostOrdersTest(orderRequest))
+                    PanicOnError(response)
             } else {
                 if IsTrue(isTpAndSlOrder) {
                     
-        response = (<-this.FuturesPrivatePostStOrders(orderRequest))
-                    PanicOnError(response)
+            response = (<-this.FuturesPrivatePostStOrders(orderRequest))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.FuturesPrivatePostOrders(orderRequest))
-                    PanicOnError(response)
+            response = (<-this.FuturesPrivatePostOrders(orderRequest))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1818,7 +1818,7 @@ func  (this *kucoinfutures) CreateOrders(orders interface{}, optionalArgs ...int
                 var price interface{} = this.SafeValue(rawOrder, "price")
                 var orderParams interface{} = this.SafeValue(rawOrder, "params", map[string]interface{} {})
                 var orderRequest interface{} = this.CreateContractOrderRequest(GetValue(market, "id"), typeVar, side, amount, price, orderParams)
-                AppendToArray(&ordersRequests,orderRequest)
+                AppendToArray(&ordersRequests, orderRequest)
             }
         
             response:= (<-this.FuturesPrivatePostOrdersMulti(ordersRequests))
@@ -1996,13 +1996,13 @@ func  (this *kucoinfutures) CancelOrder(id interface{}, optionalArgs ...interfac
                 AddElementToObject(request, "symbol", GetValue(market, "id"))
                 AddElementToObject(request, "clientOid", clientOrderId)
                 
-        response = (<-this.FuturesPrivateDeleteOrdersClientOrderClientOid(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateDeleteOrdersClientOrderClientOid(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "orderId", id)
                 
-        response = (<-this.FuturesPrivateDeleteOrdersOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateDeleteOrdersOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2059,13 +2059,13 @@ func  (this *kucoinfutures) CancelOrders(ids interface{}, optionalArgs ...interf
                 if IsTrue(IsEqual(symbol, nil)) {
                     panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")))
                 }
-                AppendToArray(&ordersRequests,map[string]interface{} {
+                AppendToArray(&ordersRequests, map[string]interface{} {
                     "symbol": GetValue(market, "id"),
                     "clientOid": this.SafeString(clientOrderIds, i),
                 })
             }
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-                AppendToArray(&ordersRequests,GetValue(ids, i))
+                AppendToArray(&ordersRequests, GetValue(ids, i))
             }
             var requestKey interface{} = Ternary(IsTrue(useClientorderId), "clientOidsList", "orderIdsList")
             var request interface{} = map[string]interface{} {}
@@ -2133,12 +2133,12 @@ func  (this *kucoinfutures) CancelAllOrders(optionalArgs ...interface{}) <- chan
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.FuturesPrivateDeleteStopOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateDeleteStopOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FuturesPrivateDeleteOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateDeleteOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //   {
@@ -2391,12 +2391,12 @@ func  (this *kucoinfutures) FetchOrdersByStatus(status interface{}, optionalArgs
             var response interface{} = nil
             if IsTrue(trigger) {
                 
-        response = (<-this.FuturesPrivateGetStopOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateGetStopOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FuturesPrivateGetOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateGetOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -2594,13 +2594,13 @@ func  (this *kucoinfutures) FetchOrder(id interface{}, optionalArgs ...interface
                 AddElementToObject(request, "clientOid", clientOrderId)
                 params = this.Omit(params, []interface{}{"clientOid", "clientOrderId"})
                 
-        response = (<-this.FuturesPrivateGetOrdersByClientOid(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateGetOrdersByClientOid(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "orderId", id)
                 
-        response = (<-this.FuturesPrivateGetOrdersOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivateGetOrdersOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -3007,13 +3007,13 @@ func  (this *kucoinfutures) Transfer(code interface{}, amount interface{}, fromA
             if IsTrue(IsTrue(IsEqual(toAccountString, "TRADE")) || IsTrue(IsEqual(toAccountString, "MAIN"))) {
                 AddElementToObject(request, "recAccountType", toAccountString)
                 
-        response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue(IsEqual(toAccount, "future")) || IsTrue(IsEqual(toAccount, "swap"))) || IsTrue(IsEqual(toAccount, "contract"))) {
                 AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
                 
-        response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(BadRequest(Add(this.Id, " transfer() only supports transfers between future/swap, spot and funding accounts")))
             }
@@ -3615,7 +3615,7 @@ func  (this *kucoinfutures) ParseMarketLeverageTiers(info interface{}, optionalA
     for i := 0; IsLessThan(i, GetArrayLength(info)); i++ {
         var tier interface{} = GetValue(info, i)
         var marketId interface{} = this.SafeString(tier, "symbol")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.SafeNumber(tier, "level"),
             "symbol": this.SafeSymbol(marketId, market, nil, "contract"),
             "currency": GetValue(market, "base"),
@@ -3754,12 +3754,12 @@ func  (this *kucoinfutures) ClosePosition(symbol interface{}, optionalArgs ...in
             var response interface{} = nil
             if IsTrue(testOrder) {
                 
-        response = (<-this.FuturesPrivatePostOrdersTest(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivatePostOrdersTest(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.FuturesPrivatePostOrders(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.FuturesPrivatePostOrders(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.ParseOrder(response, market)

@@ -713,6 +713,7 @@ public partial class coinex : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
+                object networkCode = this.networkIdToCode(networkId, code);
                 if (isTrue(isEqual(networkId, null)))
                 {
                     continue;
@@ -725,7 +726,7 @@ public partial class coinex : Exchange
                 object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
                 object network = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkId },
+                    { "network", networkCode },
                     { "name", null },
                     { "active", isTrue(canDepositChain) && isTrue(canWithdrawChain) },
                     { "deposit", canDepositChain },
@@ -748,7 +749,7 @@ public partial class coinex : Exchange
                     } },
                     { "info", chain },
                 };
-                ((IDictionary<string,object>)networks)[(string)networkId] = network;
+                ((IDictionary<string,object>)networks)[(string)networkCode] = network;
             }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },

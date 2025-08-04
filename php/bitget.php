@@ -887,6 +887,7 @@ class bitget extends Exchange {
                     // '0' => '\\ccxt\\ExchangeError', // 200 successful,when the order placement / cancellation / operation is successful
                     '4001' => '\\ccxt\\ExchangeError', // no data received in 30s
                     '4002' => '\\ccxt\\ExchangeError', // Buffer full. cannot write data
+                    '40020' => '\\ccxt\\BadRequest', // array("code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null)
                     // --------------------------------------------------------
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
                     '30002' => '\\ccxt\\AuthenticationError', // array( "code" => 30002, "message" => 'request header "OK_ACCESS_SIGN" cannot be blank')
@@ -1533,7 +1534,6 @@ class bitget extends Exchange {
                     'ERC20' => 'ERC20',
                     'BEP20' => 'BSC',
                     // 'BEP20' => 'BEP20', // different for BEP20
-                    'BSC' => 'BEP20',
                     'ATOM' => 'ATOM',
                     'ACA' => 'AcalaToken',
                     'APT' => 'Aptos',
@@ -6342,6 +6342,10 @@ class bitget extends Exchange {
             }
         }
         $dataList = $this->safe_list($response, 'data', array());
+        $dataListLength = count($dataList);
+        if ($dataListLength === 0) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id . ' in ' . $this->json($response));
+        }
         $first = $this->safe_dict($dataList, 0, array());
         return $this->parse_order($first, $market);
         // $first = $this->safe_dict($data, 0, $data);

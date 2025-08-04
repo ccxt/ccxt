@@ -8,10 +8,10 @@ type xt struct {
 
 }
 
-func NewXtCore() xt {
-   p := xt{}
-   setDefaults(&p)
-   return p
+func NewXtCore() *xt {
+    p := &xt{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *xt) Describe() interface{}  {
@@ -1122,7 +1122,7 @@ func  (this *xt) FetchSwapAndFutureMarkets(optionalArgs ...interface{}) <- chan 
 func  (this *xt) ParseMarkets(markets interface{}) interface{}  {
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        AppendToArray(&result,this.ParseMarket(GetValue(markets, i)))
+        AppendToArray(&result, this.ParseMarket(GetValue(markets, i)))
     }
     return result
 }
@@ -1444,16 +1444,16 @@ func  (this *xt) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- 
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQKline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQKline(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQKline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQKline(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicSpotGetKline(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetKline(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1570,8 +1570,8 @@ func  (this *xt) FetchOrderBook(symbol interface{}, optionalArgs ...interface{})
                     AddElementToObject(request, "limit", mathMin(limit, 500))
                 }
                 
-        response = (<-this.PublicSpotGetDepth(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetDepth(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "level", mathMin(limit, 50))
@@ -1580,12 +1580,12 @@ func  (this *xt) FetchOrderBook(symbol interface{}, optionalArgs ...interface{})
                 }
                 if IsTrue(GetValue(market, "linear")) {
                     
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQDepth(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQDepth(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(GetValue(market, "inverse")) {
                     
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQDepth(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQDepth(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1679,16 +1679,16 @@ func  (this *xt) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-
             var response interface{} = nil
             if IsTrue(GetValue(market, "linear")) {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQAggTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQAggTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(GetValue(market, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQAggTicker(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQAggTicker(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicSpotGetTicker24h(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTicker24h(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -1788,16 +1788,16 @@ func  (this *xt) FetchTickers(optionalArgs ...interface{}) <- chan interface{} {
             params = GetValue(subTypeparamsVariable,1)
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQAggTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQAggTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQAggTickers(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQAggTickers(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicSpotGetTicker24h(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTicker24h(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2043,20 +2043,20 @@ func  (this *xt) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.PublicSpotGetTradeRecent(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicSpotGetTradeRecent(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 if IsTrue(!IsEqual(limit, nil)) {
                     AddElementToObject(request, "num", limit)
                 }
                 if IsTrue(GetValue(market, "linear")) {
                     
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQDeal(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQDeal(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(GetValue(market, "inverse")) {
                     
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQDeal(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQDeal(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -2155,12 +2155,12 @@ func  (this *xt) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{} 
                 }
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1OrderTradeList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1OrderTradeList(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1OrderTradeList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1OrderTradeList(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 var marginMode interface{} = nil
@@ -2173,8 +2173,8 @@ func  (this *xt) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{} 
                     AddElementToObject(request, "limit", limit)
                 }
                 
-        response = (<-this.PrivateSpotGetTrade(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetTrade(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot and margin
@@ -2448,16 +2448,16 @@ func  (this *xt) FetchBalance(optionalArgs ...interface{}) <- chan interface{} {
             var isContractWallet interface{} =     (IsTrue((IsEqual(typeVar, "swap"))) || IsTrue((IsEqual(typeVar, "future"))))
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureUserV1BalanceList(params))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureUserV1BalanceList(params))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue(isContractWallet)) {
                 
-        response = (<-this.PrivateLinearGetFutureUserV1BalanceList(params))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureUserV1BalanceList(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateSpotGetBalances(params))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetBalances(params))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -2649,7 +2649,7 @@ func  (this *xt) CreateOrder(symbol interface{}, typeVar interface{}, side inter
                     ch <- retRes243819
                     return nil
             }
-                return nil
+        
             }()
             return ch
         }
@@ -2783,12 +2783,12 @@ func  (this *xt) CreateContractOrder(symbol interface{}, typeVar interface{}, si
                 params = this.Omit(params, "triggerPrice")
                 if IsTrue(GetValue(market, "linear")) {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreatePlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreatePlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(GetValue(market, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCreatePlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCreatePlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
                 if IsTrue(isStopLoss) {
@@ -2799,24 +2799,24 @@ func  (this *xt) CreateContractOrder(symbol interface{}, typeVar interface{}, si
                 params = this.Omit(params, []interface{}{"stopLoss", "takeProfit"})
                 if IsTrue(GetValue(market, "linear")) {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateProfit(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateProfit(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(GetValue(market, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCreateProfit(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCreateProfit(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 AddElementToObject(request, "orderSide", ToUpper(side))
                 AddElementToObject(request, "orderType", ToUpper(typeVar))
                 if IsTrue(GetValue(market, "linear")) {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1OrderCreate(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1OrderCreate(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else if IsTrue(GetValue(market, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1OrderCreate(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1OrderCreate(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
         
@@ -2888,36 +2888,36 @@ func  (this *xt) FetchOrder(id interface{}, optionalArgs ...interface{}) <- chan
                 params = this.Omit(params, "stop")
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanDetail(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanDetail(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanDetail(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanDetail(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(stopLossTakeProfit) {
                 params = this.Omit(params, "stopLossTakeProfit")
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitDetail(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitDetail(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitDetail(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitDetail(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureTradeV1OrderDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1OrderDetail(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PrivateLinearGetFutureTradeV1OrderDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1OrderDetail(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateSpotGetOrderOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetOrderOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -3100,21 +3100,21 @@ func  (this *xt) FetchOrders(optionalArgs ...interface{}) <- chan interface{} {
                 params = this.Omit(params, []interface{}{"trigger", "stop"})
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanListHistory(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureTradeV1OrderListHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1OrderListHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PrivateLinearGetFutureTradeV1OrderListHistory(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1OrderListHistory(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var marginMode interface{} = nil
                 marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params);
@@ -3123,8 +3123,8 @@ func  (this *xt) FetchOrders(optionalArgs ...interface{}) <- chan interface{} {
                 var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
                 AddElementToObject(request, "bizType", marginOrSpotRequest)
                 
-        response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //  spot and margin
@@ -3317,33 +3317,33 @@ func  (this *xt) FetchOrdersByStatus(status interface{}, optionalArgs ...interfa
                 params = this.Omit(params, []interface{}{"stop", "trigger"})
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1EntrustPlanList(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1EntrustPlanList(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(stopLossTakeProfit) {
                 params = this.Omit(params, "stopLossTakeProfit")
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1EntrustProfitList(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1EntrustProfitList(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsTrue(IsTrue((!IsEqual(subType, nil))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInverseGetFutureTradeV1OrderList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureTradeV1OrderList(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearGetFutureTradeV1OrderList(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureTradeV1OrderList(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else {
                 var marginMode interface{} = nil
@@ -3361,12 +3361,12 @@ func  (this *xt) FetchOrdersByStatus(status interface{}, optionalArgs ...interfa
                         AddElementToObject(request, "limit", limit)
                     }
                     
-        response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotGetHistoryOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateSpotGetOpenOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateSpotGetOpenOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -3729,36 +3729,36 @@ func  (this *xt) CancelOrder(id interface{}, optionalArgs ...interface{}) <- cha
                 params = this.Omit(params, []interface{}{"trigger", "stop"})
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(stopLossTakeProfit) {
                 params = this.Omit(params, "stopLossTakeProfit")
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelProfitStop(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInversePostFutureTradeV1OrderCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1OrderCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PrivateLinearPostFutureTradeV1OrderCancel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1OrderCancel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateSpotDeleteOrderOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotDeleteOrderOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // spot
@@ -3837,32 +3837,32 @@ func  (this *xt) CancelAllOrders(optionalArgs ...interface{}) <- chan interface{
                 params = this.Omit(params, []interface{}{"trigger", "stop"})
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllPlan(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(stopLossTakeProfit) {
                 params = this.Omit(params, "stopLossTakeProfit")
                 if IsTrue(IsEqual(subType, "inverse")) {
                     
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             } else if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInversePostFutureTradeV1OrderCancelAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1OrderCancelAll(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PrivateLinearPostFutureTradeV1OrderCancelAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1OrderCancelAll(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 var marginMode interface{} = nil
                 marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params);
@@ -3871,8 +3871,8 @@ func  (this *xt) CancelAllOrders(optionalArgs ...interface{}) <- chan interface{
                 var marginOrSpotRequest interface{} = Ternary(IsTrue((!IsEqual(marginMode, nil))), "LEVER", "SPOT")
                 AddElementToObject(request, "bizType", marginOrSpotRequest)
                 
-        response = (<-this.PrivateSpotDeleteOpenOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotDeleteOpenOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -4192,12 +4192,12 @@ func  (this *xt) FetchLedger(optionalArgs ...interface{}) <- chan interface{} {
             params = GetValue(subTypeparamsVariable,1)
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureUserV1BalanceBills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureUserV1BalanceBills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else if IsTrue(IsTrue(IsTrue((IsEqual(subType, "linear"))) || IsTrue((IsEqual(typeVar, "swap")))) || IsTrue((IsEqual(typeVar, "future")))) {
                 
-        response = (<-this.PrivateLinearGetFutureUserV1BalanceBills(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureUserV1BalanceBills(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 panic(NotSupported(Add(this.Id, " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")))
             }
@@ -4714,12 +4714,12 @@ func  (this *xt) SetLeverage(leverage interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInversePostFutureUserV1PositionAdjustLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureUserV1PositionAdjustLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateLinearPostFutureUserV1PositionAdjustLeverage(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureUserV1PositionAdjustLeverage(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -4816,12 +4816,12 @@ func  (this *xt) ModifyMarginHelper(symbol interface{}, amount interface{}, addO
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInversePostFutureUserV1PositionMargin(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureUserV1PositionMargin(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateLinearPostFutureUserV1PositionMargin(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureUserV1PositionMargin(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -4882,12 +4882,12 @@ func  (this *xt) FetchLeverageTiers(optionalArgs ...interface{}) <- chan interfa
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketList(params))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketList(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicLeverageBracketList(params))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicLeverageBracketList(params))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -4990,12 +4990,12 @@ func  (this *xt) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...in
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicLeverageBracketDetail(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5053,7 +5053,7 @@ func  (this *xt) ParseMarketLeverageTiers(info interface{}, optionalArgs ...inte
         var tier interface{} = GetValue(brackets, i)
         var marketId interface{} = this.SafeString(info, "symbol")
         market = this.SafeMarket(marketId, market, "_", "contract")
-        AppendToArray(&tiers,map[string]interface{} {
+        AppendToArray(&tiers, map[string]interface{} {
             "tier": this.SafeInteger(tier, "bracket"),
             "symbol": this.SafeSymbol(marketId, market, "_", "contract"),
             "currency": GetValue(market, "settle"),
@@ -5113,12 +5113,12 @@ func  (this *xt) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan in
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRateRecord(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRateRecord(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQFundingRateRecord(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQFundingRateRecord(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5148,7 +5148,7 @@ func  (this *xt) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan in
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var symbolInner interface{} = this.SafeSymbol(marketId, market)
                 var timestamp interface{} = this.SafeInteger(entry, "createdTime")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": symbolInner,
                     "fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -5222,12 +5222,12 @@ func  (this *xt) FetchFundingRate(symbol interface{}, optionalArgs ...interface{
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicInverseGetFutureMarketV1PublicQFundingRate(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicLinearGetFutureMarketV1PublicQFundingRate(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicLinearGetFutureMarketV1PublicQFundingRate(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5336,12 +5336,12 @@ func  (this *xt) FetchFundingHistory(optionalArgs ...interface{}) <- chan interf
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureUserV1BalanceFundingRateList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureUserV1BalanceFundingRateList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateLinearGetFutureUserV1BalanceFundingRateList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureUserV1BalanceFundingRateList(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5369,7 +5369,7 @@ func  (this *xt) FetchFundingHistory(optionalArgs ...interface{}) <- chan interf
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
                 var entry interface{} = GetValue(items, i)
-                AppendToArray(&result,this.ParseFundingHistory(entry, market))
+                AppendToArray(&result, this.ParseFundingHistory(entry, market))
             }
             var sorted interface{} = this.SortBy(result, "timestamp")
         
@@ -5437,12 +5437,12 @@ func  (this *xt) FetchPosition(symbol interface{}, optionalArgs ...interface{}) 
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5515,12 +5515,12 @@ func  (this *xt) FetchPositions(optionalArgs ...interface{}) <- chan interface{}
             var response interface{} = nil
             if IsTrue(IsEqual(subType, "inverse")) {
                 
-        response = (<-this.PrivateInverseGetFutureUserV1PositionList(params))
-                PanicOnError(response)
+            response = (<-this.PrivateInverseGetFutureUserV1PositionList(params))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivateLinearGetFutureUserV1PositionList(params))
-                PanicOnError(response)
+            response = (<-this.PrivateLinearGetFutureUserV1PositionList(params))
+                    PanicOnError(response)
             }
             //
             //     {
@@ -5553,7 +5553,7 @@ func  (this *xt) FetchPositions(optionalArgs ...interface{}) <- chan interface{}
                 var entry interface{} = GetValue(positions, i)
                 var marketId interface{} = this.SafeString(entry, "symbol")
                 var marketInner interface{} = this.SafeMarket(marketId, nil, nil, "contract")
-                AppendToArray(&result,this.ParsePosition(entry, marketInner))
+                AppendToArray(&result, this.ParsePosition(entry, marketInner))
             }
         
             ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -5820,29 +5820,29 @@ func  (this *xt) EditOrder(id interface{}, symbol interface{}, typeVar interface
                 if IsTrue(IsEqual(subType, "inverse")) {
                     if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
                         
-        response = (<-this.PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1EntrustUpdateProfitStop(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateInversePostFutureTradeV1OrderUpdate(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateInversePostFutureTradeV1OrderUpdate(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 } else {
                     if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
                         
-        response = (<-this.PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop(this.Extend(request, params)))
+                            PanicOnError(response)
                     } else {
                         
-        response = (<-this.PrivateLinearPostFutureTradeV1OrderUpdate(this.Extend(request, params)))
-                        PanicOnError(response)
+            response = (<-this.PrivateLinearPostFutureTradeV1OrderUpdate(this.Extend(request, params)))
+                            PanicOnError(response)
                     }
                 }
             } else {
                 AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
                 
-        response = (<-this.PrivateSpotPutOrderOrderId(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivateSpotPutOrderOrderId(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             var result interface{} = Ternary(IsTrue((GetValue(market, "swap"))), response, this.SafeDict(response, "result", map[string]interface{} {}))
         
@@ -5908,11 +5908,11 @@ func  (this *xt) HandleErrors(code interface{}, reason interface{}, url interfac
     var status interface{} = this.SafeStringUpper2(response, "msgInfo", "mc")
     if IsTrue(IsTrue(!IsEqual(status, nil)) && IsTrue(!IsEqual(status, "SUCCESS"))) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
-        var error interface{} = this.SafeValue(response, "error", map[string]interface{} {})
+        var err interface{} = this.SafeValue(response, "error", map[string]interface{} {})
         var spotErrorCode interface{} = this.SafeString(response, "mc")
-        var errorCode interface{} = this.SafeString(error, "code", spotErrorCode)
+        var errorCode interface{} = this.SafeString(err, "code", spotErrorCode)
         var spotMessage interface{} = this.SafeString(response, "msgInfo")
-        var message interface{} = this.SafeString(error, "msg", spotMessage)
+        var message interface{} = this.SafeString(err, "msg", spotMessage)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
         panic(ExchangeError(feedback))

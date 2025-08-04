@@ -1491,7 +1491,6 @@ public partial class bitget : Exchange
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "BEP20", "BSC" },
-                    { "BSC", "BEP20" },
                     { "ATOM", "ATOM" },
                     { "ACA", "AcalaToken" },
                     { "APT", "Aptos" },

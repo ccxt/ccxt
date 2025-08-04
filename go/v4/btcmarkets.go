@@ -8,10 +8,10 @@ type btcmarkets struct {
 
 }
 
-func NewBtcmarketsCore() btcmarkets {
-   p := btcmarkets{}
-   setDefaults(&p)
-   return p
+func NewBtcmarketsCore() *btcmarkets {
+    p := &btcmarkets{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *btcmarkets) Describe() interface{}  {

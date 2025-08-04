@@ -8,10 +8,10 @@ type coinsph struct {
 
 }
 
-func NewCoinsphCore() coinsph {
-   p := coinsph{}
-   setDefaults(&p)
-   return p
+func NewCoinsphCore() *coinsph {
+    p := &coinsph{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinsph) Describe() interface{}  {
@@ -811,7 +811,7 @@ func  (this *coinsph) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var amountLimits interface{} = this.SafeValue(limits, "LOT_SIZE", map[string]interface{} {})
                 var priceLimits interface{} = this.SafeValue(limits, "PRICE_FILTER", map[string]interface{} {})
                 var costLimits interface{} = this.SafeValue(limits, "NOTIONAL", map[string]interface{} {})
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -900,7 +900,7 @@ func  (this *coinsph) FetchTickers(optionalArgs ...interface{}) <- chan interfac
                 for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
                     var market interface{} = this.Market(GetValue(symbols, i))
                     var id interface{} = GetValue(market, "id")
-                    AppendToArray(&ids,id)
+                    AppendToArray(&ids, id)
                 }
                 AddElementToObject(request, "symbols", ids)
             }
@@ -910,16 +910,16 @@ func  (this *coinsph) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             var tickers interface{} = nil
             if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerPrice")) {
                 
-        tickers = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
-                PanicOnError(tickers)
+            tickers = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
+                    PanicOnError(tickers)
             } else if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerBookTicker")) {
                 
-        tickers = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
-                PanicOnError(tickers)
+            tickers = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
+                    PanicOnError(tickers)
             } else {
                 
-        tickers = (<-this.PublicGetOpenapiQuoteV1Ticker24hr(this.Extend(request, params)))
-                PanicOnError(tickers)
+            tickers = (<-this.PublicGetOpenapiQuoteV1Ticker24hr(this.Extend(request, params)))
+                    PanicOnError(tickers)
             }
         
             ch <- this.ParseTickers(tickers, symbols, params)
@@ -959,16 +959,16 @@ func  (this *coinsph) FetchTicker(symbol interface{}, optionalArgs ...interface{
             var ticker interface{} = nil
             if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerPrice")) {
                 
-        ticker = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
-                PanicOnError(ticker)
+            ticker = (<-this.PublicGetOpenapiQuoteV1TickerPrice(this.Extend(request, params)))
+                    PanicOnError(ticker)
             } else if IsTrue(IsEqual(method, "publicGetOpenapiQuoteV1TickerBookTicker")) {
                 
-        ticker = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
-                PanicOnError(ticker)
+            ticker = (<-this.PublicGetOpenapiQuoteV1TickerBookTicker(this.Extend(request, params)))
+                    PanicOnError(ticker)
             } else {
                 
-        ticker = (<-this.PublicGetOpenapiQuoteV1Ticker24hr(this.Extend(request, params)))
-                PanicOnError(ticker)
+            ticker = (<-this.PublicGetOpenapiQuoteV1Ticker24hr(this.Extend(request, params)))
+                    PanicOnError(ticker)
             }
         
             ch <- this.ParseTicker(ticker, market)
@@ -1601,12 +1601,12 @@ func  (this *coinsph) CreateOrder(symbol interface{}, typeVar interface{}, side 
             var response interface{} = nil
             if IsTrue(testOrder) {
                 
-        response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOpenapiV1Order(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOpenapiV1Order(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //

@@ -8,10 +8,10 @@ type binancecoinm struct {
 
 }
 
-func NewBinancecoinmCore() binancecoinm {
-   p := binancecoinm{}
-   setDefaults(&p)
-   return p
+func NewBinancecoinmCore() *binancecoinm {
+    p := &binancecoinm{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *binancecoinm) Describe() interface{}  {

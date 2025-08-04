@@ -8,10 +8,10 @@ type bittrade struct {
 
 }
 
-func NewBittradeCore() bittrade {
-   p := bittrade{}
-   setDefaults(&p)
-   return p
+func NewBittradeCore() *bittrade {
+    p := &bittrade{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bittrade) Describe() interface{}  {
@@ -582,7 +582,7 @@ func  (this *bittrade) FetchMarkets(optionalArgs ...interface{}) <- chan interfa
                 var superLeverageRatio interface{} = this.SafeString(market, "super-margin-leverage-ratio", "1")
                 var margin interface{} = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
                 var fee interface{} = Ternary(IsTrue((IsEqual(base, "OMG"))), this.ParseNumber("0"), this.ParseNumber("0.002"))
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": Add(baseId, quoteId),
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -1132,7 +1132,7 @@ func  (this *bittrade) FetchTrades(symbol interface{}, optionalArgs ...interface
                 var trades interface{} = this.SafeValue(GetValue(data, i), "data", []interface{}{})
                 for j := 0; IsLessThan(j, GetArrayLength(trades)); j++ {
                     var trade interface{} = this.ParseTrade(GetValue(trades, j), market)
-                    AppendToArray(&result,trade)
+                    AppendToArray(&result, trade)
                 }
             }
             result = this.SortBy(result, "timestamp")
@@ -2082,7 +2082,7 @@ func  (this *bittrade) ParseCancelOrders(orders interface{}) interface{}  {
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
         var order interface{} = GetValue(success, i)
-        AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+        AppendToArray(&result, this.SafeOrder(map[string]interface{} {
             "info": order,
             "id": order,
             "status": "canceled",
@@ -2090,7 +2090,7 @@ func  (this *bittrade) ParseCancelOrders(orders interface{}) interface{}  {
     }
     for i := 0; IsLessThan(i, GetArrayLength(failed)); i++ {
         var order interface{} = GetValue(failed, i)
-        AppendToArray(&result,this.SafeOrder(map[string]interface{} {
+        AppendToArray(&result, this.SafeOrder(map[string]interface{} {
             "info": order,
             "id": this.SafeString2(order, "order-id", "order_id"),
             "status": "failed",

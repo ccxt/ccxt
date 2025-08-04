@@ -8,10 +8,10 @@ type btcturk struct {
 
 }
 
-func NewBtcturkCore() btcturk {
-   p := btcturk{}
-   setDefaults(&p)
-   return p
+func NewBtcturkCore() *btcturk {
+    p := &btcturk{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *btcturk) Describe() interface{}  {
@@ -881,7 +881,7 @@ func  (this *btcturk) ParseOHLCVs(ohlcvs interface{}, optionalArgs ...interface{
             "close": this.SafeNumber(close, i),
             "volume": this.SafeNumber(volume, i),
         }
-        AppendToArray(&results,this.ParseOHLCV(ohlcv, market))
+        AppendToArray(&results, this.ParseOHLCV(ohlcv, market))
     }
     var sorted interface{} = this.SortBy(results, 0)
     return this.FilterBySinceLimit(sorted, since, limit, 0, tail)

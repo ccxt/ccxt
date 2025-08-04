@@ -8,10 +8,10 @@ type okxus struct {
 
 }
 
-func NewOkxusCore() okxus {
-   p := okxus{}
-   setDefaults(&p)
-   return p
+func NewOkxusCore() *okxus {
+    p := &okxus{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *okxus) Describe() interface{}  {

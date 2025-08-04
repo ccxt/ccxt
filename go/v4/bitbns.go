@@ -8,10 +8,10 @@ type bitbns struct {
 
 }
 
-func NewBitbnsCore() bitbns {
-   p := bitbns{}
-   setDefaults(&p)
-   return p
+func NewBitbnsCore() *bitbns {
+    p := &bitbns{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitbns) Describe() interface{}  {
@@ -275,7 +275,7 @@ func  (this *bitbns) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var usdt interface{} =         (IsEqual(quoteId, "USDT"))
                 // INR markets don't need a _INR prefix
                 var uppercaseId interface{} = Ternary(IsTrue(usdt), (Add(Add(baseId, "_"), quoteId)), baseId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "uppercaseId": uppercaseId,
                     "symbol": Add(Add(base, "/"), quote),
@@ -787,8 +787,8 @@ func  (this *bitbns) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             quoteSide = Add(quoteSide, tail)
             AddElementToObject(request, "side", quoteSide)
             
-        response = (<-this.V2PostCancel(this.Extend(request, params)))
-            PanicOnError(response)
+            response = (<-this.V2PostCancel(this.Extend(request, params)))
+                PanicOnError(response)
         
             ch <- this.ParseOrder(response, market)
             return nil
@@ -1485,8 +1485,8 @@ func  (this *bitbns) HandleErrors(httpCode interface{}, reason interface{}, url 
     //
     var code interface{} = this.SafeString(response, "code")
     var message interface{} = this.SafeString(response, "msg")
-    var error interface{} = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
-    if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
+    var err interface{} = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
+    if IsTrue(IsTrue(err) || IsTrue((!IsEqual(message, nil)))) {
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

@@ -8,10 +8,10 @@ type derive struct {
 
 }
 
-func NewDeriveCore() derive {
-   p := derive{}
-   setDefaults(&p)
-   return p
+func NewDeriveCore() *derive {
+    p := &derive{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *derive) Describe() interface{}  {
@@ -1069,7 +1069,7 @@ func  (this *derive) FetchFundingRateHistory(optionalArgs ...interface{}) <- cha
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var entry interface{} = GetValue(data, i)
                 var timestamp interface{} = this.SafeInteger(entry, "timestamp")
-                AppendToArray(&rates,map[string]interface{} {
+                AppendToArray(&rates, map[string]interface{} {
                     "info": entry,
                     "symbol": GetValue(market, "symbol"),
                     "fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -1303,12 +1303,12 @@ func  (this *derive) CreateOrder(symbol interface{}, typeVar interface{}, side i
             var response interface{} = nil
             if IsTrue(test) {
                 
-        response = (<-this.PrivatePostOrderDebug(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrderDebug(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             // {
@@ -1608,18 +1608,18 @@ func  (this *derive) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
                 AddElementToObject(request, "label", clientOrderIdExchangeSpecific)
                 params = this.Omit(params, []interface{}{"clientOrderId", "label"})
                 
-        response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostCancelByLabel(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 AddElementToObject(request, "order_id", id)
                 if IsTrue(isTrigger) {
                     
-        response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params)))
+                        PanicOnError(response)
                 } else {
                     
-        response = (<-this.PrivatePostCancel(this.Extend(request, params)))
-                    PanicOnError(response)
+            response = (<-this.PrivatePostCancel(this.Extend(request, params)))
+                        PanicOnError(response)
                 }
             }
             //
@@ -1717,12 +1717,12 @@ func  (this *derive) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             if IsTrue(!IsEqual(market, nil)) {
                 AddElementToObject(request, "instrument_name", GetValue(market, "id"))
                 
-        response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostCancelAll(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostCancelAll(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2980,9 +2980,9 @@ func  (this *derive) HandleErrors(httpCode interface{}, reason interface{}, url 
     if !IsTrue(response) {
         return nil  // fallback to default error handler
     }
-    var error interface{} = this.SafeDict(response, "error")
-    if IsTrue(!IsEqual(error, nil)) {
-        var errorCode interface{} = this.SafeString(error, "code")
+    var err interface{} = this.SafeDict(response, "error")
+    if IsTrue(!IsEqual(err, nil)) {
+        var errorCode interface{} = this.SafeString(err, "code")
         var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
         this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

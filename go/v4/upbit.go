@@ -8,10 +8,10 @@ type upbit struct {
 
 }
 
-func NewUpbitCore() upbit {
-   p := upbit{}
-   setDefaults(&p)
-   return p
+func NewUpbitCore() *upbit {
+    p := &upbit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *upbit) Describe() interface{}  {
@@ -1295,12 +1295,12 @@ func  (this *upbit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
                 var numMinutes interface{} = MathRound(Divide(timeframePeriod, 60))
                 AddElementToObject(request, "unit", numMinutes)
                 
-        response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2716,12 +2716,12 @@ func  (this *upbit) Withdraw(code interface{}, amount interface{}, address inter
                 }
                 params = this.Omit(params, "network")
                 
-        response = (<-this.PrivatePostWithdrawsCoin(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostWithdrawsCoin(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostWithdrawsKrw(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostWithdrawsKrw(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
                 //
@@ -2815,10 +2815,10 @@ func  (this *upbit) HandleErrors(httpCode interface{}, reason interface{}, url i
     //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
     //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
     //
-    var error interface{} = this.SafeValue(response, "error")
-    if IsTrue(!IsEqual(error, nil)) {
-        var message interface{} = this.SafeString(error, "message")
-        var name interface{} = this.SafeString(error, "name")
+    var err interface{} = this.SafeValue(response, "error")
+    if IsTrue(!IsEqual(err, nil)) {
+        var message interface{} = this.SafeString(err, "message")
+        var name interface{} = this.SafeString(err, "name")
         var feedback interface{} = Add(Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), name, feedback)

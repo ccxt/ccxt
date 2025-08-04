@@ -8,10 +8,10 @@ type independentreserve struct {
 
 }
 
-func NewIndependentreserveCore() independentreserve {
-   p := independentreserve{}
-   setDefaults(&p)
-   return p
+func NewIndependentreserveCore() *independentreserve {
+    p := &independentreserve{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *independentreserve) Describe() interface{}  {
@@ -309,7 +309,7 @@ func  (this *independentreserve) FetchMarkets(optionalArgs ...interface{}) <- ch
                     var quoteId interface{} = GetValue(quoteCurrencies, j)
                     var quote interface{} = this.SafeCurrencyCode(quoteId)
                     var id interface{} = Add(Add(baseId, "/"), quoteId)
-                    AppendToArray(&result,map[string]interface{} {
+                    AppendToArray(&result, map[string]interface{} {
                         "id": id,
                         "symbol": Add(Add(base, "/"), quote),
                         "base": base,
@@ -1031,12 +1031,12 @@ func  (this *independentreserve) CreateOrder(symbol interface{}, typeVar interfa
             if IsTrue(IsEqual(typeVar, "limit")) {
                 AddElementToObject(request, "price", price)
                 
-        response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params)))
+                    PanicOnError(response)
             }
         
             ch <- this.SafeOrder(map[string]interface{} {
@@ -1311,7 +1311,7 @@ func  (this *independentreserve) Sign(path interface{}, optionalArgs ...interfac
         for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
             var key interface{} = GetValue(keys, i)
             var value interface{} = ToString(GetValue(params, key))
-            AppendToArray(&auth,Add(Add(key, "="), value))
+            AppendToArray(&auth, Add(Add(key, "="), value))
         }
         var message interface{} = Join(auth, ",")
         var signature interface{} = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)

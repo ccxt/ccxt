@@ -8,10 +8,10 @@ type coinone struct {
 
 }
 
-func NewCoinoneCore() coinone {
-   p := coinone{}
-   setDefaults(&p)
-   return p
+func NewCoinoneCore() *coinone {
+    p := &coinone{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinone) Describe() interface{}  {
@@ -369,7 +369,7 @@ func  (this *coinone) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var quoteId interface{} = this.SafeStringUpper(entry, "quote_currency")
                 var base interface{} = this.SafeCurrencyCode(baseId)
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -570,12 +570,12 @@ func  (this *coinone) FetchTickers(optionalArgs ...interface{}) <- chan interfac
                 AddElementToObject(request, "quote_currency", GetValue(market, "quote"))
                 AddElementToObject(request, "target_currency", GetValue(market, "base"))
                 
-        response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     {
