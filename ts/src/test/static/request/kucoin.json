@@ -699,14 +699,14 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "with spotEndpoint",
+                "description": "with spotLevel",
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=BTC-USDT",
                 "input": [
                     "BTC/USDT",
                     8,
                     {
-                        "spotEndpoint": "level2_100"
+                        "spotLevel": "level2_100"
                     }
                 ],
                 "output": null
