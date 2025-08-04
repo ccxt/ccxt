@@ -1,5 +1,5 @@
 import okcoinRest from '../okcoin.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okcoin extends okcoinRest {
     describe(): any;
@@ -86,6 +86,6 @@ export default class okcoin extends okcoinRest {
     handleAuthenticate(client: Client, message: any): any;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

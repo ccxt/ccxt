@@ -1995,7 +1995,7 @@ class htx extends htx$1 {
                 }
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

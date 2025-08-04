@@ -1353,7 +1353,9 @@ class bitvavo extends bitvavo$1 {
         }
         if (!rejected) {
             client.reject(message, messageHash);
+            return true;
         }
+        return undefined;
     }
     handleMessage(client, message) {
         //
