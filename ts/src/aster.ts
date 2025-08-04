@@ -110,14 +110,14 @@ export default class aster extends Exchange {
                 'fetchLastPrices': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
-                'fetchLeverage': true,
+                'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': true,
-                'fetchMarginMode': true,
+                'fetchMarginMode': 'emulated',
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -995,6 +995,9 @@ export default class aster extends Exchange {
         };
         if (limit !== undefined) {
             // limit: [5, 10, 20, 50, 100, 500, 1000]. Default: 500
+            if (limit > 1000) {
+                limit = 1000; // Default 500; max 1000.
+            }
             request['limit'] = limit;
         }
         const response = await this.publicGetFapiV1Depth (this.extend (request, params));
@@ -2119,22 +2122,6 @@ export default class aster extends Exchange {
 
     /**
      * @method
-     * @name aster#fetchLeverage
-     * @description fetch the set leverage for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-     */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const response = await this.fetchLeverages ([ symbol ], params);
-        return this.safeDict (response, symbol) as Leverage;
-    }
-
-    /**
-     * @method
      * @name aster#fetchLeverages
      * @description fetch the set leverage for all markets
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
@@ -2210,22 +2197,6 @@ export default class aster extends Exchange {
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
-    }
-
-    /**
-     * @method
-     * @name aster#fetchMarginMode
-     * @description fetches the margin mode of the trading pair
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
-     * @param {string} symbol unified symbol of the market to fetch the margin mode for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-     */
-    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const response = await this.fetchMarginModes ([ symbol ], params);
-        return this.safeDict (response, symbol) as MarginMode;
     }
 
     /**
