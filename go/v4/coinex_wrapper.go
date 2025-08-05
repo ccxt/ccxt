@@ -1589,6 +1589,39 @@ func (this *Coinex) FetchDepositWithdrawFee(code string, options ...FetchDeposit
 
 /**
  * @method
+ * @name coinex#fetchDepositWithdrawFees
+ * @description fetch the fees for deposits and withdrawals
+ * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+ * @param codes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
+func (this *Coinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+
+	opts := FetchDepositWithdrawFeesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes interface{} = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return (res).(map[string]interface{}), nil
+}
+
+/**
+ * @method
  * @name coinex#fetchLeverage
  * @description fetch the set leverage for a market
  * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
@@ -1831,9 +1864,6 @@ func (this *Coinex) FetchDepositAddressesByNetwork(code string, options ...Fetch
 }
 func (this *Coinex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Coinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coinex) FetchFreeBalance(params ...interface{}) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)

@@ -62,7 +62,7 @@ func (this *coinex) Describe() interface{} {
 			"fetchDepositAddressesByNetwork": false,
 			"fetchDeposits":                  true,
 			"fetchDepositWithdrawFee":        true,
-			"fetchDepositWithdrawFees":       false,
+			"fetchDepositWithdrawFees":       true,
 			"fetchFundingHistory":            true,
 			"fetchFundingInterval":           true,
 			"fetchFundingIntervals":          false,
@@ -5454,6 +5454,87 @@ func (this *coinex) FetchDepositWithdrawFee(code interface{}, optionalArgs ...in
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name coinex#fetchDepositWithdrawFees
+ * @description fetch the fees for deposits and withdrawals
+ * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+ * @param codes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
+func (this *coinex) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		codes := GetArg(optionalArgs, 0, nil)
+		_ = codes
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes56368 := (<-this.LoadMarkets())
+		PanicOnError(retRes56368)
+
+		response := (<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "code": 0,
+		//         "data": [
+		//             {
+		//                 "asset": {
+		//                     "ccy": "CET",
+		//                     "deposit_enabled": true,
+		//                     "withdraw_enabled": true,
+		//                     "inter_transfer_enabled": true,
+		//                     "is_st": false
+		//                 },
+		//                 "chains": [
+		//                     {
+		//                         "chain": "CSC",
+		//                         "min_deposit_amount": "0.8",
+		//                         "min_withdraw_amount": "8",
+		//                         "deposit_enabled": true,
+		//                         "withdraw_enabled": true,
+		//                         "deposit_delay_minutes": 0,
+		//                         "safe_confirmations": 10,
+		//                         "irreversible_confirmations": 20,
+		//                         "deflation_rate": "0",
+		//                         "withdrawal_fee": "0.026",
+		//                         "withdrawal_precision": 8,
+		//                         "memo": "",
+		//                         "is_memo_required_for_deposit": false,
+		//                         "explorer_asset_url": ""
+		//                     },
+		//                 ]
+		//             }
+		//         ],
+		//         "message": "OK"
+		//     }
+		//
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
+		var result interface{} = map[string]interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+			var item interface{} = GetValue(data, i)
+			var asset interface{} = this.SafeDict(item, "asset", map[string]interface{}{})
+			var currencyId interface{} = this.SafeString(asset, "ccy")
+			if IsTrue(IsEqual(currencyId, nil)) {
+				continue
+			}
+			var code interface{} = this.SafeCurrencyCode(currencyId)
+			if IsTrue(IsTrue(IsEqual(codes, nil)) || IsTrue(this.InArray(code, codes))) {
+				AddElementToObject(result, code, this.ParseDepositWithdrawFee(item))
+			}
+		}
+
+		ch <- result
+		return nil
+
+	}()
+	return ch
+}
 func (this *coinex) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...interface{}) interface{} {
 	//
 	//     {
@@ -5543,8 +5624,8 @@ func (this *coinex) FetchLeverage(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57068 := (<-this.LoadMarkets())
-		PanicOnError(retRes57068)
+		retRes57708 := (<-this.LoadMarkets())
+		PanicOnError(retRes57708)
 		var code interface{} = this.SafeString(params, "code")
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverage() requires a code parameter")))
@@ -5629,8 +5710,8 @@ func (this *coinex) FetchPositionHistory(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes57728 := (<-this.LoadMarkets())
-		PanicOnError(retRes57728)
+		retRes58368 := (<-this.LoadMarkets())
+		PanicOnError(retRes58368)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market_type": "FUTURES",
@@ -5725,8 +5806,8 @@ func (this *coinex) ClosePosition(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes58498 := (<-this.LoadMarkets())
-		PanicOnError(retRes58498)
+		retRes59138 := (<-this.LoadMarkets())
+		PanicOnError(retRes59138)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = this.SafeString(params, "type", "market")
 		var request interface{} = map[string]interface{}{
@@ -5971,8 +6052,8 @@ func (this *coinex) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes60558 := (<-this.LoadMarkets())
-		PanicOnError(retRes60558)
+		retRes61198 := (<-this.LoadMarkets())
+		PanicOnError(retRes61198)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory() requires a symbol argument")))
 		}
