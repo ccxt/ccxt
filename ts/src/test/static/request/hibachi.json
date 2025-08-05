@@ -2,6 +2,7 @@
     "exchange": "hibachi",
     "skipKeys": ["accountId", "signature", "nonce", "timestamp"],
     "options": {},
+    "outputType": "both",
     "methods": {
         "fetchPositions": [
             {
@@ -15,12 +16,13 @@
         "cancelOrder": [
             {
                 "description": "cancelOrder",
+                "disabledCS": true,
                 "method": "cancelOrder",
                 "url": "https://api.hibachi.xyz/trade/order",
                 "input": [
-                    "589562710433989632"
+                    "123"
                 ],
-                "output": "{\"accountId\":13787,\"orderId\":\"589562710433989632\",\"signature\":\"1714d09b8210f9d0915626a441b34c829db86e27fd0b0ee18e6aefa7e24d6eb1\"}"
+                "output": "{\"accountId\":13787,\"orderId\":\"123\",\"signature\":\"1714d09b8210f9d0915626a441b34c829db86e27fd0b0ee18e6aefa7e24d6eb1\"}"
             }
         ],
         "fetchOpenOrders": [
@@ -54,6 +56,7 @@
         ],
         "createOrder": [
             {
+                "disabledCS": true,
                 "description": "limit buy order",
                 "method": "createOrder",
                 "url": "https://api.hibachi.xyz/trade/order",
@@ -68,6 +71,7 @@
             },
             {
                 "description": "market buy order",
+                "disabledCS": true,
                 "method": "createOrder",
                 "url": "https://api.hibachi.xyz/trade/order",
                 "input": [
@@ -124,6 +128,5 @@
                 "output": null
             }
         ]
-  },
-    "outputType": "both"
+  }
 }
