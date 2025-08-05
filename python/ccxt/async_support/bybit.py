@@ -5857,7 +5857,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
+        accounts = await self.is_unified_enabled()
+        isUta = accounts[1]
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
+        if isUta:
+            accountType = 'UTA'
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
