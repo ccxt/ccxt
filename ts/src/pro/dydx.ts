@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import dydxRest from '../dydx.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Trade, Dict, OrderBook, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -19,7 +19,7 @@ export default class dydx extends dydxRest {
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
             },
             'urls': {
                 'test': {
@@ -214,6 +214,111 @@ export default class dydx extends dydxRest {
         }
     }
 
+    /**
+     * @method
+     * @name dydx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.dydx.xyz/indexer-client/websockets#candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const messageHash = 'ohlcv:' + market['symbol'];
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'type': 'subscribe',
+            'channel': 'v4_candles',
+            'id': market['id'] + '/' + resolution,
+        };
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        // {
+        //     "type": "subscribed",
+        //     "connection_id": "e00b6e27-590c-4e91-a24d-b0645289434b",
+        //     "message_id": 1,
+        //     "channel": "v4_candles",
+        //     "id": "BTC-USD/1MIN",
+        //     "contents": {
+        //         "candles": [
+        //             {
+        //                 "startedAt": "2025-08-05T03:40:00.000Z",
+        //                 "ticker": "BTC-USD",
+        //                 "resolution": "1MIN",
+        //                 "low": "114249",
+        //                 "high": "114256",
+        //                 "open": "114256",
+        //                 "close": "114249",
+        //                 "baseTokenVolume": "0.4726",
+        //                 "usdVolume": "53996.1818",
+        //                 "trades": 7,
+        //                 "startingOpenInterest": "501.7424",
+        //                 "orderbookMidPriceOpen": "114255.5",
+        //                 "orderbookMidPriceClose": "114255.5"
+        //             }
+        //         ]
+        //     }
+        // }
+        // {
+        //     "type": "channel_data",
+        //     "connection_id": "e00b6e27-590c-4e91-a24d-b0645289434b",
+        //     "message_id": 3,
+        //     "id": "BTC-USD/1MIN",
+        //     "channel": "v4_candles",
+        //     "version": "1.0.0",
+        //     "contents": {
+        //         "startedAt": "2025-08-05T03:40:00.000Z",
+        //         "ticker": "BTC-USD",
+        //         "resolution": "1MIN",
+        //         "low": "114249",
+        //         "high": "114262",
+        //         "open": "114256",
+        //         "close": "114261",
+        //         "baseTokenVolume": "0.4753",
+        //         "usdVolume": "54304.6873",
+        //         "trades": 9,
+        //         "startingOpenInterest": "501.7424",
+        //         "orderbookMidPriceOpen": "114255.5",
+        //         "orderbookMidPriceClose": "114255.5"
+        //     }
+        // }
+        //
+        const id = this.safeString (message, 'id');
+        const part = id.split ('/');
+        const interval = this.safeString (part, 1);
+        const timeframe = this.findTimeframe (interval);
+        const marketId = this.safeString (part, 0);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const content = this.safeDict (message, 'contents');
+        const candles = this.safeList (content, 'candles');
+        const messageHash = 'ohlcv:' + symbol;
+        const ohlcv = this.safeDict (candles, 0, content);
+        const parsed = this.parseOHLCV (ohlcv, market);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         // {
@@ -243,6 +348,7 @@ export default class dydx extends dydxRest {
             const methods: Dict = {
                 'v4_trades': this.handleTrades,
                 'v4_orderbook': this.handleOrderBook,
+                'v4_candles': this.handleOHLCV,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
