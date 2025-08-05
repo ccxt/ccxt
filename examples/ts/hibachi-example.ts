@@ -100,5 +100,38 @@ async function example () {
 
     const withdrawals = await exchange.fetchWithdrawals ();
     console.log ('fetchWithdrawals', withdrawals);
+
+    const timestamp = await exchange.fetchTime();
+    console.log('fetchTime', timestamp)
+
+    const openInterest = await exchange.fetchOpenInterest('BTC/USDT:USDT');
+    console.log('fetchOpenInterest', openInterest);
+
+    const fundingRate = await exchange.fetchFundingRate('BTC/USDT:USDT');
+    console.log('fetchFundingRate', fundingRate);
+
+    const fundingRateHistory = await exchange.fetchFundingRateHistory('BTC/USDT:USDT', undefined, 2);
+    console.log('fetchFundingRateHistory', fundingRateHistory);
+
+    // Batch orders
+    const createOrders = await exchange.createOrders([
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.234, 'price': 1.234},
+        {'symbol': 'BTC/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.001, 'price': 1.001},
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.002, 'price': 1.002},
+        {'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.003, 'price': 1.003},
+    ]);
+    console.log('createOrders', createOrders);
+    const editOrders = await exchange.editOrders([
+        // @ts-expect-error OrderRequest lacks `id` but we expects it for editing
+        {'id': createOrders[0].id, 'symbol': 'ETH/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.111, 'price': 0.999},
+        // @ts-expect-error OrderRequest lacks `id` but we expects it for editing
+        {'id': createOrders[1].id, 'symbol': 'BTC/USDT:USDT', 'type': 'limit', 'side': 'buy', 'amount': 1.112, 'price': 0.998},
+    ]);
+    console.log('editOrders', editOrders);
+    const cancelOrders = await exchange.cancelOrders([createOrders[0].id, createOrders[1].id]);
+    console.log('cancelOrders', cancelOrders);
+    const cancelAll = await exchange.cancelAllOrders('ETH/USDT:USDT');
+    console.log(cancelAll);
+
 }
 example ();
