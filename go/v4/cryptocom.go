@@ -1289,7 +1289,7 @@ func (this *cryptocom) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 			"instrument_name": GetValue(market, "id"),
 		}
 		if IsTrue(limit) {
-			AddElementToObject(request, "depth", limit)
+			AddElementToObject(request, "depth", mathMin(limit, 50)) // max 50
 		}
 
 		response := (<-this.V1PublicGetPublicGetBook(this.Extend(request, params)))
