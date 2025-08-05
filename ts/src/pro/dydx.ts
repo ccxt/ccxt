@@ -244,6 +244,31 @@ export default class dydx extends dydxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name dydx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.dydx.xyz/indexer-client/websockets#candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const messageHash = 'ohlcv:' + market['symbol'];
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'type': 'unsubscribe',
+            'channel': 'v4_candles',
+            'id': market['id'] + '/' + resolution,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         // {
