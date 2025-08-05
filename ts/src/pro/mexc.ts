@@ -709,7 +709,7 @@ export default class mexc extends mexcRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.spotLevel] if user want to use exchange's "partial orderbook" streams, then set this to one of: 5, 10, 20
-     * @param {object} [params.spotSpeed] update push speed in milliseconds: 10 or 100 (default is 10). the value is applicable only if partial-orderbook is not specifically used with spotLevel. for partial OB, the speed is not customizable and it's around 500ms
+     * @param {object} [params.spotSpeed] update push speed in milliseconds: 10 or 100 (default is 10). the value is applicable only if partial-orderbook is not specifically used with spotLevel. for partial orderBook stream, the speed is not customizable and it's around 500ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
