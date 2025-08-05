@@ -1146,9 +1146,9 @@ export default class hibachi extends Exchange {
         // {}
         //
         return [
-            {
+            this.safeOrder ({
                 'info': response,
-            },
+            }),
         ];
     }
 
