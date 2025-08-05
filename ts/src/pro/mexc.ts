@@ -708,6 +708,8 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.spotLevel] if user want to use exchange's "partial orderbook" streams, then set this to one of: 5, 10, 20
+     * @param {object} [params.spotSpeed] update push speed in milliseconds: 10 or 100 (default is 10). the value is applicable only if partial-orderbook is not specifically used with spotLevel. for partial OB, the speed is not customizable and it's around 500ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -717,7 +719,19 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            let channel = undefined;
+            let spotSpeed = undefined;
+            [ spotSpeed, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'spotSpeed', 10);
+            let spotLevel = undefined;
+            [ spotLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'spotLevel');
+            if (spotLevel !== undefined) {
+                this.checkRequiredArgument ('watchOrderBook', spotLevel, 'param.spotLevel', [ 5, 10, 20 ]);
+                channel = 'spot@public.limit.depth.v3.api@' + market['id'] + '@' + spotLevel.toString ();
+            } else {
+                // by default, use delta updates stream
+                this.checkRequiredArgument ('watchOrderBook', spotSpeed, 'param.spotSpeed', [ 10, 100 ]);
+                channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            }
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
