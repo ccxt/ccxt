@@ -2433,9 +2433,9 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.safe_order({
+        return [self.safe_order({
             'info': response,
-        })
+        })]
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #

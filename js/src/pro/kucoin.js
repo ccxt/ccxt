@@ -1410,6 +1410,7 @@ export default class kucoin extends kucoinRest {
             this.options['urls'][type] = undefined;
         }
         this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        return false;
     }
     handleMessage(client, message) {
         const type = this.safeString(message, 'type');

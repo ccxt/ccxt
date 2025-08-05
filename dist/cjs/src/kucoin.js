@@ -792,7 +792,7 @@ class kucoin extends kucoin$1 {
                     'TLOS': 'tlos',
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -912,6 +912,7 @@ class kucoin extends kucoin$1 {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -2692,7 +2693,7 @@ class kucoin extends kucoin$1 {
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const trigger = this.safeBool(params, 'stop', false);
+        const trigger = this.safeBool2(params, 'trigger', 'stop', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         params = this.omit(params, 'stop');
@@ -2721,7 +2722,7 @@ class kucoin extends kucoin$1 {
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

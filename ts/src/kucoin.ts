@@ -794,7 +794,7 @@ export default class kucoin extends Exchange {
                     'TLOS': 'tlos', // tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -914,6 +914,7 @@ export default class kucoin extends Exchange {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -2701,7 +2702,7 @@ export default class kucoin extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        const trigger = this.safeBool (params, 'stop', false);
+        const trigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         params = this.omit (params, 'stop');
@@ -2727,7 +2728,7 @@ export default class kucoin extends Exchange {
         } else {
             response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

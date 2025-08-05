@@ -47,16 +47,15 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     log_text = test_shared_methods.log_template(exchange, method, entry)
-    #
+    # check market
     market = None
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None and (symbol_for_market in exchange.markets):
         market = exchange.market(symbol_for_market)
-    exchange_has_index_markets = exchange.safe_bool(exchange.has, 'index', False)
-    is_standard_market = (market is not None and exchange.in_array(market['type'], ['spot', 'swap', 'future', 'option']))
     # only check "above zero" values if exchange is not supposed to have exotic index markets
-    values_should_be_positive = is_standard_market or (market is None and not exchange_has_index_markets)
-    if values_should_be_positive:
+    is_standard_market = (market is not None and exchange.in_array(market['type'], ['spot', 'swap', 'future', 'option']))
+    values_should_be_positive = is_standard_market  # || (market === undefined) atm, no check for index markets
+    if values_should_be_positive and not ('positiveValues' in skipped_properties):
         test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'open', '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'high', '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'low', '0')
@@ -70,14 +69,24 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'bidVolume', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'baseVolume', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'quoteVolume', '0')
+    #
+    # close price
+    #
     last_string = exchange.safe_string(entry, 'last')
     close_string = exchange.safe_string(entry, 'close')
     assert ((close_string is None) and (last_string is None)) or Precise.string_eq(last_string, close_string), '`last` != `close`' + log_text
-    base_volume = exchange.safe_string(entry, 'baseVolume')
-    quote_volume = exchange.safe_string(entry, 'quoteVolume')
-    high = exchange.safe_string(entry, 'high')
-    low = exchange.safe_string(entry, 'low')
+    open_price = exchange.safe_string(entry, 'open')
+    #
+    # base & quote volumes
+    #
+    base_volume = exchange.omit_zero(exchange.safe_string(entry, 'baseVolume'))
+    quote_volume = exchange.omit_zero(exchange.safe_string(entry, 'quoteVolume'))
+    high = exchange.omit_zero(exchange.safe_string(entry, 'high'))
+    low = exchange.omit_zero(exchange.safe_string(entry, 'low'))
+    open = exchange.omit_zero(exchange.safe_string(entry, 'open'))
+    close = exchange.omit_zero(exchange.safe_string(entry, 'close'))
     if not ('compareQuoteVolumeBaseVolume' in skipped_properties):
+        # assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); # No, exchanges might not report both values
         if (base_volume is not None) and (quote_volume is not None) and (high is not None) and (low is not None):
             base_low = Precise.string_mul(base_volume, low)
             base_high = Precise.string_mul(base_volume, high)
@@ -97,6 +106,17 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
             base_high = Precise.string_mul(base_high, tolerance)
             assert Precise.string_ge(quote_volume, base_low), 'quoteVolume should be => baseVolume * low' + log_text
             assert Precise.string_le(quote_volume, base_high), 'quoteVolume should be <= baseVolume * high' + log_text
+    # open and close should be between High & Low
+    if high is not None and low is not None and not ('compareOHLC' in skipped_properties):
+        if open is not None:
+            assert Precise.string_ge(open, low), 'open should be >= low' + log_text
+            assert Precise.string_le(open, high), 'open should be <= high' + log_text
+        if close is not None:
+            assert Precise.string_ge(close, low), 'close should be >= low' + log_text
+            assert Precise.string_le(close, high), 'close should be <= high' + log_text
+    #
+    # vwap
+    #
     vwap = exchange.safe_string(entry, 'vwap')
     if vwap is not None:
         # todo
@@ -113,6 +133,43 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     bid_string = exchange.safe_string(entry, 'bid')
     if (ask_string is not None) and (bid_string is not None) and not ('spread' in skipped_properties):
         test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', exchange.safe_string(entry, 'bid'))
+    percentage = exchange.safe_string(entry, 'percentage')
+    change = exchange.safe_string(entry, 'change')
+    if not ('maxIncrease' in skipped_properties):
+        #
+        # percentage
+        #
+        max_increase = '100'  # for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        if percentage is not None:
+            # - should be above -100 and below MAX
+            assert Precise.string_ge(percentage, '-100'), 'percentage should be above -100% ' + log_text
+            assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
+        #
+        # change
+        #
+        approx_value = exchange.safe_string_n(entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose'])
+        if change is not None:
+            # - should be between -price & +price*100
+            assert Precise.string_ge(change, Precise.string_neg(approx_value)), 'change should be above -price ' + log_text
+            assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
+    #
+    # ensure all expected values are defined
+    #
+    if last_string is not None:
+        if percentage is not None:
+            # if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
+            assert open_price is not None and change is not None, 'open & change should be defined if last & percentage are defined' + log_text  # todo : add average price too
+        elif change is not None:
+            # if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
+            assert open_price is not None and percentage is not None, 'open & percentage should be defined if last & change are defined' + log_text  # todo : add average price too
+    elif open_price is not None:
+        if percentage is not None:
+            # if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
+            assert last_string is not None and change is not None, 'last & change should be defined if open & percentage are defined' + log_text  # todo : add average price too
+        elif change is not None:
+            # if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
+            assert last_string is not None and percentage is not None, 'last & percentage should be defined if open & change are defined' + log_text  # todo : add average price too
+    #
     # todo: rethink about this
     # else {
     #    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);

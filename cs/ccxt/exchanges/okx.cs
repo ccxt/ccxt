@@ -695,6 +695,7 @@ public partial class okx : Exchange
                     { "51137", typeof(InvalidOrder) },
                     { "51138", typeof(InvalidOrder) },
                     { "51139", typeof(InvalidOrder) },
+                    { "51155", typeof(RestrictedLocation) },
                     { "51156", typeof(BadRequest) },
                     { "51159", typeof(BadRequest) },
                     { "51162", typeof(InvalidOrder) },
@@ -1050,7 +1051,9 @@ public partial class okx : Exchange
                 } },
                 { "createOrder", "privatePostTradeBatchOrders" },
                 { "createMarketBuyOrderRequiresPrice", false },
-                { "fetchMarkets", new List<object>() {"spot", "future", "swap", "option"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "future", "swap", "option"} },
+                } },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "defaultType", "spot" },
@@ -1470,7 +1473,15 @@ public partial class okx : Exchange
         {
             await this.loadTimeDifference();
         }
-        object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
+        object types = new List<object>() {"spot", "future", "swap", "option"};
+        object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOption, null)))
+        {
+            types = this.safeList(fetchMarketsOption, "types", types);
+        } else
+        {
+            types = this.safeList(this.options, "fetchMarkets", types); // backward-support
+        }
         object promises = new List<object>() {};
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
@@ -2625,13 +2636,13 @@ public partial class okx : Exchange
             // it may be incorrect to use total, free and used for swap accounts
             object eq = this.safeString(balance, "eq");
             object availEq = this.safeString(balance, "availEq");
-            if (isTrue(isTrue((isEqual(eq, null))) || isTrue((isEqual(availEq, null)))))
+            ((IDictionary<string,object>)account)["total"] = eq;
+            if (isTrue(isEqual(availEq, null)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availBal");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozenBal");
             } else
             {
-                ((IDictionary<string,object>)account)["total"] = eq;
                 ((IDictionary<string,object>)account)["free"] = availEq;
             }
             ((IDictionary<string,object>)result)[(string)code] = account;
@@ -3099,7 +3110,8 @@ public partial class okx : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
-                ((IDictionary<string,object>)request)["slTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                ((IDictionary<string,object>)request)["slTriggerPx"] = slTriggerPx;
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 object stopLossOrderType = this.safeString(stopLoss, "type");
                 if (isTrue(!isEqual(stopLossOrderType, null)))
@@ -3203,6 +3215,16 @@ public partial class okx : Exchange
             if (isTrue(twoWayCondition))
             {
                 ((IDictionary<string,object>)request)["ordType"] = "oco";
+            }
+            if (isTrue(isEqual(side, "sell")))
+            {
+                request = this.omit(request, "tgtCcy");
+            }
+            if (isTrue(isEqual(this.safeString(request, "tdMode"), "cash")))
+            {
+                // for some reason tdMode = cash throws
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                ((IDictionary<string,object>)request)["tdMode"] = marginMode;
             }
             if (isTrue(!isEqual(takeProfitPrice, null)))
             {
@@ -3584,7 +3606,7 @@ public partial class okx : Exchange
         if (isTrue(isTrue(trigger) || isTrue(trailing)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         object market = this.market(symbol);

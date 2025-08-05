@@ -1242,6 +1242,7 @@ class kucoinfutures extends kucoinfutures$1 {
             this.options['urls'][type] = undefined;
         }
         this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        return true;
     }
     handleSubscriptionStatus(client, message) {
         //

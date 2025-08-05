@@ -5920,7 +5920,7 @@ export default class htx extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**
@@ -6275,7 +6275,7 @@ export default class htx extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data');
-            return this.parseCancelOrders (data);
+            return this.parseCancelOrders (data) as Order[];
         }
     }
 
@@ -6945,13 +6945,18 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50) as FundingRateHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'contract_code': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        } else {
+            request['page_size'] = 50; // max
+        }
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));

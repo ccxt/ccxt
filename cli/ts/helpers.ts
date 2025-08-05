@@ -27,7 +27,8 @@ try {
         // local ccxt project
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
     } catch (ee) {
-        log.error ('Neither a local nor a global ccxt installation was detected, please do `npm i` first');
+        log.error (ee);
+        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
         process.exit (1);
     }
 }
@@ -456,11 +457,12 @@ async function loadSettingsAndCreateExchange (
 
     if (fs.existsSync (keysGlobal)) {
         allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
-    } else if (fs.existsSync (keysLocal)) {
-        allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
-    } else {
-    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
     }
+    if (fs.existsSync (keysLocal)) {
+        const localSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
+        allSettings = { ...allSettings, ...localSettings };
+    }
+    // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 
     const exchangeSettings = getExchangeSettings (exchangeId);
 

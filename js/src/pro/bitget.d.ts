@@ -1,5 +1,5 @@
 import bitgetRest from '../bitget.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 /**
  * @class bitget
@@ -238,7 +238,7 @@ export default class bitget extends bitgetRest {
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;

@@ -6576,12 +6576,16 @@ class htx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
+            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
             'contract_code': market['id'],
         }
+        if limit is not None:
+            request['page_size'] = limit
+        else:
+            request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))

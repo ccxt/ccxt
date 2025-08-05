@@ -165,3 +165,14 @@ func (this *Exchange) GetCache() *sync.Map {
 func (this *Exchange) GetItf() interface{} {
 	return this.Itf
 }
+
+func (this *Exchange) GetReturnResponseHeaders() bool {
+	return this.ReturnResponseHeaders
+}
+
+func (this *Exchange) SetReturnResponseHeaders(val interface{}) {
+	if val == nil {
+		return
+	}
+	this.ReturnResponseHeaders = val.(bool)
+}

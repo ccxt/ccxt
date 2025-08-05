@@ -1,5 +1,5 @@
 import deriveRest from '../derive.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class derive extends deriveRest {
     describe(): any;
@@ -94,7 +94,7 @@ export default class derive extends deriveRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleAuth(client: Client, message: any): void;
 }

@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -49,6 +49,17 @@ class bybit(ccxt.async_support.bybit):
                 'watchTrades': True,
                 'watchPositions': True,
                 'watchTradesForSymbols': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': True,
+                'unWatchOrders': True,
+                'unWatchPositions': True,
             },
             'urls': {
                 'api': {
@@ -859,7 +870,7 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the orderbook channel
 
@@ -1033,7 +1044,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the trades channel
 
@@ -1483,6 +1494,27 @@ class bybit(ccxt.async_support.bybit):
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
+
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches all open positions
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/position
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: status of the unwatch request
+        """
+        await self.load_markets()
+        method = 'watchPositions'
+        messageHash = 'unsubscribe:positions'
+        subHash = 'positions'
+        if not self.is_empty(symbols):
+            raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
+        url = await self.get_url_by_market_type(None, True, method, params)
+        await self.authenticate(url)
+        topics = ['position']
+        return await self.un_watch_topics(url, 'positions', symbols, [messageHash], [subHash], topics, params)
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
@@ -2083,7 +2115,7 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
         reqId = self.request_id()
         request: dict = {
             'op': 'unsubscribe',
@@ -2122,7 +2154,7 @@ class bybit(ccxt.async_support.bybit):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #   {
         #       "success": False,

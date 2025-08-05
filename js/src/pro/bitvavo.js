@@ -1356,7 +1356,9 @@ export default class bitvavo extends bitvavoRest {
         }
         if (!rejected) {
             client.reject(message, messageHash);
+            return true;
         }
+        return undefined;
     }
     handleMessage(client, message) {
         //

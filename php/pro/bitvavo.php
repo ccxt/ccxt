@@ -1431,7 +1431,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        $action => 'privateCreateOrder',
@@ -1461,7 +1461,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         if (!$rejected) {
             $client->reject ($message, $messageHash);
+            return true;
         }
+        return null;
     }
 
     public function handle_message(Client $client, $message) {

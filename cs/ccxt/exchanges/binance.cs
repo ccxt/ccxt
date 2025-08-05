@@ -458,6 +458,7 @@ public partial class binance : Exchange
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
                         { "portfolio/pmloan-history", 5 },
+                        { "portfolio/earn-asset-balance", 150 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -602,6 +603,7 @@ public partial class binance : Exchange
                         { "portfolio/repay-futures-negative-balance", 150 },
                         { "portfolio/mint", 20 },
                         { "portfolio/redeem", 20 },
+                        { "portfolio/earn-asset-transfer", 150 },
                         { "lending/auto-invest/plan/add", 0.1 },
                         { "lending/auto-invest/plan/edit", 0.1 },
                         { "lending/auto-invest/plan/edit-status", 0.1 },
@@ -858,6 +860,7 @@ public partial class binance : Exchange
                         } },
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
+                        { "insuranceBalance", 1 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -1297,7 +1300,9 @@ public partial class binance : Exchange
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
                 { "fetchMargins", true },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                } },
                 { "loadAllOptions", false },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
@@ -2652,15 +2657,18 @@ public partial class binance : Exchange
                 return getValue(markets, 0);
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "/"), -1))) && isTrue((isLessThan(getIndexOf(symbol, ":"), 0)))))
             {
-                // support legacy symbols
-                var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-                var bs = ((IList<object>) bsquoteVariable)[0];
-                var quote = ((IList<object>) bsquoteVariable)[1];
-                object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
-                object futuresSymbol = add(add(symbol, ":"), settle);
-                if (isTrue(inOp(this.markets, futuresSymbol)))
+                if (isTrue(isTrue((!isEqual(defaultType, null))) && isTrue((!isEqual(defaultType, "spot")))))
                 {
-                    return getValue(this.markets, futuresSymbol);
+                    // support legacy symbols
+                    var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                    var bs = ((IList<object>) bsquoteVariable)[0];
+                    var quote = ((IList<object>) bsquoteVariable)[1];
+                    object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
+                    object futuresSymbol = add(add(symbol, ":"), settle);
+                    if (isTrue(inOp(this.markets, futuresSymbol)))
+                    {
+                        return getValue(this.markets, futuresSymbol);
+                    }
                 }
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(symbol, "-P"), -1)))))
             {
@@ -3005,7 +3013,17 @@ public partial class binance : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object rawFetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
+        object rawFetchMarkets = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
+        {
+            rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
         // handle loadAllOptions option
         object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
         if (isTrue(loadAllOptions))
@@ -4041,29 +4059,52 @@ public partial class binance : Exchange
         //         "time": 1597370495002
         //     }
         //
-        //     {
-        //         "symbol": "ETHBTC",
-        //         "priceChange": "0.00068700",
-        //         "priceChangePercent": "2.075",
-        //         "weightedAvgPrice": "0.03342681",
-        //         "prevClosePrice": "0.03310300",
-        //         "lastPrice": "0.03378900",
-        //         "lastQty": "0.07700000",
-        //         "bidPrice": "0.03378900",
-        //         "bidQty": "7.16800000",
-        //         "askPrice": "0.03379000",
-        //         "askQty": "24.00000000",
-        //         "openPrice": "0.03310200",
-        //         "highPrice": "0.03388900",
-        //         "lowPrice": "0.03306900",
-        //         "volume": "205478.41000000",
-        //         "quoteVolume": "6868.48826294",
-        //         "openTime": 1601469986932,
-        //         "closeTime": 1601556386932,
-        //         "firstId": 196098772,
-        //         "lastId": 196186315,
-        //         "count": 87544
-        //     }
+        // spot - ticker
+        //
+        //    {
+        //        "symbol": "BTCUSDT",
+        //        "priceChange": "-188.18000000",
+        //        "priceChangePercent": "-0.159",
+        //        "weightedAvgPrice": "118356.64734074",
+        //        "lastPrice": "118449.03000000",
+        //        "prevClosePrice": "118637.22000000",    // field absent in rolling ticker
+        //        "lastQty": "0.00731000",                // field absent in rolling ticker
+        //        "bidPrice": "118449.02000000",          // field absent in rolling ticker
+        //        "bidQty": "7.15931000",                 // field absent in rolling ticker
+        //        "askPrice": "118449.03000000",          // field absent in rolling ticker
+        //        "askQty": "0.09592000",                 // field absent in rolling ticker
+        //        "openPrice": "118637.21000000",
+        //        "highPrice": "119273.36000000",
+        //        "lowPrice": "117427.50000000",
+        //        "volume": "14741.41491000",
+        //        "quoteVolume": "1744744445.80640740",
+        //        "openTime": "1753701474013",
+        //        "closeTime": "1753787874013",
+        //        "firstId": "5116031635",
+        //        "lastId": "5117964946",
+        //        "count": "1933312"
+        //    }
+        //
+        // usdm tickers
+        //
+        //    {
+        //        "symbol": "SUSDT",
+        //        "priceChange": "-0.0229000",
+        //        "priceChangePercent": "-6.777",
+        //        "weightedAvgPrice": "0.3210035",
+        //        "lastPrice": "0.3150000",
+        //        "lastQty": "16",
+        //        "openPrice": "0.3379000",
+        //        "highPrice": "0.3411000",
+        //        "lowPrice": "0.3071000",
+        //        "volume": "120588225",
+        //        "quoteVolume": "38709237.2289000",
+        //        "openTime": "1753701720000",
+        //        "closeTime": "1753788172414",
+        //        "firstId": "72234973",
+        //        "lastId": "72423677",
+        //        "count": "188700"
+        //    }
         //
         // coinm
         //
@@ -4449,12 +4490,26 @@ public partial class binance : Exchange
             response = await this.dapiPublicGetTicker24hr(parameters);
         } else if (isTrue(isEqual(type, "spot")))
         {
-            object request = new Dictionary<string, object>() {};
-            if (isTrue(!isEqual(symbols, null)))
+            object rolling = this.safeBool(parameters, "rolling", false);
+            parameters = this.omit(parameters, "rolling");
+            if (isTrue(rolling))
             {
-                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
+                symbols = this.marketSymbols(symbols);
+                object request = new Dictionary<string, object>() {
+                    { "symbols", this.json(this.marketIds(symbols)) },
+                };
+                response = await this.publicGetTicker(this.extend(request, parameters));
+                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
+                return this.parseTickersForRolling(response, symbols);
+            } else
+            {
+                object request = new Dictionary<string, object>() {};
+                if (isTrue(!isEqual(symbols, null)))
+                {
+                    ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
+                }
+                response = await this.publicGetTicker24hr(this.extend(request, parameters));
             }
-            response = await this.publicGetTicker24hr(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "option")))
         {
             response = await this.eapiPublicGetTicker(parameters);
@@ -4463,6 +4518,20 @@ public partial class binance : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
+    }
+
+    public virtual object parseTickersForRolling(object response, object symbols)
+    {
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object marketId = this.safeString(getValue(response, i), "symbol");
+            object tickerMarket = this.safeMarket(marketId, null, null, "spot");
+            object parsedTicker = this.parseTicker(getValue(response, i));
+            ((IDictionary<string,object>)parsedTicker)["symbol"] = getValue(tickerMarket, "symbol");
+            ((IList<object>)results).Add(parsedTicker);
+        }
+        return this.filterByArray(results, "symbol", symbols);
     }
 
     /**
