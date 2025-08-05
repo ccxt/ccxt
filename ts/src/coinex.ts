@@ -5629,10 +5629,11 @@ export default class coinex extends Exchange {
      * @name coinex#fetchDepositWithdrawFees
      * @description fetch the fees for deposits and withdrawals
      * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
         //
@@ -5680,7 +5681,9 @@ export default class coinex extends Exchange {
                 continue;
             }
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.parseDepositWithdrawFee (item);
+            if (codes === undefined || this.inArray (code, codes)) {
+                result[code] = this.parseDepositWithdrawFee (item);
+            }
         }
         return result;
     }
