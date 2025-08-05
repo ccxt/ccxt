@@ -1235,7 +1235,7 @@ export default class gate extends Exchange {
         }
         const rawPromises = [];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const defaultTypes = [ 'spot', 'linear', 'inverse', 'option' ];
+        const defaultTypes = [ 'spot', 'swap', 'future', 'option' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
         for (let i = 0; i < types.length; i++) {
