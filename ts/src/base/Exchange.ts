@@ -2157,6 +2157,15 @@ export default class Exchange {
         return -1;
     }
 
+    mergeArrays (arraysOfArrays: any[]) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            const entries = arraysOfArrays[i];
+            result = this.arrayConcat (result, entries);
+        }
+        return result;
+    }
+
     findTimeframe (timeframe, timeframes = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
