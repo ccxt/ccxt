@@ -23,7 +23,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21.x"
+          go-version: "1.24.x"
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
