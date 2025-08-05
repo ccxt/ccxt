@@ -19,6 +19,7 @@ type IExchange interface {
 	SetHttpProxy(httpProxy interface{})
 	SetCurrencies(currencies interface{})
 	SetPrivateKey(privateKey interface{})
+	SetAccountId(privateKey interface{})
 	SetWalletAddress(walletAddress interface{})
 	SetSecret(secret interface{})
 	SetUid(uid interface{})

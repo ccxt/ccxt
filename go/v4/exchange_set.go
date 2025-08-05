@@ -82,6 +82,10 @@ func (this *Exchange) SetPrivateKey(privateKey interface{}) {
 	this.PrivateKey = privateKey.(string)
 }
 
+func (this *Exchange) SetAccountId(accountId interface{}) {
+	this.AccountId = accountId.(string)
+}
+
 func (this *Exchange) SetWalletAddress(publicKey interface{}) {
 	this.WalletAddress = publicKey.(string)
 }
