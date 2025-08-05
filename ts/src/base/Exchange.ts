@@ -1050,7 +1050,7 @@ export default class Exchange {
         return [ undefined, undefined ];
     }
 
-    async marketsCacheSet (markets, currencies, params = {}) {
+    async marketsCacheSave (markets, currencies, params = {}) {
         const expiration = this.safeInteger (this.marketsCache, 'expiration', 0); // seconds
         // only write if user has enabled caching
         if (expiration) {
@@ -1087,7 +1087,7 @@ export default class Exchange {
             delete this.options['cachedCurrencies'];
         }
         // write new cache
-        await this.marketsCacheSet (markets, currencies, params);
+        await this.marketsCacheSave (markets, currencies, params);
         return this.setMarkets (markets, currencies);
     }
 
