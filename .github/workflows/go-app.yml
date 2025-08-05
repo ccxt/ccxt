@@ -59,7 +59,7 @@ jobs:
         working-directory: go/v4
       - name: Format go tests
         run: go fmt .
-        working-directory: go/tests
+        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
