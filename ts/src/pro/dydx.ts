@@ -63,6 +63,28 @@ export default class dydx extends dydxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name dydx#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://docs.dydx.xyz/indexer-client/websockets#trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const messageHash = 'trade:' + market['symbol'];
+        const request: Dict = {
+            'type': 'unsubscribe',
+            'channel': 'v4_trades',
+            'id': market['id'],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
     handleTrades (client, message) {
         //
         // {
@@ -158,6 +180,28 @@ export default class dydx extends dydxRest {
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name dydx#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.dydx.xyz/indexer-client/websockets#orders
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        const market = this.market (symbol);
+        const messageHash = 'orderbook:' + market['symbol'];
+        const request: Dict = {
+            'type': 'unsubscribe',
+            'channel': 'v4_orderbook',
+            'id': market['id'],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleOrderBook (client: Client, message) {
