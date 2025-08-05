@@ -2160,8 +2160,7 @@ export default class Exchange {
     mergeArrays (arraysOfArrays: any[]) {
         let result = [];
         for (let i = 0; i < arraysOfArrays.length; i++) {
-            const entries = arraysOfArrays[i];
-            result = this.arrayConcat (result, entries);
+            result = this.arrayConcat (result, arraysOfArrays[i]);
         }
         return result;
     }
