@@ -5632,7 +5632,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees (params = {}): Promise<Dict> {
+    async fetchDepositWithdrawFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
         //
