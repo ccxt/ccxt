@@ -55,7 +55,8 @@ jobs:
       - name: Build tests
         run: go -C go build ./tests/main.go
       - name: Format go files
-        run: go fmt -C go ./v4 ./tests/
+        run: go fmt v4 tests
+        working-directory: go
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
