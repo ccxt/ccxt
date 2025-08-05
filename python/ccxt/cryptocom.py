@@ -1134,7 +1134,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
         }
         if limit:
-            request['depth'] = limit
+            request['depth'] = min(limit, 50)  # max 50
         response = self.v1PublicGetPublicGetBook(self.extend(request, params))
         #
         #     {
