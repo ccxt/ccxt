@@ -1410,7 +1410,7 @@ export default class hibachi extends Exchange {
         const request = {
             'accountId': this.getAccountId (),
         };
-        const response = await this.privateGetTradeOrders (request);
+        const response = await this.privateGetTradeOrders (this.extend (request, params));
         // [
         //     {
         //         "accountId": 12452,
@@ -1439,7 +1439,7 @@ export default class hibachi extends Exchange {
         //         "totalQuantity": "1.234000000"
         //     }
         // ]
-        return this.parseOrders (response, market, since, limit, params);
+        return this.parseOrders (response, market, since, limit);
     }
 
     /**

@@ -1,6 +1,6 @@
 {
     "exchange": "hibachi",
-    "skipKeys": [],
+    "skipKeys": ["timestamp", "datetime"],
     "options": {},
     "methods": {
         "fetchPositions": [
