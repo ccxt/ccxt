@@ -1152,7 +1152,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    withdrawMessage (amount: number, maxFees: number, address: string) {
+    encodeWithdrawMessage (amount: number, maxFees: number, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)
@@ -1201,7 +1201,7 @@ export default class hibachi extends Exchange {
         const feeConfig = this.safeDict (exchangeInfo, 'feeConfig');
         const maxFees = this.safeNumber (feeConfig, 'withdrawalFees');
         // Generate the signature
-        const message = this.withdrawMessage (amount, maxFees, withdrawAddress);
+        const message = this.encodeWithdrawMessage (amount, maxFees, withdrawAddress);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
             'accountId': this.getAccountId (),
