@@ -1,6 +1,6 @@
 {
     "exchange": "hibachi",
-    "skipKeys": ["accountId", "signature"],
+    "skipKeys": ["accountId", "signature", "nonce", "timestamp"],
     "options": {},
     "methods": {
         "fetchPositions": [
