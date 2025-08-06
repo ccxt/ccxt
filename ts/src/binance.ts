@@ -2724,12 +2724,14 @@ export default class binance extends Exchange {
                 }
                 return markets[0];
             } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
-                // support legacy symbols
-                const [ base, quote ] = symbol.split ('/');
-                const settle = (quote === 'USD') ? base : quote;
-                const futuresSymbol = symbol + ':' + settle;
-                if (futuresSymbol in this.markets) {
-                    return this.markets[futuresSymbol];
+                if ((defaultType !== undefined) && (defaultType !== 'spot')) {
+                    // support legacy symbols
+                    const [ base, quote ] = symbol.split ('/');
+                    const settle = (quote === 'USD') ? base : quote;
+                    const futuresSymbol = symbol + ':' + settle;
+                    if (futuresSymbol in this.markets) {
+                        return this.markets[futuresSymbol];
+                    }
                 }
             } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
                 return this.createExpiredOptionMarket (symbol);

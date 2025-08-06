@@ -1170,7 +1170,7 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
             );
             if ($limit) {
-                $request['depth'] = $limit;
+                $request['depth'] = min ($limit, 50); // max 50
             }
             $response = Async\await($this->v1PublicGetPublicGetBook ($this->extend($request, $params)));
             //
