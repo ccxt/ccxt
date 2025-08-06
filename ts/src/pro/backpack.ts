@@ -174,7 +174,6 @@ export default class backpack extends backpackRest {
         const symbol = this.safeSymbol (marketId, market);
         const parsedTicker = this.parseWsTicker (ticker, market);
         const messageHash = 'ticker' + ':' + symbol;
-        console.log (messageHash);
         this.tickers[symbol] = parsedTicker;
         client.resolve (parsedTicker, messageHash);
     }
@@ -225,11 +224,104 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name backpack#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('bookTicker.' + marketId);
+            messageHashes.push ('bidask:' + symbol);
+        }
+        await this.watchPublic (topics, messageHashes, params);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         data: {
+        //             A: '0.4087',
+        //             B: '0.0020',
+        //             E: '1754517402450016',
+        //             T: '1754517402449064',
+        //             a: '3667.50',
+        //             b: '3667.49',
+        //             e: 'bookTicker',
+        //             s: 'ETH_USDC',
+        //             u: 1328288557
+        //         },
+        //         stream: 'bookTicker.ETH_USDC'
+        //     }
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const parsedBidAsk = this.parseWsBidAsk (data, market);
+        const messageHash = 'bidask' + ':' + symbol;
+        this.bidsasks[symbol] = parsedBidAsk;
+        client.resolve (parsedBidAsk, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        //
+        //     {
+        //         A: '0.4087',
+        //         B: '0.0020',
+        //         E: '1754517402450016',
+        //         T: '1754517402449064',
+        //         a: '3667.50',
+        //         b: '3667.49',
+        //         e: 'bookTicker',
+        //         s: 'ETH_USDC',
+        //         u: 1328288557
+        //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const microseconds = this.safeInteger (ticker, 'E');
+        const timestamp = this.parseToInt (microseconds / 1000);
+        const ask = this.safeString (ticker, 'a');
+        const askVolume = this.safeString (ticker, 'A');
+        const bid = this.safeString (ticker, 'b');
+        const bidVolume = this.safeString (ticker, 'B');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': ask,
+            'askVolume': askVolume,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'info': ticker,
+        }, market);
+    }
+
+    async test () {
+        const symbols = [ 'ETH/USDC' ];
+        const tickers = await this.watchBidsAsks (symbols);
+        const ticker = this.safeValue (tickers, 'ETH/USDC');
+        console.log (ticker);
+    }
+
     handleMessage (client: Client, message) {
         const data = this.safeValue (message, 'data');
         const event = this.safeString (data, 'e');
         const methods: Dict = {
             'ticker': this.handleTicker,
+            'bookTicker': this.handleBidAsk,
         };
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
