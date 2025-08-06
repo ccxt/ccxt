@@ -819,16 +819,28 @@ export default class hibachi extends Exchange {
         const quantityInternal = Precise.stringDiv (Precise.stringMul (amountStr, underlying), one, 0);
         const feeRateInternal = Precise.stringDiv (Precise.stringMul (feeRateStr, feeRateFactor), one, 0);
         // Encoding
-        const encodedNonce = this.base16ToBinary (this.intToBase16 (nonce).padStart (16, '0'));
-        const encodedMarketId = this.base16ToBinary (this.intToBase16 (this.safeInteger (market, 'numericId')).padStart (8, '0'));
-        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal)).padStart (16, '0'));
-        const encodedSide = this.base16ToBinary (this.intToBase16 (sideInternal).padStart (8, '0'));
-        const encodedFeeRate = this.base16ToBinary (this.intToBase16 (this.parseToInt (feeRateInternal)).padStart (16, '0'));
+        const nonce16 = this.intToBase16 (nonce);
+        const noncePadded = nonce16.padStart (16, '0');
+        const encodedNonce = this.base16ToBinary (noncePadded);
+        const numericId = this.intToBase16 (this.safeInteger (market, 'numericId'));
+        const numericIdPadded = numericId.padStart (8, '0');
+        const encodedMarketId = this.base16ToBinary (numericIdPadded);
+        const quantity16 = this.intToBase16 (this.parseToInt (quantityInternal));
+        const quantityPadded = quantity16.padStart (16, '0');
+        const encodedQuantity = this.base16ToBinary (quantityPadded);
+        const sideInternal16 = this.intToBase16 (sideInternal);
+        const sidePadded = sideInternal16.padStart (8, '0');
+        const encodedSide = this.base16ToBinary (sidePadded);
+        const feeRateInternal16 = this.intToBase16 (this.parseToInt (feeRateInternal));
+        const feeRatePadded = feeRateInternal16.padStart (16, '0');
+        const encodedFeeRate = this.base16ToBinary (feeRatePadded);
         let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
             const priceStr = this.priceToPrecision (this.safeString (market, 'symbol'), price);
             const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
-            encodedPrice = this.base16ToBinary (this.intToBase16 (this.parseToInt (priceInternal)).padStart (16, '0'));
+            const price16 = this.intToBase16 (this.parseToInt (priceInternal));
+            const pricePadded = price16.padStart (16, '0');
+            encodedPrice = this.base16ToBinary (pricePadded);
         }
         const message = this.binaryConcat (encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
@@ -1132,7 +1144,9 @@ export default class hibachi extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const nonce = this.nonce ();
-        const message = this.base16ToBinary (this.intToBase16 (this.parseToInt (nonce)).padStart (16, '0'));
+        const nonce16 = this.intToBase16 (nonce);
+        const noncePadded = nonce16.padStart (16, '0');
+        const message = this.base16ToBinary (noncePadded);
         const signature = this.signMessage (message, this.privateKey);
         const request: Dict = {
             'accountId': this.getAccountId (),
@@ -1168,9 +1182,15 @@ export default class hibachi extends Exchange {
         const quantityInternal = Precise.stringDiv (Precise.stringMul (amountStr, USDTFactor), one, 0);
         const maxFeesInternal = Precise.stringDiv (Precise.stringMul (maxFeesStr, USDTFactor), one, 0);
         // Encoding
-        const encodedAssetId = this.base16ToBinary (this.intToBase16 (USDTAssetId).padStart (8, '0'));
-        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal)).padStart (16, '0'));
-        const encodedMaxFees = this.base16ToBinary (this.intToBase16 (this.parseToInt (maxFeesInternal)).padStart (16, '0'));
+        const usdtAsset16 = this.intToBase16 (USDTAssetId);
+        const usdtAssetPadded = usdtAsset16.padStart (8, '0');
+        const encodedAssetId = this.base16ToBinary (usdtAssetPadded);
+        const quantity16 = this.intToBase16 (this.parseToInt (quantityInternal));
+        const quantityPadded = quantity16.padStart (16, '0');
+        const encodedQuantity = this.base16ToBinary (quantityPadded);
+        const maxFees16 = this.intToBase16 (this.parseToInt (maxFeesInternal));
+        const maxFeesPadded = maxFees16.padStart (16, '0');
+        const encodedMaxFees = this.base16ToBinary (maxFeesPadded);
         const encodedAddress = this.base16ToBinary (address);
         const message = this.binaryConcat (encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
         return message;
