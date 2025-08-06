@@ -82,6 +82,7 @@
         "cancelOrder": [
             {
                 "description": "cancelOrder",
+                "disabledPHP": true,
                 "method": "cancelOrder",
                 "input": [
                     "589562710433989632"
