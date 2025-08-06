@@ -1047,7 +1047,10 @@ export default class hibachi extends Exchange {
     }
 
     cancelOrderRequest (id: string) {
-        const message = this.base16ToBinary (this.intToBase16 (this.convertToBigInt (id)).padStart (16, '0'));
+        const bigid = this.convertToBigInt (id);
+        const idbase16 = this.intToBase16 (bigid);
+        const idPadded = idbase16.padStart (16, '0');
+        const message = this.base16ToBinary (idPadded);
         const signature = this.signMessage (message, this.privateKey);
         return {
             'orderId': id,
@@ -1249,7 +1252,7 @@ export default class hibachi extends Exchange {
     signMessage (message, privateKey) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return this.hmac (this.encode (message), this.encode (privateKey), sha256, 'hex');
+            return this.hmac (message, this.encode (privateKey), sha256, 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash (this.encode (message), sha256, 'hex');
