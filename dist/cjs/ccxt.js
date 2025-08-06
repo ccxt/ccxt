@@ -73,6 +73,7 @@ var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
 var hashkey = require('./src/hashkey.js');
+var hibachi = require('./src/hibachi.js');
 var hitbtc = require('./src/hitbtc.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
@@ -258,6 +259,7 @@ const exchanges = {
     'gateio': gateio,
     'gemini': gemini,
     'hashkey': hashkey,
+    'hibachi': hibachi,
     'hitbtc': hitbtc,
     'hollaex': hollaex,
     'htx': htx,
@@ -491,6 +493,7 @@ exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
 exports.hashkey = hashkey;
+exports.hibachi = hibachi;
 exports.hitbtc = hitbtc;
 exports.hollaex = hollaex;
 exports.htx = htx;
