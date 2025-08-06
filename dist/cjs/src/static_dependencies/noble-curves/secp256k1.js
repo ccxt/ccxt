@@ -10,7 +10,7 @@ var utils = require('./abstract/utils.js');
 var hashToCurve = require('./abstract/hash-to-curve.js');
 var _shortw_utils = require('./_shortw_utils.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 const secp256k1P = BigInt('0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f');
 const secp256k1N = BigInt('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141');
 const _1n = BigInt(1);

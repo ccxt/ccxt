@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var node_net = require('node:net');
 
-// ----------------------------------------------------------------------------
 /**
  * @external URL
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/URL|URL}
