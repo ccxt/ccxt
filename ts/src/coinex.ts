@@ -74,7 +74,7 @@ export default class coinex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
                 'fetchFundingIntervals': false,
@@ -729,6 +729,7 @@ export default class coinex extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
+                const networkCode = this.networkIdToCode (networkId, code);
                 if (networkId === undefined) {
                     continue;
                 }
@@ -740,7 +741,7 @@ export default class coinex extends Exchange {
                 const canWithdrawChain = this.safeBool (chain, 'withdraw_enabled');
                 const network: Dict = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'name': undefined,
                     'active': canDepositChain && canWithdrawChain,
                     'deposit': canDepositChain,
@@ -763,7 +764,7 @@ export default class coinex extends Exchange {
                     },
                     'info': chain,
                 };
-                networks[networkId] = network;
+                networks[networkCode] = network;
             }
             result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
@@ -5621,6 +5622,70 @@ export default class coinex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseDepositWithdrawFee (data, currency) as any;
+    }
+
+    /**
+     * @method
+     * @name coinex#fetchDepositWithdrawFees
+     * @description fetch the fees for deposits and withdrawals
+     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const asset = this.safeDict (item, 'asset', {});
+            const currencyId = this.safeString (asset, 'ccy');
+            if (currencyId === undefined) {
+                continue;
+            }
+            const code = this.safeCurrencyCode (currencyId);
+            if (codes === undefined || this.inArray (code, codes)) {
+                result[code] = this.parseDepositWithdrawFee (item);
+            }
+        }
+        return result;
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

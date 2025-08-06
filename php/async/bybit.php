@@ -6262,7 +6262,12 @@ class bybit extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $accountType = null;
+            $accounts = Async\await($this->is_unified_enabled());
+            $isUta = $accounts[1];
             list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
+            if ($isUta) {
+                $accountType = 'UTA';
+            }
             Async\await($this->load_markets());
             $this->check_address($address);
             $currency = $this->currency($code);
@@ -8523,7 +8528,7 @@ class bybit extends Exchange {
                 }
                 $symbol = $market['symbol'];
             }
-            $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params)));
+            $data = Async\await($this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 50 ), $params)));
             $symbols = $this->market_symbols($symbols);
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();

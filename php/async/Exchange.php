@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.96';
+$version = '4.4.98';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.96';
+    const VERSION = '4.4.98';
 
     public $browser;
     public $marketsLoading = null;
@@ -590,6 +590,17 @@ class Exchange extends \ccxt\Exchange {
                 'watchLiquidations' => null,
                 'watchLiquidationsForSymbols' => null,
                 'watchMyLiquidations' => null,
+                'unWatchOrders' => null,
+                'unWatchTrades' => null,
+                'unWatchTradesForSymbols' => null,
+                'unWatchOHLCVForSymbols' => null,
+                'unWatchOrderBookForSymbols' => null,
+                'unWatchPositions' => null,
+                'unWatchOrderBook' => null,
+                'unWatchTickers' => null,
+                'unWatchMyTrades' => null,
+                'unWatchTicker' => null,
+                'unWatchOHLCV' => null,
                 'watchMyLiquidationsForSymbols' => null,
                 'withdraw' => null,
                 'ws' => null,
@@ -1177,6 +1188,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function un_watch_positions(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -2357,18 +2372,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
-    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
-        /**
-         * calculates the presumptive fee that would be charged for an order
-         * @param {string} $symbol unified $market $symbol
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
-         * @param {string} $takerOrMaker 'taker' or 'maker'
-         * @param {array} $params
-         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
-         */
+    public function calculate_fee_with_rate(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', ?float $feeRate = null, $params = array ()) {
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -2402,7 +2406,7 @@ class Exchange extends \ccxt\Exchange {
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = $this->safe_string($market, $takerOrMaker);
+        $rate = ($feeRate !== null) ? $this->number_to_string($feeRate) : $this->safe_string($market, $takerOrMaker);
         $cost = Precise::string_mul($cost, $rate);
         return array(
             'type' => $takerOrMaker,
@@ -2410,6 +2414,21 @@ class Exchange extends \ccxt\Exchange {
             'rate' => $this->parse_number($rate),
             'cost' => $this->parse_number($cost),
         );
+    }
+
+    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the rate, the percentage multiplied to the order $amount to obtain the fee $amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
+        return $this->calculate_fee_with_rate($symbol, $type, $side, $amount, $price, $takerOrMaker, null, $params);
     }
 
     public function safe_liquidation(array $liquidation, ?array $market = null) {
@@ -2456,6 +2475,27 @@ class Exchange extends \ccxt\Exchange {
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
+    }
+
+    public function create_ccxt_trade_id($timestamp = null, $side = null, $amount = null, $price = null, $takerOrMaker = null) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        $id = null;
+        if ($timestamp !== null) {
+            $id = $this->number_to_string($timestamp);
+            if ($side !== null) {
+                $id .= '-' . $side;
+            }
+            if ($amount !== null) {
+                $id .= '-' . $this->number_to_string($amount);
+            }
+            if ($price !== null) {
+                $id .= '-' . $this->number_to_string($price);
+            }
+            if ($takerOrMaker !== null) {
+                $id .= '-' . $takerOrMaker;
+            }
+        }
+        return $id;
     }
 
     public function parsed_fee_and_fees(mixed $container) {
@@ -6009,7 +6049,7 @@ class Exchange extends \ccxt\Exchange {
             $calls = 0;
             $result = array();
             $errors = 0;
-            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
+            $until = $this->safe_integer_n($params, array( 'until', 'untill', 'till' )); // do not omit it from $params here
             list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
             if (($paginationDirection === 'forward')) {
                 if ($since === null) {
@@ -6707,6 +6747,16 @@ class Exchange extends \ccxt\Exchange {
                 $this->myTrades = null;
             } elseif ($topic === 'orders' && ($this->orders !== null)) {
                 $this->orders = null;
+            } elseif ($topic === 'positions' && ($this->positions !== null)) {
+                $this->positions = null;
+                $clients = is_array($this->clients) ? array_values($this->clients) : array();
+                for ($i = 0; $i < count($clients); $i++) {
+                    $client = $clients[$i];
+                    $futures = $this->safe_dict($client, 'futures');
+                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
+                        unset($futures['fetchPositionsSnapshot']);
+                    }
+                }
             } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {

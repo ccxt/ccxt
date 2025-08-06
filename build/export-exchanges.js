@@ -439,8 +439,53 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     }
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+    // certified exchanges are sorted according to the following order
+    const certifiedExchangesSortingOrder = [
+        'binance',
+        'binanceusdm',
+        'binancecoinm',
+        'bybit',
+        'okx',
+        'gate',
+        'kucoin',
+        'kucoinfutures',
+        'bitget',
+        'hyperliquid',
+        'bitmex',
+        'bingx',
+        'htx',
+        'mexc',
+        'bitmart',
+        'cryptocom',
+        'coinex',
+        'hashkey',
+        'woo',
+        'woofipro',
+    ]
+
+    let copyOfCertifiedExchanges = certifiedExchanges.slice (); // makes a new array with the same elements
+    let reorderedCertifiedExchanges = []
+    for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
+        const exchangeId = certifiedExchangesSortingOrder[i]
+        const index = copyOfCertifiedExchanges.findIndex (exchange => exchange.id == exchangeId)
+        if (index >= 0) {
+            const splicedExchanges = copyOfCertifiedExchanges.splice (index, 1)
+            const exchange = splicedExchanges[0]
+            reorderedCertifiedExchanges.push (exchange)
+        } else {
+            const errorMessage = exchangeId + ' not certified in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+        }
+    }
+    if (copyOfCertifiedExchanges.length > 0) {
+            const errorMessage = 'Not all certified exchanges listed in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+    }
+
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (reorderedCertifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const exchangePath of certifiedExchangesPaths) {

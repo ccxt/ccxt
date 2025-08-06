@@ -657,9 +657,8 @@ public partial class gate : Exchange
                     { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
-                    { "POLYGON", "POL" },
-                    { "MATIC", "POL" },
-                    { "OP", "OPETH" },
+                    { "POLYGON", "MATIC" },
+                    { "MATIC", "MATIC" },
                     { "OPTIMISM", "OPETH" },
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
@@ -4157,7 +4156,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(multiply(multiply(30, 24), 60), 60));
         }
-        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.privateWalletGetWithdrawals(this.extend(request, parameters));

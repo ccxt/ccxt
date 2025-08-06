@@ -209,8 +209,16 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
 - unWatch (stops background subscription for `watch`-ed methods)
   - `unWatchOrderBook`
   - `unWatchOrderBooksForSymbols`
-  - `unwatchTrades`
-  - etc ...
+  - `unWatchTrades`
+  - `unWatchTradesForSymbols`
+  - `unWatchOHLCVForSymbols`
+  - `unWatchOrderBookForSymbols`
+  - `unWatchPositions`
+  - `unWatchTickers`
+  - `unWatchMyTrades`
+  - `unWatchTicker`
+  - `unWatchOHLCV`
+  - `unWatchOrders`
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
