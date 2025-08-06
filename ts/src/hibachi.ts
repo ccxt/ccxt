@@ -4,7 +4,7 @@
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
-import { ecdsa, hmac } from './base/functions/crypto.js';
+import { ecdsa } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
@@ -1249,7 +1249,7 @@ export default class hibachi extends Exchange {
     signMessage (message, privateKey) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return hmac (message, privateKey, sha256, 'hex');
+            return this.hmac (message, privateKey, sha256, 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash (message, sha256, 'hex');
