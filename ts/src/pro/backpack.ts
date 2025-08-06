@@ -309,13 +309,6 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
-    async test () {
-        const symbols = [ 'ETH/USDC' ];
-        const tickers = await this.watchBidsAsks (symbols);
-        const ticker = this.safeValue (tickers, 'ETH/USDC');
-        console.log (ticker);
-    }
-
     handleMessage (client: Client, message) {
         const data = this.safeValue (message, 'data');
         const event = this.safeString (data, 'e');
