@@ -324,6 +324,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "hashkey":
 		itf := NewHashkey(options)
 		return itf
+	case "hibachi":
+		itf := NewHibachi(options)
+		return itf
 	case "hitbtc":
 		itf := NewHitbtc(options)
 		return itf

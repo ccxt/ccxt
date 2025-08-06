@@ -210,7 +210,7 @@ public partial class Exchange
         {
             if (key.ToLower() != "content-type")
             {
-                request.Headers.Add(key, headers[key].ToString());
+                request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
             else
             {

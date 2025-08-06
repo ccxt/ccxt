@@ -402,6 +402,7 @@ class Exchange {
         'gateio',
         'gemini',
         'hashkey',
+        'hibachi',
         'hitbtc',
         'hollaex',
         'htx',
