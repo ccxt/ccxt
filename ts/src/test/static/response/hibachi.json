@@ -1,6 +1,7 @@
 {
     "exchange": "hibachi",
     "skipKeys": ["timestamp", "datetime"],
+    "privateKey": "AF4Edn4Qf3/QH0pCYGaaagg+I2DhgL5YyjvlWlMx4iE=",
     "options": {},
     "methods": {
         "fetchPositions": [
