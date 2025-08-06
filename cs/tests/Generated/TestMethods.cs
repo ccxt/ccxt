@@ -1418,7 +1418,7 @@ public partial class testMainClass
             { "uid", "uid" },
             { "token", "token" },
             { "login", "login" },
-            { "accountId", "accountId" },
+            { "accountId", "12345" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },
