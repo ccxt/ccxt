@@ -114,7 +114,8 @@
                     "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
-                    "fee": null
+                    "fee": null,
+                    "info": {}
                 }
             }
         ],
