@@ -1249,10 +1249,10 @@ export default class hibachi extends Exchange {
     signMessage (message, privateKey) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return this.hmac (message, privateKey, sha256, 'hex');
+            return this.hmac (this.encode (message), this.encode (privateKey), sha256, 'hex');
         } else {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            const hash = this.hash (message, sha256, 'hex');
+            const hash = this.hash (this.encode (message), sha256, 'hex');
             const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
             const r = signature['r'];
             const s = signature['s'];
