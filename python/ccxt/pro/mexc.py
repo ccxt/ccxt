@@ -49,7 +49,7 @@ class mexc(ccxt.async_support.mexc):
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://wbs.mexc.com/ws',
+                        'spot': 'ws://wbs-api.mexc.com/ws',
                         'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
