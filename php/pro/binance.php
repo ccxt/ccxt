@@ -225,7 +225,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -4113,7 +4113,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -4130,9 +4130,6 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
-            if ($symbol === null) {
-                throw new BadRequest($this->id . ' fetchTradesWs () requires a $symbol argument');
-            }
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchTradesWs', $market, $params);
             if ($type !== 'spot' && $type !== 'future') {

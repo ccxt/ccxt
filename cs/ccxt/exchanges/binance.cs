@@ -2657,15 +2657,18 @@ public partial class binance : Exchange
                 return getValue(markets, 0);
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "/"), -1))) && isTrue((isLessThan(getIndexOf(symbol, ":"), 0)))))
             {
-                // support legacy symbols
-                var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-                var bs = ((IList<object>) bsquoteVariable)[0];
-                var quote = ((IList<object>) bsquoteVariable)[1];
-                object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
-                object futuresSymbol = add(add(symbol, ":"), settle);
-                if (isTrue(inOp(this.markets, futuresSymbol)))
+                if (isTrue(isTrue((!isEqual(defaultType, null))) && isTrue((!isEqual(defaultType, "spot")))))
                 {
-                    return getValue(this.markets, futuresSymbol);
+                    // support legacy symbols
+                    var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                    var bs = ((IList<object>) bsquoteVariable)[0];
+                    var quote = ((IList<object>) bsquoteVariable)[1];
+                    object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
+                    object futuresSymbol = add(add(symbol, ":"), settle);
+                    if (isTrue(inOp(this.markets, futuresSymbol)))
+                    {
+                        return getValue(this.markets, futuresSymbol);
+                    }
                 }
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(symbol, "-P"), -1)))))
             {

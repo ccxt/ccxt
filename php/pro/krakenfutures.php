@@ -238,7 +238,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1562,7 +1562,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        event => 'alert',
@@ -1574,6 +1574,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             throw new ExchangeError($this->id . ' ' . $errMsg);
         } catch (Exception $error) {
             $client->reject ($error);
+            return false;
         }
     }
 

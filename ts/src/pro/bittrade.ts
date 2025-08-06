@@ -4,7 +4,7 @@
 import bittradeRest from '../bittrade.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -564,7 +564,7 @@ export default class bittrade extends bittradeRest {
         this.spawn (this.pong, client, message);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "ts": 1586323747018,

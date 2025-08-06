@@ -667,8 +667,8 @@ export default class gate extends Exchange {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
+                    'POLYGON': 'MATIC',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',

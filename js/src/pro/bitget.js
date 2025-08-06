@@ -1560,7 +1560,7 @@ export default class bitget extends bitgetRest {
         [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
         if (market === undefined && type === 'spot') {
-            instType = 'SPOT';
+            instType = 'spot';
         }
         else {
             [instType, params] = this.getInstType(market, params);

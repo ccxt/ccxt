@@ -1317,6 +1317,26 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch the fees for deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>

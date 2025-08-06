@@ -1147,7 +1147,7 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
         };
         if (limit) {
-            request['depth'] = limit;
+            request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
         //

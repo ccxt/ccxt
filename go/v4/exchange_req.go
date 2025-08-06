@@ -47,11 +47,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 
 		if this.Verbose {
 			fmt.Println("Headers:", headersMap)
-			fmt.Println("\n\n")
+			fmt.Printf("\n\n\n")
 			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
-			fmt.Println("\n\n")
+			fmt.Printf("\n\n\n")
 			fmt.Printf("Body: %v\n", body)
-			fmt.Println("\n\n")
+			fmt.Printf("\n\n\n")
 		}
 
 		headersStrMap := make(map[string]string)
@@ -88,22 +88,22 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 				// }
 				req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(v))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			default:
 				requestBody, err := json.Marshal(body)
 				if err != nil {
-					panic(fmt.Sprintf("error marshalling JSON"))
+					panic("error marshalling JSON")
 				}
 				req, err = http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			}
 		} else {
 			req, err = http.NewRequest(methodStr, urlStr, nil)
 			if err != nil {
-				panic(fmt.Sprintf("error creating request"))
+				panic("error creating request")
 			}
 		}
 		// Create the HTTP request

@@ -890,6 +890,7 @@ class bitget extends bitget$1 {
                     // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
                     '4001': errors.ExchangeError,
                     '4002': errors.ExchangeError,
+                    '40020': errors.BadRequest,
                     // --------------------------------------------------------
                     '30001': errors.AuthenticationError,
                     '30002': errors.AuthenticationError,
@@ -1536,7 +1537,6 @@ class bitget extends bitget$1 {
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
                     // 'BEP20': 'BEP20', // different for BEP20
-                    'BSC': 'BEP20',
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
@@ -6445,6 +6445,10 @@ class bitget extends bitget$1 {
             }
         }
         const dataList = this.safeList(response, 'data', []);
+        const dataListLength = dataList.length;
+        if (dataListLength === 0) {
+            throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json(response));
+        }
         const first = this.safeDict(dataList, 0, {});
         return this.parseOrder(first, market);
         // const first = this.safeDict (data, 0, data);

@@ -1,5 +1,5 @@
 import bithumbRest from '../bithumb.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bithumb extends bithumbRest {
     describe(): any;
@@ -54,6 +54,6 @@ export default class bithumb extends bithumbRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: any, message: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }
