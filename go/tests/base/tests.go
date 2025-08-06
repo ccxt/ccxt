@@ -1520,7 +1520,7 @@ func (this *testMainClass) InitOfflineExchange(exchangeName interface{}) ccxt.IC
 		"uid":             "uid",
 		"token":           "token",
 		"login":           "login",
-		"accountId":       "accountId",
+		"accountId":       "12345",
 		"accounts": []interface{}{map[string]interface{}{
 			"id":   "myAccount",
 			"code": "USDT",

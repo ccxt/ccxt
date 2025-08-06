@@ -253,6 +253,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		hashkeyItf := &hashkey{}
 		hashkeyItf.Init(exchangeArgs)
 		return hashkeyItf, true
+	case "hibachi":
+		hibachiItf := &hibachi{}
+		hibachiItf.Init(exchangeArgs)
+		return hibachiItf, true
 	case "hitbtc":
 		hitbtcItf := &hitbtc{}
 		hitbtcItf.Init(exchangeArgs)
