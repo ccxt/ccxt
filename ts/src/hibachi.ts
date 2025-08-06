@@ -1083,12 +1083,13 @@ export default class hibachi extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const request: Dict = this.cancelOrderRequest (id);
         request['accountId'] = this.getAccountId ();
-        await this.privateDeleteTradeOrder (this.extend (request, params));
+        const response = await this.privateDeleteTradeOrder (this.extend (request, params));
         // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
         //
         // {}
         //
         return this.safeOrder ({
+            'info': response,
             'id': id,
             'status': 'canceled',
         });
