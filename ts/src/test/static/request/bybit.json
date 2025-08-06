@@ -1548,8 +1548,11 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw usdt on tron",
+                "description": "withdraw usdt on tron non uta",
                 "method": "withdraw",
+                "options": {
+                    "enableUnifiedAccount": false
+                },
                 "url": "https://api.bybit.com/v5/asset/withdraw/create",
                 "input": [
                   "USDT",

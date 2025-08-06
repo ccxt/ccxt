@@ -7,1238 +7,1238 @@
 
 package ccxt
 
-func (this *bybit) PublicGetSpotV3PublicSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicSymbols", args...)
+func (this *bybit) PublicGetSpotV3PublicSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicSymbols", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepth", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepth", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteDepthMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepthMerged", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteDepthMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteDepthMerged", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTrades", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTrades", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteKline", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteKline", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTicker24hr", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTicker24hr", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerPrice", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerPrice", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicQuoteTickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerBookTicker", args...)
+func (this *bybit) PublicGetSpotV3PublicQuoteTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicQuoteTickerBookTicker", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicServerTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicServerTime", args...)
+func (this *bybit) PublicGetSpotV3PublicServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicServerTime", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicInfos", args...)
+func (this *bybit) PublicGetSpotV3PublicInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicInfos", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicMarginProductInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicMarginProductInfos", args...)
+func (this *bybit) PublicGetSpotV3PublicMarginProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginProductInfos", args...)
 }
 
-func (this *bybit) PublicGetSpotV3PublicMarginEnsureTokens (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpotV3PublicMarginEnsureTokens", args...)
+func (this *bybit) PublicGetSpotV3PublicMarginEnsureTokens(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSpotV3PublicMarginEnsureTokens", args...)
 }
 
-func (this *bybit) PublicGetV3PublicTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV3PublicTime", args...)
+func (this *bybit) PublicGetV3PublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV3PublicTime", args...)
 }
 
-func (this *bybit) PublicGetContractV3PublicCopytradingSymbolList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetContractV3PublicCopytradingSymbolList", args...)
+func (this *bybit) PublicGetContractV3PublicCopytradingSymbolList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetContractV3PublicCopytradingSymbolList", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicOrderBookL2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicOrderBookL2", args...)
+func (this *bybit) PublicGetDerivativesV3PublicOrderBookL2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOrderBookL2", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicKline", args...)
+func (this *bybit) PublicGetDerivativesV3PublicKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicKline", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicTickers", args...)
+func (this *bybit) PublicGetDerivativesV3PublicTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicTickers", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicInstrumentsInfo", args...)
+func (this *bybit) PublicGetDerivativesV3PublicInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInstrumentsInfo", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicMarkPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicMarkPriceKline", args...)
+func (this *bybit) PublicGetDerivativesV3PublicMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicMarkPriceKline", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicIndexPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicIndexPriceKline", args...)
+func (this *bybit) PublicGetDerivativesV3PublicIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicIndexPriceKline", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicFundingHistoryFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicFundingHistoryFundingRate", args...)
+func (this *bybit) PublicGetDerivativesV3PublicFundingHistoryFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicFundingHistoryFundingRate", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicRiskLimitList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicRiskLimitList", args...)
+func (this *bybit) PublicGetDerivativesV3PublicRiskLimitList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRiskLimitList", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicDeliveryPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicDeliveryPrice", args...)
+func (this *bybit) PublicGetDerivativesV3PublicDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicDeliveryPrice", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicRecentTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicRecentTrade", args...)
+func (this *bybit) PublicGetDerivativesV3PublicRecentTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicRecentTrade", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicOpenInterest", args...)
+func (this *bybit) PublicGetDerivativesV3PublicOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicOpenInterest", args...)
 }
 
-func (this *bybit) PublicGetDerivativesV3PublicInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDerivativesV3PublicInsurance", args...)
+func (this *bybit) PublicGetDerivativesV3PublicInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDerivativesV3PublicInsurance", args...)
 }
 
-func (this *bybit) PublicGetV5AnnouncementsIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
+func (this *bybit) PublicGetV5AnnouncementsIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
 }
 
-func (this *bybit) PublicGetV5MarketTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketTime", args...)
+func (this *bybit) PublicGetV5MarketTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketTime", args...)
 }
 
-func (this *bybit) PublicGetV5MarketKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketKline", args...)
+func (this *bybit) PublicGetV5MarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketKline", args...)
 }
 
-func (this *bybit) PublicGetV5MarketMarkPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketMarkPriceKline", args...)
+func (this *bybit) PublicGetV5MarketMarkPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketMarkPriceKline", args...)
 }
 
-func (this *bybit) PublicGetV5MarketIndexPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketIndexPriceKline", args...)
+func (this *bybit) PublicGetV5MarketIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketIndexPriceKline", args...)
 }
 
-func (this *bybit) PublicGetV5MarketPremiumIndexPriceKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketPremiumIndexPriceKline", args...)
+func (this *bybit) PublicGetV5MarketPremiumIndexPriceKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketPremiumIndexPriceKline", args...)
 }
 
-func (this *bybit) PublicGetV5MarketInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketInstrumentsInfo", args...)
+func (this *bybit) PublicGetV5MarketInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketInstrumentsInfo", args...)
 }
 
-func (this *bybit) PublicGetV5MarketOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
+func (this *bybit) PublicGetV5MarketOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
 }
 
-func (this *bybit) PublicGetV5MarketTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketTickers", args...)
+func (this *bybit) PublicGetV5MarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketTickers", args...)
 }
 
-func (this *bybit) PublicGetV5MarketFundingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketFundingHistory", args...)
+func (this *bybit) PublicGetV5MarketFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketFundingHistory", args...)
 }
 
-func (this *bybit) PublicGetV5MarketRecentTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketRecentTrade", args...)
+func (this *bybit) PublicGetV5MarketRecentTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketRecentTrade", args...)
 }
 
-func (this *bybit) PublicGetV5MarketOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketOpenInterest", args...)
+func (this *bybit) PublicGetV5MarketOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketOpenInterest", args...)
 }
 
-func (this *bybit) PublicGetV5MarketHistoricalVolatility (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketHistoricalVolatility", args...)
+func (this *bybit) PublicGetV5MarketHistoricalVolatility(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketHistoricalVolatility", args...)
 }
 
-func (this *bybit) PublicGetV5MarketInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketInsurance", args...)
+func (this *bybit) PublicGetV5MarketInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketInsurance", args...)
 }
 
-func (this *bybit) PublicGetV5MarketRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketRiskLimit", args...)
+func (this *bybit) PublicGetV5MarketRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketRiskLimit", args...)
 }
 
-func (this *bybit) PublicGetV5MarketDeliveryPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
+func (this *bybit) PublicGetV5MarketDeliveryPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
 }
 
-func (this *bybit) PublicGetV5MarketAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
+func (this *bybit) PublicGetV5MarketAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
 }
 
-func (this *bybit) PublicGetV5SpotLeverTokenInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotLeverTokenInfo", args...)
+func (this *bybit) PublicGetV5SpotLeverTokenInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenInfo", args...)
 }
 
-func (this *bybit) PublicGetV5SpotLeverTokenReference (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotLeverTokenReference", args...)
+func (this *bybit) PublicGetV5SpotLeverTokenReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotLeverTokenReference", args...)
 }
 
-func (this *bybit) PublicGetV5SpotMarginTradeData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotMarginTradeData", args...)
+func (this *bybit) PublicGetV5SpotMarginTradeData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeData", args...)
 }
 
-func (this *bybit) PublicGetV5SpotMarginTradeCollateral (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotMarginTradeCollateral", args...)
+func (this *bybit) PublicGetV5SpotMarginTradeCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotMarginTradeCollateral", args...)
 }
 
-func (this *bybit) PublicGetV5SpotCrossMarginTradeData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeData", args...)
+func (this *bybit) PublicGetV5SpotCrossMarginTradeData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeData", args...)
 }
 
-func (this *bybit) PublicGetV5SpotCrossMarginTradePledgeToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradePledgeToken", args...)
+func (this *bybit) PublicGetV5SpotCrossMarginTradePledgeToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradePledgeToken", args...)
 }
 
-func (this *bybit) PublicGetV5SpotCrossMarginTradeBorrowToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeBorrowToken", args...)
+func (this *bybit) PublicGetV5SpotCrossMarginTradeBorrowToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5SpotCrossMarginTradeBorrowToken", args...)
 }
 
-func (this *bybit) PublicGetV5CryptoLoanCollateralData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5CryptoLoanCollateralData", args...)
+func (this *bybit) PublicGetV5CryptoLoanCollateralData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanCollateralData", args...)
 }
 
-func (this *bybit) PublicGetV5CryptoLoanLoanableData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5CryptoLoanLoanableData", args...)
+func (this *bybit) PublicGetV5CryptoLoanLoanableData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5CryptoLoanLoanableData", args...)
 }
 
-func (this *bybit) PublicGetV5InsLoanProductInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5InsLoanProductInfos", args...)
+func (this *bybit) PublicGetV5InsLoanProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5InsLoanProductInfos", args...)
 }
 
-func (this *bybit) PublicGetV5InsLoanEnsureTokensConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5InsLoanEnsureTokensConvert", args...)
+func (this *bybit) PublicGetV5InsLoanEnsureTokensConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5InsLoanEnsureTokensConvert", args...)
 }
 
-func (this *bybit) PublicGetV5EarnProduct (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV5EarnProduct", args...)
+func (this *bybit) PublicGetV5EarnProduct(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV5EarnProduct", args...)
 }
 
-func (this *bybit) PrivateGetV5MarketInstrumentsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
+func (this *bybit) PrivateGetV5MarketInstrumentsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
 }
 
-func (this *bybit) PrivateGetV2PrivateWalletFundRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV2PrivateWalletFundRecords", args...)
+func (this *bybit) PrivateGetV2PrivateWalletFundRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV2PrivateWalletFundRecords", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
+func (this *bybit) PrivateGetSpotV3PrivateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOrder", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
+func (this *bybit) PrivateGetSpotV3PrivateOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateOpenOrders", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateHistoryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
+func (this *bybit) PrivateGetSpotV3PrivateHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateHistoryOrders", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateMyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
+func (this *bybit) PrivateGetSpotV3PrivateMyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMyTrades", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
+func (this *bybit) PrivateGetSpotV3PrivateAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateAccount", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateReference (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
+func (this *bybit) PrivateGetSpotV3PrivateReference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateReference", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
+func (this *bybit) PrivateGetSpotV3PrivateRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateRecord", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginOrders", args...)
+func (this *bybit) PrivateGetSpotV3PrivateCrossMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginOrders", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginAccount", args...)
+func (this *bybit) PrivateGetSpotV3PrivateCrossMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginAccount", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginLoanInfo", args...)
+func (this *bybit) PrivateGetSpotV3PrivateCrossMarginLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginLoanInfo", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateCrossMarginRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginRepayHistory", args...)
+func (this *bybit) PrivateGetSpotV3PrivateCrossMarginRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateCrossMarginRepayHistory", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateMarginLoanInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginLoanInfos", args...)
+func (this *bybit) PrivateGetSpotV3PrivateMarginLoanInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLoanInfos", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateMarginRepaidInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginRepaidInfos", args...)
+func (this *bybit) PrivateGetSpotV3PrivateMarginRepaidInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginRepaidInfos", args...)
 }
 
-func (this *bybit) PrivateGetSpotV3PrivateMarginLtv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotV3PrivateMarginLtv", args...)
+func (this *bybit) PrivateGetSpotV3PrivateMarginLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotV3PrivateMarginLtv", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferInterTransferListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferInterTransferListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferInterTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferInterTransferListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferSubMemberTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferSubMemberTransferListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferUniversalTransferListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferUniversalTransferListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferUniversalTransferListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateCoinInfoQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateCoinInfoQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateCoinInfoQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateCoinInfoQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateDepositAddressQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateDepositAddressQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateDepositAddressQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositAddressQuery", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateCopytradingOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingOrderList", args...)
+func (this *bybit) PrivateGetContractV3PrivateCopytradingOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingOrderList", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateCopytradingPositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingPositionList", args...)
+func (this *bybit) PrivateGetContractV3PrivateCopytradingPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingPositionList", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateCopytradingWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateCopytradingWalletBalance", args...)
+func (this *bybit) PrivateGetContractV3PrivateCopytradingWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateCopytradingWalletBalance", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivatePositionLimitInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionLimitInfo", args...)
+func (this *bybit) PrivateGetContractV3PrivatePositionLimitInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionLimitInfo", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateOrderUnfilledOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateOrderUnfilledOrders", args...)
+func (this *bybit) PrivateGetContractV3PrivateOrderUnfilledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderUnfilledOrders", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateOrderList", args...)
+func (this *bybit) PrivateGetContractV3PrivateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateOrderList", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivatePositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionList", args...)
+func (this *bybit) PrivateGetContractV3PrivatePositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionList", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateExecutionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateExecutionList", args...)
+func (this *bybit) PrivateGetContractV3PrivateExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateExecutionList", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivatePositionClosedPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivatePositionClosedPnl", args...)
+func (this *bybit) PrivateGetContractV3PrivatePositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivatePositionClosedPnl", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateAccountWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletBalance", args...)
+func (this *bybit) PrivateGetContractV3PrivateAccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletBalance", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateAccountFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountFeeRate", args...)
+func (this *bybit) PrivateGetContractV3PrivateAccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountFeeRate", args...)
 }
 
-func (this *bybit) PrivateGetContractV3PrivateAccountWalletFundRecords (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletFundRecords", args...)
+func (this *bybit) PrivateGetContractV3PrivateAccountWalletFundRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContractV3PrivateAccountWalletFundRecords", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateOrderUnfilledOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderUnfilledOrders", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateOrderUnfilledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderUnfilledOrders", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderList", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateOrderList", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivatePositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivatePositionList", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivatePositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivatePositionList", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateExecutionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateExecutionList", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateExecutionList", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateDeliveryRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateDeliveryRecord", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateDeliveryRecord", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateSettlementRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateSettlementRecord", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateSettlementRecord", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountWalletBalance", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateAccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountWalletBalance", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountTransactionLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountTransactionLog", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateAccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountTransactionLog", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowHistory", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowHistory", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowRate", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateAccountBorrowRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountBorrowRate", args...)
 }
 
-func (this *bybit) PrivateGetUnifiedV3PrivateAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountInfo", args...)
+func (this *bybit) PrivateGetUnifiedV3PrivateAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnifiedV3PrivateAccountInfo", args...)
 }
 
-func (this *bybit) PrivateGetUserV3PrivateFrozenSubMember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserV3PrivateFrozenSubMember", args...)
+func (this *bybit) PrivateGetUserV3PrivateFrozenSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateFrozenSubMember", args...)
 }
 
-func (this *bybit) PrivateGetUserV3PrivateQuerySubMembers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserV3PrivateQuerySubMembers", args...)
+func (this *bybit) PrivateGetUserV3PrivateQuerySubMembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateQuerySubMembers", args...)
 }
 
-func (this *bybit) PrivateGetUserV3PrivateQueryApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserV3PrivateQueryApi", args...)
+func (this *bybit) PrivateGetUserV3PrivateQueryApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateQueryApi", args...)
 }
 
-func (this *bybit) PrivateGetUserV3PrivateGetMemberType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserV3PrivateGetMemberType", args...)
+func (this *bybit) PrivateGetUserV3PrivateGetMemberType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserV3PrivateGetMemberType", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferTransferCoinListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferTransferCoinListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferTransferCoinListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferTransferCoinListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinBalanceQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinBalanceQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateTransferAssetInfoQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateTransferAssetInfoQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateTransferAssetInfoQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateTransferAssetInfoQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PublicDepositAllowedDepositListQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
+func (this *bybit) PrivateGetAssetV3PublicDepositAllowedDepositListQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PublicDepositAllowedDepositListQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateDepositRecordQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateDepositRecordQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateDepositRecordQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateDepositRecordQuery", args...)
 }
 
-func (this *bybit) PrivateGetAssetV3PrivateWithdrawRecordQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetV3PrivateWithdrawRecordQuery", args...)
+func (this *bybit) PrivateGetAssetV3PrivateWithdrawRecordQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetV3PrivateWithdrawRecordQuery", args...)
 }
 
-func (this *bybit) PrivateGetV5OrderRealtime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5OrderRealtime", args...)
+func (this *bybit) PrivateGetV5OrderRealtime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderRealtime", args...)
 }
 
-func (this *bybit) PrivateGetV5OrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5OrderHistory", args...)
+func (this *bybit) PrivateGetV5OrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5OrderSpotBorrowCheck (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5OrderSpotBorrowCheck", args...)
+func (this *bybit) PrivateGetV5OrderSpotBorrowCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5OrderSpotBorrowCheck", args...)
 }
 
-func (this *bybit) PrivateGetV5PositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PositionList", args...)
+func (this *bybit) PrivateGetV5PositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionList", args...)
 }
 
-func (this *bybit) PrivateGetV5ExecutionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5ExecutionList", args...)
+func (this *bybit) PrivateGetV5ExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5ExecutionList", args...)
 }
 
-func (this *bybit) PrivateGetV5PositionClosedPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
+func (this *bybit) PrivateGetV5PositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
 }
 
-func (this *bybit) PrivateGetV5PositionMoveHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
+func (this *bybit) PrivateGetV5PositionMoveHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradeOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradeOrderHistory", args...)
+func (this *bybit) PrivateGetV5PreUpgradeOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeOrderHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradeExecutionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradeExecutionList", args...)
+func (this *bybit) PrivateGetV5PreUpgradeExecutionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeExecutionList", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradePositionClosedPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradePositionClosedPnl", args...)
+func (this *bybit) PrivateGetV5PreUpgradePositionClosedPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradePositionClosedPnl", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradeAccountTransactionLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAccountTransactionLog", args...)
+func (this *bybit) PrivateGetV5PreUpgradeAccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAccountTransactionLog", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradeAssetDeliveryRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAssetDeliveryRecord", args...)
+func (this *bybit) PrivateGetV5PreUpgradeAssetDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetDeliveryRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5PreUpgradeAssetSettlementRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5PreUpgradeAssetSettlementRecord", args...)
+func (this *bybit) PrivateGetV5PreUpgradeAssetSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5PreUpgradeAssetSettlementRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountWalletBalance", args...)
+func (this *bybit) PrivateGetV5AccountWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountWalletBalance", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
+func (this *bybit) PrivateGetV5AccountBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountBorrowHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountCollateralInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
+func (this *bybit) PrivateGetV5AccountCollateralInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetCoinGreeks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
+func (this *bybit) PrivateGetV5AssetCoinGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountFeeRate", args...)
+func (this *bybit) PrivateGetV5AccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountFeeRate", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountInfo", args...)
+func (this *bybit) PrivateGetV5AccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountTransactionLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
+func (this *bybit) PrivateGetV5AccountTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountTransactionLog", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountContractTransactionLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
+func (this *bybit) PrivateGetV5AccountContractTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountSmpGroup (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
+func (this *bybit) PrivateGetV5AccountSmpGroup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountMmpState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountMmpState", args...)
+func (this *bybit) PrivateGetV5AccountMmpState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountMmpState", args...)
 }
 
-func (this *bybit) PrivateGetV5AccountWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
+func (this *bybit) PrivateGetV5AccountWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetExchangeQueryCoinList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
+func (this *bybit) PrivateGetV5AssetExchangeQueryCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryCoinList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetExchangeConvertResultQuery (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
+func (this *bybit) PrivateGetV5AssetExchangeConvertResultQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeConvertResultQuery", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetExchangeQueryConvertHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
+func (this *bybit) PrivateGetV5AssetExchangeQueryConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeQueryConvertHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetExchangeOrderRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
+func (this *bybit) PrivateGetV5AssetExchangeOrderRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDeliveryRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDeliveryRecord", args...)
+func (this *bybit) PrivateGetV5AssetDeliveryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDeliveryRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetSettlementRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetSettlementRecord", args...)
+func (this *bybit) PrivateGetV5AssetSettlementRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetSettlementRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryAssetInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAssetInfo", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryAssetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAssetInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinsBalance", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinsBalance", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinBalance", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryAccountCoinBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryAccountCoinBalance", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryTransferCoinList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryTransferCoinList", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryTransferCoinList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryTransferCoinList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryInterTransferList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryInterTransferList", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryInterTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryInterTransferList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQuerySubMemberList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQuerySubMemberList", args...)
+func (this *bybit) PrivateGetV5AssetTransferQuerySubMemberList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQuerySubMemberList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetTransferQueryUniversalTransferList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetTransferQueryUniversalTransferList", args...)
+func (this *bybit) PrivateGetV5AssetTransferQueryUniversalTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetTransferQueryUniversalTransferList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQueryAllowedList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryAllowedList", args...)
+func (this *bybit) PrivateGetV5AssetDepositQueryAllowedList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAllowedList", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQueryRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryRecord", args...)
+func (this *bybit) PrivateGetV5AssetDepositQueryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberRecord", args...)
+func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQueryInternalRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryInternalRecord", args...)
+func (this *bybit) PrivateGetV5AssetDepositQueryInternalRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryInternalRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQueryAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQueryAddress", args...)
+func (this *bybit) PrivateGetV5AssetDepositQueryAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQueryAddress", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberAddress", args...)
+func (this *bybit) PrivateGetV5AssetDepositQuerySubMemberAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetDepositQuerySubMemberAddress", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetCoinQueryInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
+func (this *bybit) PrivateGetV5AssetCoinQueryInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetCoinQueryInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetWithdrawQueryRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
+func (this *bybit) PrivateGetV5AssetWithdrawQueryRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawQueryRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetWithdrawWithdrawableAmount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawWithdrawableAmount", args...)
+func (this *bybit) PrivateGetV5AssetWithdrawWithdrawableAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawWithdrawableAmount", args...)
 }
 
-func (this *bybit) PrivateGetV5AssetWithdrawVaspList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
+func (this *bybit) PrivateGetV5AssetWithdrawVaspList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
 }
 
-func (this *bybit) PrivateGetV5UserQuerySubMembers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserQuerySubMembers", args...)
+func (this *bybit) PrivateGetV5UserQuerySubMembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserQuerySubMembers", args...)
 }
 
-func (this *bybit) PrivateGetV5UserQueryApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserQueryApi", args...)
+func (this *bybit) PrivateGetV5UserQueryApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserQueryApi", args...)
 }
 
-func (this *bybit) PrivateGetV5UserSubApikeys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserSubApikeys", args...)
+func (this *bybit) PrivateGetV5UserSubApikeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserSubApikeys", args...)
 }
 
-func (this *bybit) PrivateGetV5UserGetMemberType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserGetMemberType", args...)
+func (this *bybit) PrivateGetV5UserGetMemberType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserGetMemberType", args...)
 }
 
-func (this *bybit) PrivateGetV5UserAffCustomerInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserAffCustomerInfo", args...)
+func (this *bybit) PrivateGetV5UserAffCustomerInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserAffCustomerInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5UserDelSubmember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserDelSubmember", args...)
+func (this *bybit) PrivateGetV5UserDelSubmember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserDelSubmember", args...)
 }
 
-func (this *bybit) PrivateGetV5UserSubmembers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
+func (this *bybit) PrivateGetV5UserSubmembers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
 }
 
-func (this *bybit) PrivateGetV5AffiliateAffUserList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
+func (this *bybit) PrivateGetV5AffiliateAffUserList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotLeverTokenOrderRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
+func (this *bybit) PrivateGetV5SpotLeverTokenOrderRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotLeverTokenOrderRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotMarginTradeInterestRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
+func (this *bybit) PrivateGetV5SpotMarginTradeInterestRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeInterestRateHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotMarginTradeState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
+func (this *bybit) PrivateGetV5SpotMarginTradeState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeState", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeLoanInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeLoanInfo", args...)
+func (this *bybit) PrivateGetV5SpotCrossMarginTradeLoanInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeLoanInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeAccount", args...)
+func (this *bybit) PrivateGetV5SpotCrossMarginTradeAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeAccount", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeOrders", args...)
+func (this *bybit) PrivateGetV5SpotCrossMarginTradeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeOrders", args...)
 }
 
-func (this *bybit) PrivateGetV5SpotCrossMarginTradeRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeRepayHistory", args...)
+func (this *bybit) PrivateGetV5SpotCrossMarginTradeRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5SpotCrossMarginTradeRepayHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanBorrowableCollateralisableNumber", args...)
+func (this *bybit) PrivateGetV5CryptoLoanBorrowableCollateralisableNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowableCollateralisableNumber", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanOngoingOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanOngoingOrders", args...)
+func (this *bybit) PrivateGetV5CryptoLoanOngoingOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanOngoingOrders", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanRepaymentHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanRepaymentHistory", args...)
+func (this *bybit) PrivateGetV5CryptoLoanRepaymentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanRepaymentHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanBorrowHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanBorrowHistory", args...)
+func (this *bybit) PrivateGetV5CryptoLoanBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanBorrowHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanMaxCollateralAmount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanMaxCollateralAmount", args...)
+func (this *bybit) PrivateGetV5CryptoLoanMaxCollateralAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanMaxCollateralAmount", args...)
 }
 
-func (this *bybit) PrivateGetV5CryptoLoanAdjustmentHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5CryptoLoanAdjustmentHistory", args...)
+func (this *bybit) PrivateGetV5CryptoLoanAdjustmentHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5CryptoLoanAdjustmentHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5InsLoanProductInfos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
+func (this *bybit) PrivateGetV5InsLoanProductInfos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
 }
 
-func (this *bybit) PrivateGetV5InsLoanEnsureTokensConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
+func (this *bybit) PrivateGetV5InsLoanEnsureTokensConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
 }
 
-func (this *bybit) PrivateGetV5InsLoanLoanOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5InsLoanLoanOrder", args...)
+func (this *bybit) PrivateGetV5InsLoanLoanOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanLoanOrder", args...)
 }
 
-func (this *bybit) PrivateGetV5InsLoanRepaidHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
+func (this *bybit) PrivateGetV5InsLoanRepaidHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
 }
 
-func (this *bybit) PrivateGetV5InsLoanLtvConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
+func (this *bybit) PrivateGetV5InsLoanLtvConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
 }
 
-func (this *bybit) PrivateGetV5LendingInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5LendingInfo", args...)
+func (this *bybit) PrivateGetV5LendingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5LendingHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5LendingHistoryOrder", args...)
+func (this *bybit) PrivateGetV5LendingHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingHistoryOrder", args...)
 }
 
-func (this *bybit) PrivateGetV5LendingAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5LendingAccount", args...)
+func (this *bybit) PrivateGetV5LendingAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5LendingAccount", args...)
 }
 
-func (this *bybit) PrivateGetV5BrokerEarningRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5BrokerEarningRecord", args...)
+func (this *bybit) PrivateGetV5BrokerEarningRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerEarningRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5BrokerEarningsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5BrokerEarningsInfo", args...)
+func (this *bybit) PrivateGetV5BrokerEarningsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerEarningsInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5BrokerAccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5BrokerAccountInfo", args...)
+func (this *bybit) PrivateGetV5BrokerAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerAccountInfo", args...)
 }
 
-func (this *bybit) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5BrokerAssetQuerySubMemberDepositRecord", args...)
+func (this *bybit) PrivateGetV5BrokerAssetQuerySubMemberDepositRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5BrokerAssetQuerySubMemberDepositRecord", args...)
 }
 
-func (this *bybit) PrivateGetV5EarnOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5EarnOrder", args...)
+func (this *bybit) PrivateGetV5EarnOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnOrder", args...)
 }
 
-func (this *bybit) PrivateGetV5EarnPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetV5EarnPosition", args...)
+func (this *bybit) PrivateGetV5EarnPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV5EarnPosition", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
+func (this *bybit) PrivatePostSpotV3PrivateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateOrder", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
+func (this *bybit) PrivatePostSpotV3PrivateCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrder", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
+func (this *bybit) PrivatePostSpotV3PrivateCancelOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrders", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateCancelOrdersByIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
+func (this *bybit) PrivatePostSpotV3PrivateCancelOrdersByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCancelOrdersByIds", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivatePurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
+func (this *bybit) PrivatePostSpotV3PrivatePurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivatePurchase", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
+func (this *bybit) PrivatePostSpotV3PrivateRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateRedeem", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateCrossMarginLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginLoan", args...)
+func (this *bybit) PrivatePostSpotV3PrivateCrossMarginLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginLoan", args...)
 }
 
-func (this *bybit) PrivatePostSpotV3PrivateCrossMarginRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginRepay", args...)
+func (this *bybit) PrivatePostSpotV3PrivateCrossMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotV3PrivateCrossMarginRepay", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateTransferInterTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferInterTransfer", args...)
+func (this *bybit) PrivatePostAssetV3PrivateTransferInterTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferInterTransfer", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateWithdrawCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCreate", args...)
+func (this *bybit) PrivatePostAssetV3PrivateWithdrawCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCreate", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateWithdrawCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCancel", args...)
+func (this *bybit) PrivatePostAssetV3PrivateWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateWithdrawCancel", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateTransferSubMemberTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferSubMemberTransfer", args...)
+func (this *bybit) PrivatePostAssetV3PrivateTransferSubMemberTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferSubMemberTransfer", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateTransferTransferSubMemberSave (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferTransferSubMemberSave", args...)
+func (this *bybit) PrivatePostAssetV3PrivateTransferTransferSubMemberSave(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferTransferSubMemberSave", args...)
 }
 
-func (this *bybit) PrivatePostAssetV3PrivateTransferUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetV3PrivateTransferUniversalTransfer", args...)
+func (this *bybit) PrivatePostAssetV3PrivateTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetV3PrivateTransferUniversalTransfer", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateCreateSubMember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateCreateSubMember", args...)
+func (this *bybit) PrivatePostUserV3PrivateCreateSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubMember", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateCreateSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateCreateSubApi", args...)
+func (this *bybit) PrivatePostUserV3PrivateCreateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateCreateSubApi", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateUpdateApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateUpdateApi", args...)
+func (this *bybit) PrivatePostUserV3PrivateUpdateApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateApi", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateDeleteApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateDeleteApi", args...)
+func (this *bybit) PrivatePostUserV3PrivateDeleteApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteApi", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateUpdateSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateUpdateSubApi", args...)
+func (this *bybit) PrivatePostUserV3PrivateUpdateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateUpdateSubApi", args...)
 }
 
-func (this *bybit) PrivatePostUserV3PrivateDeleteSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserV3PrivateDeleteSubApi", args...)
+func (this *bybit) PrivatePostUserV3PrivateDeleteSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserV3PrivateDeleteSubApi", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCreate", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCreate", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCancel", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderCancel", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderClose", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderClose", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionClose", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionClose", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionSetLeverage", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingPositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingPositionSetLeverage", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingWalletTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingWalletTransfer", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingWalletTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingWalletTransfer", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderTradingStop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
+func (this *bybit) PrivatePostContractV3PrivateCopytradingOrderTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateCopytradingOrderTradingStop", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCreate", args...)
+func (this *bybit) PrivatePostContractV3PrivateOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCreate", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCancel", args...)
+func (this *bybit) PrivatePostContractV3PrivateOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancel", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateOrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderCancelAll", args...)
+func (this *bybit) PrivatePostContractV3PrivateOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderCancelAll", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateOrderReplace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateOrderReplace", args...)
+func (this *bybit) PrivatePostContractV3PrivateOrderReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateOrderReplace", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSetAutoAddMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetAutoAddMargin", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSetAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetAutoAddMargin", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchIsolated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchIsolated", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSwitchIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchIsolated", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchMode", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchMode", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSwitchTpslMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchTpslMode", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSwitchTpslMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSwitchTpslMode", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetLeverage", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetLeverage", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionTradingStop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionTradingStop", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionTradingStop", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivatePositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivatePositionSetRiskLimit", args...)
+func (this *bybit) PrivatePostContractV3PrivatePositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivatePositionSetRiskLimit", args...)
 }
 
-func (this *bybit) PrivatePostContractV3PrivateAccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostContractV3PrivateAccountSetMarginMode", args...)
+func (this *bybit) PrivatePostContractV3PrivateAccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostContractV3PrivateAccountSetMarginMode", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreate", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreate", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplace (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplace", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplace", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancel", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancel", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreateBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreateBatch", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderCreateBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCreateBatch", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplaceBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplaceBatch", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderReplaceBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderReplaceBatch", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelBatch", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelBatch", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelAll", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateOrderCancelAll", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetLeverage", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivatePositionTpslSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTpslSwitchMode", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivatePositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionSetRiskLimit", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivatePositionTradingStop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivatePositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivatePositionTradingStop", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount", args...)
 }
 
-func (this *bybit) PrivatePostUnifiedV3PrivateAccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
+func (this *bybit) PrivatePostUnifiedV3PrivateAccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUnifiedV3PrivateAccountSetMarginMode", args...)
 }
 
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateRegistertime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateRegistertime", args...)
+func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateRegistertime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateRegistertime", args...)
 }
 
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateCreate", args...)
+func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateCreate", args...)
 }
 
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateStatus", args...)
+func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateStatus", args...)
 }
 
-func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateUrl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateUrl", args...)
+func (this *bybit) PrivatePostFhtComplianceTaxV3PrivateUrl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFhtComplianceTaxV3PrivateUrl", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderCreate", args...)
+func (this *bybit) PrivatePostV5OrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCreate", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderAmend (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderAmend", args...)
+func (this *bybit) PrivatePostV5OrderAmend(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderAmend", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderCancel", args...)
+func (this *bybit) PrivatePostV5OrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancel", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderCancelAll", args...)
+func (this *bybit) PrivatePostV5OrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancelAll", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderCreateBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderCreateBatch", args...)
+func (this *bybit) PrivatePostV5OrderCreateBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCreateBatch", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderAmendBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderAmendBatch", args...)
+func (this *bybit) PrivatePostV5OrderAmendBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderAmendBatch", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderCancelBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderCancelBatch", args...)
+func (this *bybit) PrivatePostV5OrderCancelBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderCancelBatch", args...)
 }
 
-func (this *bybit) PrivatePostV5OrderDisconnectedCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
+func (this *bybit) PrivatePostV5OrderDisconnectedCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
+func (this *bybit) PrivatePostV5PositionSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSwitchIsolated (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSwitchIsolated", args...)
+func (this *bybit) PrivatePostV5PositionSwitchIsolated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSwitchIsolated", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSetTpslMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSetTpslMode", args...)
+func (this *bybit) PrivatePostV5PositionSetTpslMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetTpslMode", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSwitchMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSwitchMode", args...)
+func (this *bybit) PrivatePostV5PositionSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSwitchMode", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSetRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSetRiskLimit", args...)
+func (this *bybit) PrivatePostV5PositionSetRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetRiskLimit", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionTradingStop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionTradingStop", args...)
+func (this *bybit) PrivatePostV5PositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionTradingStop", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionSetAutoAddMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionSetAutoAddMargin", args...)
+func (this *bybit) PrivatePostV5PositionSetAutoAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionSetAutoAddMargin", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionAddMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionAddMargin", args...)
+func (this *bybit) PrivatePostV5PositionAddMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionAddMargin", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionMovePositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionMovePositions", args...)
+func (this *bybit) PrivatePostV5PositionMovePositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionMovePositions", args...)
 }
 
-func (this *bybit) PrivatePostV5PositionConfirmPendingMmr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5PositionConfirmPendingMmr", args...)
+func (this *bybit) PrivatePostV5PositionConfirmPendingMmr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5PositionConfirmPendingMmr", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountUpgradeToUta (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountUpgradeToUta", args...)
+func (this *bybit) PrivatePostV5AccountUpgradeToUta(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountUpgradeToUta", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountQuickRepayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountQuickRepayment", args...)
+func (this *bybit) PrivatePostV5AccountQuickRepayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountQuickRepayment", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountSetMarginMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountSetMarginMode", args...)
+func (this *bybit) PrivatePostV5AccountSetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetMarginMode", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountSetHedgingMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountSetHedgingMode", args...)
+func (this *bybit) PrivatePostV5AccountSetHedgingMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetHedgingMode", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountMmpModify (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountMmpModify", args...)
+func (this *bybit) PrivatePostV5AccountMmpModify(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountMmpModify", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountMmpReset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
+func (this *bybit) PrivatePostV5AccountMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountMmpReset", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetExchangeQuoteApply (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
+func (this *bybit) PrivatePostV5AssetExchangeQuoteApply(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetExchangeConvertExecute (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetExchangeConvertExecute", args...)
+func (this *bybit) PrivatePostV5AssetExchangeConvertExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetExchangeConvertExecute", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetTransferInterTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetTransferInterTransfer", args...)
+func (this *bybit) PrivatePostV5AssetTransferInterTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferInterTransfer", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetTransferSaveTransferSubMember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetTransferSaveTransferSubMember", args...)
+func (this *bybit) PrivatePostV5AssetTransferSaveTransferSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferSaveTransferSubMember", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetTransferUniversalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetTransferUniversalTransfer", args...)
+func (this *bybit) PrivatePostV5AssetTransferUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetTransferUniversalTransfer", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetDepositDepositToAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
+func (this *bybit) PrivatePostV5AssetDepositDepositToAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetWithdrawCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetWithdrawCreate", args...)
+func (this *bybit) PrivatePostV5AssetWithdrawCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCreate", args...)
 }
 
-func (this *bybit) PrivatePostV5AssetWithdrawCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AssetWithdrawCancel", args...)
+func (this *bybit) PrivatePostV5AssetWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AssetWithdrawCancel", args...)
 }
 
-func (this *bybit) PrivatePostV5UserCreateSubMember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserCreateSubMember", args...)
+func (this *bybit) PrivatePostV5UserCreateSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserCreateSubMember", args...)
 }
 
-func (this *bybit) PrivatePostV5UserCreateSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserCreateSubApi", args...)
+func (this *bybit) PrivatePostV5UserCreateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserCreateSubApi", args...)
 }
 
-func (this *bybit) PrivatePostV5UserFrozenSubMember (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserFrozenSubMember", args...)
+func (this *bybit) PrivatePostV5UserFrozenSubMember(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserFrozenSubMember", args...)
 }
 
-func (this *bybit) PrivatePostV5UserUpdateApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserUpdateApi", args...)
+func (this *bybit) PrivatePostV5UserUpdateApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserUpdateApi", args...)
 }
 
-func (this *bybit) PrivatePostV5UserUpdateSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserUpdateSubApi", args...)
+func (this *bybit) PrivatePostV5UserUpdateSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserUpdateSubApi", args...)
 }
 
-func (this *bybit) PrivatePostV5UserDeleteApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserDeleteApi", args...)
+func (this *bybit) PrivatePostV5UserDeleteApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserDeleteApi", args...)
 }
 
-func (this *bybit) PrivatePostV5UserDeleteSubApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
+func (this *bybit) PrivatePostV5UserDeleteSubApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotLeverTokenPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
+func (this *bybit) PrivatePostV5SpotLeverTokenPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotLeverTokenRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
+func (this *bybit) PrivatePostV5SpotLeverTokenRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotLeverTokenRedeem", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotMarginTradeSwitchMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotMarginTradeSwitchMode", args...)
+func (this *bybit) PrivatePostV5SpotMarginTradeSwitchMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSwitchMode", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotMarginTradeSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotMarginTradeSetLeverage", args...)
+func (this *bybit) PrivatePostV5SpotMarginTradeSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetLeverage", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
+func (this *bybit) PrivatePostV5SpotCrossMarginTradeLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeLoan", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
+func (this *bybit) PrivatePostV5SpotCrossMarginTradeRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeRepay", args...)
 }
 
-func (this *bybit) PrivatePostV5SpotCrossMarginTradeSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
+func (this *bybit) PrivatePostV5SpotCrossMarginTradeSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5SpotCrossMarginTradeSwitch", args...)
 }
 
-func (this *bybit) PrivatePostV5CryptoLoanBorrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5CryptoLoanBorrow", args...)
+func (this *bybit) PrivatePostV5CryptoLoanBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanBorrow", args...)
 }
 
-func (this *bybit) PrivatePostV5CryptoLoanRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5CryptoLoanRepay", args...)
+func (this *bybit) PrivatePostV5CryptoLoanRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanRepay", args...)
 }
 
-func (this *bybit) PrivatePostV5CryptoLoanAdjustLtv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5CryptoLoanAdjustLtv", args...)
+func (this *bybit) PrivatePostV5CryptoLoanAdjustLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5CryptoLoanAdjustLtv", args...)
 }
 
-func (this *bybit) PrivatePostV5InsLoanAssociationUid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5InsLoanAssociationUid", args...)
+func (this *bybit) PrivatePostV5InsLoanAssociationUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5InsLoanAssociationUid", args...)
 }
 
-func (this *bybit) PrivatePostV5LendingPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5LendingPurchase", args...)
+func (this *bybit) PrivatePostV5LendingPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingPurchase", args...)
 }
 
-func (this *bybit) PrivatePostV5LendingRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5LendingRedeem", args...)
+func (this *bybit) PrivatePostV5LendingRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingRedeem", args...)
 }
 
-func (this *bybit) PrivatePostV5LendingRedeemCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5LendingRedeemCancel", args...)
+func (this *bybit) PrivatePostV5LendingRedeemCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5LendingRedeemCancel", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountSetCollateralSwitch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitch", args...)
+func (this *bybit) PrivatePostV5AccountSetCollateralSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitch", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountSetCollateralSwitchBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitchBatch", args...)
+func (this *bybit) PrivatePostV5AccountSetCollateralSwitchBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetCollateralSwitchBatch", args...)
 }
 
-func (this *bybit) PrivatePostV5AccountDemoApplyMoney (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5AccountDemoApplyMoney", args...)
+func (this *bybit) PrivatePostV5AccountDemoApplyMoney(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountDemoApplyMoney", args...)
 }
 
-func (this *bybit) PrivatePostV5BrokerAwardInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5BrokerAwardInfo", args...)
+func (this *bybit) PrivatePostV5BrokerAwardInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardInfo", args...)
 }
 
-func (this *bybit) PrivatePostV5BrokerAwardDistributeAward (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5BrokerAwardDistributeAward", args...)
+func (this *bybit) PrivatePostV5BrokerAwardDistributeAward(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributeAward", args...)
 }
 
-func (this *bybit) PrivatePostV5BrokerAwardDistributionRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5BrokerAwardDistributionRecord", args...)
+func (this *bybit) PrivatePostV5BrokerAwardDistributionRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5BrokerAwardDistributionRecord", args...)
 }
 
-func (this *bybit) PrivatePostV5EarnPlaceOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
+func (this *bybit) PrivatePostV5EarnPlaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
 }

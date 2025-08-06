@@ -2731,12 +2731,13 @@ class binance(Exchange, ImplicitAPI):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
-                # support legacy symbols
-                base, quote = symbol.split('/')
-                settle = base if (quote == 'USD') else quote
-                futuresSymbol = symbol + ':' + settle
-                if futuresSymbol in self.markets:
-                    return self.markets[futuresSymbol]
+                if (defaultType is not None) and (defaultType != 'spot'):
+                    # support legacy symbols
+                    base, quote = symbol.split('/')
+                    settle = base if (quote == 'USD') else quote
+                    futuresSymbol = symbol + ':' + settle
+                    if futuresSymbol in self.markets:
+                        return self.markets[futuresSymbol]
             elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the defaultType
                 return self.create_expired_option_market(symbol)
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
