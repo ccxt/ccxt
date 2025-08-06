@@ -18,7 +18,6 @@ type dict = { [key: string]: string }
 ansi.nice
 const promisedWriteFile = promisify (fs.writeFile);
 
-// TODO: defining the type causes errors in transpileDerivedExchangeFiles
 // const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
@@ -424,6 +423,10 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    private _extendedExchanges: { [key: string]: string } | null = null;
+    futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
+        'kucoinfutures'
+    ]);
 
     constructor(isWs: boolean = false) {
 
@@ -522,24 +525,40 @@ class NewTranspiler {
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
         ]
     }
-    
-    aliasExchanges = {
-        // TODO: a dynamic way of getting these would be better
-        'gateio': 'gate',
-        'huobi': 'htx',
-        'coinbaseadvanced': 'coinbase',
-        'okxus': 'okx',
-        'binanceusdm': 'binance',
-        'binancecoinm': 'binance',
-        'binanceus': 'binance',
-        'fmfwio': 'hitbtc',
-        'bequant': 'hitbtc',
-        'myokx': 'okx',
-    };
 
+    // Dynamic alias detection based on TypeScript inheritance analysis
+    get extendedExchanges(): { [key: string]: string } {
+        if (!this._extendedExchanges) {
 
-    isAliasExchange(exchangeName: string) {
-        return this.aliasExchanges[exchangeName] !== undefined;
+            const extendedExchanges: { [key: string]: string } = {};
+            const tsFolder = './ts/src';
+
+            allExchanges['ids'].forEach((exchangeName: string) => {
+                const filePath = `${tsFolder}/${exchangeName}.ts`;
+                const content = fs.readFileSync(filePath, 'utf8');
+
+                const inheritancePattern = /class (\w+) extends ([a-z0-9]+)/;
+                const match = content.match(inheritancePattern);
+
+                if (match) {
+                    const baseExchange = match[2];
+                    
+                    if (baseExchange.toLowerCase() !== exchangeName.toLowerCase()) {
+                        extendedExchanges[exchangeName] = baseExchange;
+                    }
+                }
+            })
+            this._extendedExchanges = extendedExchanges;
+        }
+        return this._extendedExchanges;
+    }
+
+    isExtendedExchange(exchangeName: string) {
+        return this.extendedExchanges[exchangeName] !== undefined;
+    }
+
+    isAlias (exchangeName: string) {
+        return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName);
     }
 
     // go custom method
@@ -1434,7 +1453,7 @@ ${constStatements.join('\n')}
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [])
 
         // const exchangeMethods = wrapperMethods['Exchange'];
         // const sortedList = exchangeMethods.sort((a, b) => a.localeCompare(b));
@@ -1887,8 +1906,8 @@ type IExchange interface {
         const classExtends = /type\s\w+\sstruct\s{\s*(\w+)/;
         const matches = content.match(classExtends);
         const baseClass = matches ? matches[1].replace('Rest', '') : '';
-        let isAlias = this.isAliasExchange(exchangeName);
-        const coreName = isAlias ? capitalize(baseClass) : 'ccxt.' + capitalize(baseClass);
+        let isExtended = this.isExtendedExchange(exchangeName);
+        const isAlias = this.isAlias (exchangeName);
 
         if (!ws) {
             content = this.regexAll(content, [
@@ -1907,15 +1926,15 @@ type IExchange interface {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, [
                 [ /type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n` ],      // adds 'base exchangeName'
-                [ /(p \:\= &.*$)/gm, `$1\n\tbase := &${coreName}{}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
+                [ /(p \:\= &.*$)/gm, `$1\n\tbase := &${inheritedClass}{}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
                 ...wsRegexes,
             ]);
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
         }
 
 
-        if (isAlias) {
-            content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
+        if (isExtended) {
+            content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`);
         }
 
         let initMethod = '';
