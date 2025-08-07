@@ -737,15 +737,8 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (since !== undefined) {
-            request['page'] = since;
-        } else {
-            request['page'] = 1;
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
-        } else {
-            request['limit'] = 10;
         }
         const response = await this.publicSpotGetV2MarketTrades (this.extend (request, params));
         //
