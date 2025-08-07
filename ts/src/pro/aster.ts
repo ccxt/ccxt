@@ -3,7 +3,7 @@
 
 import asterRest from '../aster.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade } from '../base/types.js';
+import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -19,7 +19,8 @@ export default class aster extends asterRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -267,6 +268,98 @@ export default class aster extends asterRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name aster#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name aster#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth20');
+            messageHashes.push ('orderbook:' + market['symbol']);
+        }
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "stream": "btcusdt@depth20",
+        //         "data": {
+        //             "e": "depthUpdate",
+        //             "E": 1754556878284,
+        //             "T": 1754556878031,
+        //             "s": "BTCUSDT",
+        //             "U": 156391349814,
+        //             "u": 156391349814,
+        //             "pu": 156391348236,
+        //             "b": [
+        //                 [
+        //                     "114988.3",
+        //                     "0.147"
+        //                 ]
+        //             ],
+        //             "a": [
+        //                 [
+        //                     "114988.4",
+        //                     "1.060"
+        //                 ]
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
+        const timestamp = this.safeInteger (data, 'T');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+        orderbook.reset (snapshot);
+        const messageHash = 'orderbook' + ':' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         if (stream !== undefined) {
@@ -275,6 +368,9 @@ export default class aster extends asterRest {
             const methods: Dict = {
                 'ticker': this.handleTicker,
                 'aggTrade': this.handleTrade,
+                'depth5': this.handleOrderBook,
+                'depth10': this.handleOrderBook,
+                'depth20': this.handleOrderBook,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
