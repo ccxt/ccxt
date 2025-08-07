@@ -1,6 +1,6 @@
 //  ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
