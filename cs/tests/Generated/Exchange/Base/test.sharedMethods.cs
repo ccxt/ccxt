@@ -12,9 +12,9 @@ public partial class testMainClass : BaseTest
         public object logTemplate(Exchange exchange, object method, object entry)
         {
             // there are cases when exchange is undefined (eg. base tests)
-            object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
-            object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
-            object entryString = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
+            object id = ((bool)isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
+            object methodString = ((bool)isTrue((!isEqual(method, null)))) ? method : "undefined";
+            object entryString = ((bool)isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
             return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -27,10 +27,12 @@ public partial class testMainClass : BaseTest
             if (isTrue((value is string)))
             {
                 stringVal = value;
-            } else if (isTrue(isEqual(value, null)))
+            }
+            else if (isTrue(isEqual(value, null)))
             {
                 stringVal = "undefined";
-            } else
+            }
+            else
             {
                 stringVal = ((object)value).ToString();
             }
@@ -59,7 +61,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             assert(!isEqual(entry, null), add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
-            object allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() {});
+            object allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() { });
             if (isTrue(!isEqual(emptyAllowedFor, null)))
             {
                 emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
@@ -90,10 +92,11 @@ public partial class testMainClass : BaseTest
                     object typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
                     assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
-            } else
+            }
+            else
             {
                 assert((entry is IDictionary<string, object>), add("entry is not an object", logText));
-                object keys = new List<object>(((IDictionary<string,object>)format).Keys);
+                object keys = new List<object>(((IDictionary<string, object>)format).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
                     object key = getValue(keys, i);
@@ -147,7 +150,8 @@ public partial class testMainClass : BaseTest
             if (isTrue(isDateTimeObject))
             {
                 assert((inOp(entry, keyNameOrIndex)), add(add(add("timestamp key \"", keyNameOrIndex), "\" is missing from structure"), logText));
-            } else
+            }
+            else
             {
                 // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
                 assert(!isTrue((isEqual(getValue(entry, keyNameOrIndex), null))), add(add(add("timestamp index ", stringValue(keyNameOrIndex)), " is undefined"), logText));
@@ -265,7 +269,7 @@ public partial class testMainClass : BaseTest
         }
         public void assertSymbolInMarkets(Exchange exchange, object skippedProperties, object method, object symbol)
         {
-            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() { });
             assert((inOp(exchange.markets, symbol)), add("symbol should be present in exchange.symbols", logText));
         }
         public void assertGreater(Exchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
@@ -385,7 +389,8 @@ public partial class testMainClass : BaseTest
                 key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
-            } else
+            }
+            else
             {
                 assert((entry is IDictionary<string, object>), add("fee container is expected to be an object", logText));
                 assert(inOp(entry, key), add(add(add("fee key \"", key), "\" was expected to be present in entry"), logText));
@@ -417,8 +422,8 @@ public partial class testMainClass : BaseTest
                     object nextTs = getValue(getValue(items, i), "timestamp");
                     if (isTrue(isTrue(!isEqual(currentTs, null)) && isTrue(!isEqual(nextTs, null))))
                     {
-                        object ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
-                        object comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
+                        object ascendingOrDescending = ((bool)isTrue(ascending)) ? "ascending" : "descending";
+                        object comparison = ((bool)isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
                         assert(comparison, add(add(add(add(add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ((object)currentTs).ToString()), " is opposite with its next "), ((object)nextTs).ToString()), " "), exchange.json(items)));
                     }
                 }
@@ -454,14 +459,15 @@ public partial class testMainClass : BaseTest
                 // TICK_SIZE should be above zero
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
                 // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
-                object decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
+                object decimalNumbers = new List<object>() { "2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16" };
                 for (object i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
                 {
                     object num = getValue(decimalNumbers, i);
                     object numStr = num;
                     assertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
                 }
-            } else
+            }
+            else
             {
                 // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
                 // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
@@ -471,7 +477,7 @@ public partial class testMainClass : BaseTest
         }
         async public Task<object> fetchBestBidAsk(Exchange exchange, object method, object symbol)
         {
-            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() { });
             // find out best bid/ask price
             object bestBid = null;
             object bestAsk = null;
@@ -486,30 +492,33 @@ public partial class testMainClass : BaseTest
                 object bestAskArray = exchange.safeList(asks, 0);
                 bestBid = exchange.safeNumber(bestBidArray, 0);
                 bestAsk = exchange.safeNumber(bestAskArray, 0);
-            } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
+            }
+            else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
             {
                 usedMethod = "fetchBidsAsks";
-                object tickers = await exchange.fetchBidsAsks(new List<object>() {symbol});
+                object tickers = await exchange.fetchBidsAsks(new List<object>() { symbol });
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTicker")))
+            }
+            else if (isTrue(getValue(exchange.has, "fetchTicker")))
             {
                 usedMethod = "fetchTicker";
                 object ticker = await exchange.fetchTicker(symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTickers")))
+            }
+            else if (isTrue(getValue(exchange.has, "fetchTickers")))
             {
                 usedMethod = "fetchTickers";
-                object tickers = await exchange.fetchTickers(new List<object>() {symbol});
+                object tickers = await exchange.fetchTickers(new List<object>() { symbol });
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
             }
             //
             assert(isTrue(!isEqual(bestBid, null)) && isTrue(!isEqual(bestAsk, null)), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
-            return new List<object>() {bestBid, bestAsk};
+            return new List<object>() { bestBid, bestAsk };
         }
         async public Task<object> fetchOrder(Exchange exchange, object symbol, object orderId, object skippedProperties)
         {
@@ -518,7 +527,7 @@ public partial class testMainClass : BaseTest
             // set 'since' to 5 minute ago for optimal results
             object sinceTime = subtract(exchange.milliseconds(), multiply(multiply(1000, 60), 5));
             // iterate
-            object methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
+            object methods_singular = new List<object>() { "fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder" };
             for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
                 object singularFetchName = getValue(methods_singular, i);
@@ -537,7 +546,7 @@ public partial class testMainClass : BaseTest
             // search through plural methods
             if (isTrue(isEqual(fetchedOrder, null)))
             {
-                object methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
+                object methods_plural = new List<object>() { "fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders" };
                 for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
                     object pluralFetchName = getValue(methods_plural, i);
@@ -589,7 +598,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isTrue(isEqual(assertedStatus, "open")))
             {
-                condition = ((bool) isTrue(strictCheck)) ? strictOpen : nonstrictOpen;
+                condition = ((bool)isTrue(strictCheck)) ? strictOpen : nonstrictOpen;
                 assert(condition, msg);
                 return;
             }
@@ -603,7 +612,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isTrue(isEqual(assertedStatus, "closed")))
             {
-                condition = ((bool) isTrue(strictCheck)) ? closedStrict : closedNonStrict;
+                condition = ((bool)isTrue(strictCheck)) ? closedStrict : closedNonStrict;
                 assert(condition, msg);
                 return;
             }
@@ -617,7 +626,7 @@ public partial class testMainClass : BaseTest
             // check
             if (isTrue(isEqual(assertedStatus, "canceled")))
             {
-                condition = ((bool) isTrue(strictCheck)) ? canceledStrict : canceledNonStrict;
+                condition = ((bool)isTrue(strictCheck)) ? canceledStrict : canceledNonStrict;
                 assert(condition, msg);
                 return;
             }
@@ -626,7 +635,7 @@ public partial class testMainClass : BaseTest
             //
             if (isTrue(isEqual(assertedStatus, "closed_or_canceled")))
             {
-                condition = ((bool) isTrue(strictCheck)) ? (isTrue(closedStrict) || isTrue(canceledStrict)) : (isTrue(closedNonStrict) || isTrue(canceledNonStrict));
+                condition = ((bool)isTrue(strictCheck)) ? (isTrue(closedStrict) || isTrue(canceledStrict)) : (isTrue(closedNonStrict) || isTrue(canceledNonStrict));
                 assert(condition, msg);
                 return;
             }
@@ -646,9 +655,9 @@ public partial class testMainClass : BaseTest
         {
             object proxyUrl = exchange.checkProxyUrlSettings();
             var httpProxyhttpsProxysocksProxyVariable = exchange.checkProxySettings();
-            var httpProxy = ((IList<object>) httpProxyhttpsProxysocksProxyVariable)[0];
-            var httpsProxy = ((IList<object>) httpProxyhttpsProxysocksProxyVariable)[1];
-            var socksProxy = ((IList<object>) httpProxyhttpsProxysocksProxyVariable)[2];
+            var httpProxy = ((IList<object>)httpProxyhttpsProxysocksProxyVariable)[0];
+            var httpsProxy = ((IList<object>)httpProxyhttpsProxysocksProxyVariable)[1];
+            var socksProxy = ((IList<object>)httpProxyhttpsProxysocksProxyVariable)[2];
             // because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
             exchange.setProperty(exchange, "proxyUrl", null);
             exchange.setProperty(exchange, "proxy_url", null);
@@ -658,7 +667,7 @@ public partial class testMainClass : BaseTest
             exchange.setProperty(exchange, "https_proxy", null);
             exchange.setProperty(exchange, "socksProxy", null);
             exchange.setProperty(exchange, "socks_proxy", null);
-            return new List<object>() {proxyUrl, httpProxy, httpsProxy, socksProxy};
+            return new List<object>() { proxyUrl, httpProxy, httpsProxy, socksProxy };
         }
         public void setProxyOptions(Exchange exchange, object skippedProperties, object proxyUrl, object httpProxy, object httpsProxy, object socksProxy)
         {
@@ -673,12 +682,14 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(a, null)))
             {
                 return b;
-            } else if (isTrue(isEqual(b, null)))
+            }
+            else if (isTrue(isEqual(b, null)))
             {
                 return a;
-            } else
+            }
+            else
             {
-                object result = new List<object>() {};
+                object result = new List<object>() { };
                 for (object i = 0; isLessThan(i, getArrayLength(a)); postFixIncrement(ref i))
                 {
                     ((IList<object>)result).Add(getValue(a, i));
@@ -720,7 +731,7 @@ public partial class testMainClass : BaseTest
         }
         public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
         {
-            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() { });
             assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
