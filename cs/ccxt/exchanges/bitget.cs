@@ -5281,7 +5281,7 @@ public partial class bitget : Exchange
             object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
             if (isTrue(isStopLossOrTakeProfitTrigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradePlaceStrategyOrder", new object[] { request }));
+                response = await this.privateUtaPostV3TradePlaceStrategyOrder(request);
             } else
             {
                 response = await this.privateUtaPostV3TradePlaceOrder(request);
@@ -6059,7 +6059,7 @@ public partial class bitget : Exchange
                     }
                 }
                 parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeModifyStrategyOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaPostV3TradeModifyStrategyOrder(this.extend(request, parameters));
             } else
             {
                 if (isTrue(!isEqual(price, null)))
@@ -6252,7 +6252,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
             if (isTrue(trigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeCancelStrategyOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaPostV3TradeCancelStrategyOrder(this.extend(request, parameters));
             } else
             {
                 response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, parameters));
@@ -6957,7 +6957,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["category"] = productType;
             if (isTrue(trigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeUnfilledStrategyOrders", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaGetV3TradeUnfilledStrategyOrders(this.extend(request, parameters));
             } else
             {
                 response = await this.privateUtaGetV3TradeUnfilledOrders(this.extend(request, parameters));
@@ -7752,7 +7752,7 @@ public partial class bitget : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(trigger))
         {
-            response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeHistoryStrategyOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateUtaGetV3TradeHistoryStrategyOrders(this.extend(request, parameters));
         } else
         {
             response = await this.privateUtaGetV3TradeHistoryOrders(this.extend(request, parameters));

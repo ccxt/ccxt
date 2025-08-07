@@ -2585,7 +2585,7 @@ public partial class okx : ccxt.okx
             ((WebSocketClient)client).reject(e);
             return false;
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)
