@@ -2,7 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import asterRest from '../aster.js';
-import type { Strings, Tickers, Dict, Ticker } from '../base/types.js';
+import { ArgumentsRequired } from '../base/errors.js';
+import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade } from '../base/types.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,6 +18,7 @@ export default class aster extends asterRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': false,
                 'watchOHLCV': false,
             },
@@ -57,15 +60,18 @@ export default class aster extends asterRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        // let streams = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -144,6 +150,108 @@ export default class aster extends asterRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name aster#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
+            messageHashes.push ('trade:' + market['symbol']);
+        }
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrade (client: Client, message) {
+        //
+        //     {
+        //         "stream": "btcusdt@aggTrade",
+        //         "data": {
+        //             "e": "aggTrade",
+        //             "E": 1754551358681,
+        //             "a": 20505890,
+        //             "s": "BTCUSDT",
+        //             "p": "114783.7",
+        //             "q": "0.020",
+        //             "f": 26024678,
+        //             "l": 26024682,
+        //             "T": 1754551358528,
+        //             "m": false
+        //         }
+        //     }
+        //
+        const trade = this.safeDict (message, 'data');
+        const parsed = this.parseWsTrade (trade);
+        const symbol = parsed['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        stored.append (parsed);
+        const messageHash = 'trade' + ':' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 's');
+        const timestamp = this.safeInteger (trade, 'T');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const amountString = this.safeString (trade, 'q');
+        const priceString = this.safeString (trade, 'p');
+        const isMaker = this.safeBool (trade, 'm');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'a'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         if (stream !== undefined) {
@@ -151,6 +259,7 @@ export default class aster extends asterRest {
             const topic = this.safeString (part, 1);
             const methods: Dict = {
                 'ticker': this.handleTicker,
+                'aggTrade': this.handleTrade,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
