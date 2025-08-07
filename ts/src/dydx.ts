@@ -128,11 +128,13 @@ export default class dydx extends Exchange {
                 'logo': '',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
-                    'node': 'https://dydx-dao-api.polkachu.com',
+                    'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
+                    'nodeRest': 'https://dydx-rest.publicnode.com',
                 },
                 'test': {
                     'indexer': 'https://indexer.v4testnet.dydx.exchange/v4',
-                    'node': 'https://dydx-lcd-testnet.enigma-validator.com',
+                    'nodeRpc': 'https://test-dydx-rpc.kingnodes.com',
+                    'nodeRest': 'https://test-dydx-rest.kingnodes.com',
                 },
                 'www': 'https://www.dydx.xyz',
                 'doc': [
@@ -196,6 +198,14 @@ export default class dydx extends Exchange {
                         'fills/parentSubaccount': 1,
                         'historical-pnl/parentSubaccount': 1,
                     },
+                },
+                'nodeRpc': {
+                    'get': {
+                        'block': 1,
+                        'broadcast_tx_async': 1,
+                        'broadcast_tx_sync': 1,
+                        'tx': 1,
+                    }
                 },
             },
             'fees': {
