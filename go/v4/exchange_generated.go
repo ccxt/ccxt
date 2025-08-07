@@ -4779,13 +4779,13 @@ func (this *Exchange) CheckRequiredCredentials(optionalArgs ...interface{}) inte
 	 * @param {boolean} error throw an error that a credential is required if true
 	 * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
 	 */
-	err := GetArg(optionalArgs, 0, true)
-	_ = err
+	error := GetArg(optionalArgs, 0, true)
+	_ = error
 	var keys interface{} = ObjectKeys(this.RequiredCredentials)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key interface{} = GetValue(keys, i)
 		if IsTrue(IsTrue(GetValue(this.RequiredCredentials, key)) && !IsTrue(GetValue(this, key))) {
-			if IsTrue(err) {
+			if IsTrue(error) {
 				panic(AuthenticationError(Add(Add(Add(this.Id, " requires \""), key), "\" credential")))
 			} else {
 				return false
@@ -8883,8 +8883,8 @@ func (this *Exchange) FetchPaginatedCallDeterministic(method interface{}, option
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 		var current interface{} = this.Milliseconds()
 		var tasks interface{} = []interface{}{}
-		var timeVar interface{} = Multiply(this.ParseTimeframe(timeframe), 1000)
-		var step interface{} = Multiply(timeVar, maxEntriesPerRequest)
+		var time interface{} = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var step interface{} = Multiply(time, maxEntriesPerRequest)
 		var currentSince interface{} = Subtract(Subtract(current, (Multiply(maxCalls, step))), 1)
 		if IsTrue(!IsEqual(since, nil)) {
 			currentSince = mathMax(currentSince, since)
@@ -9608,8 +9608,8 @@ func (this *Exchange) CleanUnsubscription(client Client, subHash interface{}, un
 			Remove(client.Subscriptions, subHash)
 		}
 		if IsTrue(InOp(client.Futures, subHash)) {
-			err := UnsubscribeError(Add(Add(this.Id, " "), subHash))
-			client.Reject(err, subHash)
+			error := UnsubscribeError(Add(Add(this.Id, " "), subHash))
+			client.Reject(error, subHash)
 		}
 	} else {
 		var clientSubscriptions interface{} = ObjectKeys(client.Subscriptions)
@@ -9623,8 +9623,8 @@ func (this *Exchange) CleanUnsubscription(client Client, subHash interface{}, un
 		for i := 0; IsLessThan(i, GetArrayLength(clientFutures)); i++ {
 			var future interface{} = GetValue(clientFutures, i)
 			if IsTrue(StartsWith(future, subHash)) {
-				err := UnsubscribeError(Add(Add(this.Id, " "), future))
-				client.Reject(err, future)
+				error := UnsubscribeError(Add(Add(this.Id, " "), future))
+				client.Reject(error, future)
 			}
 		}
 	}

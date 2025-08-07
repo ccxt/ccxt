@@ -1740,8 +1740,8 @@ func (this *indodax) HandleErrors(code interface{}, reason interface{}, url inte
 	if IsTrue(IsArray(response)) {
 		return nil // public endpoints may return []-arrays
 	}
-	var err interface{} = this.SafeValue(response, "error", "")
-	if IsTrue(!IsTrue((InOp(response, "success"))) && IsTrue(IsEqual(err, ""))) {
+	var error interface{} = this.SafeValue(response, "error", "")
+	if IsTrue(!IsTrue((InOp(response, "success"))) && IsTrue(IsEqual(error, ""))) {
 		return nil // no 'success' property on public responses
 	}
 	var status interface{} = this.SafeString(response, "success")
@@ -1757,8 +1757,8 @@ func (this *indodax) HandleErrors(code interface{}, reason interface{}, url inte
 		}
 	}
 	var feedback interface{} = Add(Add(this.Id, " "), body)
-	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-	this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+	this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 	panic(ExchangeError(feedback))
 }
 

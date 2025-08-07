@@ -2292,9 +2292,9 @@ func (this *bitopro) HandleErrors(code interface{}, reason interface{}, url inte
 		return nil
 	}
 	var feedback interface{} = Add(Add(this.Id, " "), body)
-	var err interface{} = this.SafeString(response, "error")
-	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-	this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+	var error interface{} = this.SafeString(response, "error")
+	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+	this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 	panic(ExchangeError(feedback))
 }
 

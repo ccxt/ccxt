@@ -1507,13 +1507,13 @@ func (this *bingx) ParseTrade(trade interface{}, optionalArgs ...interface{}) in
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timeVar interface{} = this.SafeIntegerN(trade, []interface{}{"time", "filledTm", "T", "tradeTime"})
+	var time interface{} = this.SafeIntegerN(trade, []interface{}{"time", "filledTm", "T", "tradeTime"})
 	var datetimeId interface{} = this.SafeString(trade, "filledTm")
 	if IsTrue(!IsEqual(datetimeId, nil)) {
-		timeVar = this.Parse8601(datetimeId)
+		time = this.Parse8601(datetimeId)
 	}
-	if IsTrue(IsEqual(timeVar, 0)) {
-		timeVar = nil
+	if IsTrue(IsEqual(time, 0)) {
+		time = nil
 	}
 	var cost interface{} = this.SafeString(trade, "quoteQty")
 	// const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
@@ -1551,8 +1551,8 @@ func (this *bingx) ParseTrade(trade interface{}, optionalArgs ...interface{}) in
 	return this.SafeTrade(map[string]interface{}{
 		"id":           this.SafeStringN(trade, []interface{}{"id", "t"}),
 		"info":         trade,
-		"timestamp":    timeVar,
-		"datetime":     this.Iso8601(timeVar),
+		"timestamp":    time,
+		"datetime":     this.Iso8601(time),
 		"symbol":       this.SafeSymbol(marketId, market, "-"),
 		"order":        this.SafeString2(trade, "orderId", "i"),
 		"type":         this.SafeStringLower(trade, "o"),

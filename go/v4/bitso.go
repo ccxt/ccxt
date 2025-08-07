@@ -2238,11 +2238,11 @@ func (this *bitso) HandleErrors(httpCode interface{}, reason interface{}, url in
 		}
 		if !IsTrue(success) {
 			var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
-			var err interface{} = this.SafeValue(response, "error")
-			if IsTrue(IsEqual(err, nil)) {
+			var error interface{} = this.SafeValue(response, "error")
+			if IsTrue(IsEqual(error, nil)) {
 				panic(ExchangeError(feedback))
 			}
-			var code interface{} = this.SafeString(err, "code")
+			var code interface{} = this.SafeString(error, "code")
 			this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 			panic(ExchangeError(feedback))
 		}

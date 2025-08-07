@@ -4846,8 +4846,8 @@ func (this *coinbase) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		//     }
 		//
 		var data interface{} = this.SafeDict(response, "pricebook", map[string]interface{}{})
-		var timeVar interface{} = this.SafeString(data, "time")
-		var timestamp interface{} = this.Parse8601(timeVar)
+		var time interface{} = this.SafeString(data, "time")
+		var timestamp interface{} = this.Parse8601(time)
 
 		ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		return nil

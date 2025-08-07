@@ -1050,8 +1050,8 @@ func (this *bitfinex) Transfer(code interface{}, amount interface{}, fromAccount
 		//         "1.0 Tether USDt transfered from Exchange to Margin"
 		//     ]
 		//
-		var err interface{} = this.SafeString(response, 0)
-		if IsTrue(IsEqual(err, "error")) {
+		var error interface{} = this.SafeString(response, 0)
+		if IsTrue(IsEqual(error, "error")) {
 			var message interface{} = this.SafeString(response, 2, "")
 			// same message as in v1
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, Add(Add(this.Id, " "), message))

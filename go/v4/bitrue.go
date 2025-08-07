@@ -3726,21 +3726,21 @@ func (this *bitrue) HandleErrors(code interface{}, reason interface{}, url inter
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, Add(Add(this.Id, " "), message))
 	}
 	// checks against error codes
-	var err interface{} = this.SafeString(response, "code")
-	if IsTrue(!IsEqual(err, nil)) {
+	var error interface{} = this.SafeString(response, "code")
+	if IsTrue(!IsEqual(error, nil)) {
 		// https://github.com/ccxt/ccxt/issues/6501
 		// https://github.com/ccxt/ccxt/issues/7742
-		if IsTrue(IsTrue((IsEqual(err, "200"))) || IsTrue(Precise.StringEquals(err, "0"))) {
+		if IsTrue(IsTrue((IsEqual(error, "200"))) || IsTrue(Precise.StringEquals(error, "0"))) {
 			return nil
 		}
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if IsTrue(IsTrue((IsEqual(err, "-2015"))) && IsTrue(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"))) {
+		if IsTrue(IsTrue((IsEqual(error, "-2015"))) && IsTrue(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"))) {
 			panic(DDoSProtection(Add(Add(this.Id, " temporary banned: "), body)))
 		}
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	if !IsTrue(success) {

@@ -4163,9 +4163,9 @@ func (this *kraken) HandleErrors(code interface{}, reason interface{}, url inter
 				if IsTrue(numErrors) {
 					var message interface{} = Add(Add(this.Id, " "), body)
 					for i := 0; IsLessThan(i, GetArrayLength(GetValue(response, "error"))); i++ {
-						var err interface{} = GetValue(GetValue(response, "error"), i)
-						this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, message)
-						this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, message)
+						var error interface{} = GetValue(GetValue(response, "error"), i)
+						this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, message)
+						this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
 					}
 					panic(ExchangeError(message))
 				}

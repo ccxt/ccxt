@@ -3001,9 +3001,9 @@ func (this *derive) HandleErrors(httpCode interface{}, reason interface{}, url i
 	if !IsTrue(response) {
 		return nil // fallback to default error handler
 	}
-	var err interface{} = this.SafeDict(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
-		var errorCode interface{} = this.SafeString(err, "code")
+	var error interface{} = this.SafeDict(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
+		var errorCode interface{} = this.SafeString(error, "code")
 		var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

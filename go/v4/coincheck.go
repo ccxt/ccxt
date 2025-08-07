@@ -1169,9 +1169,9 @@ func (this *coincheck) HandleErrors(httpCode interface{}, reason interface{}, ur
 	//
 	var success interface{} = this.SafeBool(response, "success", true)
 	if !IsTrue(success) {
-		var err interface{} = this.SafeString(response, "error")
+		var error interface{} = this.SafeString(response, "error")
 		var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
 	}

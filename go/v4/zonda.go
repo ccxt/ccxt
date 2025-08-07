@@ -2101,8 +2101,8 @@ func (this *zonda) HandleErrors(httpCode interface{}, reason interface{}, url in
 			var errors interface{} = this.SafeValue(response, "errors")
 			var feedback interface{} = Add(Add(this.Id, " "), body)
 			for i := 0; IsLessThan(i, GetArrayLength(errors)); i++ {
-				var err interface{} = GetValue(errors, i)
-				this.ThrowExactlyMatchedException(this.Exceptions, err, feedback)
+				var error interface{} = GetValue(errors, i)
+				this.ThrowExactlyMatchedException(this.Exceptions, error, feedback)
 			}
 			panic(ExchangeError(feedback))
 		}

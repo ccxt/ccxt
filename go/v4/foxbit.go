@@ -2534,17 +2534,17 @@ func (this *foxbit) HandleErrors(httpCode interface{}, reason interface{}, url i
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	var err interface{} = this.SafeDict(response, "error")
-	var code interface{} = this.SafeString(err, "code")
-	var details interface{} = this.SafeList(err, "details")
-	var message interface{} = this.SafeString(err, "message")
+	var error interface{} = this.SafeDict(response, "error")
+	var code interface{} = this.SafeString(error, "code")
+	var details interface{} = this.SafeList(error, "details")
+	var message interface{} = this.SafeString(error, "message")
 	var detailsString interface{} = ""
 	if IsTrue(details) {
 		for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
 			detailsString = Add(Add(detailsString, GetValue(details, i)), " ")
 		}
 	}
-	if IsTrue(!IsEqual(err, nil)) {
+	if IsTrue(!IsEqual(error, nil)) {
 		var feedback interface{} = Add(Add(Add(Add(this.Id, " "), message), " details: "), detailsString)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), detailsString, feedback)

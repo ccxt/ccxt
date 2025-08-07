@@ -1357,11 +1357,11 @@ func (this *btcalpha) HandleErrors(code interface{}, reason interface{}, url int
 	//
 	//     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
 	//
-	var err interface{} = this.SafeString(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
+	var error interface{} = this.SafeString(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

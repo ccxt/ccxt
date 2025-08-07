@@ -1742,10 +1742,10 @@ func (this *kucoin) FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 		//
 		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 		var tickers interface{} = this.SafeList(data, "ticker", []interface{}{})
-		var timeVar interface{} = this.SafeInteger(data, "time")
+		var time interface{} = this.SafeInteger(data, "time")
 		var result interface{} = map[string]interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-			AddElementToObject(GetValue(tickers, i), "time", timeVar)
+			AddElementToObject(GetValue(tickers, i), "time", time)
 			var ticker interface{} = this.ParseTicker(GetValue(tickers, i))
 			var symbol interface{} = this.SafeString(ticker, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
@@ -4858,8 +4858,8 @@ func (this *kucoin) ParseLedgerEntry(item interface{}, optionalArgs ...interface
 		{
 			func(this *kucoin) (ret_ interface{}) {
 				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
+					if exc := recover(); exc != nil {
+						if exc == "break" {
 							return
 						}
 						ret_ = func(this *kucoin) interface{} {

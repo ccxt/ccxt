@@ -1498,8 +1498,8 @@ func (this *bitbns) HandleErrors(httpCode interface{}, reason interface{}, url i
 	//
 	var code interface{} = this.SafeString(response, "code")
 	var message interface{} = this.SafeString(response, "msg")
-	var err interface{} = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
-	if IsTrue(IsTrue(err) || IsTrue((!IsEqual(message, nil)))) {
+	var error interface{} = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
+	if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

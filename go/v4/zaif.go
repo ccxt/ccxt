@@ -985,10 +985,10 @@ func (this *zaif) HandleErrors(httpCode interface{}, reason interface{}, url int
 	//     {"error": "unsupported currency_pair"}
 	//
 	var feedback interface{} = Add(Add(this.Id, " "), body)
-	var err interface{} = this.SafeString(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+	var error interface{} = this.SafeString(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	var success interface{} = this.SafeBool(response, "success", true)

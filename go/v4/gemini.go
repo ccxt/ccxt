@@ -527,16 +527,16 @@ func (this *gemini) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan inte
 
 		data := (<-this.FetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
 		PanicOnError(data)
-		var err interface{} = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
+		var error interface{} = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
 		var tables interface{} = Split(data, "tbody>")
 		var numTables interface{} = GetArrayLength(tables)
 		if IsTrue(IsLessThan(numTables, 2)) {
-			panic(NotSupported(err))
+			panic(NotSupported(error))
 		}
 		var rows interface{} = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
 		var numRows interface{} = GetArrayLength(rows)
 		if IsTrue(IsLessThan(numRows, 2)) {
-			panic(NotSupported(err))
+			panic(NotSupported(error))
 		}
 		var result interface{} = []interface{}{}
 		// skip the first element (empty string)
@@ -545,7 +545,7 @@ func (this *gemini) FetchMarketsFromWeb(optionalArgs ...interface{}) <-chan inte
 			var cells interface{} = Split(row, "</td>\n") // eslint-disable-line quotes
 			var numCells interface{} = GetArrayLength(cells)
 			if IsTrue(IsLessThan(numCells, 5)) {
-				panic(NotSupported(err))
+				panic(NotSupported(error))
 			}
 			//     [
 			//         '<td>btcusd', // currency

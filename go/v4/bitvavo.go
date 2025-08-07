@@ -2673,10 +2673,10 @@ func (this *bitvavo) HandleErrors(httpCode interface{}, reason interface{}, url 
 	//     {"errorCode":205,"error":"symbol parameter is invalid."}
 	//
 	var errorCode interface{} = this.SafeString(response, "errorCode")
-	var err interface{} = this.SafeString(response, "error")
+	var error interface{} = this.SafeString(response, "error")
 	if IsTrue(!IsEqual(errorCode, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

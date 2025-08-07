@@ -3592,9 +3592,9 @@ func (this *okcoin) HandleErrors(httpCode interface{}, reason interface{}, url i
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		var data interface{} = this.SafeValue(response, "data", []interface{}{})
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var err interface{} = GetValue(data, i)
-			var errorCode interface{} = this.SafeString(err, "sCode")
-			var message interface{} = this.SafeString(err, "sMsg")
+			var error interface{} = GetValue(data, i)
+			var errorCode interface{} = this.SafeString(error, "sCode")
+			var message interface{} = this.SafeString(error, "sMsg")
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		}

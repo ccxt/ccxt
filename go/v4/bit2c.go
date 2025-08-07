@@ -1199,14 +1199,14 @@ func (this *bit2c) HandleErrors(httpCode interface{}, reason interface{}, url in
 	//     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
 	//     { "Error" : "No order found." }
 	//
-	var err interface{} = this.SafeString(response, "error")
-	if IsTrue(IsEqual(err, nil)) {
-		err = this.SafeString(response, "Error")
+	var error interface{} = this.SafeString(response, "error")
+	if IsTrue(IsEqual(error, nil)) {
+		error = this.SafeString(response, "Error")
 	}
-	if IsTrue(!IsEqual(err, nil)) {
+	if IsTrue(!IsEqual(error, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

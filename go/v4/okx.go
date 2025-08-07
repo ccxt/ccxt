@@ -8732,8 +8732,8 @@ func (this *okx) ParseOpenInterest(interest interface{}, optionalArgs ...interfa
 	_ = market
 	var id interface{} = this.SafeString(interest, "instId")
 	market = this.SafeMarket(id, market)
-	var timeVar interface{} = this.SafeInteger(interest, "ts")
-	var timestamp interface{} = this.SafeInteger(interest, 0, timeVar)
+	var time interface{} = this.SafeInteger(interest, "ts")
+	var timestamp interface{} = this.SafeInteger(interest, 0, time)
 	var baseVolume interface{} = nil
 	var quoteVolume interface{} = nil
 	var openInterestAmount interface{} = nil
@@ -10045,9 +10045,9 @@ func (this *okx) HandleErrors(httpCode interface{}, reason interface{}, url inte
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var err interface{} = GetValue(data, i)
-			var errorCode interface{} = this.SafeString(err, "sCode")
-			var message interface{} = this.SafeString(err, "sMsg")
+			var error interface{} = GetValue(data, i)
+			var errorCode interface{} = this.SafeString(error, "sCode")
+			var message interface{} = this.SafeString(error, "sMsg")
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		}

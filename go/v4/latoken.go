@@ -2196,10 +2196,10 @@ func (this *latoken) HandleErrors(code interface{}, reason interface{}, url inte
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 	}
-	var err interface{} = this.SafeValue(response, "error")
-	var errorMessage interface{} = this.SafeString(err, "message")
-	if IsTrue(IsTrue((!IsEqual(err, nil))) || IsTrue((!IsEqual(errorMessage, nil)))) {
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
+	var error interface{} = this.SafeValue(response, "error")
+	var errorMessage interface{} = this.SafeString(error, "message")
+	if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsEqual(errorMessage, nil)))) {
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		panic(ExchangeError(feedback))
 	}

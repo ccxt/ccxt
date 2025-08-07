@@ -1079,8 +1079,8 @@ func (this *tradeogre) HandleErrors(code interface{}, reason interface{}, url in
 	if IsTrue(IsEqual(successString, "true")) {
 		return nil
 	}
-	var err interface{} = this.SafeValue(response, "error")
-	var errorCode interface{} = this.SafeString(err, "code")
+	var error interface{} = this.SafeValue(response, "error")
+	var errorCode interface{} = this.SafeString(error, "code")
 	var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
 	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 	panic(ExchangeError(feedback))

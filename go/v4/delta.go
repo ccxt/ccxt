@@ -4187,8 +4187,8 @@ func (this *delta) HandleErrors(code interface{}, reason interface{}, url interf
 	//
 	// {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
 	//
-	var err interface{} = this.SafeDict(response, "error", map[string]interface{}{})
-	var errorCode interface{} = this.SafeString(err, "code")
+	var error interface{} = this.SafeDict(response, "error", map[string]interface{}{})
+	var errorCode interface{} = this.SafeString(error, "code")
 	if IsTrue(!IsEqual(errorCode, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

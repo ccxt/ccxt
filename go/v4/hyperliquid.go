@@ -3075,8 +3075,8 @@ func (this *hyperliquid) ParseOrder(order interface{}, optionalArgs ...interface
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var err interface{} = this.SafeString(order, "error")
-	if IsTrue(!IsEqual(err, nil)) {
+	var error interface{} = this.SafeString(order, "error")
+	if IsTrue(!IsEqual(error, nil)) {
 		return this.SafeOrder(map[string]interface{}{
 			"info":   order,
 			"status": "rejected",
@@ -4756,12 +4756,12 @@ func (this *hyperliquid) HandleErrors(code interface{}, reason interface{}, url 
 	// {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
 	//
 	var status interface{} = this.SafeString(response, "status", "")
-	var err interface{} = this.SafeString(response, "error")
+	var error interface{} = this.SafeString(response, "error")
 	var message interface{} = nil
 	if IsTrue(IsEqual(status, "err")) {
 		message = this.SafeString(response, "response")
-	} else if IsTrue(!IsEqual(err, nil)) {
-		message = err
+	} else if IsTrue(!IsEqual(error, nil)) {
+		message = error
 	} else {
 		var responsePayload interface{} = this.SafeDict(response, "response", map[string]interface{}{})
 		var data interface{} = this.SafeDict(responsePayload, "data", map[string]interface{}{})

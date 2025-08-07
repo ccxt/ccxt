@@ -6017,9 +6017,9 @@ func (this *phemex) HandleErrors(httpCode interface{}, reason interface{}, url i
 	//     {"code":412,"msg":"Missing parameter - to","data":null}
 	//     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
 	//
-	var err interface{} = this.SafeValue(response, "error", response)
-	var errorCode interface{} = this.SafeString(err, "code")
-	var message interface{} = this.SafeString(err, "msg")
+	var error interface{} = this.SafeValue(response, "error", response)
+	var errorCode interface{} = this.SafeString(error, "code")
+	var message interface{} = this.SafeString(error, "msg")
 	if IsTrue(IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "0")))) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

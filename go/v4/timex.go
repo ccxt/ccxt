@@ -2048,12 +2048,12 @@ func (this *timex) HandleErrors(statusCode interface{}, statusText interface{}, 
 		//     {"error":{"timestamp":"05.12.2019T04:03:25.419+0000","status":"FORBIDDEN","message":"Access denied","code":4300}}
 		//
 		var feedback interface{} = Add(Add(this.Id, " "), responseBody)
-		var err interface{} = this.SafeValue(response, "error")
-		if IsTrue(IsEqual(err, nil)) {
-			err = response
+		var error interface{} = this.SafeValue(response, "error")
+		if IsTrue(IsEqual(error, nil)) {
+			error = response
 		}
-		var code interface{} = this.SafeString2(err, "code", "status")
-		var message interface{} = this.SafeString2(err, "message", "debugMessage")
+		var code interface{} = this.SafeString2(error, "code", "status")
+		var message interface{} = this.SafeString2(error, "message", "debugMessage")
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

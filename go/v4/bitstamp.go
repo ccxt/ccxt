@@ -2846,16 +2846,16 @@ func (this *bitstamp) HandleErrors(httpCode interface{}, reason interface{}, url
 	//     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
 	//
 	var status interface{} = this.SafeString(response, "status")
-	var err interface{} = this.SafeValue(response, "error")
-	if IsTrue(IsTrue((IsEqual(status, "error"))) || IsTrue((!IsEqual(err, nil)))) {
+	var error interface{} = this.SafeValue(response, "error")
+	if IsTrue(IsTrue((IsEqual(status, "error"))) || IsTrue((!IsEqual(error, nil)))) {
 		var errors interface{} = []interface{}{}
-		if IsTrue(IsString(err)) {
-			AppendToArray(&errors, err)
-		} else if IsTrue(!IsEqual(err, nil)) {
-			var keys interface{} = ObjectKeys(err)
+		if IsTrue(IsString(error)) {
+			AppendToArray(&errors, error)
+		} else if IsTrue(!IsEqual(error, nil)) {
+			var keys interface{} = ObjectKeys(error)
 			for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 				var key interface{} = GetValue(keys, i)
-				var value interface{} = this.SafeValue(err, key)
+				var value interface{} = this.SafeValue(error, key)
 				if IsTrue(IsArray(value)) {
 					errors = this.ArrayConcat(errors, value)
 				} else {

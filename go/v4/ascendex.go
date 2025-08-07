@@ -4395,8 +4395,8 @@ func (this *ascendex) HandleErrors(httpCode interface{}, reason interface{}, url
 	//
 	var code interface{} = this.SafeString(response, "code")
 	var message interface{} = this.SafeString(response, "message")
-	var err interface{} = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
-	if IsTrue(IsTrue(err) || IsTrue((!IsEqual(message, nil)))) {
+	var error interface{} = IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "0")))
+	if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)

@@ -2469,10 +2469,10 @@ func (this *bitmex) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
 		response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
 		PanicOnError(response)
 		var order interface{} = this.SafeValue(response, 0, map[string]interface{}{})
-		var err interface{} = this.SafeString(order, "error")
-		if IsTrue(!IsEqual(err, nil)) {
-			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(err, "Unable to cancel order due to existing state"), 0)) {
-				panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() failed: "), err)))
+		var error interface{} = this.SafeString(order, "error")
+		if IsTrue(!IsEqual(error, nil)) {
+			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(error, "Unable to cancel order due to existing state"), 0)) {
+				panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() failed: "), error)))
 			}
 		}
 
@@ -3614,8 +3614,8 @@ func (this *bitmex) HandleErrors(code interface{}, reason interface{}, url inter
 		panic(DDoSProtection(Add(Add(this.Id, " "), body)))
 	}
 	if IsTrue(IsGreaterThanOrEqual(code, 400)) {
-		var err interface{} = this.SafeValue(response, "error", map[string]interface{}{})
-		var message interface{} = this.SafeString(err, "message")
+		var error interface{} = this.SafeValue(response, "error", map[string]interface{}{})
+		var message interface{} = this.SafeString(error, "message")
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)

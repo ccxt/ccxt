@@ -2255,11 +2255,11 @@ func (this *cex) HandleErrors(code interface{}, reason interface{}, url interfac
 			panic(NullResponse(Add(Add(this.Id, " returned unparsed response: "), body)))
 		}
 	}
-	var err interface{} = this.SafeString(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
+	var error interface{} = this.SafeString(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), err, feedback)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), err, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	// check errors in order-engine (the responses are not standard, so we parse here)

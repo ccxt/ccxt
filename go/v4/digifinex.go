@@ -2179,7 +2179,7 @@ func (this *digifinex) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 }
 func (this *digifinex) ParseCancelOrders(response interface{}) interface{} {
 	var success interface{} = this.SafeList(response, "success")
-	var err interface{} = this.SafeList(response, "error")
+	var error interface{} = this.SafeList(response, "error")
 	var result interface{} = []interface{}{}
 	for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
 		var order interface{} = GetValue(success, i)
@@ -2189,8 +2189,8 @@ func (this *digifinex) ParseCancelOrders(response interface{}) interface{} {
 			"status": "canceled",
 		}))
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(err)); i++ {
-		var order interface{} = GetValue(err, i)
+	for i := 0; IsLessThan(i, GetArrayLength(error)); i++ {
+		var order interface{} = GetValue(error, i)
 		AppendToArray(&result, this.SafeOrder(map[string]interface{}{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),

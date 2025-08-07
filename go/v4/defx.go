@@ -1139,8 +1139,8 @@ func (this *defx) ParseTrade(trade interface{}, optionalArgs ...interface{}) int
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timeVar interface{} = this.SafeString(trade, "time")
-	var timestamp interface{} = this.SafeInteger(trade, "timestamp", this.Parse8601(timeVar))
+	var time interface{} = this.SafeString(trade, "time")
+	var timestamp interface{} = this.SafeInteger(trade, "timestamp", this.Parse8601(time))
 	var marketId interface{} = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol interface{} = GetValue(market, "symbol")

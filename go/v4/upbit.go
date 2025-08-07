@@ -2839,10 +2839,10 @@ func (this *upbit) HandleErrors(httpCode interface{}, reason interface{}, url in
 	//   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
 	//   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
 	//
-	var err interface{} = this.SafeValue(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
-		var message interface{} = this.SafeString(err, "message")
-		var name interface{} = this.SafeString(err, "name")
+	var error interface{} = this.SafeValue(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
+		var message interface{} = this.SafeString(error, "message")
+		var name interface{} = this.SafeString(error, "name")
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), name, feedback)

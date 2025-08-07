@@ -401,13 +401,13 @@ func (this *testMainClass) TestSafe(methodName interface{}, exchange ccxt.ICoreE
 			{
 				func(this *testMainClass) (ret_ interface{}) {
 					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
+						if ex := recover(); ex != nil {
+							if ex == "break" {
 								return
 							}
 							ret_ = func(this *testMainClass) interface{} {
 								// catch block:
-								var e interface{} = GetRootException(e)
+								var e interface{} = GetRootException(ex)
 								var isLoadMarkets interface{} = (IsEqual(methodName, "loadMarkets"))
 								var isAuthError interface{} = (IsInstance(e, AuthenticationError))
 								var isNotSupported interface{} = (IsInstance(e, NotSupported))

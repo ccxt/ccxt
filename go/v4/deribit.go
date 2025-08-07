@@ -3720,11 +3720,11 @@ func (this *deribit) FetchFundingRate(symbol interface{}, optionalArgs ...interf
 		retRes31688 := (<-this.LoadMarkets())
 		PanicOnError(retRes31688)
 		var market interface{} = this.Market(symbol)
-		var timeVar interface{} = this.Milliseconds()
+		var time interface{} = this.Milliseconds()
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
-			"start_timestamp": Subtract(timeVar, (Multiply(Multiply(Multiply(8, 60), 60), 1000))),
-			"end_timestamp":   timeVar,
+			"start_timestamp": Subtract(time, (Multiply(Multiply(Multiply(8, 60), 60), 1000))),
+			"end_timestamp":   time,
 		}
 
 		response := (<-this.PublicGetGetFundingRateValue(this.Extend(request, params)))
@@ -3794,12 +3794,12 @@ func (this *deribit) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 			return nil
 		}
 		var duration interface{} = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
-		var timeVar interface{} = this.Milliseconds()
+		var time interface{} = this.Milliseconds()
 		var month interface{} = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000)
 		if IsTrue(IsEqual(since, nil)) {
-			since = Subtract(timeVar, month)
+			since = Subtract(time, month)
 		} else {
-			timeVar = Add(since, month)
+			time = Add(since, month)
 		}
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
@@ -3810,7 +3810,7 @@ func (this *deribit) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 			params = this.Omit(params, []interface{}{"until"})
 			AddElementToObject(request, "end_timestamp", until)
 		} else {
-			AddElementToObject(request, "end_timestamp", timeVar)
+			AddElementToObject(request, "end_timestamp", time)
 		}
 		if IsTrue(InOp(params, "isDeribitPaginationCall")) {
 			params = this.Omit(params, "isDeribitPaginationCall")
@@ -4506,9 +4506,9 @@ func (this *deribit) HandleErrors(httpCode interface{}, reason interface{}, url 
 	//         "usDiff": 36
 	//     }
 	//
-	var err interface{} = this.SafeValue(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
-		var errorCode interface{} = this.SafeString(err, "code")
+	var error interface{} = this.SafeValue(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
+		var errorCode interface{} = this.SafeString(error, "code")
 		var feedback interface{} = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))

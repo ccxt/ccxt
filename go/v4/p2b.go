@@ -1539,8 +1539,8 @@ func (this *p2b) HandleErrors(code interface{}, reason interface{}, url interfac
 		return nil
 	}
 	if IsTrue(IsEqual(code, 400)) {
-		var err interface{} = this.SafeValue(response, "error")
-		var errorCode interface{} = this.SafeString(err, "code")
+		var error interface{} = this.SafeValue(response, "error")
+		var errorCode interface{} = this.SafeString(error, "code")
 		var feedback interface{} = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 	}

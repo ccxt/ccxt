@@ -4478,11 +4478,11 @@ func (this *hitbtc) HandleErrors(code interface{}, reason interface{}, url inter
 	//       }
 	//     }
 	//
-	var err interface{} = this.SafeValue(response, "error")
-	var errorCode interface{} = this.SafeString(err, "code")
+	var error interface{} = this.SafeValue(response, "error")
+	var errorCode interface{} = this.SafeString(error, "code")
 	if IsTrue(!IsEqual(errorCode, nil)) {
 		var feedback interface{} = Add(Add(this.Id, " "), body)
-		var message interface{} = this.SafeString2(err, "message", "description")
+		var message interface{} = this.SafeString2(error, "message", "description")
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		panic(ExchangeError(feedback))

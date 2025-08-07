@@ -1861,8 +1861,8 @@ func (this *luno) HandleErrors(httpCode interface{}, reason interface{}, url int
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	var err interface{} = this.SafeValue(response, "error")
-	if IsTrue(!IsEqual(err, nil)) {
+	var error interface{} = this.SafeValue(response, "error")
+	if IsTrue(!IsEqual(error, nil)) {
 		panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
 	}
 	return nil
