@@ -3871,6 +3871,30 @@ class hyperliquid extends Exchange {
         );
     }
 
+    public function reserve_request_weight(?float $weight, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($weight, $params) {
+            /**
+             * Instead of trading to increase the address based rate limits, this $action allows reserving additional actions for 0.0005 USDC per $request-> The cost is paid from the Perps balance.
+             * @param {number} $weight the $weight to reserve, 1 $weight = 1 $action, 0.0005 USDC per $action
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a $response object
+             */
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $action = array(
+                'type' => 'reserveRequestWeight',
+                'weight' => $weight,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            return $response;
+        }) ();
+    }
+
     public function extract_type_from_delta($data = []) {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
