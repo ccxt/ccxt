@@ -1711,7 +1711,7 @@ export default class foxbit extends Exchange {
             'percentage': this.safeString (rolling_24h, 'price_change_percent'),
             'average': undefined,
             'baseVolume': this.safeString (rolling_24h, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (rolling_24h, 'quote_volume'),
             'info': ticker,
         }, market);
     }
