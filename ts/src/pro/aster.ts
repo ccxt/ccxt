@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import asterRest from '../aster.js';
-import type { Strings, Tickers, Dict } from '../base/types.js';
+import type { Strings, Tickers, Dict, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ export default class aster extends asterRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
                 'watchOrderBook': false,
@@ -28,6 +28,22 @@ export default class aster extends asterRest {
             'streaming': {},
             'exceptions': {},
         });
+    }
+
+    /**
+     * @method
+     * @name aster#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     /**
