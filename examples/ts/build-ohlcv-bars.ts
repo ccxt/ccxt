@@ -3,7 +3,7 @@ import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 
 // Bulding OHLCV array from trades (executions) data might not be desirable for user, because of data-usage rate limits eg. building 100 OHLCV bars of 1d timeframe would need to fetch 100 days of "trades" data which is quite massive amount)
-// for building different timeframe candles from another timeframe candles, users might look into the source code of third party solutions like https://github.com/valamidev/candlestick-convert (we have no connection with that project, so no guarantees about it)
+// for building different timeframe candles from another timeframe candles, users might look into the source code of third party solutions like https://github.com/valamidev/candlestick-convert (we have no connection with that project, neiher endorse it, so no guarantees about it)
 
 async function example_with_fetch_trades () {
     const exch = new ccxt.binance ({});
