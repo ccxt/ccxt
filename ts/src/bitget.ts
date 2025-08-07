@@ -2775,7 +2775,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
@@ -8802,7 +8802,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
