@@ -1558,8 +1558,7 @@
                   null,
                   {
                     "network": "TRC20"
-                  },
-                  "bybit uta withdraw"
+                  }
                 ],
                 "output": "{\"coin\":\"USDT\",\"amount\":\"10\",\"address\":\"TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6\",\"timestamp\":1754478062727,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
             },
