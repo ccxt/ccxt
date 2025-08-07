@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1277,7 +1277,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        action: 'privateCreateOrder',
@@ -1306,6 +1306,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.reject(e, messageHash)
         if not rejected:
             client.reject(message, messageHash)
+            return True
+        return None
 
     def handle_message(self, client: Client, message):
         #

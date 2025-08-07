@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hyperliquid$1 = require('../hyperliquid.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class hyperliquid extends hyperliquid$1 {
+class hyperliquid extends hyperliquid$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -95,7 +97,11 @@ class hyperliquid extends hyperliquid$1 {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
-        return orders[0];
+        const parsedOrder = orders[0];
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -132,7 +138,11 @@ class hyperliquid extends hyperliquid$1 {
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
         const first = this.safeDict(statuses, 0, {});
-        return this.parseOrder(first, market);
+        const parsedOrder = this.parseOrder(first, market);
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -154,7 +164,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -183,7 +193,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -491,7 +501,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -521,7 +531,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend(request, params);
@@ -617,7 +627,7 @@ class hyperliquid extends hyperliquid$1 {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
@@ -648,7 +658,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -679,7 +689,7 @@ class hyperliquid extends hyperliquid$1 {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -1023,4 +1033,4 @@ class hyperliquid extends hyperliquid$1 {
     }
 }
 
-module.exports = hyperliquid;
+exports["default"] = hyperliquid;

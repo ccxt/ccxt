@@ -1500,7 +1500,7 @@ class defx extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -1543,7 +1543,7 @@ class defx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *
@@ -1968,7 +1968,7 @@ class defx extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2031,7 +2031,7 @@ class defx extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

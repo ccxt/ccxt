@@ -25,7 +25,6 @@ export default class latoken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchCurrenciesFromCache(params?: {}): Promise<any>;
     /**
      * @method
      * @name latoken#fetchCurrencies

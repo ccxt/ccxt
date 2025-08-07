@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var krakenfutures$1 = require('./abstract/krakenfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class krakenfutures
  * @augments Exchange
  */
-class krakenfutures extends krakenfutures$1 {
+class krakenfutures extends krakenfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'krakenfutures',
@@ -531,7 +533,7 @@ class krakenfutures extends krakenfutures$1 {
                 'precision': undefined,
             });
         }
-        this.currencies = this.deepExtend(currencies, this.currencies);
+        this.currencies = this.mapToSafeMap(this.deepExtend(currencies, this.currencies));
         return result;
     }
     /**
@@ -2880,4 +2882,4 @@ class krakenfutures extends krakenfutures$1 {
     }
 }
 
-module.exports = krakenfutures;
+exports["default"] = krakenfutures;

@@ -50,6 +50,10 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    const allowEmptySkips = exchange.safeList (skippedProperties, 'allowNull', []);
+    if (emptyAllowedFor !== undefined) {
+        emptyAllowedFor = concat (emptyAllowedFor, allowEmptySkips);
+    }
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);
         const realLength = entry.length;
@@ -313,9 +317,8 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
     if (Number.isInteger (key)) {
-        key = key as number;
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
-        assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
+        assert (key as number < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
         assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
         assert (key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
@@ -533,6 +536,15 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getActiveMarkets (exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+        return exchange.arrayConcat (filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -553,6 +565,24 @@ function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUr
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
+}
+
+function concat (a: any[] = undefined, b: any[] = undefined) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if (a === undefined) {
+        return b;
+    } else if (b === undefined) {
+        return a;
+    } else {
+        const result = [];
+        for (let i = 0; i < a.length; i++) {
+            result.push (a[i]);
+        }
+        for (let j = 0; j < b.length; j++) {
+            result.push (b[j]);
+        }
+        return result;
+    }
 }
 
 function assertNonEmtpyArray (exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint: Str = undefined) {
@@ -616,4 +646,6 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    concat,
+    getActiveMarkets,
 };

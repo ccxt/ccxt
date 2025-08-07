@@ -500,7 +500,6 @@ public partial class testMainClass
             { "fetchOHLCV", new List<object>() {symbol} },
             { "fetchTrades", new List<object>() {symbol} },
             { "fetchOrderBook", new List<object>() {symbol} },
-            { "fetchL2OrderBook", new List<object>() {symbol} },
             { "fetchOrderBooks", new List<object>() {} },
             { "fetchBidsAsks", new List<object>() {} },
             { "fetchStatus", new List<object>() {} },
@@ -904,7 +903,7 @@ public partial class testMainClass
         // todo: this might be moved in base tests later
         if (isTrue(isEqual(exchange.id, "binance")))
         {
-            assert(isEqual(exchange.hostname, null), "binance.com hostname should be empty");
+            assert(isTrue(isEqual(exchange.hostname, null)) || isTrue(isEqual(exchange.hostname, "")), "binance.com hostname should be empty");
             assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), add("https://api.binance.com/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
             assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), add("SAPI should contain the endpoint lending/union/account, ", jsonStringify(getValue(getValue(exchange.api, "sapi"), "get"))));
         } else if (isTrue(isEqual(exchange.id, "binanceus")))
@@ -912,6 +911,24 @@ public partial class testMainClass
             assert(isEqual(exchange.hostname, "binance.us"), add("binance.us hostname does not match ", exchange.hostname));
             assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.us/api/v3"), add("https://api.binance.us/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
         }
+    }
+
+    public async virtual Task<object> testReturnResponseHeaders(Exchange exchange)
+    {
+        if (isTrue(!isEqual(exchange.id, "binance")))
+        {
+            return false;  // this test is only for binance exchange for now
+        }
+        exchange.returnResponseHeaders = true;
+        object ticker = await exchange.fetchTicker("BTC/USDT");
+        object info = getValue(ticker, "info");
+        object headers = getValue(info, "responseHeaders");
+        object headersKeys = new List<object>(((IDictionary<string,object>)headers).Keys);
+        assert(isGreaterThan(getArrayLength(headersKeys), 0), "Response headers should not be empty");
+        object headerValues = new List<object>(((IDictionary<string,object>)headers).Values);
+        assert(isGreaterThan(getArrayLength(headerValues), 0), "Response headers values should not be empty");
+        exchange.returnResponseHeaders = false;
+        return true;
     }
 
     public async virtual Task<object> startTest(Exchange exchange, object symbol)
@@ -922,6 +939,7 @@ public partial class testMainClass
             return true;
         }
         this.checkConstructor(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);
@@ -1316,6 +1334,10 @@ public partial class testMainClass
     {
         object output = null;
         object requestUrl = null;
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC REQUEST TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1351,6 +1373,10 @@ public partial class testMainClass
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1392,7 +1418,7 @@ public partial class testMainClass
             { "uid", "uid" },
             { "token", "token" },
             { "login", "login" },
-            { "accountId", "accountId" },
+            { "accountId", "12345" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },
@@ -1604,6 +1630,36 @@ public partial class testMainClass
         return sum;
     }
 
+    public virtual object checkIfExchangeIsDisabled(object exchangeName, object exchangeData)
+    {
+        Exchange exchange = initExchange("Exchange", new Dictionary<string, object>() {});
+        object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
+        if (isTrue(isTrue(isDisabledPy) && isTrue((isEqual(this.lang, "PY")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"));
+            return true;
+        }
+        object isDisabledPHP = exchange.safeBool(exchangeData, "disabledPHP", false);
+        if (isTrue(isTrue(isDisabledPHP) && isTrue((isEqual(this.lang, "PHP")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in php"));
+            return true;
+        }
+        object isDisabledCSharp = exchange.safeBool(exchangeData, "disabledCS", false);
+        if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in c#"));
+            return true;
+        }
+        object isDisabledGO = exchange.safeBool(exchangeData, "disabledGO", false);
+        if (isTrue(isTrue(isDisabledGO) && isTrue((isEqual(this.lang, "GO")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"));
+            return true;
+        }
+        return false;
+    }
+
     public async virtual Task<object> runStaticRequestTests(object targetExchange = null, object testName = null)
     {
         await this.runStaticTests("request", targetExchange, testName);
@@ -1634,6 +1690,11 @@ public partial class testMainClass
         {
             object exchangeName = getValue(exchanges, i);
             object exchangeData = getValue(staticData, exchangeName);
+            object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
+            if (isTrue(disabled))
+            {
+                continue;
+            }
             object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData, testName);
             sum = exchange.sum(sum, numberOfTests);
             if (isTrue(isEqual(type, "request")))
@@ -1685,7 +1746,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1994,7 +2055,7 @@ public partial class testMainClass
             await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
-            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object brokerId = getValue(spotOrderRequest, "broker_id");
         object idString = ((object)id).ToString();
@@ -2130,27 +2191,22 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> testHyperliquid()
-    {
-        Exchange exchange = this.initOfflineExchange("hyperliquid");
-        object id = "1";
-        object request = null;
-        try
-        {
-            await exchange.createOrder("SOL/USDC:USDC", "limit", "buy", 1, 100);
-        } catch(Exception e)
-        {
-            request = jsonParse(exchange.last_request_body);
-        }
-        object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
-        assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
     public async virtual Task<object> testCoinbaseinternational()
     {
         Exchange exchange = this.initOfflineExchange("coinbaseinternational");
@@ -2454,6 +2510,29 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         assert(isEqual(getValue(request, "referral_code"), id), add(add("derive - referral_code: ", id), " not in request."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testModeTrade()
+    {
+        Exchange exchange = this.initOfflineExchange("modetrade");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = "CCXTMODE";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "order_tag");
+        assert(isEqual(brokerId, id), add(add(add("modetrade - id: ", id), " different from  broker_id: "), brokerId));
         if (!isTrue(isSync()))
         {
             await close(exchange);

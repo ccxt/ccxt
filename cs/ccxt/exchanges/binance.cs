@@ -10,7 +10,7 @@ public partial class binance : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "binance" },
             { "name", "Binance" },
-            { "countries", new List<object>() {"JP", "MT"} },
+            { "countries", new List<object>() {} },
             { "rateLimit", 50 },
             { "certified", true },
             { "pro", true },
@@ -53,6 +53,7 @@ public partial class binance : Exchange
                 { "editOrder", true },
                 { "editOrders", true },
                 { "fetchAccounts", null },
+                { "fetchAllGreeks", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", true },
@@ -457,6 +458,7 @@ public partial class binance : Exchange
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
                         { "portfolio/pmloan-history", 5 },
+                        { "portfolio/earn-asset-balance", 150 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -601,6 +603,7 @@ public partial class binance : Exchange
                         { "portfolio/repay-futures-negative-balance", 150 },
                         { "portfolio/mint", 20 },
                         { "portfolio/redeem", 20 },
+                        { "portfolio/earn-asset-transfer", 150 },
                         { "lending/auto-invest/plan/add", 0.1 },
                         { "lending/auto-invest/plan/edit", 0.1 },
                         { "lending/auto-invest/plan/edit-status", 0.1 },
@@ -857,6 +860,7 @@ public partial class binance : Exchange
                         } },
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
+                        { "insuranceBalance", 1 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -1296,7 +1300,10 @@ public partial class binance : Exchange
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
                 { "fetchMargins", true },
-                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                } },
+                { "loadAllOptions", false },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
                 { "defaultType", "spot" },
@@ -1353,194 +1360,8 @@ public partial class binance : Exchange
                     { "SPL", "SOL" },
                     { "SOL", "SOL" },
                 } },
-                { "reverseNetworks", new Dictionary<string, object>() {
-                    { "tronscan.org", "TRC20" },
-                    { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
-                    { "explorer.binance.org", "BEP2" },
-                    { "bithomp.com", "XRP" },
-                    { "bloks.io", "EOS" },
-                    { "stellar.expert", "XLM" },
-                    { "blockchair.com/bitcoin", "BTC" },
-                    { "blockchair.com/bitcoin-cash", "BCH" },
-                    { "blockchair.com/ecash", "XEC" },
-                    { "explorer.litecoin.net", "LTC" },
-                    { "explorer.avax.network", "AVAX" },
-                    { "solscan.io", "SOL" },
-                    { "polkadot.subscan.io", "DOT" },
-                    { "dashboard.internetcomputer.org", "ICP" },
-                    { "explorer.chiliz.com", "CHZ" },
-                    { "cardanoscan.io", "ADA" },
-                    { "mainnet.theoan.com", "AION" },
-                    { "algoexplorer.io", "ALGO" },
-                    { "explorer.ambrosus.com", "AMB" },
-                    { "viewblock.io/zilliqa", "ZIL" },
-                    { "viewblock.io/arweave", "AR" },
-                    { "explorer.ark.io", "ARK" },
-                    { "atomscan.com", "ATOM" },
-                    { "www.mintscan.io", "CTK" },
-                    { "explorer.bitcoindiamond.org", "BCD" },
-                    { "btgexplorer.com", "BTG" },
-                    { "bts.ai", "BTS" },
-                    { "explorer.celo.org", "CELO" },
-                    { "explorer.nervos.org", "CKB" },
-                    { "cerebro.cortexlabs.ai", "CTXC" },
-                    { "chainz.cryptoid.info", "VIA" },
-                    { "explorer.dcrdata.org", "DCR" },
-                    { "digiexplorer.info", "DGB" },
-                    { "dock.subscan.io", "DOCK" },
-                    { "dogechain.info", "DOGE" },
-                    { "explorer.elrond.com", "EGLD" },
-                    { "blockscout.com", "ETC" },
-                    { "explore-fetchhub.fetch.ai", "FET" },
-                    { "filfox.info", "FIL" },
-                    { "fio.bloks.io", "FIO" },
-                    { "explorer.firo.org", "FIRO" },
-                    { "neoscan.io", "NEO" },
-                    { "ftmscan.com", "FTM" },
-                    { "explorer.gochain.io", "GO" },
-                    { "block.gxb.io", "GXS" },
-                    { "hash-hash.info", "HBAR" },
-                    { "www.hiveblockexplorer.com", "HIVE" },
-                    { "explorer.helium.com", "HNT" },
-                    { "tracker.icon.foundation", "ICX" },
-                    { "www.iostabc.com", "IOST" },
-                    { "explorer.iota.org", "IOTA" },
-                    { "iotexscan.io", "IOTX" },
-                    { "irishub.iobscan.io", "IRIS" },
-                    { "kava.mintscan.io", "KAVA" },
-                    { "scope.klaytn.com", "KLAY" },
-                    { "kmdexplorer.io", "KMD" },
-                    { "kusama.subscan.io", "KSM" },
-                    { "explorer.lto.network", "LTO" },
-                    { "polygonscan.com", "POLYGON" },
-                    { "explorer.ont.io", "ONT" },
-                    { "minaexplorer.com", "MINA" },
-                    { "nanolooker.com", "NANO" },
-                    { "explorer.nebulas.io", "NAS" },
-                    { "explorer.nbs.plus", "NBS" },
-                    { "explorer.nebl.io", "NEBL" },
-                    { "nulscan.io", "NULS" },
-                    { "nxscan.com", "NXS" },
-                    { "explorer.harmony.one", "ONE" },
-                    { "explorer.poa.network", "POA" },
-                    { "qtum.info", "QTUM" },
-                    { "explorer.rsk.co", "RSK" },
-                    { "www.oasisscan.com", "ROSE" },
-                    { "ravencoin.network", "RVN" },
-                    { "sc.tokenview.com", "SC" },
-                    { "secretnodes.com", "SCRT" },
-                    { "explorer.skycoin.com", "SKY" },
-                    { "steemscan.com", "STEEM" },
-                    { "explorer.stacks.co", "STX" },
-                    { "www.thetascan.io", "THETA" },
-                    { "scan.tomochain.com", "TOMO" },
-                    { "explore.vechain.org", "VET" },
-                    { "explorer.vite.net", "VITE" },
-                    { "www.wanscan.org", "WAN" },
-                    { "wavesexplorer.com", "WAVES" },
-                    { "wax.eosx.io", "WAXP" },
-                    { "waltonchain.pro", "WTC" },
-                    { "chain.nem.ninja", "XEM" },
-                    { "verge-blockchain.info", "XVG" },
-                    { "explorer.yoyow.org", "YOYOW" },
-                    { "explorer.zcha.in", "ZEC" },
-                    { "explorer.zensystem.io", "ZEN" },
-                } },
                 { "networksById", new Dictionary<string, object>() {
                     { "SOL", "SOL" },
-                    { "tronscan.org", "TRC20" },
-                    { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
-                    { "explorer.binance.org", "BEP2" },
-                    { "bithomp.com", "XRP" },
-                    { "bloks.io", "EOS" },
-                    { "stellar.expert", "XLM" },
-                    { "blockchair.com/bitcoin", "BTC" },
-                    { "blockchair.com/bitcoin-cash", "BCH" },
-                    { "blockchair.com/ecash", "XEC" },
-                    { "explorer.litecoin.net", "LTC" },
-                    { "explorer.avax.network", "AVAX" },
-                    { "solscan.io", "SOL" },
-                    { "polkadot.subscan.io", "DOT" },
-                    { "dashboard.internetcomputer.org", "ICP" },
-                    { "explorer.chiliz.com", "CHZ" },
-                    { "cardanoscan.io", "ADA" },
-                    { "mainnet.theoan.com", "AION" },
-                    { "algoexplorer.io", "ALGO" },
-                    { "explorer.ambrosus.com", "AMB" },
-                    { "viewblock.io/zilliqa", "ZIL" },
-                    { "viewblock.io/arweave", "AR" },
-                    { "explorer.ark.io", "ARK" },
-                    { "atomscan.com", "ATOM" },
-                    { "www.mintscan.io", "CTK" },
-                    { "explorer.bitcoindiamond.org", "BCD" },
-                    { "btgexplorer.com", "BTG" },
-                    { "bts.ai", "BTS" },
-                    { "explorer.celo.org", "CELO" },
-                    { "explorer.nervos.org", "CKB" },
-                    { "cerebro.cortexlabs.ai", "CTXC" },
-                    { "chainz.cryptoid.info", "VIA" },
-                    { "explorer.dcrdata.org", "DCR" },
-                    { "digiexplorer.info", "DGB" },
-                    { "dock.subscan.io", "DOCK" },
-                    { "dogechain.info", "DOGE" },
-                    { "explorer.elrond.com", "EGLD" },
-                    { "blockscout.com", "ETC" },
-                    { "explore-fetchhub.fetch.ai", "FET" },
-                    { "filfox.info", "FIL" },
-                    { "fio.bloks.io", "FIO" },
-                    { "explorer.firo.org", "FIRO" },
-                    { "neoscan.io", "NEO" },
-                    { "ftmscan.com", "FTM" },
-                    { "explorer.gochain.io", "GO" },
-                    { "block.gxb.io", "GXS" },
-                    { "hash-hash.info", "HBAR" },
-                    { "www.hiveblockexplorer.com", "HIVE" },
-                    { "explorer.helium.com", "HNT" },
-                    { "tracker.icon.foundation", "ICX" },
-                    { "www.iostabc.com", "IOST" },
-                    { "explorer.iota.org", "IOTA" },
-                    { "iotexscan.io", "IOTX" },
-                    { "irishub.iobscan.io", "IRIS" },
-                    { "kava.mintscan.io", "KAVA" },
-                    { "scope.klaytn.com", "KLAY" },
-                    { "kmdexplorer.io", "KMD" },
-                    { "kusama.subscan.io", "KSM" },
-                    { "explorer.lto.network", "LTO" },
-                    { "polygonscan.com", "POLYGON" },
-                    { "explorer.ont.io", "ONT" },
-                    { "minaexplorer.com", "MINA" },
-                    { "nanolooker.com", "NANO" },
-                    { "explorer.nebulas.io", "NAS" },
-                    { "explorer.nbs.plus", "NBS" },
-                    { "explorer.nebl.io", "NEBL" },
-                    { "nulscan.io", "NULS" },
-                    { "nxscan.com", "NXS" },
-                    { "explorer.harmony.one", "ONE" },
-                    { "explorer.poa.network", "POA" },
-                    { "qtum.info", "QTUM" },
-                    { "explorer.rsk.co", "RSK" },
-                    { "www.oasisscan.com", "ROSE" },
-                    { "ravencoin.network", "RVN" },
-                    { "sc.tokenview.com", "SC" },
-                    { "secretnodes.com", "SCRT" },
-                    { "explorer.skycoin.com", "SKY" },
-                    { "steemscan.com", "STEEM" },
-                    { "explorer.stacks.co", "STX" },
-                    { "www.thetascan.io", "THETA" },
-                    { "scan.tomochain.com", "TOMO" },
-                    { "explore.vechain.org", "VET" },
-                    { "explorer.vite.net", "VITE" },
-                    { "www.wanscan.org", "WAN" },
-                    { "wavesexplorer.com", "WAVES" },
-                    { "wax.eosx.io", "WAXP" },
-                    { "waltonchain.pro", "WTC" },
-                    { "chain.nem.ninja", "XEM" },
-                    { "verge-blockchain.info", "XVG" },
-                    { "explorer.yoyow.org", "YOYOW" },
-                    { "explorer.zcha.in", "ZEC" },
-                    { "explorer.zensystem.io", "ZEN" },
                 } },
                 { "impliedNetworks", new Dictionary<string, object>() {
                     { "ETH", new Dictionary<string, object>() {
@@ -2836,15 +2657,18 @@ public partial class binance : Exchange
                 return getValue(markets, 0);
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "/"), -1))) && isTrue((isLessThan(getIndexOf(symbol, ":"), 0)))))
             {
-                // support legacy symbols
-                var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-                var bs = ((IList<object>) bsquoteVariable)[0];
-                var quote = ((IList<object>) bsquoteVariable)[1];
-                object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
-                object futuresSymbol = add(add(symbol, ":"), settle);
-                if (isTrue(inOp(this.markets, futuresSymbol)))
+                if (isTrue(isTrue((!isEqual(defaultType, null))) && isTrue((!isEqual(defaultType, "spot")))))
                 {
-                    return getValue(this.markets, futuresSymbol);
+                    // support legacy symbols
+                    var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                    var bs = ((IList<object>) bsquoteVariable)[0];
+                    var quote = ((IList<object>) bsquoteVariable)[1];
+                    object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
+                    object futuresSymbol = add(add(symbol, ":"), settle);
+                    if (isTrue(inOp(this.markets, futuresSymbol)))
+                    {
+                        return getValue(this.markets, futuresSymbol);
+                    }
                 }
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(symbol, "-P"), -1)))))
             {
@@ -3189,7 +3013,26 @@ public partial class binance : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object rawFetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
+        object rawFetchMarkets = null;
+        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
+        {
+            rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
+        } else
+        {
+            // for backward-compatibility
+            rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
+        }
+        // handle loadAllOptions option
+        object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
+        if (isTrue(loadAllOptions))
+        {
+            if (!isTrue(this.inArray("option", rawFetchMarkets)))
+            {
+                ((IList<object>)rawFetchMarkets).Add("option");
+            }
+        }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object fetchMarkets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); postFixIncrement(ref i))
@@ -4207,7 +4050,7 @@ public partial class binance : Exchange
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562", // mark price
+        //         "markPrice": "11793.63104561", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -4216,29 +4059,52 @@ public partial class binance : Exchange
         //         "time": 1597370495002
         //     }
         //
-        //     {
-        //         "symbol": "ETHBTC",
-        //         "priceChange": "0.00068700",
-        //         "priceChangePercent": "2.075",
-        //         "weightedAvgPrice": "0.03342681",
-        //         "prevClosePrice": "0.03310300",
-        //         "lastPrice": "0.03378900",
-        //         "lastQty": "0.07700000",
-        //         "bidPrice": "0.03378900",
-        //         "bidQty": "7.16800000",
-        //         "askPrice": "0.03379000",
-        //         "askQty": "24.00000000",
-        //         "openPrice": "0.03310200",
-        //         "highPrice": "0.03388900",
-        //         "lowPrice": "0.03306900",
-        //         "volume": "205478.41000000",
-        //         "quoteVolume": "6868.48826294",
-        //         "openTime": 1601469986932,
-        //         "closeTime": 1601556386932,
-        //         "firstId": 196098772,
-        //         "lastId": 196186315,
-        //         "count": 87544
-        //     }
+        // spot - ticker
+        //
+        //    {
+        //        "symbol": "BTCUSDT",
+        //        "priceChange": "-188.18000000",
+        //        "priceChangePercent": "-0.159",
+        //        "weightedAvgPrice": "118356.64734074",
+        //        "lastPrice": "118449.03000000",
+        //        "prevClosePrice": "118637.22000000",    // field absent in rolling ticker
+        //        "lastQty": "0.00731000",                // field absent in rolling ticker
+        //        "bidPrice": "118449.02000000",          // field absent in rolling ticker
+        //        "bidQty": "7.15931000",                 // field absent in rolling ticker
+        //        "askPrice": "118449.03000000",          // field absent in rolling ticker
+        //        "askQty": "0.09592000",                 // field absent in rolling ticker
+        //        "openPrice": "118637.21000000",
+        //        "highPrice": "119273.36000000",
+        //        "lowPrice": "117427.50000000",
+        //        "volume": "14741.41491000",
+        //        "quoteVolume": "1744744445.80640740",
+        //        "openTime": "1753701474013",
+        //        "closeTime": "1753787874013",
+        //        "firstId": "5116031635",
+        //        "lastId": "5117964946",
+        //        "count": "1933312"
+        //    }
+        //
+        // usdm tickers
+        //
+        //    {
+        //        "symbol": "SUSDT",
+        //        "priceChange": "-0.0229000",
+        //        "priceChangePercent": "-6.777",
+        //        "weightedAvgPrice": "0.3210035",
+        //        "lastPrice": "0.3150000",
+        //        "lastQty": "16",
+        //        "openPrice": "0.3379000",
+        //        "highPrice": "0.3411000",
+        //        "lowPrice": "0.3071000",
+        //        "volume": "120588225",
+        //        "quoteVolume": "38709237.2289000",
+        //        "openTime": "1753701720000",
+        //        "closeTime": "1753788172414",
+        //        "firstId": "72234973",
+        //        "lastId": "72423677",
+        //        "count": "188700"
+        //    }
         //
         // coinm
         //
@@ -4624,12 +4490,26 @@ public partial class binance : Exchange
             response = await this.dapiPublicGetTicker24hr(parameters);
         } else if (isTrue(isEqual(type, "spot")))
         {
-            object request = new Dictionary<string, object>() {};
-            if (isTrue(!isEqual(symbols, null)))
+            object rolling = this.safeBool(parameters, "rolling", false);
+            parameters = this.omit(parameters, "rolling");
+            if (isTrue(rolling))
             {
-                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
+                symbols = this.marketSymbols(symbols);
+                object request = new Dictionary<string, object>() {
+                    { "symbols", this.json(this.marketIds(symbols)) },
+                };
+                response = await this.publicGetTicker(this.extend(request, parameters));
+                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
+                return this.parseTickersForRolling(response, symbols);
+            } else
+            {
+                object request = new Dictionary<string, object>() {};
+                if (isTrue(!isEqual(symbols, null)))
+                {
+                    ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
+                }
+                response = await this.publicGetTicker24hr(this.extend(request, parameters));
             }
-            response = await this.publicGetTicker24hr(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "option")))
         {
             response = await this.eapiPublicGetTicker(parameters);
@@ -4638,6 +4518,20 @@ public partial class binance : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
+    }
+
+    public virtual object parseTickersForRolling(object response, object symbols)
+    {
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object marketId = this.safeString(getValue(response, i), "symbol");
+            object tickerMarket = this.safeMarket(marketId, null, null, "spot");
+            object parsedTicker = this.parseTicker(getValue(response, i));
+            ((IDictionary<string,object>)parsedTicker)["symbol"] = getValue(tickerMarket, "symbol");
+            ((IList<object>)results).Add(parsedTicker);
+        }
+        return this.filterByArray(results, "symbol", symbols);
     }
 
     /**
@@ -5476,7 +5370,6 @@ public partial class binance : Exchange
         {
             uppercaseType = "LIMIT_MAKER";
         }
-        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -5488,6 +5381,7 @@ public partial class binance : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
+        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
@@ -9492,51 +9386,19 @@ public partial class binance : Exchange
     {
         //
         //     {
-        //         "currency": "XRP",
+        //         "coin": "XRP",
         //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
         //         "tag": "108618262",
-        //         "info": {
-        //             "coin": "XRP",
-        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-        //             "tag": "108618262",
-        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-        //         }
+        //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //     }
         //
-        object info = this.safeDict(response, "info", new Dictionary<string, object>() {});
-        object url = this.safeString(info, "url");
+        object url = this.safeString(response, "url");
         object address = this.safeString(response, "address");
         object currencyId = this.safeString(response, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object impliedNetwork = null;
-        if (isTrue(!isEqual(url, null)))
-        {
-            object reverseNetworks = this.safeDict(this.options, "reverseNetworks", new Dictionary<string, object>() {});
-            object parts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            object topLevel = this.safeString(parts, 2);
-            if (isTrue(isTrue((isEqual(topLevel, "blockchair.com"))) || isTrue((isEqual(topLevel, "viewblock.io")))))
-            {
-                object subLevel = this.safeString(parts, 3);
-                if (isTrue(!isEqual(subLevel, null)))
-                {
-                    topLevel = add(add(topLevel, "/"), subLevel);
-                }
-            }
-            impliedNetwork = this.safeString(reverseNetworks, topLevel);
-            object impliedNetworks = this.safeDict(this.options, "impliedNetworks", new Dictionary<string, object>() {
-                { "ETH", new Dictionary<string, object>() {
-                    { "ERC20", "ETH" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                } },
-            });
-            if (isTrue(inOp(impliedNetworks, code)))
-            {
-                object conversion = this.safeDict(impliedNetworks, code, new Dictionary<string, object>() {});
-                impliedNetwork = this.safeString(conversion, impliedNetwork, impliedNetwork);
-            }
-        }
+        // deposit-address endpoint provides only network url (not network ID/CODE)
+        // so we should map the url to network (their data is inside currencies)
+        object networkCode = this.getNetworkCodeByNetworkUrl(code, url);
         object tag = this.safeString(response, "tag", "");
         if (isTrue(isEqual(((string)tag).Length, 0)))
         {
@@ -9546,7 +9408,7 @@ public partial class binance : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", impliedNetwork },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
         };
@@ -11056,7 +10918,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
-            ((IDictionary<string,object>)this.options)["leverageBrackets"] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
@@ -12174,6 +12036,7 @@ public partial class binance : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            symbol = getValue(market, "symbol");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -12206,7 +12069,7 @@ public partial class binance : Exchange
         //
         object settlements = this.parseSettlements(response, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
@@ -12546,6 +12409,51 @@ public partial class binance : Exchange
             { "COMMISSION", "commission" },
         };
         return this.safeString(ledgerType, type, type);
+    }
+
+    public virtual object getNetworkCodeByNetworkUrl(object currencyCode, object depositUrl = null)
+    {
+        // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+        if (isTrue(isEqual(depositUrl, null)))
+        {
+            return null;
+        }
+        object networkCode = null;
+        object currency = this.currency(currencyCode);
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        object networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
+        {
+            object currentNetworkCode = getValue(networkCodes, i);
+            object info = this.safeDict(getValue(networks, currentNetworkCode), "info", new Dictionary<string, object>() {});
+            object siteUrl = this.safeString(info, "contractAddressUrl");
+            // check if url matches the field's value
+            if (isTrue(isTrue(!isEqual(siteUrl, null)) && isTrue(((string)depositUrl).StartsWith(((string)this.getBaseDomainFromUrl(siteUrl))))))
+            {
+                networkCode = currentNetworkCode;
+            }
+        }
+        return networkCode;
+    }
+
+    public virtual object getBaseDomainFromUrl(object url)
+    {
+        if (isTrue(isEqual(url, null)))
+        {
+            return null;
+        }
+        object urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        object scheme = this.safeString(urlParts, 0);
+        if (isTrue(isEqual(scheme, null)))
+        {
+            return null;
+        }
+        object domain = this.safeString(urlParts, 2);
+        if (isTrue(isEqual(domain, null)))
+        {
+            return null;
+        }
+        return add(add(add(scheme, "//"), domain), "/");
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -14146,6 +14054,52 @@ public partial class binance : Exchange
         //     ]
         //
         return this.parseGreeks(getValue(response, 0), market);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.eapiPublicGetMark(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-231229-40000-C",
+        //             "markPrice": "2012",
+        //             "bidIV": "0.60236275",
+        //             "askIV": "0.62267244",
+        //             "markIV": "0.6125176",
+        //             "delta": "0.39111646",
+        //             "theta": "-32.13948531",
+        //             "gamma": "0.00004656",
+        //             "vega": "51.70062218",
+        //             "highPriceLimit": "6474",
+        //             "lowPriceLimit": "5"
+        //         }
+        //     ]
+        //
+        return this.parseAllGreeks(response, symbols);
     }
 
     public override object parseGreeks(object greeks, object market = null)

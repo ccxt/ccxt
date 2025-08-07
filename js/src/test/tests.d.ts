@@ -43,7 +43,8 @@ declare class testMainClass {
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
     runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
-    checkConstructor(exchange: any): void;
+    checkConstructor(exchange: Exchange): void;
+    testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
     startTest(exchange: any, symbol: any): Promise<boolean>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
@@ -63,6 +64,7 @@ declare class testMainClass {
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object, testName?: Str): number;
+    checkIfExchangeIsDisabled(exchangeName: string, exchangeData: object): boolean;
     runStaticRequestTests(targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticTests(type: string, targetExchange?: Str, testName?: Str): Promise<boolean>;
     runStaticResponseTests(exchangeName?: any, test?: any): Promise<boolean>;
@@ -82,7 +84,6 @@ declare class testMainClass {
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
     testBlofin(): Promise<boolean>;
-    testHyperliquid(): Promise<boolean>;
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
     testWoofiPro(): Promise<boolean>;
@@ -95,5 +96,6 @@ declare class testMainClass {
     testDefx(): Promise<boolean>;
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
+    testModeTrade(): Promise<boolean>;
 }
 export default testMainClass;

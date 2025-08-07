@@ -526,7 +526,7 @@ class krakenfutures extends Exchange {
                 'precision' => null,
             );
         }
-        $this->currencies = $this->deep_extend($currencies, $this->currencies);
+        $this->currencies = $this->map_to_safe_map($this->deep_extend($currencies, $this->currencies));
         return $result;
     }
 
@@ -2393,7 +2393,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          *
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
@@ -2731,7 +2731,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
          *

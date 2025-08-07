@@ -34,6 +34,9 @@ class onetrading extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -46,9 +49,14 @@ class onetrading extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -60,21 +68,41 @@ class onetrading extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -87,6 +115,7 @@ class onetrading extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -98,9 +127,13 @@ class onetrading extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -401,10 +434,13 @@ class onetrading extends Exchange {
             $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     array(
-            //         {
-            //             "code":"BEST",
-            //             "precision":8
-            //         }
+            //         array(
+            //             "code" => "USDT",
+            //             "precision" => 6,
+            //             "unified_cryptoasset_id" => 825,
+            //             "name" => "Tether USDt",
+            //             "collateral_percentage" => 0
+            //         ),
             //     )
             //
             $result = array();
@@ -412,11 +448,11 @@ class onetrading extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'code');
                 $code = $this->safe_currency_code($id);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
-                    'name' => null,
-                    'info' => $currency, // the original payload
+                    'name' => $this->safe_string($currency, 'name'),
+                    'info' => $currency,
                     'active' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
@@ -427,7 +463,7 @@ class onetrading extends Exchange {
                         'withdraw' => array( 'min' => null, 'max' => null ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1382,7 +1418,7 @@ class onetrading extends Exchange {
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     )
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

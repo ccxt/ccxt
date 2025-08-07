@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -531,7 +531,7 @@ export default class krakenfutures extends Exchange {
                 'precision': undefined,
             });
         }
-        this.currencies = this.deepExtend (currencies, this.currencies);
+        this.currencies = this.mapToSafeMap (this.deepExtend (currencies, this.currencies));
         return result;
     }
 
@@ -1285,7 +1285,7 @@ export default class krakenfutures extends Exchange {
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
         }
-        return this.extend ({ 'info': response }, order);
+        return this.extend ({ 'info': response }, order) as Order;
     }
 
     /**
@@ -2407,7 +2407,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         const response = await this.privateGetOpenpositions (request);
@@ -2749,7 +2749,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

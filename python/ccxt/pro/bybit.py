@@ -7,13 +7,14 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 
 
 class bybit(ccxt.async_support.bybit):
@@ -48,6 +49,17 @@ class bybit(ccxt.async_support.bybit):
                 'watchTrades': True,
                 'watchPositions': True,
                 'watchTradesForSymbols': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': True,
+                'unWatchOrders': True,
+                'unWatchPositions': True,
             },
             'urls': {
                 'api': {
@@ -858,7 +870,7 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the orderbook channel
 
@@ -1032,7 +1044,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the trades channel
 
@@ -1235,8 +1247,7 @@ class bybit(ccxt.async_support.bybit):
         subHash = 'myTrades'
         await self.load_markets()
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            subHash += ':' + symbol
+            raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicByMarket: dict = {
@@ -1484,6 +1495,27 @@ class bybit(ccxt.async_support.bybit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
+    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches all open positions
+
+        https://bybit-exchange.github.io/docs/v5/websocket/private/position
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: status of the unwatch request
+        """
+        await self.load_markets()
+        method = 'watchPositions'
+        messageHash = 'unsubscribe:positions'
+        subHash = 'positions'
+        if not self.is_empty(symbols):
+            raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
+        url = await self.get_url_by_market_type(None, True, method, params)
+        await self.authenticate(url)
+        topics = ['position']
+        return await self.un_watch_topics(url, 'positions', symbols, [messageHash], [subHash], topics, params)
+
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -1652,8 +1684,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'unsubscribe:orders'
         subHash = 'orders'
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            subHash += ':' + symbol
+            raise NotSupported(self.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicsByMarket: dict = {
@@ -1786,11 +1817,12 @@ class bybit(ccxt.async_support.bybit):
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols: dict = {}
         for i in range(0, len(rawOrders)):
-            parsed = None
-            if isSpot:
-                parsed = self.parse_ws_spot_order(rawOrders[i])
-            else:
-                parsed = self.parse_order(rawOrders[i])
+            parsed = self.parse_order(rawOrders[i])
+            # if isSpot:
+            #     parsed = self.parseWsSpotOrder(rawOrders[i])
+            # else:
+            #     parsed = self.parse_order(rawOrders[i])
+            # }
             symbol = parsed['symbol']
             symbols[symbol] = True
             orders.append(parsed)
@@ -1800,137 +1832,6 @@ class bybit(ccxt.async_support.bybit):
             client.resolve(orders, currentMessageHash)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
-
-    def parse_ws_spot_order(self, order, market=None):
-        #
-        #    {
-        #        "e": "executionReport",
-        #        "E": "1653297251061",  # timestamp
-        #        "s": "LTCUSDT",  # symbol
-        #        "c": "1653297250740",  # user id
-        #        "S": "SELL",  # side
-        #        "o": "MARKET_OF_BASE",  # order type
-        #        "f": "GTC",  # time in force
-        #        "q": "0.16233",  # quantity
-        #        "p": "0",  # price
-        #        "X": "NEW",  # status
-        #        "i": "1162336018974750208",  # order id
-        #        "M": "0",
-        #        "l": "0",  # last filled
-        #        "z": "0",  # total filled
-        #        "L": "0",  # last traded price
-        #        "n": "0",  # trading fee
-        #        "N": '',  # fee asset
-        #        "u": True,
-        #        "w": True,
-        #        "m": False,  # is limit_maker
-        #        "O": "1653297251042",  # order creation
-        #        "Z": "0",  # total filled
-        #        "A": "0",  # account id
-        #        "C": False,  # is close
-        #        "v": "0",  # leverage
-        #        "d": "NO_LIQ"
-        #    }
-        # v5
-        #    {
-        #        "category":"spot",
-        #        "symbol":"LTCUSDT",
-        #        "orderId":"1474764674982492160",
-        #        "orderLinkId":"1690541649154749",
-        #        "blockTradeId":"",
-        #        "side":"Buy",
-        #        "positionIdx":0,
-        #        "orderStatus":"Cancelled",
-        #        "cancelType":"UNKNOWN",
-        #        "rejectReason":"EC_NoError",
-        #        "timeInForce":"GTC",
-        #        "isLeverage":"0",
-        #        "price":"0",
-        #        "qty":"5.00000",
-        #        "avgPrice":"0",
-        #        "leavesQty":"0.00000",
-        #        "leavesValue":"5.0000000",
-        #        "cumExecQty":"0.00000",
-        #        "cumExecValue":"0.0000000",
-        #        "cumExecFee":"",
-        #        "orderType":"Market",
-        #        "stopOrderType":"",
-        #        "orderIv":"",
-        #        "triggerPrice":"0.000",
-        #        "takeProfit":"",
-        #        "stopLoss":"",
-        #        "triggerBy":"",
-        #        "tpTriggerBy":"",
-        #        "slTriggerBy":"",
-        #        "triggerDirection":0,
-        #        "placeType":"",
-        #        "lastPriceOnCreated":"0.000",
-        #        "closeOnTrigger":false,
-        #        "reduceOnly":false,
-        #        "smpGroup":0,
-        #        "smpType":"None",
-        #        "smpOrderId":"",
-        #        "createdTime":"1690541649160",
-        #        "updatedTime":"1690541649168"
-        #     }
-        #
-        id = self.safe_string_2(order, 'i', 'orderId')
-        marketId = self.safe_string_2(order, 's', 'symbol')
-        symbol = self.safe_symbol(marketId, market, None, 'spot')
-        timestamp = self.safe_integer_2(order, 'O', 'createdTime')
-        price = self.safe_string_2(order, 'p', 'price')
-        if price == '0':
-            price = None  # market orders
-        filled = self.safe_string_2(order, 'z', 'cumExecQty')
-        status = self.parse_order_status(self.safe_string_2(order, 'X', 'orderStatus'))
-        side = self.safe_string_lower_2(order, 'S', 'side')
-        lastTradeTimestamp = self.safe_string_2(order, 'E', 'updatedTime')
-        timeInForce = self.safe_string_2(order, 'f', 'timeInForce')
-        amount = None
-        cost = self.safe_string_2(order, 'Z', 'cumExecValue')
-        type = self.safe_string_lower_2(order, 'o', 'orderType')
-        if (type is not None) and (type.find('market') >= 0):
-            type = 'market'
-        if type == 'market' and side == 'buy':
-            amount = filled
-        else:
-            amount = self.safe_string_2(order, 'orderQty', 'qty')
-        fee = None
-        feeCost = self.safe_string_2(order, 'n', 'cumExecFee')
-        if feeCost is not None and feeCost != '0':
-            feeCurrencyId = self.safe_string(order, 'N')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            }
-        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
-        return self.safe_order({
-            'info': order,
-            'id': id,
-            'clientOrderId': self.safe_string_2(order, 'c', 'orderLinkId'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': None,
-            'side': side,
-            'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
-            'takeProfitPrice': self.safe_string(order, 'takeProfit'),
-            'stopLossPrice': self.safe_string(order, 'stopLoss'),
-            'reduceOnly': self.safe_value(order, 'reduceOnly'),
-            'amount': amount,
-            'cost': cost,
-            'average': self.safe_string(order, 'avgPrice'),
-            'filled': filled,
-            'remaining': None,
-            'status': status,
-            'fee': fee,
-        }, market)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -2214,7 +2115,7 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
         reqId = self.request_id()
         request: dict = {
             'op': 'unsubscribe',
@@ -2253,7 +2154,7 @@ class bybit(ccxt.async_support.bybit):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #   {
         #       "success": False,
@@ -2481,6 +2382,7 @@ class bybit(ccxt.async_support.bybit):
                 for j in range(0, len(messageHashes)):
                     unsubHash = messageHashes[j]
                     subHash = subMessageHashes[j]
-                    self.clean_unsubscription(client, subHash, unsubHash)
+                    usePrefix = (subHash == 'orders') or (subHash == 'myTrades')
+                    self.clean_unsubscription(client, subHash, unsubHash, usePrefix)
                 self.clean_cache(subscription)
         return message

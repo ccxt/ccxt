@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -74,7 +74,7 @@ export default class coinex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
                 'fetchFundingIntervals': false,
@@ -659,6 +659,7 @@ export default class coinex extends Exchange {
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         });
@@ -724,35 +725,14 @@ export default class coinex extends Exchange {
             const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
             const firstChain = this.safeDict (chains, 0, {});
             const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber (firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'info': coin,
-            };
+            const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
+                const networkCode = this.networkIdToCode (networkId, code);
+                if (networkId === undefined) {
+                    continue;
+                }
                 const precisionString = this.parsePrecision (this.safeString (chain, 'withdrawal_precision'));
                 const feeString = this.safeString (chain, 'withdrawal_fee');
                 const minNetworkDepositString = this.safeString (chain, 'min_deposit_amount');
@@ -761,7 +741,7 @@ export default class coinex extends Exchange {
                 const canWithdrawChain = this.safeBool (chain, 'withdraw_enabled');
                 const network: Dict = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'name': undefined,
                     'active': canDepositChain && canWithdrawChain,
                     'deposit': canDepositChain,
@@ -784,10 +764,35 @@ export default class coinex extends Exchange {
                     },
                     'info': chain,
                 };
-                const networks = this.safeDict (result[code], 'networks', {});
-                networks[networkId] = network;
-                result[code]['networks'] = networks;
+                networks[networkCode] = network;
             }
+            result[code] = this.safeCurrencyStructure ({
+                'id': currencyId,
+                'code': code,
+                'name': undefined,
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': undefined,
+                'precision': this.parseNumber (firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+                'type': 'crypto',
+                'info': coin,
+            });
         }
         return result;
     }
@@ -819,17 +824,19 @@ export default class coinex extends Exchange {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -855,11 +862,11 @@ export default class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': this.safeBool (market, 'is_margin_available'),
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool (market, 'is_api_trading_available'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -4010,7 +4017,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let defaultMethod = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'v2PrivateGetFuturesPendingPosition');
@@ -4286,7 +4293,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4785,12 +4792,12 @@ export default class coinex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} [tag] memo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -5615,6 +5622,70 @@ export default class coinex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseDepositWithdrawFee (data, currency) as any;
+    }
+
+    /**
+     * @method
+     * @name coinex#fetchDepositWithdrawFees
+     * @description fetch the fees for deposits and withdrawals
+     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const asset = this.safeDict (item, 'asset', {});
+            const currencyId = this.safeString (asset, 'ccy');
+            if (currencyId === undefined) {
+                continue;
+            }
+            const code = this.safeCurrencyCode (currencyId);
+            if (codes === undefined || this.inArray (code, codes)) {
+                result[code] = this.parseDepositWithdrawFee (item);
+            }
+        }
+        return result;
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

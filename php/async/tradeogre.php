@@ -22,7 +22,7 @@ class tradeogre extends Exchange {
             'countries' => [ ],
             'rateLimit' => 100,
             'version' => 'v2',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -435,13 +435,13 @@ class tradeogre extends Exchange {
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'initialprice'),
             'close' => $this->safe_string($ticker, 'price'),
-            'last' => null,
+            'last' => $this->safe_string($ticker, 'price'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_string($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
     }
@@ -542,6 +542,7 @@ class tradeogre extends Exchange {
                 'asks' => $rawAsks,
             );
             $orderbook = $this->parse_order_book($rawOrderbook, $symbol);
+            $orderbook['nonce'] = $this->safe_integer($response, 's');
             return $orderbook;
         }) ();
     }

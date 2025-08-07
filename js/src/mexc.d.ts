@@ -100,7 +100,6 @@ export default class mexc extends Exchange {
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    syntheticTradeId(market?: any, timestamp?: any, side?: any, amount?: any, price?: any, orderType?: any, takerOrMaker?: any): string;
     /**
      * @method
      * @name mexc#fetchOHLCV
@@ -374,6 +373,7 @@ export default class mexc extends Exchange {
     parseOrderType(status: any): string;
     parseOrderStatus(status: Str): string;
     parseOrderTimeInForce(status: any): string;
+    getTifFromRawOrderType(orderType?: Str): string;
     fetchAccountHelper(type: any, params: any): Promise<any>;
     /**
      * @method
@@ -470,7 +470,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name mexc#fetchFundingHistory
@@ -660,7 +660,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name mexc#setPositionMode
@@ -756,7 +756,7 @@ export default class mexc extends Exchange {
      * @param {string} [params.direction] "long" or "short" required when there is no position
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Leverage>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

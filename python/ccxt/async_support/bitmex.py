@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -101,6 +101,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'index': True,
                 'reduceMargin': None,
                 'sandbox': True,
                 'setLeverage': True,
@@ -427,8 +428,8 @@ class bitmex(Exchange, ImplicitAPI):
         #            # "mediumPrecision": "8",
         #            # "shorterPrecision": "4",
         #            # "symbol": "₿",
-        #            # "weight": "1",
         #            # "tickLog": "0",
+        #            # "weight": "1",
         #            "enabled": True,
         #            "isMarginCurrency": True,
         #            "minDepositAmount": "10000",
@@ -503,6 +504,7 @@ class bitmex(Exchange, ImplicitAPI):
             maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
             minDepositString = self.safe_string(currency, 'minDepositAmount')
             minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -528,6 +530,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto' if isCrypto else 'other',
             }
         return result
 
@@ -729,7 +732,7 @@ class bitmex(Exchange, ImplicitAPI):
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         linear = (not isInverse and not isQuanto) if contract else None
         status = self.safe_string(market, 'state')
-        active = status != 'Unlisted'
+        active = status == 'Open'  # Open, Settled, Unlisted
         expiry = None
         expiryDatetime = None
         symbol = None
@@ -743,9 +746,9 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
                 contractSize = self.parse_number(multiplierString)
-            if future:
-                expiryDatetime = self.safe_string(market, 'expiry')
-                expiry = self.parse8601(expiryDatetime)
+            expiryDatetime = self.safe_string(market, 'expiry')
+            expiry = self.parse8601(expiryDatetime)
+            if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id
@@ -756,6 +759,11 @@ class bitmex(Exchange, ImplicitAPI):
         maxOrderQty = self.safe_number(market, 'maxOrderQty')
         initMargin = self.safe_string(market, 'initMargin', '1')
         maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
+        # subtype should be None for spot markets
+        if spot:
+            isInverse = None
+            isQuanto = None
+            linear = None
         return {
             'id': id,
             'symbol': symbol,
@@ -805,7 +813,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'max': maxOrderQty if positionIsQuote else None,
                 },
             },
-            'created': self.parse8601(self.safe_string(market, 'listing')),
+            'created': None,  # 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         }
 
@@ -1916,7 +1924,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
-        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1943,7 +1951,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTriggerOrder or isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             if type == 'limit':
@@ -1986,7 +1994,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             orderType = None
@@ -2182,7 +2190,7 @@ class bitmex(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2438,7 +2446,7 @@ class bitmex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2617,7 +2625,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

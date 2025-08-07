@@ -1,4 +1,5 @@
 namespace ccxt;
+
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
 
@@ -135,9 +136,9 @@ public partial class Exchange
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
             var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
             wsOptions = this.deepExtend(this.streaming, wsOptions);
-            var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
-            var useMessageQueue = ((bool)this.safeBool(wsOptions, "useMessageQueue", true));
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, useMessageQueue);
+            var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
+            var keepAlive = keepAliveValue;
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -160,8 +161,9 @@ public partial class Exchange
         var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
 
-        var future = (client.futures as ConcurrentDictionary<string, Future>).GetOrAdd (messageHash, (key) => client.future(messageHash));
-        if (subscribeHash == null) {
+        var future = (client.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => client.future(messageHash));
+        if (subscribeHash == null)
+        {
             return await future;
         }
         var connected = client.connect(0);
@@ -205,7 +207,7 @@ public partial class Exchange
             {
                 if (subscribeHash == null) continue;
 
-                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd (subscribeHash, subscription ?? true))
+                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
                 {
                     missingSubscriptions.Add(subscribeHash);
                 }

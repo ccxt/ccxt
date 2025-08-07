@@ -303,6 +303,11 @@ class poloniex extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
+                    'TRX' => 'TRON',
+                ),
+                'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'TRON' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -1149,7 +1154,7 @@ class poloniex extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#$currency-information
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -1157,104 +1162,107 @@ class poloniex extends Exchange {
         $response = $this->publicGetCurrencies ($this->extend($params, array( 'includeMultiChainCurrencies' => true )));
         //
         //     array(
-        //         {
-        //             "1CR" => {
-        //                 "id" => 1,
-        //                 "name" => "1CRedit",
-        //                 "description" => "BTC Clone",
-        //                 "type" => "address",
-        //                 "withdrawalFee" => "0.01000000",
-        //                 "minConf" => 10000,
-        //                 "depositAddress" => null,
-        //                 "blockchain" => "1CR",
-        //                 "delisted" => false,
-        //                 "tradingState" => "NORMAL",
-        //                 "walletState" => "DISABLED",
-        //                 "walletDepositState" => "DISABLED",
-        //                 "walletWithdrawalState" => "DISABLED",
-        //                 "parentChain" => null,
-        //                 "isMultiChain" => false,
-        //                 "isChildChain" => false,
-        //                 "childChains" => array()
-        //             }
-        //         }
+        //      {
+        //        "USDT" => array(
+        //           "id" => 214,
+        //           "name" => "Tether USD",
+        //           "description" => "Sweep to Main Account",
+        //           "type" => "address",
+        //           "withdrawalFee" => "0.00000000",
+        //           "minConf" => 2,
+        //           "depositAddress" => null,
+        //           "blockchain" => "OMNI",
+        //           "delisted" => false,
+        //           "tradingState" => "NORMAL",
+        //           "walletState" => "DISABLED",
+        //           "walletDepositState" => "DISABLED",
+        //           "walletWithdrawalState" => "DISABLED",
+        //           "supportCollateral" => true,
+        //           "supportBorrow" => true,
+        //           "parentChain" => null,
+        //           "isMultiChain" => true,
+        //           "isChildChain" => false,
+        //           "childChains" => array(
+        //             "USDTBSC",
+        //             "USDTETH",
+        //             "USDTSOL",
+        //             "USDTTRON"
+        //           )
+        //        }
+        //      ),
+        //      ...
+        //      {
+        //        "USDTBSC" => array(
+        //              "id" => 582,
+        //              "name" => "Binance-Peg BSC-USD",
+        //              "description" => "Sweep to Main Account",
+        //              "type" => "address",
+        //              "withdrawalFee" => "0.00000000",
+        //              "minConf" => 15,
+        //              "depositAddress" => null,
+        //              "blockchain" => "BSC",
+        //              "delisted" => false,
+        //              "tradingState" => "OFFLINE",
+        //              "walletState" => "ENABLED",
+        //              "walletDepositState" => "ENABLED",
+        //              "walletWithdrawalState" => "DISABLED",
+        //              "supportCollateral" => false,
+        //              "supportBorrow" => false,
+        //              "parentChain" => "USDT",
+        //              "isMultiChain" => true,
+        //              "isChildChain" => true,
+        //              "childChains" => array()
+        //        }
+        //      ),
+        //      ...
         //     )
         //
         $result = array();
+        // poloniex has a complicated structure of currencies, so we handle them differently
+        // at first, turn the $response into a normal dictionary
+        $currenciesDict = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $this->safe_value($response, $i);
+            $item = $this->safe_dict($response, $i);
             $ids = is_array($item) ? array_keys($item) : array();
-            $id = $this->safe_value($ids, 0);
-            $currency = $this->safe_value($item, $id);
+            $id = $this->safe_string($ids, 0);
+            $currenciesDict[$id] = $item[$id];
+        }
+        $keys = is_array($currenciesDict) ? array_keys($currenciesDict) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $id = $keys[$i];
+            $entry = $currenciesDict[$id];
             $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $networkId = $this->safe_string($currency, 'blockchain');
-            $networkCode = null;
-            if ($networkId !== null) {
-                $networkCode = $this->network_id_to_code($networkId, $code);
+            // skip $childChains, are collected in parentChain loop
+            if ($this->safe_bool($entry, 'isChildChain')) {
+                continue;
             }
-            $delisted = $this->safe_value($currency, 'delisted');
-            $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
-            $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
-            $withdrawEnabled = $this->safe_string($currency, 'walletWithdrawalState') === 'ENABLED';
-            $active = !$delisted && $walletEnabled && $depositEnabled && $withdrawEnabled;
-            $numericId = $this->safe_integer($currency, 'id');
-            $feeString = $this->safe_string($currency, 'withdrawalFee');
-            $parentChain = $this->safe_value($currency, 'parentChain');
-            $noParentChain = $parentChain === null;
-            if ($this->safe_value($result, $code) === null) {
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => null,
-                    'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => $this->parse_number($feeString),
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+            $allChainEntries = array();
+            $childChains = $this->safe_list($entry, 'childChains', array());
+            if ($childChains !== null) {
+                for ($j = 0; $j < count($childChains); $j++) {
+                    $childChainId = $childChains[$j];
+                    $childNetworkEntry = $this->safe_dict($currenciesDict, $childChainId);
+                    $allChainEntries[] = $childNetworkEntry;
+                }
             }
-            $minFeeString = $this->safe_string($result[$code], 'fee');
-            if ($feeString !== null) {
-                $minFeeString = ($minFeeString === null) ? $feeString : Precise::string_min($feeString, $minFeeString);
-            }
-            $depositAvailable = $this->safe_value($result[$code], 'deposit');
-            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
-            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
-            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
-            $networks = $this->safe_value($result[$code], 'networks', array());
-            if ($networkCode !== null) {
+            $allChainEntries[] = $entry;
+            $networks = array();
+            for ($j = 0; $j < count($allChainEntries); $j++) {
+                $chainEntry = $allChainEntries[$j];
+                $networkName = $this->safe_string($chainEntry, 'blockchain');
+                $networkCode = $this->network_id_to_code($networkName, $code);
+                $specialNetworkId = $this->safe_string($childChains, $j, $id); // in case it's primary chain, defeault to ID
                 $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
+                    'info' => $chainEntry,
+                    'id' => $specialNetworkId, // we need this for deposit/withdrawal, instead of friendly name
+                    'numericId' => $this->safe_integer($chainEntry, 'id'),
                     'network' => $networkCode,
-                    'currencyId' => $id,
-                    'numericId' => $numericId,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => $this->parse_number($feeString),
+                    'active' => $this->safe_bool($chainEntry, 'walletState'),
+                    'deposit' => $this->safe_string($chainEntry, 'walletDepositState') === 'ENABLED',
+                    'withdraw' => $this->safe_string($chainEntry, 'walletWithdrawalState') === 'ENABLED',
+                    'fee' => $this->safe_number($chainEntry, 'withdrawalFee'),
                     'precision' => null,
                     'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => null,
                             'max' => null,
@@ -1266,20 +1274,34 @@ class poloniex extends Exchange {
                     ),
                 );
             }
-            $result[$code]['networks'] = $networks;
-            $info = $this->safe_value($result[$code], 'info', array());
-            $rawInfo = array();
-            $rawInfo[$id] = $currency;
-            $info[] = $rawInfo;
-            $result[$code]['info'] = $info;
-            if ($noParentChain) {
-                $result[$code]['id'] = $id;
-                $result[$code]['name'] = $name;
-            }
-            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
-            $result[$code]['deposit'] = $depositAvailable;
-            $result[$code]['withdraw'] = $withdrawAvailable;
-            $result[$code]['fee'] = $this->parse_number($minFeeString);
+            $result[$code] = $this->safe_currency_structure(array(
+                'info' => $entry,
+                'code' => $code,
+                'id' => $id,
+                'numericId' => $this->safe_integer($entry, 'id'),
+                'type' => 'crypto',
+                'name' => $this->safe_string($entry, 'name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            ));
         }
         return $result;
     }
@@ -1869,7 +1891,7 @@ class poloniex extends Exchange {
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         $response = null;
-        if (!$market['spot']) {
+        if ($marketType !== 'spot') {
             $raw = $this->swapPrivateGetV3TradeOrderOpens ($this->extend($request, $params));
             //
             //    {
@@ -2673,92 +2695,87 @@ class poloniex extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()): array {
         /**
-         * create a $currency deposit $address
+         * create a $currency deposit address
          *
          * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          *
-         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
-        } else {
-            if ($currency['id'] === 'USDT') {
-                throw new ArgumentsRequired($this->id . ' createDepositAddress requires a $network parameter for ' . $code . '.');
-            }
-        }
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
         $response = $this->privatePostWalletsAddress ($this->extend($request, $params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        $address = $this->safe_string($response, 'address');
-        $tag = null;
-        $this->check_address($address);
-        if ($currency !== null) {
-            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
-            if ($depositAddress !== null) {
-                $tag = $address;
-                $address = $depositAddress;
-            }
-        }
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => $network,
-            'info' => $response,
-        );
+        return $this->parse_deposit_address_special($response, $currency, $networkEntry);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
-         * fetch the deposit $address for a $currency associated with this account
+         * fetch the deposit address for a $currency associated with this account
          *
          * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
-        } else {
-            if ($currency['id'] === 'USDT') {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a $network parameter for ' . $code . '.');
-            }
-        }
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
         $response = $this->privateGetWalletsAddresses ($this->extend($request, $params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        $address = $this->safe_string($response, $request['currency']);
+        $keys = is_array($response) ? array_keys($response) : array();
+        $length = count($keys);
+        if ($length < 1) {
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+        }
+        return $this->parse_deposit_address_special($response, $currency, $networkEntry);
+    }
+
+    public function prepare_request_for_deposit_address(string $code, array $params = array ()): mixed {
+        if (!(is_array($this->currencies) && array_key_exists($code, $this->currencies))) {
+            throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
+        }
+        $currency = $this->currency($code);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            // we need to know the network to find out the $currency-junction
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
+        }
+        $exchangeNetworkId = null;
+        $networkCode = $this->network_id_to_code($networkCode, $code);
+        $networkEntry = $this->safe_dict($currency['networks'], $networkCode);
+        if ($networkEntry !== null) {
+            $exchangeNetworkId = $networkEntry['id'];
+        } else {
+            $exchangeNetworkId = $networkCode;
+        }
+        $request = array(
+            'currency' => $exchangeNetworkId,
+        );
+        return array( $request, $params, $currency, $networkEntry );
+    }
+
+    public function parse_deposit_address_special($response, $currency, $networkEntry): array {
+        $address = $this->safe_string($response, 'address');
+        if ($address === null) {
+            $address = $this->safe_string($response, $networkEntry['id']);
+        }
         $tag = null;
         $this->check_address($address);
-        if ($currency !== null) {
-            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+        if ($networkEntry !== null) {
+            $depositAddress = $this->safe_string($networkEntry['info'], 'depositAddress');
             if ($depositAddress !== null) {
                 $tag = $address;
                 $address = $depositAddress;
@@ -2766,8 +2783,8 @@ class poloniex extends Exchange {
         }
         return array(
             'info' => $response,
-            'currency' => $code,
-            'network' => $network,
+            'currency' => $currency['code'],
+            'network' => $this->safe_string($networkEntry, 'network'),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2825,7 +2842,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2840,22 +2857,12 @@ class poloniex extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $amount,
-            'address' => $address,
-        );
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
+        $request['amount'] = $this->currency_to_precision($code, $amount);
+        $request['address'] = $address;
         if ($tag !== null) {
             $request['paymentId'] = $tag;
-        }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWalletsWithdraw ($this->extend($request, $params));
         //
@@ -2865,7 +2872,11 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 13449869
         //     }
         //
-        return $this->parse_transaction($response, $currency);
+        $withdrawResponse = array(
+            'response' => $response,
+            'withdrawNetworkEntry' => $networkEntry,
+        );
+        return $this->parse_transaction($withdrawResponse, $currency);
     }
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3200,6 +3211,10 @@ class poloniex extends Exchange {
         //         "withdrawalRequestsId" => 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry', $transaction)) {
+            $transaction = $transaction['response'];
+        }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3243,7 +3258,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3428,7 +3443,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

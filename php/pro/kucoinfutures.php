@@ -1309,7 +1309,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        "id" => "64d8732c856851144bded10d",
@@ -1327,6 +1327,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             $this->options['urls'][$type] = null;
         }
         $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
+        return true;
     }
 
     public function handle_subscription_status(Client $client, $message) {

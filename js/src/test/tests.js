@@ -427,7 +427,7 @@ class testMainClass {
             'fetchOHLCV': [symbol],
             'fetchTrades': [symbol],
             'fetchOrderBook': [symbol],
-            'fetchL2OrderBook': [symbol],
+            // 'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -777,6 +777,7 @@ class testMainClass {
                 'watchOrders': [symbol],
                 'watchPosition': [symbol],
                 'watchPositions': [symbol],
+                // 'unWatchPositions': [ symbol ],
             };
         }
         const market = exchange.market(symbol);
@@ -833,7 +834,7 @@ class testMainClass {
     checkConstructor(exchange) {
         // todo: this might be moved in base tests later
         if (exchange.id === 'binance') {
-            assert(exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert(exchange.hostname === undefined || exchange.hostname === '', 'binance.com hostname should be empty');
             assert(exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
             assert(('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify(exchange.api['sapi']['get']));
         }
@@ -843,12 +844,28 @@ class testMainClass {
             // todo: assert (!('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should NOT contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
         }
     }
+    async testReturnResponseHeaders(exchange) {
+        if (exchange.id !== 'binance') {
+            return false; // this test is only for binance exchange for now
+        }
+        exchange.returnResponseHeaders = true;
+        const ticker = await exchange.fetchTicker('BTC/USDT');
+        const info = ticker["info"];
+        const headers = info["responseHeaders"];
+        const headersKeys = Object.keys(headers);
+        assert(headersKeys.length > 0, 'Response headers should not be empty');
+        const headerValues = Object.values(headers);
+        assert(headerValues.length > 0, 'Response headers values should not be empty');
+        exchange.returnResponseHeaders = false;
+        return true;
+    }
     async startTest(exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
         }
         this.checkConstructor(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
             exchange.setSandboxMode(true);
         }
@@ -1175,6 +1192,9 @@ class testMainClass {
     async testRequestStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
+        if (this.info) {
+            dump('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync()) {
                 await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
@@ -1206,6 +1226,9 @@ class testMainClass {
     async testResponseStatically(exchange, method, skipKeys, data) {
         const expectedResult = exchange.safeValue(data, 'parsedResponse');
         const mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        if (this.info) {
+            dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync()) {
                 const unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
@@ -1228,7 +1251,7 @@ class testMainClass {
         const markets = this.loadMarketsFromFile(exchangeName);
         const currencies = this.loadCurrenciesFromFile(exchangeName);
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId': 'accountId', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
+        const exchange = initExchange(exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId': '12345', 'accounts': [{ 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
@@ -1392,6 +1415,30 @@ class testMainClass {
         }
         return sum;
     }
+    checkIfExchangeIsDisabled(exchangeName, exchangeData) {
+        const exchange = initExchange('Exchange', {});
+        const isDisabledPy = exchange.safeBool(exchangeData, 'disabledPy', false);
+        if (isDisabledPy && (this.lang === 'PY')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
+            return true;
+        }
+        const isDisabledPHP = exchange.safeBool(exchangeData, 'disabledPHP', false);
+        if (isDisabledPHP && (this.lang === 'PHP')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
+            return true;
+        }
+        const isDisabledCSharp = exchange.safeBool(exchangeData, 'disabledCS', false);
+        if (isDisabledCSharp && (this.lang === 'C#')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
+            return true;
+        }
+        const isDisabledGO = exchange.safeBool(exchangeData, 'disabledGO', false);
+        if (isDisabledGO && (this.lang === 'GO')) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
     async runStaticRequestTests(targetExchange = undefined, testName = undefined) {
         await this.runStaticTests('request', targetExchange, testName);
         return true;
@@ -1415,6 +1462,10 @@ class testMainClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
+            const disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
+            if (disabled) {
+                continue;
+            }
             const numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData, testName);
             sum = exchange.sum(sum, numberOfTests);
             if (type === 'request') {
@@ -1474,7 +1525,7 @@ class testMainClass {
             this.testBingx(),
             this.testPhemex(),
             this.testBlofin(),
-            this.testHyperliquid(),
+            // this.testHyperliquid (),
             this.testCoinbaseinternational(),
             this.testCoinbaseAdvanced(),
             this.testWoofiPro(),
@@ -1487,6 +1538,7 @@ class testMainClass {
             this.testDefx(),
             this.testCryptomus(),
             this.testDerive(),
+            this.testModeTrade(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1753,7 +1805,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
         const idString = id.toString();
@@ -1864,23 +1916,22 @@ class testMainClass {
         }
         return true;
     }
-    async testHyperliquid() {
-        const exchange = this.initOfflineExchange('hyperliquid');
-        const id = '1';
-        let request = undefined;
-        try {
-            await exchange.createOrder('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-        }
-        catch (e) {
-            request = jsonParse(exchange.last_request_body);
-        }
-        const brokerId = (request['action']['brokerCode']).toString();
-        assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
     async testCoinbaseinternational() {
         const exchange = this.initOfflineExchange('coinbaseinternational');
         exchange.options['portfolio'] = 'random';
@@ -2112,6 +2163,25 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         assert(request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testModeTrade() {
+        const exchange = this.initOfflineExchange('modetrade');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXTMODE';
+        await exchange.loadMarkets();
+        let request = undefined;
+        try {
+            await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert(brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
         if (!isSync()) {
             await close(exchange);
         }

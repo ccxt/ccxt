@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitbns$1 = require('./abstract/bitbns.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bitbns
  * @augments Exchange
  */
-class bitbns extends bitbns$1 {
+class bitbns extends bitbns$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbns',
@@ -312,7 +314,7 @@ class bitbns extends bitbns$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool(market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1284,4 +1286,4 @@ class bitbns extends bitbns$1 {
     }
 }
 
-module.exports = bitbns;
+exports["default"] = bitbns;

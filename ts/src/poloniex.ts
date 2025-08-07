@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Bool, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -308,6 +308,11 @@ export default class poloniex extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -1162,104 +1167,107 @@ export default class poloniex extends Exchange {
         const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
-        //         {
-        //             "1CR": {
-        //                 "id": 1,
-        //                 "name": "1CRedit",
-        //                 "description": "BTC Clone",
-        //                 "type": "address",
-        //                 "withdrawalFee": "0.01000000",
-        //                 "minConf": 10000,
-        //                 "depositAddress": null,
-        //                 "blockchain": "1CR",
-        //                 "delisted": false,
-        //                 "tradingState": "NORMAL",
-        //                 "walletState": "DISABLED",
-        //                 "walletDepositState": "DISABLED",
-        //                 "walletWithdrawalState": "DISABLED",
-        //                 "parentChain": null,
-        //                 "isMultiChain": false,
-        //                 "isChildChain": false,
-        //                 "childChains": []
-        //             }
-        //         }
+        //      {
+        //        "USDT": {
+        //           "id": 214,
+        //           "name": "Tether USD",
+        //           "description": "Sweep to Main Account",
+        //           "type": "address",
+        //           "withdrawalFee": "0.00000000",
+        //           "minConf": 2,
+        //           "depositAddress": null,
+        //           "blockchain": "OMNI",
+        //           "delisted": false,
+        //           "tradingState": "NORMAL",
+        //           "walletState": "DISABLED",
+        //           "walletDepositState": "DISABLED",
+        //           "walletWithdrawalState": "DISABLED",
+        //           "supportCollateral": true,
+        //           "supportBorrow": true,
+        //           "parentChain": null,
+        //           "isMultiChain": true,
+        //           "isChildChain": false,
+        //           "childChains": [
+        //             "USDTBSC",
+        //             "USDTETH",
+        //             "USDTSOL",
+        //             "USDTTRON"
+        //           ]
+        //        }
+        //      },
+        //      ...
+        //      {
+        //        "USDTBSC": {
+        //              "id": 582,
+        //              "name": "Binance-Peg BSC-USD",
+        //              "description": "Sweep to Main Account",
+        //              "type": "address",
+        //              "withdrawalFee": "0.00000000",
+        //              "minConf": 15,
+        //              "depositAddress": null,
+        //              "blockchain": "BSC",
+        //              "delisted": false,
+        //              "tradingState": "OFFLINE",
+        //              "walletState": "ENABLED",
+        //              "walletDepositState": "ENABLED",
+        //              "walletWithdrawalState": "DISABLED",
+        //              "supportCollateral": false,
+        //              "supportBorrow": false,
+        //              "parentChain": "USDT",
+        //              "isMultiChain": true,
+        //              "isChildChain": true,
+        //              "childChains": []
+        //        }
+        //      },
+        //      ...
         //     ]
         //
         const result: Dict = {};
+        // poloniex has a complicated structure of currencies, so we handle them differently
+        // at first, turn the response into a normal dictionary
+        const currenciesDict = {};
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue (response, i);
+            const item = this.safeDict (response, i);
             const ids = Object.keys (item);
-            const id = this.safeValue (ids, 0);
-            const currency = this.safeValue (item, id);
+            const id = this.safeString (ids, 0);
+            currenciesDict[id] = item[id];
+        }
+        const keys = Object.keys (currenciesDict);
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const entry = currenciesDict[id];
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const networkId = this.safeString (currency, 'blockchain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode (networkId, code);
+            // skip childChains, as they are collected in parentChain loop
+            if (this.safeBool (entry, 'isChildChain')) {
+                continue;
             }
-            const delisted = this.safeValue (currency, 'delisted');
-            const walletEnabled = this.safeString (currency, 'walletState') === 'ENABLED';
-            const depositEnabled = this.safeString (currency, 'walletDepositState') === 'ENABLED';
-            const withdrawEnabled = this.safeString (currency, 'walletWithdrawalState') === 'ENABLED';
-            const active = !delisted && walletEnabled && depositEnabled && withdrawEnabled;
-            const numericId = this.safeInteger (currency, 'id');
-            const feeString = this.safeString (currency, 'withdrawalFee');
-            const parentChain = this.safeValue (currency, 'parentChain');
-            const noParentChain = parentChain === undefined;
-            if (this.safeValue (result, code) === undefined) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': undefined,
-                    'name': name,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': this.parseNumber (feeString),
-                    'precision': undefined,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+            const allChainEntries = [];
+            const childChains = this.safeList (entry, 'childChains', []);
+            if (childChains !== undefined) {
+                for (let j = 0; j < childChains.length; j++) {
+                    const childChainId = childChains[j];
+                    const childNetworkEntry = this.safeDict (currenciesDict, childChainId);
+                    allChainEntries.push (childNetworkEntry);
+                }
             }
-            let minFeeString = this.safeString (result[code], 'fee');
-            if (feeString !== undefined) {
-                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin (feeString, minFeeString);
-            }
-            let depositAvailable = this.safeValue (result[code], 'deposit');
-            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
-            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
-            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue (result[code], 'networks', {});
-            if (networkCode !== undefined) {
+            allChainEntries.push (entry);
+            const networks: Dict = {};
+            for (let j = 0; j < allChainEntries.length; j++) {
+                const chainEntry = allChainEntries[j];
+                const networkName = this.safeString (chainEntry, 'blockchain');
+                const networkCode = this.networkIdToCode (networkName, code);
+                const specialNetworkId = this.safeString (childChains, j, id); // in case it's primary chain, defeault to ID
                 networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
+                    'info': chainEntry,
+                    'id': specialNetworkId, // we need this for deposit/withdrawal, instead of friendly name
+                    'numericId': this.safeInteger (chainEntry, 'id'),
                     'network': networkCode,
-                    'currencyId': id,
-                    'numericId': numericId,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': this.parseNumber (feeString),
+                    'active': this.safeBool (chainEntry, 'walletState'),
+                    'deposit': this.safeString (chainEntry, 'walletDepositState') === 'ENABLED',
+                    'withdraw': this.safeString (chainEntry, 'walletWithdrawalState') === 'ENABLED',
+                    'fee': this.safeNumber (chainEntry, 'withdrawalFee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -1271,20 +1279,34 @@ export default class poloniex extends Exchange {
                     },
                 };
             }
-            result[code]['networks'] = networks;
-            const info = this.safeValue (result[code], 'info', []);
-            const rawInfo: Dict = {};
-            rawInfo[id] = currency;
-            info.push (rawInfo);
-            result[code]['info'] = info;
-            if (noParentChain) {
-                result[code]['id'] = id;
-                result[code]['name'] = name;
-            }
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
-            result[code]['fee'] = this.parseNumber (minFeeString);
+            result[code] = this.safeCurrencyStructure ({
+                'info': entry,
+                'code': code,
+                'id': id,
+                'numericId': this.safeInteger (entry, 'id'),
+                'type': 'crypto',
+                'name': this.safeString (entry, 'name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -1874,7 +1896,7 @@ export default class poloniex extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let response = undefined;
-        if (!market['spot']) {
+        if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens (this.extend (request, params));
             //
             //    {
@@ -2687,44 +2709,15 @@ export default class poloniex extends Exchange {
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
-        } else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        let address = this.safeString (response, 'address');
-        let tag: Str = undefined;
-        this.checkAddress (address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString (currency['info'], 'depositAddress');
-            if (depositAddress !== undefined) {
-                tag = address;
-                address = depositAddress;
-            }
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': network,
-            'info': response,
-        } as DepositAddress;
+        return this.parseDepositAddressSpecial (response, currency, networkEntry);
     }
 
     /**
@@ -2738,32 +2731,56 @@ export default class poloniex extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
-        } else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let address = this.safeString (response, request['currency']);
+        const keys = Object.keys (response);
+        const length = keys.length;
+        if (length < 1) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+        }
+        return this.parseDepositAddressSpecial (response, currency, networkEntry);
+    }
+
+    prepareRequestForDepositAddress (code: string, params: Dict = {}): any {
+        if (!(code in this.currencies)) {
+            throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
+        }
+        const currency = this.currency (code);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+        }
+        let exchangeNetworkId = undefined;
+        networkCode = this.networkIdToCode (networkCode, code);
+        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        if (networkEntry !== undefined) {
+            exchangeNetworkId = networkEntry['id'];
+        } else {
+            exchangeNetworkId = networkCode;
+        }
+        const request = {
+            'currency': exchangeNetworkId,
+        };
+        return [ request, params, currency, networkEntry ];
+    }
+
+    parseDepositAddressSpecial (response, currency, networkEntry): DepositAddress {
+        let address = this.safeString (response, 'address');
+        if (address === undefined) {
+            address = this.safeString (response, networkEntry['id']);
+        }
         let tag: Str = undefined;
         this.checkAddress (address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (networkEntry !== undefined) {
+            const depositAddress = this.safeString (networkEntry['info'], 'depositAddress');
             if (depositAddress !== undefined) {
                 tag = address;
                 address = depositAddress;
@@ -2771,8 +2788,8 @@ export default class poloniex extends Exchange {
         }
         return {
             'info': response,
-            'currency': code,
-            'network': network,
+            'currency': currency['code'],
+            'network': this.safeString (networkEntry, 'network'),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2842,25 +2859,15 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        };
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
+        request['amount'] = this.currencyToPrecision (code, amount);
+        request['address'] = address;
         if (tag !== undefined) {
             request['paymentId'] = tag;
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWalletsWithdraw (this.extend (request, params));
         //
@@ -2870,7 +2877,11 @@ export default class poloniex extends Exchange {
         //         "withdrawalNumber": 13449869
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const withdrawResponse = {
+            'response': response,
+            'withdrawNetworkEntry': networkEntry,
+        };
+        return this.parseTransaction (withdrawResponse, currency);
     }
 
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3205,6 +3216,10 @@ export default class poloniex extends Exchange {
         //         "withdrawalRequestsId": 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if ('withdrawNetworkEntry' in transaction) {
+            transaction = transaction['response'];
+        }
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3259,7 +3274,7 @@ export default class poloniex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3443,7 +3458,7 @@ export default class poloniex extends Exchange {
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.swapPrivateGetV3TradePositionOpens (params);

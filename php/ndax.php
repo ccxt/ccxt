@@ -25,6 +25,9 @@ class ndax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
@@ -37,6 +40,7 @@ class ndax extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -67,12 +71,15 @@ class ndax extends Exchange {
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
@@ -80,6 +87,7 @@ class ndax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -450,45 +458,45 @@ class ndax extends Exchange {
         );
         $response = $this->publicGetGetProducts ($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         ),
-        //     )
+        //    [
+        //        array(
+        //            "OMSId" => "1",
+        //            "ProductId" => "1",
+        //            "Product" => "BTC",
+        //            "ProductFullName" => "Bitcoin",
+        //            "MasterDataUniqueProductSymbol" => "",
+        //            "ProductType" => "CryptoCurrency",
+        //            "DecimalPlaces" => "8",
+        //            "TickSize" => "0.0000000100000000000000000000",
+        //            "DepositEnabled" => true,
+        //            "WithdrawEnabled" => true,
+        //            "NoFees" => false,
+        //            "IsDisabled" => false,
+        //            "MarginEnabled" => false
+        //        ),
+        //        ...
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'ProductId');
-            $name = $this->safe_string($currency, 'ProductFullName');
+            $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
             $ProductType = $this->safe_string($currency, 'ProductType');
             $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
             if ($ProductType === 'Unknown') {
                 // such $currency is just a blanket entry
                 $type = 'other';
             }
-            $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-            $isDisabled = $this->safe_value($currency, 'IsDisabled');
-            $active = !$isDisabled;
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
-                'name' => $name,
+                'name' => $this->safe_string($currency, 'ProductFullName'),
                 'code' => $code,
                 'type' => $type,
                 'precision' => $this->safe_number($currency, 'TickSize'),
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => null,
-                'withdraw' => null,
+                'active' => !$this->safe_bool($currency, 'IsDisabled'),
+                'deposit' => $this->safe_bool($currency, 'DepositEnabled'),
+                'withdraw' => $this->safe_bool($currency, 'WithdrawEnabled'),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(
@@ -501,7 +509,8 @@ class ndax extends Exchange {
                     ),
                 ),
                 'networks' => array(),
-            );
+                'margin' => $this->safe_bool($currency, 'MarginEnabled'),
+            ));
         }
         return $result;
     }
@@ -2425,7 +2434,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

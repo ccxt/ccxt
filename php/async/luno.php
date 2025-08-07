@@ -32,6 +32,9 @@ class luno extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
@@ -39,47 +42,81 @@ class luno extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionForSymbolWs' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsForSymbolWs' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
             ),
@@ -125,6 +162,7 @@ class luno extends Exchange {
                         'accounts/{id}/transactions' => 1,
                         'balance' => 1,
                         'beneficiaries' => 1,
+                        'send/networks' => 1,
                         'fee_info' => 1,
                         'funding_address' => 1,
                         'listorders' => 1,
@@ -264,6 +302,97 @@ class luno extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {dict} [$params] extra parameters specific to the exchange API endpoint
+             * @return {dict} an associative dictionary of currencies
+             */
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $response = Async\await($this->privateGetSendNetworks ($params));
+            //
+            //     {
+            //         "networks" => array(
+            //           array(
+            //             "id" => 0,
+            //             "name" => "Ethereum",
+            //             "native_currency" => "ETH"
+            //           ),
+            //           ...
+            //         )
+            //     }
+            //
+            $currenciesData = $this->safe_list($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($currenciesData); $i++) {
+                $networkEntry = $currenciesData[$i];
+                $id = $this->safe_string($networkEntry, 'native_currency');
+                $code = $this->safe_currency_code($id);
+                if (!(is_array($result) && array_key_exists($code, $result))) {
+                    $result[$code] = array(
+                        'id' => $id,
+                        'code' => $code,
+                        'precision' => null,
+                        'type' => null,
+                        'name' => null,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                        'info' => array(),
+                    );
+                }
+                $networkId = $this->safe_string($networkEntry, 'name');
+                $networkCode = $this->network_id_to_code($networkId);
+                $result[$code]['networks'][$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
+                );
+                // add entry in $info
+                $info = $this->safe_list($result[$code], 'info', array());
+                $info[] = $networkEntry;
+                $result[$code]['info'] = $info;
+            }
+            // only after all entries are formed in currencies, restructure each entry
+            $allKeys = is_array($result) ? array_keys($result) : array();
+            for ($i = 0; $i < count($allKeys); $i++) {
+                $code = $allKeys[$i];
+                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {

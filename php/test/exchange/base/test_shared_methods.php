@@ -57,6 +57,10 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
     $log_text = log_template($exchange, $method, $entry);
     assert($entry !== null, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    $allow_empty_skips = $exchange->safe_list($skipped_properties, 'allowNull', []);
+    if ($empty_allowed_for !== null) {
+        $empty_allowed_for = concat($empty_allowed_for, $allow_empty_skips);
+    }
     if (gettype($format) === 'array' && array_is_list($format)) {
         assert(gettype($entry) === 'array' && array_is_list($entry), 'entry is not an array' . $log_text);
         $real_length = count($entry);
@@ -331,7 +335,6 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
     if (is_int($key)) {
-        $key = $key;
         assert(gettype($entry) === 'array' && array_is_list($entry), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -556,6 +559,16 @@ function assert_order_state($exchange, $skipped_properties, $method, $order, $as
 }
 
 
+function get_active_markets($exchange, $include_unknown = true) {
+    $filtered_active = $exchange->filter_by($exchange->markets, 'active', true);
+    if ($include_unknown) {
+        $filtered_undefined = $exchange->filter_by($exchange->markets, 'active', null);
+        return $exchange->array_concat($filtered_active, $filtered_undefined);
+    }
+    return $filtered_active;
+}
+
+
 function remove_proxy_options($exchange, $skipped_properties) {
     $proxy_url = $exchange->check_proxy_url_settings();
     [$http_proxy, $https_proxy, $socks_proxy] = $exchange->check_proxy_settings();
@@ -577,6 +590,25 @@ function set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_pro
     $exchange->http_proxy = $http_proxy;
     $exchange->https_proxy = $https_proxy;
     $exchange->socks_proxy = $socks_proxy;
+}
+
+
+function concat($a = null, $b = null) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if ($a === null) {
+        return $b;
+    } elseif ($b === null) {
+        return $a;
+    } else {
+        $result = [];
+        for ($i = 0; $i < count($a); $i++) {
+            $result[] = $a[$i];
+        }
+        for ($j = 0; $j < count($b); $j++) {
+            $result[] = $b[$j];
+        }
+        return $result;
+    }
 }
 
 

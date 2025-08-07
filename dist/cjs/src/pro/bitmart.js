@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmart$1 = require('../bitmart.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -8,7 +10,7 @@ var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitmart extends bitmart$1 {
+class bitmart extends bitmart$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -62,6 +64,9 @@ class bitmart extends bitmart$1 {
                 },
                 'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100',
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
                 },
                 'ws': {
                     'inflate': true,
@@ -308,7 +313,13 @@ class bitmart extends bitmart$1 {
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     getParamsForMultipleSub(methodName, symbols, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false, true);
@@ -1673,4 +1684,4 @@ class bitmart extends bitmart$1 {
     }
 }
 
-module.exports = bitmart;
+exports["default"] = bitmart;

@@ -1281,7 +1281,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1574,6 +1574,7 @@ class kucoinfutures extends kucoin {
              * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
              * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
              * @param {float} [$params->cost] the cost of the order in units of USDT
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'isolated'
              * ----------------- Exchange Specific Parameters -----------------
              * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1679,6 +1680,11 @@ class kucoinfutures extends kucoin {
             'type' => $type, // limit or $market
             'leverage' => 1,
         );
+        $marginModeUpper = $this->safe_string_upper($params, 'marginMode');
+        if ($marginModeUpper !== null) {
+            $params = $this->omit($params, 'marginMode');
+            $request['marginMode'] = $marginModeUpper;
+        }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
         if ($cost !== null) {
@@ -1803,7 +1809,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1907,7 +1913,8 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 
@@ -3429,7 +3436,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

@@ -96,6 +96,7 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'index' => true,
                 'reduceMargin' => null,
                 'sandbox' => true,
                 'setLeverage' => true,
@@ -424,8 +425,8 @@ class bitmex extends Exchange {
             //            // "mediumPrecision" => "8",
             //            // "shorterPrecision" => "4",
             //            // "symbol" => "₿",
-            //            // "weight" => "1",
             //            // "tickLog" => "0",
+            //            // "weight" => "1",
             //            "enabled" => true,
             //            "isMarginCurrency" => true,
             //            "minDepositAmount" => "10000",
@@ -503,6 +504,7 @@ class bitmex extends Exchange {
                 $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
                 $minDepositString = $this->safe_string($currency, 'minDepositAmount');
                 $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
+                $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
@@ -528,6 +530,7 @@ class bitmex extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
+                    'type' => $isCrypto ? 'crypto' : 'other',
                 );
             }
             return $result;
@@ -745,7 +748,7 @@ class bitmex extends Exchange {
         $isQuanto = $this->safe_value($market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         $linear = $contract ? (!$isInverse && !$isQuanto) : null;
         $status = $this->safe_string($market, 'state');
-        $active = $status !== 'Unlisted';
+        $active = $status === 'Open'; // Open, Settled, Unlisted
         $expiry = null;
         $expiryDatetime = null;
         $symbol = null;
@@ -760,9 +763,9 @@ class bitmex extends Exchange {
                 $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
                 $contractSize = $this->parse_number($multiplierString);
             }
-            if ($future) {
-                $expiryDatetime = $this->safe_string($market, 'expiry');
-                $expiry = $this->parse8601($expiryDatetime);
+            $expiryDatetime = $this->safe_string($market, 'expiry');
+            $expiry = $this->parse8601($expiryDatetime);
+            if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
         } else {
@@ -775,6 +778,12 @@ class bitmex extends Exchange {
         $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
         $initMargin = $this->safe_string($market, 'initMargin', '1');
         $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+        // subtype should be null for $spot markets
+        if ($spot) {
+            $isInverse = null;
+            $isQuanto = null;
+            $linear = null;
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -824,7 +833,7 @@ class bitmex extends Exchange {
                     'max' => $positionIsQuote ? $maxOrderQty : null,
                 ),
             ),
-            'created' => $this->parse8601($this->safe_string($market, 'listing')),
+            'created' => null, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info' => $market,
         );
     }
@@ -2034,7 +2043,7 @@ class bitmex extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
-             * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
+             * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'ascending' or 'descending'
              * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
@@ -2063,7 +2072,7 @@ class bitmex extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             if ($isTriggerOrder || $isTrailingAmountOrder) {
                 $triggerDirection = $this->safe_string($params, 'triggerDirection');
-                $triggerAbove = ($triggerDirection === 'above');
+                $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
                 if (($type === 'limit') || ($type === 'market')) {
                     $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
                 }
@@ -2119,7 +2128,7 @@ class bitmex extends Exchange {
             $isTrailingAmountOrder = $trailingAmount !== null;
             if ($isTrailingAmountOrder) {
                 $triggerDirection = $this->safe_string($params, 'triggerDirection');
-                $triggerAbove = ($triggerDirection === 'above');
+                $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
                 if (($type === 'limit') || ($type === 'market')) {
                     $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
                 }
@@ -2348,7 +2357,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2610,7 +2619,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2809,7 +2818,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

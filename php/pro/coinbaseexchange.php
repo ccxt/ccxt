@@ -235,7 +235,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }) ();
     }
 
-    public function watch_my_trades_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -260,7 +260,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }) ();
     }
 
-    public function watch_orders_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -934,7 +934,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "type" => "error",

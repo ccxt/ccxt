@@ -25,19 +25,29 @@ class bitopro extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -48,19 +58,39 @@ class bitopro extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -73,6 +103,7 @@ class bitopro extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -83,10 +114,16 @@ class bitopro extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -197,6 +234,7 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
+                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
             ),
             'features' => array(
                 'spot' => array(
@@ -326,6 +364,7 @@ class bitopro extends Exchange {
         //     }
         //
         $result = array();
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $currencyId = $this->safe_string($currency, 'currency');
@@ -345,11 +384,12 @@ class bitopro extends Exchange {
                     'max' => null,
                 ),
             );
+            $isFiat = $this->in_array($code, $fiatCurrencies);
             $result[$code] = array(
                 'id' => $currencyId,
                 'code' => $code,
                 'info' => $currency,
-                'type' => null,
+                'type' => $isFiat ? 'fiat' : 'crypto',
                 'name' => null,
                 'active' => $deposit && $withdraw,
                 'deposit' => $deposit,
@@ -357,6 +397,7 @@ class bitopro extends Exchange {
                 'fee' => $fee,
                 'precision' => null,
                 'limits' => $limits,
+                'networks' => null,
             );
         }
         return $result;
@@ -1705,7 +1746,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

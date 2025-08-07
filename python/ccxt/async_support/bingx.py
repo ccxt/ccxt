@@ -128,6 +128,7 @@ class bingx(Exchange, ImplicitAPI):
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -457,11 +458,26 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'asset/transfer': 1,
+                                'asset/transferRecord': 5,
                                 'capital/deposit/hisrec': 1,
                                 'capital/withdraw/history': 1,
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
+                            },
+                            'public': {
+                                'get': {
+                                    'transfer/supportCoins': 5,
+                                },
                             },
                         },
                     },
@@ -514,6 +530,8 @@ class bingx(Exchange, ImplicitAPI):
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
                     '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    'Insufficient assets': InsufficientFunds,  # {"transferErrorMsg":"Insufficient assets"}
+                    'illegal transferType': BadRequest,  # {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
@@ -527,14 +545,19 @@ class bingx(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
-                    'swap': 'PFUTURES',
-                    'future': 'SFUTURES',
+                    'funding': 'fund',
+                    'spot': 'spot',
+                    'future': 'stdFutures',
+                    'swap': 'USDTMPerp',
+                    'linear': 'USDTMPerp',
+                    'inverse': 'coinMPerp',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
-                    'PFUTURES': 'swap',
-                    'SFUTURES': 'future',
+                    'fund': 'funding',
+                    'spot': 'spot',
+                    'stdFutures': 'future',
+                    'USDTMPerp': 'linear',
+                    'coinMPerp': 'inverse',
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
@@ -723,7 +746,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         #    {
         #      "code": 0,
-        #      "timestamp": 1702623271477,
+        #      "timestamp": 1702623271476,
         #      "data": [
         #        {
         #          "coin": "BTC",
@@ -767,57 +790,61 @@ class bingx(Exchange, ImplicitAPI):
             name = self.safe_string(entry, 'name')
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
-            fee = None
-            depositEnabled = False
-            withdrawEnabled = False
-            defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
-                isDefault = self.safe_bool(rawNetwork, 'isDefault')
-                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
-                if networkDepositEnabled:
-                    depositEnabled = True
-                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                if networkWithdrawEnabled:
-                    withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': self.safe_number(rawNetwork, 'depositMin'),
+                        'max': None,
+                    },
                 }
-                fee = self.safe_number(rawNetwork, 'withdrawFee')
-                if isDefault:
-                    defaultLimits = limits
-                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
-                networkActive = networkDepositEnabled or networkWithdrawEnabled
+                precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': networkActive,
-                    'deposit': networkDepositEnabled,
-                    'withdraw': networkWithdrawEnabled,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'active': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
                     'precision': precision,
                     'limits': limits,
                 }
-            active = depositEnabled or withdrawEnabled
-            result[code] = {
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': None,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'networks': networks,
-                'fee': fee,
-                'limits': defaultLimits,
-            }
+            if not (code in result):  # the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': None,
+                    'name': name,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'networks': networks,
+                    'fee': None,
+                    'limits': None,
+                    'type': 'crypto',  # only cryptos now
+                }
+            else:
+                existing = result[code]
+                existingNetworks = self.safe_dict(existing, 'networks', {})
+                newNetworkCodes = list(networks.keys())
+                for j in range(0, len(newNetworkCodes)):
+                    newNetworkCode = newNetworkCodes[j]
+                    if not (newNetworkCode in existingNetworks):
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode]
+                result[code]['networks'] = existingNetworks
+        codes = list(result.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = result[code]
+            result[code] = self.safe_currency_structure(currency)
         return result
 
     async def fetch_spot_markets(self, params) -> List[Market]:
@@ -1545,7 +1572,7 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -2372,7 +2399,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.parse_positions(records)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -4653,34 +4680,48 @@ class bingx(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+        https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
 
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: account to transfer from(spot, swap, futures, or funding)
+        :param str toAccount: account to transfer to(spot, swap(linear or inverse), future, or funding)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        subType = None
+        subType, params = self.handle_sub_type_and_params('transfer', None, params)
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
+        if fromId == 'swap':
+            if subType == 'inverse':
+                fromId = 'coinMPerp'
+            else:
+                fromId = 'USDTMPerp'
+        if toId == 'swap':
+            if subType == 'inverse':
+                toId = 'coinMPerp'
+            else:
+                toId = 'USDTMPerp'
         request: dict = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'type': fromId + '_' + toId,
         }
-        response = await self.spotV3PrivateGetGetAssetTransfer(self.extend(request, params))
+        response = await self.apiAssetV1PrivatePostTransfer(self.extend(request, params))
         #
-        #    {
-        #        "tranId":13526853623
-        #    }
+        #     {
+        #         "tranId": 1933130865269936128,
+        #         "transferId": "1051450703949464903736"
+        #     }
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'tranId'),
+            'id': self.safe_string(response, 'transferId'),
             'timestamp': None,
             'datetime': None,
             'currency': code,
@@ -4694,15 +4735,19 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
 
-        https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+        https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
 
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of transfers structures to retrieve
+        :param int [limit]: the maximum number of transfers structures to retrieve(default 10, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params.fromAccount:(mandatory) transfer from(spot, swap(linear or inverse), future, or funding)
+        :param str params.toAccount:(mandatory) transfer to(spot, swap(linear or inverse), future, or funding)
+        :param boolean [params.paginate]: whether to paginate the results(default False)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -4712,27 +4757,36 @@ class bingx(Exchange, ImplicitAPI):
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId is None or toId is None:
-            raise ExchangeError(self.id + ' fromAccount & toAccount parameter are required')
-        request: dict = {
-            'type': fromId + '_' + toId,
-        }
+            raise ExchangeError(self.id + ' fromAccount & toAccount parameters are required')
+        if fromAccount is not None:
+            request['fromAccount'] = fromId
+        if toAccount is not None:
+            request['toAccount'] = toId
+        params = self.omit(params, ['fromAccount', 'toAccount'])
+        maxLimit = 100
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['size'] = limit
-        response = await self.spotV3PrivateGetAssetTransfer(self.extend(request, params))
+            request['pageSize'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = await self.apiV3PrivateGetAssetTransferRecord(self.extend(request, params))
         #
         #     {
-        #         "total": 3,
+        #         "total": 2,
         #         "rows": [
         #             {
-        #                 "asset":"USDT",
-        #                 "amount":"-100.00000000000000000000",
-        #                 "type":"FUND_SFUTURES",
-        #                 "status":"CONFIRMED",
-        #                 "tranId":1067594500957016069,
-        #                 "timestamp":1658388859000
-        #             },
+        #                 "asset": "LTC",
+        #                 "amount": "0.05000000000000000000",
+        #                 "status": "CONFIRMED",
+        #                 "transferId": "1051461075661819338791",
+        #                 "timestamp": 1752202092000,
+        #                 "fromAccount": "spot",
+        #                 "toAccount": "USDTMPerp"
+        #             }
         #         ]
         #     }
         #
@@ -4740,15 +4794,14 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transfers(rows, currency, since, limit)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
-        tranId = self.safe_string(transfer, 'tranId')
+        tranId = self.safe_string(transfer, 'transferId')
         timestamp = self.safe_integer(transfer, 'timestamp')
-        currencyCode = self.safe_currency_code(None, currency)
+        currencyId = self.safe_string(transfer, 'asset')
+        currencyCode = self.safe_currency_code(currencyId, currency)
         status = self.safe_string(transfer, 'status')
         accountsById = self.safe_dict(self.options, 'accountsById', {})
-        typeId = self.safe_string(transfer, 'type')
-        typeIdSplit = typeId.split('_')
-        fromId = self.safe_string(typeIdSplit, 0)
-        toId = self.safe_string(typeId, 1)
+        fromId = self.safe_string(transfer, 'fromAccount')
+        toId = self.safe_string(transfer, 'toAccount')
         fromAccount = self.safe_string(accountsById, fromId, fromId)
         toAccount = self.safe_string(accountsById, toId, toId)
         return {
@@ -4760,8 +4813,14 @@ class bingx(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': self.parse_transfer_status(status),
         }
+
+    def parse_transfer_status(self, status: Str) -> str:
+        statuses: dict = {
+            'CONFIRMED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
@@ -4999,7 +5058,7 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(transaction, 'id', dataId)
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
-        timestamp = self.safe_integer(transaction, 'insertTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'timestamp')
         datetime = self.iso8601(timestamp)
         if timestamp is None:
             datetime = self.safe_string(transaction, 'applyTime')
@@ -5257,7 +5316,7 @@ class bingx(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'shortLeverage'),
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -5453,37 +5512,13 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
-        #    {
-        #        "coin": "BTC",
-        #        "name": "BTC",
-        #        "networkList": [
-        #          {
-        #            "name": "BTC",
-        #            "network": "BTC",
-        #            "isDefault": True,
-        #            "minConfirm": "2",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00035",
-        #            "withdrawMax": "1.62842",
-        #            "withdrawMin": "0.0005"
-        #          },
-        #          {
-        #            "name": "BTC",
-        #            "network": "BEP20",
-        #            "isDefault": False,
-        #            "minConfirm": "15",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00001",
-        #            "withdrawMax": "1.62734",
-        #            "withdrawMin": "0.0001"
-        #          }
-        #        ]
-        #    }
+        # currencie structure
         #
-        networkList = self.safe_list(fee, 'networkList', [])
-        networkListLength = len(networkList)
+        networks = self.safe_dict(fee, 'networks', {})
+        networkCodes = list(networks.keys())
+        networksLength = len(networkCodes)
         result: dict = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': None,
                 'percentage': None,
@@ -5494,18 +5529,15 @@ class bingx(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        if networkListLength != 0:
-            for i in range(0, networkListLength):
-                network = networkList[i]
-                networkId = self.safe_string(network, 'network')
-                isDefault = self.safe_bool(network, 'isDefault')
-                currencyCode = self.safe_string(currency, 'code')
-                networkCode = self.network_id_to_code(networkId, currencyCode)
+        if networksLength != 0:
+            for i in range(0, networksLength):
+                networkCode = networkCodes[i]
+                network = networks[networkCode]
                 result['networks'][networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(network, 'withdrawFee'), 'percentage': False},
+                    'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
                 }
-                if isDefault:
+                if networksLength == 1:
                     result['withdraw']['fee'] = self.safe_number(network, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
@@ -5521,11 +5553,17 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
-        coins = self.safe_list(response, 'data')
-        return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
+        response = await self.fetch_currencies(params)
+        depositWithdrawFees: dict = {}
+        responseCodes = list(response.keys())
+        for i in range(0, len(responseCodes)):
+            code = responseCodes[i]
+            if (codes is None) or (self.in_array(code, codes)):
+                entry = response[code]
+                depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
+        return depositWithdrawFees
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5536,18 +5574,14 @@ class bingx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
+        :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType')
-        if walletType is None:
-            walletType = 1
-        if not self.in_array(walletType, [1, 2, 3]):
-            raise BadRequest(self.id + ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType')
+        walletType = self.safe_integer(params, 'walletType', 1)
         request: dict = {
             'coin': currency['id'],
             'address': address,
@@ -5572,11 +5606,12 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = '['
                 for j in range(0, len(value)):
@@ -5585,8 +5620,8 @@ class bingx(Exchange, ImplicitAPI):
                         arrStr += ','
                     arrStr += str(arrayElement)
                 arrStr += ']'
-                sortedParams[key] = arrStr
-        return sortedParams
+                params[key] = arrStr
+        return params
 
     async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6186,13 +6221,14 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def custom_encode(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         adjustedValue = None
         result = None
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = None
                 for j in range(0, len(value)):
@@ -6225,8 +6261,13 @@ class bingx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
         path = self.implode_params(path, params)
-        if version == 'transfer':
-            type = 'account/transfer'
+        versionIsTransfer = (version == 'transfer')
+        versionIsAsset = (version == 'asset')
+        if versionIsTransfer or versionIsAsset:
+            if versionIsTransfer:
+                type = 'account/transfer'
+            else:
+                type = 'api/asset'
             version = section[2]
             access = section[3]
         if path != 'account/apiPermissions':
@@ -6250,7 +6291,7 @@ class bingx(Exchange, ImplicitAPI):
                 encodeRequest = self.custom_encode(params)
             else:
                 parsedParams = self.parse_params(params)
-                encodeRequest = self.rawencode(parsedParams)
+                encodeRequest = self.rawencode(parsedParams, True)
             signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
@@ -6261,7 +6302,7 @@ class bingx(Exchange, ImplicitAPI):
                 params['signature'] = signature
                 body = self.json(params)
             else:
-                query = self.urlencode(parsedParams)
+                query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -6285,7 +6326,10 @@ class bingx(Exchange, ImplicitAPI):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        if code is not None and code != '0':
+        transferErrorMsg = self.safe_string(response, 'transferErrorMsg')  # handling with errors from transfer endpoint
+        if (transferErrorMsg is not None) or (code is not None and code != '0'):
+            if transferErrorMsg is not None:
+                message = transferErrorMsg
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

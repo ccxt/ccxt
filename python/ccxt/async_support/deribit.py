@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -640,21 +640,21 @@ class deribit(Exchange, ImplicitAPI):
         #      "testnet": True
         #    }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_list(response, 'result', [])
         result: dict = {}
         for i in range(0, len(data)):
             currency = data[i]
             currencyId = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'currency_long')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': self.safe_string(currency, 'currency_long'),
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'fee_precision'))),
                 'limits': {
@@ -672,7 +672,7 @@ class deribit(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': None,
-            }
+            })
         return result
 
     def code_from_options(self, methodName, params={}):
@@ -2596,21 +2596,21 @@ class deribit(Exchange, ImplicitAPI):
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
+        notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
-        currentTime = self.milliseconds()
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': self.iso8601(currentTime),
+            'timestamp': None,
+            'datetime': None,
             'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
-            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': self.safe_number(position, 'average_price'),
-            'notional': self.parse_number(notionalString),
+            'notional': self.parse_number(notionalStringAbs),
             'leverage': self.safe_integer(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
             'contracts': None,
@@ -2673,7 +2673,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2936,7 +2936,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

@@ -442,6 +442,7 @@ class mexc extends Exchange {
                         ),
                     ),
                 ),
+                'useCcxtTradeId' => true,
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1m',
@@ -848,6 +849,7 @@ class mexc extends Exchange {
                 'PROS' => 'PROSFINANCE', // conflict with Prosper
                 'SIN' => 'SINCITYTOKEN',
                 'SOUL' => 'SOULSWAP',
+                'XBT' => 'XBT', // restore original mapping
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1101,88 +1103,49 @@ class mexc extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'coin');
                 $code = $this->safe_currency_code($id);
-                $name = $this->safe_string($currency, 'name');
-                $currencyActive = false;
-                $currencyFee = null;
-                $currencyWithdrawMin = null;
-                $currencyWithdrawMax = null;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
                 $networks = array();
                 $chains = $this->safe_value($currency, 'networkList', array());
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string_2($chain, 'netWork', 'network');
                     $network = $this->network_id_to_code($networkId);
-                    $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
-                    $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
-                    $active = ($isDepositEnabled && $isWithdrawEnabled);
-                    $currencyActive = $active || $currencyActive;
-                    $withdrawMin = $this->safe_string($chain, 'withdrawMin');
-                    $withdrawMax = $this->safe_string($chain, 'withdrawMax');
-                    $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
-                    $currencyWithdrawMax = ($currencyWithdrawMax === null) ? $withdrawMax : $currencyWithdrawMax;
-                    $fee = $this->safe_number($chain, 'withdrawFee');
-                    $currencyFee = ($currencyFee === null) ? $fee : $currencyFee;
-                    if (Precise::string_gt($currencyWithdrawMin, $withdrawMin)) {
-                        $currencyWithdrawMin = $withdrawMin;
-                    }
-                    if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
-                        $currencyWithdrawMax = $withdrawMax;
-                    }
-                    if ($isDepositEnabled) {
-                        $depositEnabled = true;
-                    }
-                    if ($isWithdrawEnabled) {
-                        $withdrawEnabled = true;
-                    }
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $network,
-                        'active' => $active,
-                        'deposit' => $isDepositEnabled,
-                        'withdraw' => $isWithdrawEnabled,
-                        'fee' => $fee,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($chain, 'depositEnable', false),
+                        'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $withdrawMin,
-                                'max' => $withdrawMax,
+                                'min' => $this->safe_string($chain, 'withdrawMin'),
+                                'max' => $this->safe_string($chain, 'withdrawMax'),
                             ),
                         ),
+                        'contract' => $this->safe_string($chain, 'contract'),
                     );
                 }
-                $networkKeys = is_array($networks) ? array_keys($networks) : array();
-                $networkKeysLength = count($networkKeys);
-                if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
-                    $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
-                    if ($defaultNetwork !== null) {
-                        $currencyFee = $defaultNetwork['fee'];
-                    }
-                }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'id' => $id,
                     'code' => $code,
-                    'name' => $name,
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => $currencyFee,
+                    'name' => $this->safe_string($currency, 'name'),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
-                        'withdraw' => array(
-                            'min' => $currencyWithdrawMin,
-                            'max' => $currencyWithdrawMax,
-                        ),
                     ),
+                    'type' => 'crypto',
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1777,8 +1740,8 @@ class mexc extends Exchange {
                 }
             }
         }
-        if ($id === null) {
-            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amountString, $priceString, $type, $takerOrMaker);
+        if ($id === null && $this->safe_bool($this->options, 'useCcxtTradeId', true)) {
+            $id = $this->create_ccxt_trade_id($timestamp, $side, $amountString, $priceString, $takerOrMaker);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1795,30 +1758,6 @@ class mexc extends Exchange {
             'fee' => $fee,
             'info' => $trade,
         ), $market);
-    }
-
-    public function synthetic_trade_id($market = null, $timestamp = null, $side = null, $amount = null, $price = null, $orderType = null, $takerOrMaker = null) {
-        // TODO => can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        $id = '';
-        if ($timestamp !== null) {
-            $id = $this->number_to_string($timestamp) . '-' . $this->safe_string($market, 'id', '_');
-            if ($side !== null) {
-                $id .= '-' . $side;
-            }
-            if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
-            }
-            if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
-            }
-            if ($takerOrMaker !== null) {
-                $id .= '-' . $takerOrMaker;
-            }
-            if ($orderType !== null) {
-                $id .= '-' . $orderType;
-            }
-        }
-        return $id;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -3471,13 +3410,27 @@ class mexc extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // spot => createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol" => "FARTCOINUSDT",
+        //        "orderId" => "C02__342252993005723644225",
+        //        "orderListId" => "-1",
+        //        "price" => "1.1",
+        //        "origQty" => "6.3",
+        //        "type" => "IMMEDIATE_OR_CANCEL",
+        //        "side" => "SELL",
+        //        "transactTime" => "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "123738410679123456",
         //         "orderListId" => -1
-        //     }
+        //    }
         //
         // margin => createOrder
         //
@@ -3641,6 +3594,11 @@ class mexc extends Exchange {
         } else {
             $id = $this->safe_string_2($order, 'orderId', 'id');
         }
+        $timeInForce = $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce'));
+        $typeRaw = $this->safe_string($order, 'type');
+        if ($timeInForce === null) {
+            $timeInForce = $this->get_tif_from_raw_order_type($typeRaw);
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'transactTime' ));
@@ -3663,8 +3621,8 @@ class mexc extends Exchange {
             'lastTradeTimestamp' => null, // TODO => this might be 'updateTime' if $order-status is filled, otherwise cancellation time. needs to be checked
             'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
             'symbol' => $market['symbol'],
-            'type' => $this->parse_order_type($this->safe_string($order, 'type')),
-            'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
+            'type' => $this->parse_order_type($typeRaw),
+            'timeInForce' => $timeInForce,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
@@ -3695,6 +3653,9 @@ class mexc extends Exchange {
             'MARKET' => 'market',
             'LIMIT' => 'limit',
             'LIMIT_MAKER' => 'limit',
+            // on spot, during submission below types are used only accepted order
+            'IMMEDIATE_OR_CANCEL' => 'limit',
+            'FILL_OR_KILL' => 'limit',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3723,6 +3684,17 @@ class mexc extends Exchange {
             'IOC' => 'IOC',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function get_tif_from_raw_order_type(?string $orderType = null) {
+        $statuses = array(
+            'LIMIT' => 'GTC',
+            'LIMIT_MAKER' => 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'MARKET' => 'IOC',
+        );
+        return $this->safe_string($statuses, $orderType, $orderType);
     }
 
     public function fetch_account_helper($type, $params) {
@@ -4350,7 +4322,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4986,11 +4958,14 @@ class mexc extends Exchange {
             //         "network" => "TRX",
             //         "status" => "5",
             //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
             //         "insertTime" => "1664805021000",
             //         "unlockConfirm" => "200",
             //         "confirmTimes" => "203",
-            //         "memo" => "xxyy1122"
+            //         "memo" => "xxyy1122",
+            //         "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+            //         "updateTime" => "1664805621000",
+            //         "netWork => "TRX"
             //     }
             // )
             //
@@ -5038,7 +5013,7 @@ class mexc extends Exchange {
             // array(
             //     {
             //       "id" => "adcd1c8322154de691b815eedcd10c42",
-            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
             //       "coin" => "USDC-MATIC",
             //       "network" => "MATIC",
             //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5049,7 +5024,11 @@ class mexc extends Exchange {
             //       "confirmNo" => null,
             //       "applyTime" => "1664882739000",
             //       "remark" => '',
-            //       "memo" => null
+            //       "memo" => null,
+            //       "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "updateTime" => "1664882799000",
+            //       "netWork => "MATIC"
             //     }
             // )
             //
@@ -5067,18 +5046,21 @@ class mexc extends Exchange {
         //     "network" => "TRX",
         //     "status" => "5",
         //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //     "insertTime" => "1664805021000",
         //     "unlockConfirm" => "200",
         //     "confirmTimes" => "203",
-        //     "memo" => "xxyy1122"
+        //     "memo" => "xxyy1122",
+        //     "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime" => "1664805621000",
+        //     "netWork => "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id" => "adcd1c8322154de691b815eedcd10c42",
-        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //     "coin" => "USDC-MATIC",
         //     "network" => "MATIC",
         //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5088,8 +5070,12 @@ class mexc extends Exchange {
         //     "transactionFee" => "1",
         //     "confirmNo" => null,
         //     "applyTime" => "1664882739000",
-        //     "remark" => '',
-        //     "memo" => null
+        //     "remark" => "",
+        //     "memo" => null,
+        //     "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime" => "1664882799000",
+        //     "netWork => "MATIC"
         //   }
         //
         // withdraw
@@ -5101,6 +5087,7 @@ class mexc extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
+        $updated = $this->safe_integer($transaction, 'updateTime');
         $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
@@ -5115,7 +5102,7 @@ class mexc extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $txid = $this->safe_string($transaction, 'txId');
+        $txid = $this->safe_string_2($transaction, 'transHash', 'txId');
         $fee = null;
         $feeCostString = $this->safe_string($transaction, 'transactionFee');
         if ($feeCostString !== null) {
@@ -5145,8 +5132,8 @@ class mexc extends Exchange {
             'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
-            'comment' => null,
+            'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'remark'),
             'internal' => null,
             'fee' => $fee,
         );
@@ -5201,7 +5188,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -5623,7 +5610,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6129,7 +6116,7 @@ class mexc extends Exchange {
             //
             // array( success => true, code => '0' )
             //
-            return $this->parse_leverage($response, $market);
+            return $this->parse_leverage($response, $market); // tmp revert type
         }) ();
     }
 

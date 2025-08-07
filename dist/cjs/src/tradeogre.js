@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var tradeogre$1 = require('./abstract/tradeogre.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -10,7 +12,7 @@ var number = require('./base/functions/number.js');
  * @class tradeogre
  * @augments Exchange
  */
-class tradeogre extends tradeogre$1 {
+class tradeogre extends tradeogre$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tradeogre',
@@ -18,7 +20,7 @@ class tradeogre extends tradeogre$1 {
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -423,13 +425,13 @@ class tradeogre extends tradeogre$1 {
             'vwap': undefined,
             'open': this.safeString(ticker, 'initialprice'),
             'close': this.safeString(ticker, 'price'),
-            'last': undefined,
+            'last': this.safeString(ticker, 'price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString(ticker, 'volume'),
+            'baseVolume': this.safeString(ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }
@@ -529,6 +531,7 @@ class tradeogre extends tradeogre$1 {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger(response, 's');
         return orderbook;
     }
     parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
@@ -841,4 +844,4 @@ class tradeogre extends tradeogre$1 {
     }
 }
 
-module.exports = tradeogre;
+exports["default"] = tradeogre;

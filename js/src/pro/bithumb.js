@@ -327,18 +327,20 @@ export default class bithumb extends bithumbRest {
         //        "contPrice" : "10579000",
         //        "contQty" : "0.01",
         //        "contAmt" : "105790.00",
-        //        "contDtm" : "2020-01-29 12:24:18.830039",
+        //        "contDtm" : "2020-01-29 12:24:18.830038",
         //        "updn" : "dn"
         //    }
         //
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'contDtm');
+        // that date is not UTC iso8601, but exchange's local time, -9hr difference
+        const timestamp = this.parse8601(datetime) - 32400000;
         const sideId = this.safeString(trade, 'buySellGb');
         return this.safeTrade({
             'id': undefined,
             'info': trade,
-            'timestamp': this.parse8601(datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'symbol': this.safeSymbol(marketId, market, '_'),
             'order': undefined,
             'type': undefined,

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -8,7 +10,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1239,8 +1241,33 @@ class gate extends gate$1 {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            newPositions.push(position);
-            cache.append(position);
+            const symbol = this.safeString(position, 'symbol');
+            const side = this.safeString(position, 'side');
+            // Control when position is closed no side is returned
+            if (side === undefined) {
+                const prevLongPosition = this.safeDict(cache, symbol + 'long');
+                if (prevLongPosition !== undefined) {
+                    position['side'] = prevLongPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                const prevShortPosition = this.safeDict(cache, symbol + 'short');
+                if (prevShortPosition !== undefined) {
+                    position['side'] = prevShortPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                // if no prev position is found, default to long
+                if (prevLongPosition === undefined && prevShortPosition === undefined) {
+                    position['side'] = 'long';
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+            }
+            else {
+                newPositions.push(position);
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, type + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1403,7 +1430,7 @@ class gate extends gate$1 {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
@@ -2085,4 +2112,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

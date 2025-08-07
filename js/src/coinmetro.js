@@ -380,24 +380,39 @@ export default class coinmetro extends Exchange {
             const currency = response[i];
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
-            const withdraw = this.safeValue(currency, 'canWithdraw');
-            const deposit = this.safeValue(currency, 'canDeposit');
-            const canTrade = this.safeValue(currency, 'canTrade');
-            const active = canTrade ? withdraw : true;
-            const minAmount = this.safeNumber(currency, 'minQty');
+            const typeRaw = this.safeString(currency, 'type');
+            let type = undefined;
+            if (typeRaw === 'coin' || typeRaw === 'token' || typeRaw === 'erc20') {
+                type = 'crypto';
+            }
+            else if (typeRaw === 'fiat') {
+                type = 'fiat';
+            }
+            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
+            if (code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                precisionDigits = '4';
+            }
             result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'name': code,
+                'type': type,
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeBool(currency, 'canTrade'),
+                'deposit': this.safeBool(currency, 'canDeposit'),
+                'withdraw': this.safeBool(currency, 'canWithdraw'),
                 'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'digits'))),
+                'precision': this.parseNumber(this.parsePrecision(precisionDigits)),
                 'limits': {
-                    'amount': { 'min': minAmount, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': {
+                        'min': this.safeNumber(currency, 'minQty'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
                 'networks': {},
             });
@@ -423,10 +438,13 @@ export default class coinmetro extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetMarkets(params);
+        const promises = [];
+        promises.push(this.publicGetMarkets(params));
         if (this.safeValue(this.options, 'currenciesByIdForParseMarket') === undefined) {
-            await this.fetchCurrencies();
+            promises.push(this.fetchCurrencies());
         }
+        const responses = await Promise.all(promises);
+        const response = responses[0];
         //
         //     [
         //         {
@@ -442,7 +460,16 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseMarkets(response);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = this.parseMarket(response[i]);
+            // there are several broken (unavailable info) markets
+            if (market['base'] === undefined || market['quote'] === undefined) {
+                continue;
+            }
+            result.push(market);
+        }
+        return result;
     }
     parseMarket(market) {
         const id = this.safeString(market, 'pair');

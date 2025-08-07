@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class deribit
  * @augments Exchange
  */
-class deribit extends deribit$1 {
+class deribit extends deribit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'deribit',
@@ -634,21 +636,21 @@ class deribit extends deribit$1 {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString(currency, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'currency_long');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': this.safeString(currency, 'currency_long'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
                 'limits': {
@@ -666,7 +668,7 @@ class deribit extends deribit$1 {
                     },
                 },
                 'networks': undefined,
-            };
+            });
         }
         return result;
     }
@@ -1333,8 +1335,21 @@ class deribit extends deribit$1 {
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const code = this.safeString2(params, 'code', 'currency');
+        let code = this.safeString2(params, 'code', 'currency');
+        let type = undefined;
         params = this.omit(params, ['code']);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                if (code !== undefined && code !== market['base']) {
+                    throw new errors.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                }
+                if (code === undefined) {
+                    code = market['base'];
+                    type = market['type'];
+                }
+            }
+        }
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
         }
@@ -1342,6 +1357,21 @@ class deribit extends deribit$1 {
         const request = {
             'currency': currency['id'],
         };
+        if (type !== undefined) {
+            let requestType = undefined;
+            if (type === 'spot') {
+                requestType = 'spot';
+            }
+            else if (type === 'future' || (type === 'contract')) {
+                requestType = 'future';
+            }
+            else if (type === 'option') {
+                requestType = 'option';
+            }
+            if (requestType !== undefined) {
+                request['kind'] = requestType;
+            }
+        }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
         //
         //     {
@@ -2663,21 +2693,21 @@ class deribit extends deribit$1 {
         const unrealizedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
+        const notionalStringAbs = Precise["default"].stringAbs(notionalString);
         const maintenanceMarginString = this.safeString(position, 'maintenance_margin');
-        const currentTime = this.milliseconds();
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': this.iso8601(currentTime),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
-            'initialMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
-            'maintenanceMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': this.safeNumber(position, 'average_price'),
-            'notional': this.parseNumber(notionalString),
+            'notional': this.parseNumber(notionalStringAbs),
             'leverage': this.safeInteger(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'contracts': undefined,
@@ -3758,4 +3788,4 @@ class deribit extends deribit$1 {
     }
 }
 
-module.exports = deribit;
+exports["default"] = deribit;

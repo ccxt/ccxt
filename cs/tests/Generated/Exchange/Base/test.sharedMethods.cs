@@ -59,6 +59,11 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             assert(!isEqual(entry, null), add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+            object allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() {});
+            if (isTrue(!isEqual(emptyAllowedFor, null)))
+            {
+                emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
+            }
             if (isTrue(((format is IList<object>) || (format.GetType().IsGenericType && format.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("entry is not an array", logText));
@@ -377,7 +382,6 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
-                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
@@ -626,6 +630,17 @@ public partial class testMainClass : BaseTest
                 return;
             }
         }
+        public object getActiveMarkets(Exchange exchange, object includeUnknown = null)
+        {
+            includeUnknown ??= true;
+            object filteredActive = exchange.filterBy(exchange.markets, "active", true);
+            if (isTrue(includeUnknown))
+            {
+                object filteredUndefined = exchange.filterBy(exchange.markets, "active", null);
+                return exchange.arrayConcat(filteredActive, filteredUndefined);
+            }
+            return filteredActive;
+        }
         public object removeProxyOptions(Exchange exchange, object skippedProperties)
         {
             object proxyUrl = exchange.checkProxyUrlSettings();
@@ -650,6 +665,29 @@ public partial class testMainClass : BaseTest
             exchange.httpProxy = httpProxy;
             exchange.httpsProxy = httpsProxy;
             exchange.socksProxy = socksProxy;
+        }
+        public object concat(object a = null, object b = null)
+        {
+            // we use this method temporarily, because of ast-transpiler issue across langs
+            if (isTrue(isEqual(a, null)))
+            {
+                return b;
+            } else if (isTrue(isEqual(b, null)))
+            {
+                return a;
+            } else
+            {
+                object result = new List<object>() {};
+                for (object i = 0; isLessThan(i, getArrayLength(a)); postFixIncrement(ref i))
+                {
+                    ((IList<object>)result).Add(getValue(a, i));
+                }
+                for (object j = 0; isLessThan(j, getArrayLength(b)); postFixIncrement(ref j))
+                {
+                    ((IList<object>)result).Add(getValue(b, j));
+                }
+                return result;
+            }
         }
         public void assertNonEmtpyArray(Exchange exchange, object skippedProperties, object method, object entry, object hint = null)
         {

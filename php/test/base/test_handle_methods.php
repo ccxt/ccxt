@@ -73,7 +73,7 @@ function helper_test_handle_network_request() {
             ),
         ),
     ));
-    $exchange->currencies = array(); // todo: initialize in C# base files
+    $exchange->currencies = $exchange->create_safe_dictionary(); // todo: initialize in C# base files
     $currency_code = 'ETH'; // todo: in future with complex cases
     // no-case
     [$request1, $params1] = $exchange->handle_request_network(array(

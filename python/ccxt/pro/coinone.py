@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -348,7 +348,7 @@ class coinone(ccxt.async_support.coinone):
             'fee': None,
         }, market)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "response_type": "ERROR",

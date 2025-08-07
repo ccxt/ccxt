@@ -470,33 +470,23 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue(response, 'data', []);
+        const currencies = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const displayName = this.safeValue(currency, 'display_name');
+            const displayName = this.safeDict(currency, 'display_name');
             const name = this.safeString(displayName, 'en-us');
-            const platforms = this.safeValue(currency, 'platform', []);
+            const platforms = this.safeList(currency, 'platform', []);
             const platformsByPriority = this.sortBy(platforms, 'priority');
-            let platform = undefined;
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const idInner = this.safeString(network, 'id');
                 const networkCode = this.networkIdToCode(idInner);
-                const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
-                const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
-                const currentDeposit = !currentDepositSuspended;
-                const currentWithdraw = !currentWithdrawalSuspended;
-                const currentActive = currentDeposit && currentWithdraw;
-                if (currentActive) {
-                    platform = network;
-                }
-                const precision = this.parsePrecision(this.safeString(network, 'precision'));
-                const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
-                let networkFee = this.safeValue(withdrawFee, 0, {});
+                const withdrawFee = this.safeList(network, 'withdrawal_fee', []);
+                let networkFee = this.safeDict(withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
                     const feeCurrencyId = this.safeString(withdrawPlatform, 'currency_id');
@@ -508,11 +498,11 @@ export default class probit extends Exchange {
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
-                    'active': currentActive,
-                    'deposit': currentDeposit,
-                    'withdraw': currentWithdraw,
+                    'active': undefined,
+                    'deposit': !this.safeBool(network, 'deposit_suspended'),
+                    'withdraw': !this.safeBool(network, 'withdrawal_suspended'),
                     'fee': this.safeNumber(networkFee, 'amount'),
-                    'precision': this.parseNumber(precision),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(network, 'min_withdrawal_amount'),
@@ -526,55 +516,33 @@ export default class probit extends Exchange {
                     'info': network,
                 };
             }
-            if (platform === undefined) {
-                platform = this.safeValue(platformsByPriority, 0, {});
-            }
-            const depositSuspended = this.safeValue(platform, 'deposit_suspended');
-            const withdrawalSuspended = this.safeValue(platform, 'withdrawal_suspended');
-            const deposit = !depositSuspended;
-            const withdraw = !withdrawalSuspended;
-            const active = deposit && withdraw;
-            const withdrawalFees = this.safeValue(platform, 'withdrawal_fee', {});
-            const fees = [];
-            // sometimes the withdrawal fee is an empty object
-            // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
-            for (let j = 0; j < withdrawalFees.length; j++) {
-                const withdrawalFeeInner = withdrawalFees[j];
-                const amount = this.safeNumber(withdrawalFeeInner, 'amount');
-                const priority = this.safeInteger(withdrawalFeeInner, 'priority');
-                if ((amount !== undefined) && (priority !== undefined)) {
-                    fees.push(withdrawalFeeInner);
-                }
-            }
-            const withdrawalFeesByPriority = this.sortBy(fees, 'priority');
-            const withdrawalFee = this.safeValue(withdrawalFeesByPriority, 0, {});
-            const fee = this.safeNumber(withdrawalFee, 'amount');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(platform, 'precision'))),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'type': 'crypto',
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber(platform, 'min_deposit_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber(platform, 'min_withdrawal_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': networkList,
-            };
+            });
         }
         return result;
     }

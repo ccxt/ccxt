@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var whitebit$1 = require('./abstract/whitebit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class whitebit
  * @augments Exchange
  */
-class whitebit extends whitebit$1 {
+class whitebit extends whitebit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'whitebit',
@@ -544,40 +546,120 @@ class whitebit extends whitebit$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.v4PublicGetAssets(params);
         //
-        //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
-        //          "can_withdraw": true,
-        //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
-        //          "maker_fee": "0.1",
-        //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
-        //       },
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
+        //   }
+        // }
         //
         const ids = Object.keys(response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeBool(currency, 'can_deposit', true);
-            const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
-            const active = canDeposit && canWithdraw;
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             const code = this.safeCurrencyCode(id);
-            result[code] = {
+            const hasProvider = ('providers' in currency);
+            const rawNetworks = this.safeDict(currency, 'networks', {});
+            const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
+            const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
+            const networkLimits = this.safeDict(currency, 'limits', {});
+            const depositLimits = this.safeDict(networkLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
+            const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (let j = 0; j < allNetworks.length; j++) {
+                const networkId = allNetworks[j];
+                const networkCode = this.networkIdToCode(networkId);
+                ({
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray(networkId, depositsNetworks),
+                    'withdraw': this.inArray(networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(depositLimits, 'min', undefined),
+                            'max': this.safeNumber(depositLimits, 'max', undefined),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawLimits, 'min', undefined),
+                            'max': this.safeNumber(withdrawLimits, 'max', undefined),
+                        },
+                    },
+                });
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': undefined,
-                'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': undefined,
+                'deposit': this.safeBool(currency, 'can_deposit'),
+                'withdraw': this.safeBool(currency, 'can_withdraw'),
                 'fee': undefined,
-                'precision': undefined,
+                'networks': undefined,
+                'type': hasProvider ? 'fiat' : 'crypto',
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -587,8 +669,12 @@ class whitebit extends whitebit$1 {
                         'min': this.safeNumber(currency, 'min_withdraw'),
                         'max': this.safeNumber(currency, 'max_withdraw'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber(currency, 'min_deposit'),
+                        'max': this.safeNumber(currency, 'max_deposit'),
+                    },
                 },
-            };
+            });
         }
         return result;
     }
@@ -3348,4 +3434,4 @@ class whitebit extends whitebit$1 {
     }
 }
 
-module.exports = whitebit;
+exports["default"] = whitebit;

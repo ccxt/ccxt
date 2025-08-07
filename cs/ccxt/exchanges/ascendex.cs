@@ -450,6 +450,7 @@ public partial class ascendex : Exchange
                 { "broad", new Dictionary<string, object>() {} },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "XBT" },
                 { "BOND", "BONDED" },
                 { "BTCBEAR", "BEAR" },
                 { "BTCBULL", "BULL" },
@@ -478,99 +479,85 @@ public partial class ascendex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object assetsPromise = this.v1PublicGetAssets(parameters);
+        object response = await this.v2PublicGetAssets(parameters);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        object marginPromise = this.v1PublicGetMarginAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        object cashPromise = this.v1PublicGetCashAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""
-        //             }
-        //         ]
-        //     }
-        //
-        var assetsmargincashVariable = await promiseAll(new List<object>() {assetsPromise, marginPromise, cashPromise});
-        var assets = ((IList<object>) assetsmargincashVariable)[0];
-        var margin = ((IList<object>) assetsmargincashVariable)[1];
-        var cash = ((IList<object>) assetsmargincashVariable)[2];
-        object assetsData = this.safeList(assets, "data", new List<object>() {});
-        object marginData = this.safeList(margin, "data", new List<object>() {});
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object assetsById = this.indexBy(assetsData, "assetCode");
-        object marginById = this.indexBy(marginData, "assetCode");
-        object cashById = this.indexBy(cashData, "assetCode");
-        object dataById = this.deepExtend(assetsById, marginById, cashById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = this.safeString(ids, i);
-            object currency = getValue(dataById, id);
+            object currency = getValue(data, i);
+            object id = this.safeString(currency, "assetCode");
             object code = this.safeCurrencyCode(id);
-            object scale = this.safeString2(currency, "precisionScale", "nativeScale");
-            object precision = this.parseNumber(this.parsePrecision(scale));
-            object fee = this.safeNumber2(currency, "withdrawFee", "withdrawalFee");
-            object status = this.safeString2(currency, "status", "statusCode");
-            object active = (isEqual(status, "Normal"));
-            object marginInside = (inOp(currency, "borrowAssetCode"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chains = this.safeList(currency, "blockChain", new List<object>() {});
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "nativeScale")));
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object networkEtnry = getValue(chains, j);
+                object networkId = this.safeString(networkEtnry, "chainName");
+                object networkCode = this.networkCodeToId(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
+                    { "active", null },
+                    { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
+                    { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "type", null },
-                { "margin", marginInside },
+                { "margin", null },
                 { "name", this.safeString(currency, "assetName") },
-                { "active", active },
+                { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
-                { "fee", fee },
+                { "fee", null },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -578,8 +565,8 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -592,6 +579,17 @@ public partial class ascendex : Exchange
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotMarketscontractMarketsVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spotMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[0];
+        var contractMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[1];
+        return this.arrayConcat(spotMarkets, contractMarkets);
+    }
+
+    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object productsPromise = this.v1PublicGetProducts(parameters);
@@ -645,7 +643,102 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object perpetualsPromise = this.v2PublicGetFuturesContract(parameters);
+        var productscashVariable = await promiseAll(new List<object>() {productsPromise, cashPromise});
+        var products = ((IList<object>) productscashVariable)[0];
+        var cash = ((IList<object>) productscashVariable)[1];
+        object productsData = this.safeList(products, "data", new List<object>() {});
+        object productsById = this.indexBy(productsData, "symbol");
+        object cashData = this.safeList(cash, "data", new List<object>() {});
+        object cashAndPerpetualsById = this.indexBy(cashData, "symbol");
+        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
+        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object id = getValue(ids, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "-PERP"), 0)))
+            {
+                continue;
+            }
+            object market = getValue(dataById, id);
+            object status = this.safeString(market, "status");
+            object domain = this.safeString(market, "domain");
+            object active = false;
+            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
+            {
+                active = true;
+            }
+            object minQty = this.safeNumber(market, "minQty");
+            object maxQty = this.safeNumber(market, "maxQty");
+            object minPrice = this.safeNumber(market, "tickSize");
+            object maxPrice = null;
+            object underlying = this.safeString2(market, "underlying", "symbol");
+            object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+            object baseId = this.safeString(parts, 0);
+            object quoteId = this.safeString(parts, 1);
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object fee = this.safeNumber(market, "commissionReserveRate");
+            object marginTradable = this.safeBool(market, "marginTradable", false);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "id", id },
+                { "symbol", add(add(bs, "/"), quote) },
+                { "base", bs },
+                { "baseId", baseId },
+                { "quote", quote },
+                { "quoteId", quoteId },
+                { "settle", null },
+                { "settleId", null },
+                { "type", "spot" },
+                { "spot", true },
+                { "margin", marginTradable },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+                { "active", active },
+                { "contract", false },
+                { "linear", null },
+                { "inverse", null },
+                { "taker", fee },
+                { "maker", fee },
+                { "contractSize", null },
+                { "expiry", null },
+                { "expiryDatetime", null },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", this.safeNumber(market, "lotSize") },
+                    { "price", this.safeNumber(market, "tickSize") },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", minQty },
+                        { "max", maxQty },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", minPrice },
+                        { "max", maxPrice },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minNotional") },
+                        { "max", this.safeNumber(market, "maxNotional") },
+                    } },
+                } },
+                { "created", this.safeInteger(market, "tradingStartTime") },
+                { "info", market },
+            });
+        }
+        return result;
+    }
+
+    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object contracts = await this.v2PublicGetFuturesContract(parameters);
         //
         //    {
         //        "code": 0,
@@ -658,9 +751,9 @@ public partial class ascendex : Exchange
         //                "underlying": "BTC/USDT",
         //                "tradingStartTime": 1579701600000,
         //                "priceFilter": {
-        //                    "minPrice": "1",
+        //                    "minPrice": "0.1",
         //                    "maxPrice": "1000000",
-        //                    "tickSize": "1"
+        //                    "tickSize": "0.1"
         //                },
         //                "lotSizeFilter": {
         //                    "minQty": "0.0001",
@@ -683,58 +776,26 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        var productscashperpetualsVariable = await promiseAll(new List<object>() {productsPromise, cashPromise, perpetualsPromise});
-        var products = ((IList<object>) productscashperpetualsVariable)[0];
-        var cash = ((IList<object>) productscashperpetualsVariable)[1];
-        var perpetuals = ((IList<object>) productscashperpetualsVariable)[2];
-        object productsData = this.safeList(products, "data", new List<object>() {});
-        object productsById = this.indexBy(productsData, "symbol");
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object perpetualsData = this.safeList(perpetuals, "data", new List<object>() {});
-        object cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
-        object cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, "symbol");
-        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(contracts, "data", new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object market = getValue(dataById, id);
-            object settleId = this.safeString(market, "settlementAsset");
-            object settle = this.safeCurrencyCode(settleId);
-            object status = this.safeString(market, "status");
-            object domain = this.safeString(market, "domain");
-            object active = false;
-            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
-            {
-                active = true;
-            }
-            object spot = isEqual(settle, null);
-            object swap = !isTrue(spot);
-            object linear = ((bool) isTrue(swap)) ? true : null;
-            object minQty = this.safeNumber(market, "minQty");
-            object maxQty = this.safeNumber(market, "maxQty");
-            object minPrice = this.safeNumber(market, "tickSize");
-            object maxPrice = null;
-            object underlying = this.safeString2(market, "underlying", "symbol");
+            object market = getValue(data, i);
+            object id = this.safeString(market, "symbol");
+            object underlying = this.safeString(market, "underlying");
             object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object baseId = this.safeString(parts, 0);
-            object quoteId = this.safeString(parts, 1);
             object bs = this.safeCurrencyCode(baseId);
+            object quoteId = this.safeString(parts, 1);
             object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
-            if (isTrue(swap))
-            {
-                object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
-                minQty = this.safeNumber(lotSizeFilter, "minQty");
-                maxQty = this.safeNumber(lotSizeFilter, "maxQty");
-                object priceFilter = this.safeDict(market, "priceFilter");
-                minPrice = this.safeNumber(priceFilter, "minPrice");
-                maxPrice = this.safeNumber(priceFilter, "maxPrice");
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            }
+            object settleId = this.safeString(market, "settlementAsset");
+            object settle = this.safeCurrencyCode(settleId);
+            object linear = isEqual(settle, quote);
+            object inverse = isEqual(settle, bs);
+            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            object priceFilter = this.safeDict(market, "priceFilter");
+            object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
             object fee = this.safeNumber(market, "commissionReserveRate");
-            object marginTradable = this.safeBool(market, "marginTradable", false);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -744,26 +805,26 @@ public partial class ascendex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(swap)) ? "swap" : "spot" },
-                { "spot", spot },
-                { "margin", ((bool) isTrue(spot)) ? marginTradable : null },
-                { "swap", swap },
+                { "type", "swap" },
+                { "spot", false },
+                { "margin", null },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", active },
-                { "contract", swap },
+                { "active", isEqual(this.safeString(market, "status"), "Normal") },
+                { "contract", true },
                 { "linear", linear },
-                { "inverse", ((bool) isTrue(swap)) ? !isTrue(linear) : null },
+                { "inverse", inverse },
                 { "taker", fee },
                 { "maker", fee },
-                { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },
+                { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeNumber(market, "lotSize") },
-                    { "price", this.safeNumber(market, "tickSize") },
+                    { "amount", this.safeNumber(lotSizeFilter, "lotSize") },
+                    { "price", this.safeNumber(priceFilter, "tickSize") },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -771,12 +832,12 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", minQty },
-                        { "max", maxQty },
+                        { "min", this.safeNumber(lotSizeFilter, "minQty") },
+                        { "max", this.safeNumber(lotSizeFilter, "maxQty") },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", minPrice },
-                        { "max", maxPrice },
+                        { "min", this.safeNumber(priceFilter, "minPrice") },
+                        { "max", this.safeNumber(priceFilter, "maxPrice") },
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minNotional") },
@@ -1440,6 +1501,8 @@ public partial class ascendex : Exchange
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1447,7 +1510,7 @@ public partial class ascendex : Exchange
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1536,7 +1599,7 @@ public partial class ascendex : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market, "/");
-        object timestamp = this.safeInteger2(order, "timestamp", "sendingTime");
+        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "sendingTime", "time"});
         object lastTradeTimestamp = this.safeInteger(order, "lastExecTime");
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1544,7 +1607,7 @@ public partial class ascendex : Exchange
         }
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "orderQty");
-        object average = this.safeString(order, "avgPx");
+        object average = this.safeString2(order, "avgPx", "avgFilledPx");
         object filled = this.safeStringN(order, new List<object>() {"cumFilledQty", "cumQty", "fillQty"});
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "id");
@@ -1582,13 +1645,13 @@ public partial class ascendex : Exchange
         }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
-        object execInst = this.safeString(order, "execInst");
-        if (isTrue(isEqual(execInst, "reduceOnly")))
+        object execInst = this.safeStringLower(order, "execInst");
+        if (isTrue(isEqual(execInst, "reduceonly")))
         {
             reduceOnly = true;
         }
         object postOnly = null;
-        if (isTrue(isEqual(execInst, "Post")))
+        if (isTrue(isEqual(execInst, "post")))
         {
             postOnly = true;
         }
@@ -2403,8 +2466,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (!isTrue(isArray))
+        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             data = this.safeList(data, "data", new List<object>() {});
         }
@@ -2617,9 +2679,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

@@ -22,7 +22,9 @@ export default class binancecoinm extends binance {
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': ['inverse'],
+                'fetchMarkets': {
+                    'types': ['inverse'],
+                },
                 'defaultSubType': 'inverse',
             },
         });

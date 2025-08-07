@@ -1454,7 +1454,7 @@ class defx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_position(self, symbol: str, params={}):
         """
@@ -1494,7 +1494,7 @@ class defx(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -1893,7 +1893,7 @@ class defx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1954,7 +1954,7 @@ class defx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

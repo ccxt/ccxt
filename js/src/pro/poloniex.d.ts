@@ -1,5 +1,5 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
@@ -66,7 +66,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name poloniex#cancelOrdersWs
@@ -206,7 +206,7 @@ export default class poloniex extends poloniexRest {
     handleMyTrades(client: Client, parsedTrade: any): void;
     handlePong(client: Client): void;
     handleMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleAuthenticate(client: Client, message: any): any;
     ping(client: Client): {
         event: string;

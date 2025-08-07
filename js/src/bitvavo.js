@@ -33,19 +33,29 @@ export default class bitvavo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -56,21 +66,39 @@ export default class bitvavo extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -82,6 +110,7 @@ export default class bitvavo extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -90,9 +119,14 @@ export default class bitvavo extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -346,6 +380,8 @@ export default class bitvavo extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': undefined,
+                'fiatCurrencies': ['EUR'], // only fiat atm
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
@@ -555,24 +591,24 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
+            const isFiat = this.inArray(code, fiatCurrencies);
             const networks = {};
-            const networksArray = this.safeValue(currency, 'networks', []);
-            const networksLength = networksArray.length;
-            const isOneNetwork = (networksLength === 1);
-            const deposit = (this.safeValue(currency, 'depositStatus') === 'OK');
-            const withdrawal = (this.safeValue(currency, 'withdrawalStatus') === 'OK');
+            const networksArray = this.safeList(currency, 'networks', []);
+            const deposit = this.safeString(currency, 'depositStatus') === 'OK';
+            const withdrawal = this.safeString(currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
             const precision = this.safeInteger(currency, 'decimals', 8);
             const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isOneNetwork) {
-                const networkId = networksArray[0];
+            // btw, absolutely all of them have 1 network atm
+            for (let j = 0; j < networksArray.length; j++) {
+                const networkId = networksArray[j];
                 const networkCode = this.networkIdToCode(networkId);
                 networks[networkCode] = {
                     'info': currency,
@@ -591,7 +627,7 @@ export default class bitvavo extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -602,6 +638,7 @@ export default class bitvavo extends Exchange {
                 'networks': networks,
                 'fee': withdrawFee,
                 'precision': precision,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -616,10 +653,10 @@ export default class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
     /**
@@ -1186,6 +1223,14 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'createOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         return this.extend(request, params);
     }
     /**
@@ -1285,6 +1330,14 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'editOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1320,6 +1373,14 @@ export default class bitvavo extends Exchange {
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
+        }
+        let operatorId = undefined;
+        [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
+        if (operatorId !== undefined) {
+            request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         return this.extend(request, params);
     }

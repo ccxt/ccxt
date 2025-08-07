@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -457,11 +457,10 @@ class vertex(Exchange, ImplicitAPI):
             tickerId = self.safe_string(data, 'ticker_id')
             if (tickerId is not None) and (tickerId.find('PERP') > 0):
                 continue
-            id = self.safe_string(data, 'product_id')
             name = self.safe_string(data, 'symbol')
             code = self.safe_currency_code(name)
-            result[code] = {
-                'id': id,
+            result[code] = self.safe_currency_structure({
+                'id': self.safe_string(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': None,
@@ -481,7 +480,7 @@ class vertex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def parse_market(self, market) -> Market:
@@ -2352,7 +2351,7 @@ class vertex(Exchange, ImplicitAPI):
             #     "request_type": "execute_cancel_product_orders"
             # }
             #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2366,7 +2365,8 @@ class vertex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.cancel_orders([id], symbol, params)
+        order = await self.cancel_orders([id], symbol, params)
+        return self.safe_order({'info': order})
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -2859,7 +2859,7 @@ class vertex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2907,7 +2907,7 @@ class vertex(Exchange, ImplicitAPI):
         #
         return self.safe_dict(response, 'data', {})
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

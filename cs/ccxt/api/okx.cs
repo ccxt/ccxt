@@ -806,6 +806,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
     }
 
+    public async Task<object> privateGetAccountMovePositionsHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountMovePositionsHistory",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);
@@ -844,6 +849,11 @@ public partial class okx : Exchange
     public async Task<object> privateGetAccountSubaccountInterestLimits (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountSubaccountInterestLimits",parameters);
+    }
+
+    public async Task<object> privateGetUsersSubaccountApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUsersSubaccountApikey",parameters);
     }
 
     public async Task<object> privateGetTradingBotGridOrdersAlgoPending (object parameters = null)
@@ -1416,6 +1426,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostAccountBillsHistoryArchive",parameters);
     }
 
+    public async Task<object> privatePostAccountMovePositions (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountMovePositions",parameters);
+    }
+
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)
     {
         return await this.callAsync ("privatePostUsersSubaccountModifyApikey",parameters);
@@ -1434,6 +1449,21 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountSubaccountSetLoanAllocation (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSubaccountSetLoanAllocation",parameters);
+    }
+
+    public async Task<object> privatePostUsersSubaccountCreateSubaccount (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUsersSubaccountCreateSubaccount",parameters);
+    }
+
+    public async Task<object> privatePostUsersSubaccountSubaccountApikey (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUsersSubaccountSubaccountApikey",parameters);
+    }
+
+    public async Task<object> privatePostUsersSubaccountDeleteApikey (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUsersSubaccountDeleteApikey",parameters);
     }
 
     public async Task<object> privatePostTradingBotGridOrderAlgo (object parameters = null)

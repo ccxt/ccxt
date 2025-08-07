@@ -628,7 +628,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -636,7 +637,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object response = await this.v1PublicGetPublicToken(parameters);
+        object tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
         //     "success": true,
@@ -659,29 +660,32 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object tokenRows = this.safeList(data, "rows", new List<object>() {});
+        object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
+        var tokenResponsechainResponseVariable = await promiseAll(new List<object>() {tokenPromise, chainPromise});
+        var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
+        var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
+        object tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
+        object tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
+        object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
+        object chainRows = this.safeList(chainData, "rows", new List<object>() {});
+        object indexedChains = this.indexBy(chainRows, "chain_id");
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
             object currencyId = this.safeString(token, "token");
             object networks = this.safeList(token, "chain_details");
             object code = this.safeCurrencyCode(currencyId);
-            object minPrecision = null;
             object resultingNetworks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
             {
-                object network = getValue(networks, j);
-                // TODO: transform chain id to human readable name
-                object networkId = this.safeString(network, "chain_id");
-                object precision = this.parsePrecision(this.safeString(network, "decimals"));
-                if (isTrue(!isEqual(precision, null)))
-                {
-                    minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
-                }
-                ((IDictionary<string,object>)resultingNetworks)[(string)networkId] = new Dictionary<string, object>() {
+                object networkEntry = getValue(networks, j);
+                object networkId = this.safeString(networkEntry, "chain_id");
+                object networkRow = this.safeDict(indexedChains, networkId);
+                object networkName = this.safeString(networkRow, "name");
+                object networkCode = this.networkIdToCode(networkName, code);
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkId },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", null },
@@ -695,16 +699,16 @@ public partial class woofipro : Exchange
                     { "active", null },
                     { "deposit", null },
                     { "withdraw", null },
-                    { "fee", this.safeNumber(network, "withdrawal_fee") },
-                    { "precision", this.parseNumber(precision) },
-                    { "info", network },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                    { "info", new List<object>() {networkEntry, networkRow} },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
-                { "name", currencyId },
+                { "name", null },
                 { "code", code },
-                { "precision", this.parseNumber(minPrecision) },
+                { "precision", null },
                 { "active", null },
                 { "fee", null },
                 { "networks", resultingNetworks },
@@ -721,7 +725,7 @@ public partial class woofipro : Exchange
                     } },
                 } },
                 { "info", token },
-            };
+            });
         }
         return result;
     }
@@ -1897,9 +1901,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return new List<object>() {new Dictionary<string, object>() {
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
-}};
+})};
     }
 
     /**

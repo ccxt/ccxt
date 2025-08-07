@@ -49,6 +49,7 @@ class cryptocom extends Exchange {
                 'createOrders' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
@@ -58,7 +59,7 @@ class cryptocom extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -67,7 +68,7 @@ class cryptocom extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchGreeks' => false,
@@ -141,6 +142,7 @@ class cryptocom extends Exchange {
                     'derivatives' => 'https://uat-api.3ona.co/v2',
                 ),
                 'api' => array(
+                    'base' => 'https://api.crypto.com',
                     'v1' => 'https://api.crypto.com/exchange/v1',
                     'v2' => 'https://api.crypto.com/v2',
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
@@ -158,6 +160,13 @@ class cryptocom extends Exchange {
                 'fees' => 'https://crypto.com/exchange/document/fees-limits',
             ),
             'api' => array(
+                'base' => array(
+                    'public' => array(
+                        'get' => array(
+                            'v1/public/get-announcements' => 1, // no description of rate limit
+                        ),
+                    ),
+                ),
                 'v1' => array(
                     'public' => array(
                         'get' => array(
@@ -184,6 +193,7 @@ class cryptocom extends Exchange {
                             'private/user-balance-history' => 10 / 3,
                             'private/get-positions' => 10 / 3,
                             'private/create-order' => 2 / 3,
+                            'private/amend-order' => 4 / 3, // no description of rate limit
                             'private/create-order-list' => 10 / 3,
                             'private/cancel-order' => 2 / 3,
                             'private/cancel-order-list' => 10 / 3,
@@ -459,6 +469,7 @@ class cryptocom extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '219' => '\\ccxt\\InvalidOrder',
+                    '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
                     '325' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
                     '415' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
@@ -514,6 +525,137 @@ class cryptocom extends Exchange {
                 'broad' => array(),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             *
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$currency-$networks
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            // this endpoint requires authentication
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $skipFetchCurrencies = false;
+            list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+            if ($skipFetchCurrencies) {
+                // sub-accounts can't access this endpoint
+                return null;
+            }
+            $response = array();
+            try {
+                $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
+            } catch (Exception $e) {
+                if ($e instanceof ExchangeError) {
+                    // sub-accounts can't access this endpoint
+                    // array("code":"10001","msg":"SYS_ERROR")
+                    return null;
+                }
+                throw $e;
+                // do nothing
+                // sub-accounts can't access this endpoint
+            }
+            //
+            //    {
+            //        "id" => "1747502328559",
+            //        "method" => "private/get-$currency-$networks",
+            //        "code" => "0",
+            //        "result" => {
+            //            "update_time" => "1747502281000",
+            //            "currency_map" => {
+            //                "USDT" => {
+            //                    "full_name" => "Tether USD",
+            //                    "default_network" => "ETH",
+            //                    "network_list" => array(
+            //                        array(
+            //                            "network_id" => "ETH",
+            //                            "withdrawal_fee" => "10.00000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "20.0",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "32"
+            //                        ),
+            //                        array(
+            //                            "network_id" => "CRONOS",
+            //                            "withdrawal_fee" => "0.18000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "0.35",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "15"
+            //                        ),
+            //                        {
+            //                            "network_id" => "SOL",
+            //                            "withdrawal_fee" => "5.31000000",
+            //                            "withdraw_enabled" => true,
+            //                            "min_withdrawal_amount" => "10.62",
+            //                            "deposit_enabled" => true,
+            //                            "confirmation_required" => "1"
+            //                        }
+            //                    )
+            //                }
+            //            }
+            //        }
+            //    }
+            //
+            $resultData = $this->safe_dict($response, 'result', array());
+            $currencyMap = $this->safe_dict($resultData, 'currency_map', array());
+            $keys = is_array($currencyMap) ? array_keys($currencyMap) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                $currency = $currencyMap[$key];
+                $id = $key;
+                $code = $this->safe_currency_code($id);
+                $networks = array();
+                $chains = $this->safe_list($currency, 'network_list', array());
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'network_id');
+                    $network = $this->network_id_to_code($networkId);
+                    $networks[$network] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $network,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                        'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                        'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => $currency,
+                    'id' => $id,
+                    'code' => $code,
+                    'name' => $this->safe_string($currency, 'full_name'),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'type' => 'crypto', // only crypto now
+                    'networks' => $networks,
+                ));
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1028,7 +1170,7 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
             );
             if ($limit) {
-                $request['depth'] = $limit;
+                $request['depth'] = min ($limit, 50); // max 50
             }
             $response = Async\await($this->v1PublicGetPublicGetBook ($this->extend($request, $params)));
             //
@@ -1526,6 +1668,52 @@ class cryptocom extends Exchange {
         return $this->extend($request, $params);
     }
 
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             *
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified market $symbol of the order to edit
+             * @param {string} [$type] not used by cryptocom editOrder
+             * @param {string} [$side] not used by cryptocom editOrder
+             * @param {float} $amount (mandatory) how much of the currency you want to trade in units of the base currency
+             * @param {float} $price (mandatory) the $price for the order, in units of the quote currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] the original client order $id of the order to edit, required if $id is not provided
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = $this->edit_order_request($id, $symbol, $amount, $price, $params);
+            $response = Async\await($this->v1PrivatePostPrivateAmendOrder ($request));
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_order($result);
+        }) ();
+    }
+
+    public function edit_order_request(string $id, string $symbol, float $amount, ?float $price = null, $params = array ()) {
+        $request = array();
+        if ($id !== null) {
+            $request['order_id'] = $id;
+        } else {
+            $originalClientOrderId = $this->safe_string_2($params, 'orig_client_oid', 'clientOrderId');
+            if ($originalClientOrderId === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or orig_client_oid parameter');
+            } else {
+                $request['orig_client_oid'] = $originalClientOrderId;
+                $params = $this->omit($params, array( 'orig_client_oid', 'clientOrderId' ));
+            }
+        }
+        if (($amount === null) || ($price === null)) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires both $amount and $price arguments. If you do not want to change the $amount or $price, you should pass the original values');
+        }
+        $request['new_quantity'] = $this->amount_to_precision($symbol, $amount);
+        $request['new_price'] = $this->price_to_precision($symbol, $price);
+        return $this->extend($request, $params);
+    }
+
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -1544,7 +1732,8 @@ class cryptocom extends Exchange {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
             }
-            return Async\await($this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePostPrivateCancelAllOrders ($this->extend($request, $params)));
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
@@ -1808,7 +1997,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2866,6 +3055,85 @@ class cryptocom extends Exchange {
         return $result;
     }
 
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches historical funding rates
+             *
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'valuation_type' => 'estimated_funding_rate',
+                'count' => 1,
+            );
+            $response = Async\await($this->v1PublicGetPublicGetValuations ($this->extend($request, $params)));
+            //
+            //     {
+            //         "id" => -1,
+            //         "method" => "public/get-valuations",
+            //         "code" => 0,
+            //         "result" => {
+            //             "data" => array(
+            //                 array(
+            //                     "v" => "-0.000001884",
+            //                     "t" => 1687892400000
+            //                 ),
+            //             ),
+            //             "instrument_name" => "BTCUSD-PERP"
+            //         }
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'data', array());
+            $entry = $this->safe_dict($data, 0, array());
+            return $this->parse_funding_rate($entry, $market);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //                 array(
+        //                     "v" => "-0.000001884",
+        //                     "t" => 1687892400000
+        //                 ),
+        //
+        $timestamp = $this->safe_integer($contract, 't');
+        $fundingTimestamp = null;
+        if ($timestamp !== null) {
+            $fundingTimestamp = (int) ceil($timestamp / 3600000) * 3600000; // end of the next hour
+        }
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol(null, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'v'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => '1h',
+        );
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -2991,7 +3259,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

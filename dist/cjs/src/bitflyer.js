@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var Precise = require('./base/Precise.js');
  * @class bitflyer
  * @augments Exchange
  */
-class bitflyer extends bitflyer$1 {
+class bitflyer extends bitflyer$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitflyer',
@@ -245,6 +247,7 @@ class bitflyer extends bitflyer$1 {
         //         { "product_code": "BCH_BTC", "market_type": "Spot" },
         //         // forex swap
         //         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
+        //
         //         // future
         //         {
         //             "product_code": "BTCJPY11FEB2022",
@@ -1204,4 +1207,4 @@ class bitflyer extends bitflyer$1 {
     }
 }
 
-module.exports = bitflyer;
+exports["default"] = bitflyer;

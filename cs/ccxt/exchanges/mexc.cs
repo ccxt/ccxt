@@ -423,6 +423,7 @@ public partial class mexc : Exchange
                         } },
                     } },
                 } },
+                { "useCcxtTradeId", true },
                 { "timeframes", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "1m", "1m" },
@@ -649,6 +650,7 @@ public partial class mexc : Exchange
                 { "PROS", "PROSFINANCE" },
                 { "SIN", "SINCITYTOKEN" },
                 { "SOUL", "SOULSWAP" },
+                { "XBT", "XBT" },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -911,13 +913,6 @@ public partial class mexc : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "coin");
             object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
-            object currencyActive = false;
-            object currencyFee = null;
-            object currencyWithdrawMin = null;
-            object currencyWithdrawMax = null;
-            object depositEnabled = false;
-            object withdrawEnabled = false;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeValue(currency, "networkList", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
@@ -925,81 +920,43 @@ public partial class mexc : Exchange
                 object chain = getValue(chains, j);
                 object networkId = this.safeString2(chain, "netWork", "network");
                 object network = this.networkIdToCode(networkId);
-                object isDepositEnabled = this.safeBool(chain, "depositEnable", false);
-                object isWithdrawEnabled = this.safeBool(chain, "withdrawEnable", false);
-                object active = (isTrue(isDepositEnabled) && isTrue(isWithdrawEnabled));
-                currencyActive = isTrue(active) || isTrue(currencyActive);
-                object withdrawMin = this.safeString(chain, "withdrawMin");
-                object withdrawMax = this.safeString(chain, "withdrawMax");
-                currencyWithdrawMin = ((bool) isTrue((isEqual(currencyWithdrawMin, null)))) ? withdrawMin : currencyWithdrawMin;
-                currencyWithdrawMax = ((bool) isTrue((isEqual(currencyWithdrawMax, null)))) ? withdrawMax : currencyWithdrawMax;
-                object fee = this.safeNumber(chain, "withdrawFee");
-                currencyFee = ((bool) isTrue((isEqual(currencyFee, null)))) ? fee : currencyFee;
-                if (isTrue(Precise.stringGt(currencyWithdrawMin, withdrawMin)))
-                {
-                    currencyWithdrawMin = withdrawMin;
-                }
-                if (isTrue(Precise.stringLt(currencyWithdrawMax, withdrawMax)))
-                {
-                    currencyWithdrawMax = withdrawMax;
-                }
-                if (isTrue(isDepositEnabled))
-                {
-                    depositEnabled = true;
-                }
-                if (isTrue(isWithdrawEnabled))
-                {
-                    withdrawEnabled = true;
-                }
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
                     { "network", network },
-                    { "active", active },
-                    { "deposit", isDepositEnabled },
-                    { "withdraw", isWithdrawEnabled },
-                    { "fee", fee },
+                    { "active", null },
+                    { "deposit", this.safeBool(chain, "depositEnable", false) },
+                    { "withdraw", this.safeBool(chain, "withdrawEnable", false) },
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", withdrawMin },
-                            { "max", withdrawMax },
+                            { "min", this.safeString(chain, "withdrawMin") },
+                            { "max", this.safeString(chain, "withdrawMax") },
                         } },
                     } },
+                    { "contract", this.safeString(chain, "contract") },
                 };
             }
-            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networkKeysLength = getArrayLength(networkKeys);
-            if (isTrue(isTrue((isEqual(networkKeysLength, 1))) || isTrue((inOp(networks, "NONE")))))
-            {
-                object defaultNetwork = this.safeValue2(networks, "NONE", subtract(networkKeysLength, 1));
-                if (isTrue(!isEqual(defaultNetwork, null)))
-                {
-                    currencyFee = getValue(defaultNetwork, "fee");
-                }
-            }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "name", name },
-                { "active", currencyActive },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", currencyFee },
+                { "name", this.safeString(currency, "name") },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", currencyWithdrawMin },
-                        { "max", currencyWithdrawMax },
-                    } },
                 } },
+                { "type", "crypto" },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -1597,9 +1554,9 @@ public partial class mexc : Exchange
                 }
             }
         }
-        if (isTrue(isEqual(id, null)))
+        if (isTrue(isTrue(isEqual(id, null)) && isTrue(this.safeBool(this.options, "useCcxtTradeId", true))))
         {
-            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1616,37 +1573,6 @@ public partial class mexc : Exchange
             { "fee", fee },
             { "info", trade },
         }, market);
-    }
-
-    public virtual object syntheticTradeId(object market = null, object timestamp = null, object side = null, object amount = null, object price = null, object orderType = null, object takerOrMaker = null)
-    {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        object id = "";
-        if (isTrue(!isEqual(timestamp, null)))
-        {
-            id = add(add(this.numberToString(timestamp), "-"), this.safeString(market, "id", "_"));
-            if (isTrue(!isEqual(side, null)))
-            {
-                id = add(id, add("-", side));
-            }
-            if (isTrue(!isEqual(amount, null)))
-            {
-                id = add(id, add("-", this.numberToString(amount)));
-            }
-            if (isTrue(!isEqual(price, null)))
-            {
-                id = add(id, add("-", this.numberToString(price)));
-            }
-            if (isTrue(!isEqual(takerOrMaker, null)))
-            {
-                id = add(id, add("-", takerOrMaker));
-            }
-            if (isTrue(!isEqual(orderType, null)))
-            {
-                id = add(id, add("-", orderType));
-            }
-        }
-        return id;
     }
 
     /**
@@ -3323,13 +3249,27 @@ public partial class mexc : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // spot: createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol": "FARTCOINUSDT",
+        //        "orderId": "C02__342252993005723644225",
+        //        "orderListId": "-1",
+        //        "price": "1.1",
+        //        "origQty": "6.3",
+        //        "type": "IMMEDIATE_OR_CANCEL",
+        //        "side": "SELL",
+        //        "transactTime": "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
-        //     }
+        //    }
         //
         // margin: createOrder
         //
@@ -3496,6 +3436,12 @@ public partial class mexc : Exchange
         {
             id = this.safeString2(order, "orderId", "id");
         }
+        object timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
+        object typeRaw = this.safeString(order, "type");
+        if (isTrue(isEqual(timeInForce, null)))
+        {
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
+        }
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "transactTime"});
@@ -3519,8 +3465,8 @@ public partial class mexc : Exchange
             { "lastTradeTimestamp", null },
             { "status", this.parseOrderStatus(this.safeString2(order, "status", "state")) },
             { "symbol", getValue(market, "symbol") },
-            { "type", this.parseOrderType(this.safeString(order, "type")) },
-            { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
+            { "type", this.parseOrderType(typeRaw) },
+            { "timeInForce", timeInForce },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
@@ -3552,6 +3498,8 @@ public partial class mexc : Exchange
             { "MARKET", "market" },
             { "LIMIT", "limit" },
             { "LIMIT_MAKER", "limit" },
+            { "IMMEDIATE_OR_CANCEL", "limit" },
+            { "FILL_OR_KILL", "limit" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -3579,6 +3527,18 @@ public partial class mexc : Exchange
             { "IOC", "IOC" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object getTifFromRawOrderType(object orderType = null)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "LIMIT", "GTC" },
+            { "LIMIT_MAKER", "POST_ONLY" },
+            { "IMMEDIATE_OR_CANCEL", "IOC" },
+            { "FILL_OR_KILL", "FOK" },
+            { "MARKET", "IOC" },
+        };
+        return this.safeString(statuses, orderType, orderType);
     }
 
     public async virtual Task<object> fetchAccountHelper(object type, object parameters)
@@ -4837,11 +4797,14 @@ public partial class mexc : Exchange
         //         "network": "TRX",
         //         "status": "5",
         //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //         "insertTime": "1664805021000",
         //         "unlockConfirm": "200",
         //         "confirmTimes": "203",
-        //         "memo": "xxyy1122"
+        //         "memo": "xxyy1122",
+        //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "updateTime": "1664805621000",
+        //         "netWork: "TRX"
         //     }
         // ]
         //
@@ -4887,7 +4850,7 @@ public partial class mexc : Exchange
         // [
         //     {
         //       "id": "adcd1c8322154de691b815eedcd10c42",
-        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //       "coin": "USDC-MATIC",
         //       "network": "MATIC",
         //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4898,7 +4861,11 @@ public partial class mexc : Exchange
         //       "confirmNo": null,
         //       "applyTime": "1664882739000",
         //       "remark": '',
-        //       "memo": null
+        //       "memo": null,
+        //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "updateTime": "1664882799000",
+        //       "netWork: "MATIC"
         //     }
         // ]
         //
@@ -4916,18 +4883,21 @@ public partial class mexc : Exchange
         //     "network": "TRX",
         //     "status": "5",
         //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //     "insertTime": "1664805021000",
         //     "unlockConfirm": "200",
         //     "confirmTimes": "203",
-        //     "memo": "xxyy1122"
+        //     "memo": "xxyy1122",
+        //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime": "1664805621000",
+        //     "netWork: "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id": "adcd1c8322154de691b815eedcd10c42",
-        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //     "coin": "USDC-MATIC",
         //     "network": "MATIC",
         //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4937,8 +4907,12 @@ public partial class mexc : Exchange
         //     "transactionFee": "1",
         //     "confirmNo": null,
         //     "applyTime": "1664882739000",
-        //     "remark": '',
-        //     "memo": null
+        //     "remark": "",
+        //     "memo": null,
+        //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime": "1664882799000",
+        //     "netWork: "MATIC"
         //   }
         //
         // withdraw
@@ -4950,6 +4924,7 @@ public partial class mexc : Exchange
         object id = this.safeString(transaction, "id");
         object type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
+        object updated = this.safeInteger(transaction, "updateTime");
         object currencyId = null;
         object currencyWithNetwork = this.safeString(transaction, "coin");
         if (isTrue(!isEqual(currencyWithNetwork, null)))
@@ -4966,7 +4941,7 @@ public partial class mexc : Exchange
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amountString = this.safeString(transaction, "amount");
         object address = this.safeString(transaction, "address");
-        object txid = this.safeString(transaction, "txId");
+        object txid = this.safeString2(transaction, "transHash", "txId");
         object fee = null;
         object feeCostString = this.safeString(transaction, "transactionFee");
         if (isTrue(!isEqual(feeCostString, null)))
@@ -4998,8 +4973,8 @@ public partial class mexc : Exchange
             { "amount", this.parseNumber(amountString) },
             { "currency", code },
             { "status", status },
-            { "updated", null },
-            { "comment", null },
+            { "updated", updated },
+            { "comment", this.safeString(transaction, "remark") },
             { "internal", null },
             { "fee", fee },
         };
@@ -6012,7 +5987,7 @@ public partial class mexc : Exchange
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market);
+        return ((object)this.parseLeverage(response, market));  // tmp revert type
     }
 
     public override object nonce()
