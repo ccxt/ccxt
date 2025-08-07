@@ -59,6 +59,20 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
+		headersOptions, ok := this.Options.Load("headers")
+		if ok {
+			if headersOptions != nil {
+				for key, value := range headersOptions.(map[string]interface{}) {
+					if _, exists := headersStrMap[key]; !exists {
+						headersStrMap[key] = fmt.Sprintf("%v", value)
+					}
+				}
+			} else {
+				panic("headersOptions should be a map[string]interface{}")
+			}
+
+		}
+
 		// Marshal the body to JSON if not nil
 		// var requestBody []byte
 		// var err error
