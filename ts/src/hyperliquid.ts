@@ -3819,7 +3819,7 @@ export default class hyperliquid extends Exchange {
      * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
      * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a response object
      */
     async reserveRequestWeight (weight: Num, params = {}): Promise<Dict> {
         const nonce = this.milliseconds ();
