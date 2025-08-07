@@ -1808,7 +1808,8 @@ export default class zebpay extends Exchange {
         let signature = '';
         const query = this.omit (params, this.extractParams (path));
         const queryLength = Object.keys (query).length;
-        if (api === 'public') {
+        const access = this.safeString (api, 0);
+        if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
                 if (queryLength) {
                     url += '?' + this.urlencode (query);
