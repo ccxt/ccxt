@@ -2985,10 +2985,26 @@ export default class Exchange {
         return featuresObj;
     }
 
-    featureValue (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
+    featureValue (symbol: string, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
         /**
          * @method
          * @name exchange#featureValue
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [symbol] unified symbol
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        const market = this.market (symbol);
+        return this.featureValueByType (market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+    }
+
+    featureValueByType (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
+        /**
+         * @method
+         * @name exchange#featureValueByType
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
@@ -3048,7 +3064,7 @@ export default class Exchange {
             // if the value is not dictionary but a scalar value (or undefined), return as is
             return methodDict[paramName];
         } else {
-            // return as is, when calling without `subParamName` eg: featureValue('spot', undefined, 'createOrder', 'stopLoss')
+            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if (subParamName === undefined) {
                 return methodDict[paramName];
             }
