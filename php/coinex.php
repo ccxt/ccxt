@@ -4276,7 +4276,7 @@ class coinex extends Exchange {
         //
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          *
          * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
@@ -4778,7 +4778,7 @@ class coinex extends Exchange {
         return $this->parse_funding_rates($data, $symbols);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4787,7 +4787,7 @@ class coinex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
+         * @param {string} [$tag] memo
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified network $code
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~

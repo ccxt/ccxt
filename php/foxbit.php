@@ -1529,7 +1529,7 @@ class foxbit extends Exchange {
         return $this->parse_order($response['create'], $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * Make a withdrawal.
          *
