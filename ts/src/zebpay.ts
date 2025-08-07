@@ -477,7 +477,7 @@ export default class zebpay extends Exchange {
 
     /**
      * @method
-     * @name zebpay(futures)#fetchTradingFees
+     * @name zebpay#fetchTradingFees
      * @description the latest known information on the availability of the exchange API
      * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -613,7 +613,11 @@ export default class zebpay extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (this.safeString (symbols, 0));
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets');
         }
@@ -727,7 +731,7 @@ export default class zebpay extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + market['type'] + ' markets');
         }
         const request: Dict = {
@@ -774,7 +778,11 @@ export default class zebpay extends Exchange {
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + type + ' markets');
         }
@@ -802,7 +810,7 @@ export default class zebpay extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const trades = [ data ];
-        return this.parseTrades (trades);
+        return this.parseTrades (trades, market);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -981,17 +989,17 @@ export default class zebpay extends Exchange {
 
     orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
-        const triggerPrice = this.safeString (params, 'stopLossPrice', undefined);
-        const quoteOrderQty = this.safeString (params, 'quoteOrderQty', undefined);
+        const triggerPrice = this.safeString (params, 'stopLossPrice');
+        const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
-        params = this.omit (params, [ 'stopLossPrice', 'quoteOrderQty', 'timeInForce', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'quoteOrderQty', 'timeInForce', 'clientOrderId', 'cost' ]);
         request['type'] = upperCaseType;
         request['clientOrderId'] = clientOrderId;
         request['timeInForce'] = timeInForce;
         if (upperCaseType === 'MARKET') {
             if (quoteOrderQty === undefined) {
-                throw new ExchangeError (this.id + ' market createOrder() requires quoteOrderQty as params');
+                throw new ExchangeError (this.id + ' market createOrder() requires cost in params for market orders');
             }
             if (quoteOrderQty !== undefined) {
                 request['quoteOrderAmount'] = quoteOrderQty;
@@ -1061,7 +1069,11 @@ export default class zebpay extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (type !== 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + type + ' markets');
         }
