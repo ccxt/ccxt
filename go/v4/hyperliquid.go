@@ -4661,6 +4661,43 @@ func (this *hyperliquid) ParseIncome(income interface{}, optionalArgs ...interfa
 		"rate":      rate,
 	}
 }
+
+/**
+ * @method
+ * @name hyperliquid#reserveRequestWeight
+ * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+ * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *hyperliquid) ReserveRequestWeight(weight interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+		var nonce interface{} = this.Milliseconds()
+		var request interface{} = map[string]interface{}{
+			"nonce": nonce,
+		}
+		var action interface{} = map[string]interface{}{
+			"type":   "reserveRequestWeight",
+			"weight": weight,
+		}
+		var signature interface{} = this.SignL1Action(action, nonce)
+		AddElementToObject(request, "action", action)
+		AddElementToObject(request, "signature", signature)
+
+		response := (<-this.PrivatePostExchange(this.Extend(request, params)))
+		PanicOnError(response)
+
+		ch <- response
+		return nil
+
+	}()
+	return ch
+}
 func (this *hyperliquid) ExtractTypeFromDelta(optionalArgs ...interface{}) interface{} {
 	data := GetArg(optionalArgs, 0, []interface{}{})
 	_ = data
