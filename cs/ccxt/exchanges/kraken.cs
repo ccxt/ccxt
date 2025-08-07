@@ -514,11 +514,14 @@ public partial class kraken : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetAssetPairs(parameters));
         if (isTrue(getValue(this.options, "adjustForTimeDifference")))
         {
-            await this.loadTimeDifference();
+            ((IList<object>)promises).Add(this.loadTimeDifference());
         }
-        object response = await this.publicGetAssetPairs(parameters);
+        object responses = await promiseAll(promises);
+        object assetsResponse = getValue(responses, 0);
         //
         //     {
         //         "error": [],
@@ -566,7 +569,8 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object markets = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object markets = this.safeDict(assetsResponse, "result", new Dictionary<string, object>() {});
+        object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -577,43 +581,53 @@ public partial class kraken : Exchange
             object quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object darkpool = isGreaterThanOrEqual(getIndexOf(id, ".d"), 0);
-            object altname = this.safeString(market, "altname");
-            object makerFees = this.safeValue(market, "fees_maker", new List<object>() {});
-            object firstMakerFee = this.safeValue(makerFees, 0, new List<object>() {});
+            object makerFees = this.safeList(market, "fees_maker", new List<object>() {});
+            object firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             object firstMakerFeeRate = this.safeString(firstMakerFee, 1);
             object maker = null;
             if (isTrue(!isEqual(firstMakerFeeRate, null)))
             {
                 maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, "100"));
             }
-            object takerFees = this.safeValue(market, "fees", new List<object>() {});
-            object firstTakerFee = this.safeValue(takerFees, 0, new List<object>() {});
+            object takerFees = this.safeList(market, "fees", new List<object>() {});
+            object firstTakerFee = this.safeList(takerFees, 0, new List<object>() {});
             object firstTakerFeeRate = this.safeString(firstTakerFee, 1);
             object taker = null;
             if (isTrue(!isEqual(firstTakerFeeRate, null)))
             {
                 taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
             }
-            object leverageBuy = this.safeValue(market, "leverage_buy", new List<object>() {});
+            object leverageBuy = this.safeList(market, "leverage_buy", new List<object>() {});
             object leverageBuyLength = getArrayLength(leverageBuy);
             object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
+            object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
+            object spot = true;
+            // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (isTrue(isTrue(spot) && isTrue((inOp(cachedCurrencies, bs)))))
+            {
+                object currency = getValue(cachedCurrencies, bs);
+                object currencyPrecision = this.safeNumber(currency, "precision");
+                // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (isTrue(isGreaterThan(currencyPrecision, precisionAmount)))
+                {
+                    precisionAmount = currencyPrecision;
+                }
+            }
             object status = this.safeString(market, "status");
             object isActive = isEqual(status, "online");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },
-                { "symbol", ((bool) isTrue(darkpool)) ? altname : (add(add(bs, "/"), quote)) },
+                { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", null },
-                { "darkpool", darkpool },
                 { "altname", getValue(market, "altname") },
                 { "type", "spot" },
-                { "spot", true },
+                { "spot", spot },
                 { "margin", (isGreaterThan(leverageBuyLength, 0)) },
                 { "swap", false },
                 { "future", false },
@@ -630,7 +644,7 @@ public partial class kraken : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals"))) },
+                    { "amount", precisionAmount },
                     { "price", precisionPrice },
                 } },
                 { "limits", new Dictionary<string, object>() {
@@ -643,7 +657,7 @@ public partial class kraken : Exchange
                         { "max", null },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", precisionPrice },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
@@ -655,7 +669,6 @@ public partial class kraken : Exchange
                 { "info", market },
             });
         }
-        result = this.appendInactiveMarkets(result);
         ((IDictionary<string,object>)this.options)["marketsByAltname"] = this.indexBy(result, "altname");
         return result;
     }
@@ -676,47 +689,6 @@ public partial class kraken : Exchange
             }
         }
         return base.safeCurrency(currencyId, currency);
-    }
-
-    public virtual object appendInactiveMarkets(object result)
-    {
-        // result should be an array to append to
-        object precision = new Dictionary<string, object>() {
-            { "amount", this.parseNumber("1e-8") },
-            { "price", this.parseNumber("1e-8") },
-        };
-        object costLimits = new Dictionary<string, object>() {
-            { "min", null },
-            { "max", null },
-        };
-        object priceLimits = new Dictionary<string, object>() {
-            { "min", getValue(precision, "price") },
-            { "max", null },
-        };
-        object amountLimits = new Dictionary<string, object>() {
-            { "min", getValue(precision, "amount") },
-            { "max", null },
-        };
-        object limits = new Dictionary<string, object>() {
-            { "amount", amountLimits },
-            { "price", priceLimits },
-            { "cost", costLimits },
-        };
-        object defaults = new Dictionary<string, object>() {
-            { "darkpool", false },
-            { "info", null },
-            { "maker", null },
-            { "taker", null },
-            { "active", false },
-            { "precision", precision },
-            { "limits", limits },
-        };
-        object markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
-        {
-            ((IList<object>)result).Add(this.extend(defaults, getValue(markets, i)));
-        }
-        return result;
     }
 
     /**
@@ -990,10 +962,6 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "darkpool")))
-        {
-            throw new ExchangeError ((string)add(add(this.id, " fetchOrderBook() does not provide an order book for darkpool symbol "), symbol)) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -1107,7 +1075,7 @@ public partial class kraken : Exchange
             {
                 object symbol = getValue(symbols, i);
                 object market = getValue(this.markets, symbol);
-                if (isTrue(isTrue(getValue(market, "active")) && !isTrue(getValue(market, "darkpool"))))
+                if (isTrue(getValue(market, "active")))
                 {
                     ((IList<object>)marketIds).Add(getValue(market, "id"));
                 }
@@ -1142,11 +1110,6 @@ public partial class kraken : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object darkpool = isGreaterThanOrEqual(getIndexOf(symbol, ".d"), 0);
-        if (isTrue(darkpool))
-        {
-            throw new ExchangeError ((string)add(add(this.id, " fetchTicker() does not provide a ticker for darkpool symbol "), symbol)) ;
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1457,7 +1420,20 @@ public partial class kraken : Exchange
         //         "maker": false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         object timestamp = null;
+        object datetime = null;
         object side = null;
         object type = null;
         object price = null;
@@ -1512,6 +1488,15 @@ public partial class kraken : Exchange
                     { "currency", currency },
                 };
             }
+        } else
+        {
+            symbol = this.safeString(trade, "symbol");
+            datetime = this.safeString(trade, "timestamp");
+            id = this.safeString(trade, "trade_id");
+            side = this.safeString(trade, "side");
+            type = this.safeString(trade, "ord_type");
+            price = this.safeString(trade, "price");
+            amount = this.safeString(trade, "qty");
         }
         if (isTrue(!isEqual(market, null)))
         {
@@ -1524,12 +1509,19 @@ public partial class kraken : Exchange
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
         }
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        } else
+        {
+            timestamp = this.parse8601(datetime);
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "datetime", datetime },
             { "symbol", symbol },
             { "type", type },
             { "side", side },
@@ -3807,7 +3799,7 @@ public partial class kraken : Exchange
                         {
                             object error = getValue(getValue(response, "error"), i);
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
-                            this.throwExactlyMatchedException(getValue(this.exceptions, "broad"), error, message);
+                            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
                     }

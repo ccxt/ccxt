@@ -484,6 +484,7 @@ public partial class bitstamp : Exchange
                     { "Bitstamp.net is under scheduled maintenance. We'll be back soon.", typeof(OnMaintenance) },
                     { "Order could not be placed.", typeof(ExchangeNotAvailable) },
                     { "Invalid offset.", typeof(BadRequest) },
+                    { "Trading is currently unavailable for your account.", typeof(AccountSuspended) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Minimum order size is", typeof(InvalidOrder) },

@@ -160,9 +160,12 @@ interface Exchange {
     copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSpotTraderSellOrder (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivateGetAssetTransferRecord (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     apiV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    apiAssetV1PrivatePostTransfer (params?: {}): Promise<implicitReturnType>;
+    apiAssetV1PublicGetTransferSupportCoins (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

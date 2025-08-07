@@ -256,6 +256,7 @@ class hollaex extends Exchange {
             ),
             'exceptions' => array(
                 'broad' => array(
+                    'API request is expired' => '\\ccxt\\InvalidNonce',
                     'Invalid token' => '\\ccxt\\AuthenticationError',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds',
@@ -819,7 +820,8 @@ class hollaex extends Exchange {
         //      "price":0.147411,
         //      "timestamp":"2022-01-26T17:53:34.650Z",
         //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
+        //      "fee":0.01031877,
+        //      "fee_coin":"usdt"
         //  }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -832,11 +834,12 @@ class hollaex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $feeCostString = $this->safe_string($trade, 'fee');
+        $feeCoin = $this->safe_string($trade, 'fee_coin');
         $fee = null;
         if ($feeCostString !== null) {
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['quote'],
+                'currency' => $this->safe_currency_code($feeCoin),
             );
         }
         return $this->safe_trade(array(
@@ -929,7 +932,7 @@ class hollaex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -940,18 +943,26 @@ class hollaex extends Exchange {
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
+            $paginate = false;
+            $maxLimit = 500;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', $paginate);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+            }
             $until = $this->safe_integer($params, 'until');
-            $end = $this->seconds();
-            if ($until !== null) {
-                $end = $this->parse_to_int($until / 1000);
+            $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
+            $start = $since;
+            $now = $this->milliseconds();
+            if ($until === null && $start === null) {
+                $until = $now;
+                $start = $until - $timeDelta;
+            } elseif ($until === null) {
+                $until = $now; // the exchange has not a lot of trades, so if we count $until by $limit and $limit is small, it may return empty result
+            } elseif ($start === null) {
+                $start = $until - $timeDelta;
             }
-            $defaultSpan = 2592000; // 30 days
-            if ($since !== null) {
-                $request['from'] = $this->parse_to_int($since / 1000);
-            } else {
-                $request['from'] = $end - $defaultSpan;
-            }
-            $request['to'] = $end;
+            $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
+            $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
             $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetChart ($this->extend($request, $params)));
             //
@@ -1339,11 +1350,10 @@ class hollaex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $convertedAmount = floatval($this->amount_to_precision($symbol, $amount));
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $side,
-                'size' => $this->normalize_number_if_needed($convertedAmount),
+                'size' => $this->amount_to_precision($symbol, $amount),
                 'type' => $type,
                 // 'stop' => floatval($this->price_to_precision($symbol, stopPrice)),
                 // 'meta' => array(), // other options such
@@ -1354,11 +1364,10 @@ class hollaex extends Exchange {
             $isMarketOrder = $type === 'market';
             $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
             if (!$isMarketOrder) {
-                $convertedPrice = floatval($this->price_to_precision($symbol, $price));
-                $request['price'] = $this->normalize_number_if_needed($convertedPrice);
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($triggerPrice !== null) {
-                $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $triggerPrice)));
+                $request['stop'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             if ($postOnly) {
                 $request['meta'] = array( 'post_only' => true );
@@ -2058,13 +2067,6 @@ class hollaex extends Exchange {
             $coins = $this->safe_dict($response, 'coins', array());
             return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
         }) ();
-    }
-
-    public function normalize_number_if_needed($number) {
-        if ($this->is_round_number($number)) {
-            $number = intval($number);
-        }
-        return $number;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

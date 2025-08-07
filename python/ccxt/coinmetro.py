@@ -439,9 +439,12 @@ class coinmetro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetMarkets(params)
+        promises = []
+        promises.append(self.publicGetMarkets(params))
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            self.fetch_currencies()
+            promises.append(self.fetch_currencies())
+        responses = promises
+        response = responses[0]
         #
         #     [
         #         {
@@ -457,7 +460,14 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_markets(response)
+        result = []
+        for i in range(0, len(response)):
+            market = self.parse_market(response[i])
+            # there are several broken(unavailable info) markets
+            if market['base'] is None or market['quote'] is None:
+                continue
+            result.append(market)
+        return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')

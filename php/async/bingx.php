@@ -119,6 +119,7 @@ class bingx extends Exchange {
                     'account' => 'https://open-api.{hostname}/openApi',
                     'copyTrading' => 'https://open-api.{hostname}/openApi',
                     'cswap' => 'https://open-api.{hostname}/openApi',
+                    'api' => 'https://open-api.{hostname}/openApi',
                 ),
                 'test' => array(
                     'swap' => 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -448,11 +449,26 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'asset/transfer' => 1,
+                                'asset/transferRecord' => 5,
                                 'capital/deposit/hisrec' => 1,
                                 'capital/withdraw/history' => 1,
                             ),
                             'post' => array(
                                 'post/asset/transfer' => 1,
+                            ),
+                        ),
+                    ),
+                    'asset' => array(
+                        'v1' => array(
+                            'private' => array(
+                                'post' => array(
+                                    'transfer' => 5,
+                                ),
+                            ),
+                            'public' => array(
+                                'get' => array(
+                                    'transfer/supportCoins' => 5,
+                                ),
                             ),
                         ),
                     ),
@@ -505,6 +521,8 @@ class bingx extends Exchange {
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                     '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
                     '110425' => '\\ccxt\\InvalidOrder', // array("code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":array())
+                    'Insufficient assets' => '\\ccxt\\InsufficientFunds', // array("transferErrorMsg":"Insufficient assets")
+                    'illegal transferType' => '\\ccxt\\BadRequest', // array("transferErrorMsg":"illegal transferType")
                 ),
                 'broad' => array(),
             ),
@@ -518,14 +536,19 @@ class bingx extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'accountsByType' => array(
-                    'spot' => 'FUND',
-                    'swap' => 'PFUTURES',
-                    'future' => 'SFUTURES',
+                    'funding' => 'fund',
+                    'spot' => 'spot',
+                    'future' => 'stdFutures',
+                    'swap' => 'USDTMPerp',
+                    'linear' => 'USDTMPerp',
+                    'inverse' => 'coinMPerp',
                 ),
                 'accountsById' => array(
-                    'FUND' => 'spot',
-                    'PFUTURES' => 'swap',
-                    'SFUTURES' => 'future',
+                    'fund' => 'funding',
+                    'spot' => 'spot',
+                    'stdFutures' => 'future',
+                    'USDTMPerp' => 'linear',
+                    'coinMPerp' => 'inverse',
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
@@ -774,6 +797,10 @@ class bingx extends Exchange {
                             'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
                             'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                         ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($rawNetwork, 'depositMin'),
+                            'max' => null,
+                        ),
                     );
                     $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
                     $networks[$networkCode] = array(
@@ -788,20 +815,39 @@ class bingx extends Exchange {
                         'limits' => $limits,
                     );
                 }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $entry,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'precision' => null,
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'networks' => $networks,
-                    'fee' => null,
-                    'limits' => null,
-                    'type' => 'crypto', // only cryptos now
-                ));
+                if (!(is_array($result) && array_key_exists($code, $result))) { // the exchange could return the same $currency with different $networks
+                    $result[$code] = array(
+                        'info' => $entry,
+                        'code' => $code,
+                        'id' => $currencyId,
+                        'precision' => null,
+                        'name' => $name,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'networks' => $networks,
+                        'fee' => null,
+                        'limits' => null,
+                        'type' => 'crypto', // only cryptos now
+                    );
+                } else {
+                    $existing = $result[$code];
+                    $existingNetworks = $this->safe_dict($existing, 'networks', array());
+                    $newNetworkCodes = is_array($networks) ? array_keys($networks) : array();
+                    for ($j = 0; $j < count($newNetworkCodes); $j++) {
+                        $newNetworkCode = $newNetworkCodes[$j];
+                        if (!(is_array($existingNetworks) && array_key_exists($newNetworkCode, $existingNetworks))) {
+                            $existingNetworks[$newNetworkCode] = $networks[$newNetworkCode];
+                        }
+                    }
+                    $result[$code]['networks'] = $existingNetworks;
+                }
+            }
+            $codes = is_array($result) ? array_keys($result) : array();
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = $codes[$i];
+                $currency = $result[$code];
+                $result[$code] = $this->safe_currency_structure($currency);
             }
             return $result;
         }) ();
@@ -1588,7 +1634,7 @@ class bingx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_funding_rate($data, $market);
         }) ();
     }
@@ -4906,34 +4952,52 @@ class bingx extends Exchange {
             /**
              * transfer $currency internally between wallets on the same account
              *
-             * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+             * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from
-             * @param {string} $toAccount account to transfer to
+             * @param {string} $fromAccount account to transfer from (spot, swap, futures, or funding)
+             * @param {string} $toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            if ($fromId === 'swap') {
+                if ($subType === 'inverse') {
+                    $fromId = 'coinMPerp';
+                } else {
+                    $fromId = 'USDTMPerp';
+                }
+            }
+            if ($toId === 'swap') {
+                if ($subType === 'inverse') {
+                    $toId = 'coinMPerp';
+                } else {
+                    $toId = 'USDTMPerp';
+                }
+            }
             $request = array(
+                'fromAccount' => $fromId,
+                'toAccount' => $toId,
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
-                'type' => $fromId . '_' . $toId,
             );
-            $response = Async\await($this->spotV3PrivateGetGetAssetTransfer ($this->extend($request, $params)));
+            $response = Async\await($this->apiAssetV1PrivatePostTransfer ($this->extend($request, $params)));
             //
-            //    {
-            //        "tranId":13526853623
-            //    }
+            //     {
+            //         "tranId" => 1933130865269936128,
+            //         "transferId" => "1051450703949464903736"
+            //     }
             //
             return array(
                 'info' => $response,
-                'id' => $this->safe_string($response, 'tranId'),
+                'id' => $this->safe_string($response, 'transferId'),
                 'timestamp' => null,
                 'datetime' => null,
                 'currency' => $code,
@@ -4950,15 +5014,19 @@ class bingx extends Exchange {
             /**
              * fetch a history of internal transfers made on an account
              *
-             * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+             * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
              *
              * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of transfers structures to retrieve
+             * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+             * @param {string} $params->toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+             * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
+            $request = array();
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -4969,30 +5037,42 @@ class bingx extends Exchange {
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId === null || $toId === null) {
-                throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameter are required');
+                throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameters are required');
             }
-            $request = array(
-                'type' => $fromId . '_' . $toId,
-            );
+            if ($fromAccount !== null) {
+                $request['fromAccount'] = $fromId;
+            }
+            if ($toAccount !== null) {
+                $request['toAccount'] = $toId;
+            }
+            $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
+            $maxLimit = 100;
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit));
+            }
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['pageSize'] = $limit;
             }
-            $response = Async\await($this->spotV3PrivateGetAssetTransfer ($this->extend($request, $params)));
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            $response = Async\await($this->apiV3PrivateGetAssetTransferRecord ($this->extend($request, $params)));
             //
             //     {
-            //         "total" => 3,
+            //         "total" => 2,
             //         "rows" => array(
-            //             array(
-            //                 "asset":"USDT",
-            //                 "amount":"-100.00000000000000000000",
-            //                 "type":"FUND_SFUTURES",
-            //                 "status":"CONFIRMED",
-            //                 "tranId":1067594500957016069,
-            //                 "timestamp":1658388859000
-            //             ),
+            //             {
+            //                 "asset" => "LTC",
+            //                 "amount" => "0.05000000000000000000",
+            //                 "status" => "CONFIRMED",
+            //                 "transferId" => "1051461075661819338791",
+            //                 "timestamp" => 1752202092000,
+            //                 "fromAccount" => "spot",
+            //                 "toAccount" => "USDTMPerp"
+            //             }
             //         )
             //     }
             //
@@ -5002,15 +5082,14 @@ class bingx extends Exchange {
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
-        $tranId = $this->safe_string($transfer, 'tranId');
+        $tranId = $this->safe_string($transfer, 'transferId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
-        $currencyCode = $this->safe_currency_code(null, $currency);
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
         $status = $this->safe_string($transfer, 'status');
         $accountsById = $this->safe_dict($this->options, 'accountsById', array());
-        $typeId = $this->safe_string($transfer, 'type');
-        $typeIdSplit = explode('_', $typeId);
-        $fromId = $this->safe_string($typeIdSplit, 0);
-        $toId = $this->safe_string($typeId, 1);
+        $fromId = $this->safe_string($transfer, 'fromAccount');
+        $toId = $this->safe_string($transfer, 'toAccount');
         $fromAccount = $this->safe_string($accountsById, $fromId, $fromId);
         $toAccount = $this->safe_string($accountsById, $toId, $toId);
         return array(
@@ -5022,8 +5101,15 @@ class bingx extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $status,
+            'status' => $this->parse_transfer_status($status),
         );
+    }
+
+    public function parse_transfer_status(?string $status): string {
+        $statuses = array(
+            'CONFIRMED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
@@ -5283,7 +5369,7 @@ class bingx extends Exchange {
         $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag');
-        $timestamp = $this->safe_integer($transaction, 'insertTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
             $datetime = $this->safe_string($transaction, 'applyTime');
@@ -5782,37 +5868,13 @@ class bingx extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
-        //    {
-        //        "coin" => "BTC",
-        //        "name" => "BTC",
-        //        "networkList" => array(
-        //          array(
-        //            "name" => "BTC",
-        //            "network" => "BTC",
-        //            "isDefault" => true,
-        //            "minConfirm" => "2",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00035",
-        //            "withdrawMax" => "1.62842",
-        //            "withdrawMin" => "0.0005"
-        //          ),
-        //          {
-        //            "name" => "BTC",
-        //            "network" => "BEP20",
-        //            "isDefault" => false,
-        //            "minConfirm" => "15",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00001",
-        //            "withdrawMax" => "1.62734",
-        //            "withdrawMin" => "0.0001"
-        //          }
-        //        )
-        //    }
+        // currencie structure
         //
-        $networkList = $this->safe_list($fee, 'networkList', array());
-        $networkListLength = count($networkList);
+        $networks = $this->safe_dict($fee, 'networks', array());
+        $networkCodes = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkCodes);
         $result = array(
-            'info' => $fee,
+            'info' => $networks,
             'withdraw' => array(
                 'fee' => null,
                 'percentage' => null,
@@ -5823,18 +5885,15 @@ class bingx extends Exchange {
             ),
             'networks' => array(),
         );
-        if ($networkListLength !== 0) {
-            for ($i = 0; $i < $networkListLength; $i++) {
-                $network = $networkList[$i];
-                $networkId = $this->safe_string($network, 'network');
-                $isDefault = $this->safe_bool($network, 'isDefault');
-                $currencyCode = $this->safe_string($currency, 'code');
-                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        if ($networksLength !== 0) {
+            for ($i = 0; $i < $networksLength; $i++) {
+                $networkCode = $networkCodes[$i];
+                $network = $networks[$networkCode];
                 $result['networks'][$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($network, 'withdrawFee'), 'percentage' => false ),
+                    'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
-                if ($isDefault) {
+                if ($networksLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($network, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;
                 }
@@ -5855,9 +5914,17 @@ class bingx extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
-            $coins = $this->safe_list($response, 'data');
-            return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
+            $response = Async\await($this->fetch_currencies($params));
+            $depositWithdrawFees = array();
+            $responseCodes = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($responseCodes); $i++) {
+                $code = $responseCodes[$i];
+                if (($codes === null) || ($this->in_array($code, $codes))) {
+                    $entry = $response[$code];
+                    $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($entry);
+                }
+            }
+            return $depositWithdrawFees;
         }) ();
     }
 
@@ -5909,11 +5976,12 @@ class bingx extends Exchange {
     }
 
     public function parse_params($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
+            $value = $params[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                 $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
@@ -5924,10 +5992,10 @@ class bingx extends Exchange {
                     $arrStr .= (string) $arrayElement;
                 }
                 $arrStr .= ']';
-                $sortedParams[$key] = $arrStr;
+                $params[$key] = $arrStr;
             }
         }
-        return $sortedParams;
+        return $params;
     }
 
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6569,13 +6637,14 @@ class bingx extends Exchange {
     }
 
     public function custom_encode($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         $adjustedValue = null;
         $result = null;
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
+            $value = $params[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
@@ -6617,8 +6686,14 @@ class bingx extends Exchange {
         }
         $url = $this->implode_hostname($this->urls['api'][$type]);
         $path = $this->implode_params($path, $params);
-        if ($version === 'transfer') {
-            $type = 'account/transfer';
+        $versionIsTransfer = ($version === 'transfer');
+        $versionIsAsset = ($version === 'asset');
+        if ($versionIsTransfer || $versionIsAsset) {
+            if ($versionIsTransfer) {
+                $type = 'account/transfer';
+            } else {
+                $type = 'api/asset';
+            }
             $version = $section[2];
             $access = $section[3];
         }
@@ -6646,7 +6721,7 @@ class bingx extends Exchange {
                 $encodeRequest = $this->custom_encode($params);
             } else {
                 $parsedParams = $this->parse_params($params);
-                $encodeRequest = $this->rawencode($parsedParams);
+                $encodeRequest = $this->rawencode($parsedParams, true);
             }
             $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
             $headers = array(
@@ -6658,7 +6733,7 @@ class bingx extends Exchange {
                 $params['signature'] = $signature;
                 $body = $this->json($params);
             } else {
-                $query = $this->urlencode($parsedParams);
+                $query = $this->urlencode($parsedParams, true);
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
@@ -6688,7 +6763,11 @@ class bingx extends Exchange {
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        if ($code !== null && $code !== '0') {
+        $transferErrorMsg = $this->safe_string($response, 'transferErrorMsg'); // handling with errors from transfer endpoint
+        if (($transferErrorMsg !== null) || ($code !== null && $code !== '0')) {
+            if ($transferErrorMsg !== null) {
+                $message = $transferErrorMsg;
+            }
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

@@ -34,11 +34,15 @@ class hashkey extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelWithdraw' => false,
+                'closeAllPositions' => false,
                 'closePosition' => false,
                 'createConvertTrade' => false,
                 'createDepositAddress' => false,
@@ -58,7 +62,14 @@ class hashkey extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => true,
@@ -67,6 +78,8 @@ class hashkey extends Exchange {
                 'fetchConvertQuote' => false,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -74,23 +87,42 @@ class hashkey extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -101,7 +133,9 @@ class hashkey extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
                 'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -111,11 +145,16 @@ class hashkey extends Exchange {
                 'fetchTradingFees' => true, // for spot markets only
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
+                'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -1149,48 +1188,44 @@ class hashkey extends Exchange {
                 $currecy = $coins[$i];
                 $currencyId = $this->safe_string($currecy, 'coinId');
                 $code = $this->safe_currency_code($currencyId);
-                $allowWithdraw = $this->safe_bool($currecy, 'allowWithdraw');
-                $allowDeposit = $this->safe_bool($currecy, 'allowDeposit');
                 $networks = $this->safe_list($currecy, 'chainTypes');
-                $networksById = $this->safe_dict($this->options, 'networksById');
                 $parsedNetworks = array();
                 for ($j = 0; $j < count($networks); $j++) {
                     $network = $networks[$j];
                     $networkId = $this->safe_string($network, 'chainType');
-                    $networkName = $this->safe_string($networksById, $networkId, $networkId);
-                    $maxWithdrawQuantity = $this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'));
-                    $networkDeposit = $this->safe_bool($network, 'allowDeposit');
-                    $networkWithdraw = $this->safe_bool($network, 'allowWithdraw');
-                    $parsedNetworks[$networkName] = array(
+                    $networkCode = $this->network_code_to_id($networkId);
+                    $parsedNetworks[$networkCode] = array(
                         'id' => $networkId,
-                        'network' => $networkName,
+                        'network' => $networkCode,
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($network, 'minWithdrawQuantity'),
-                                'max' => $this->parse_number($maxWithdrawQuantity),
+                                'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maxWithdrawQuantity'))),
                             ),
                             'deposit' => array(
                                 'min' => $this->safe_number($network, 'minDepositQuantity'),
                                 'max' => null,
                             ),
                         ),
-                        'active' => $networkDeposit && $networkWithdraw,
-                        'deposit' => $networkDeposit,
-                        'withdraw' => $networkWithdraw,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($network, 'allowDeposit'),
+                        'withdraw' => $this->safe_bool($network, 'allowWithdraw'),
                         'fee' => $this->safe_number($network, 'withdrawFee'),
                         'precision' => null,
                         'info' => $network,
                     );
                 }
-                $result[$code] = array(
+                $rawType = $this->safe_string($currecy, 'tokenType');
+                $type = ($rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $currencyId,
                     'code' => $code,
                     'precision' => null,
-                    'type' => $this->parse_currency_type($this->safe_string($currecy, 'tokenType')),
+                    'type' => $type,
                     'name' => $this->safe_string($currecy, 'coinFullName'),
-                    'active' => $allowWithdraw && $allowDeposit,
-                    'deposit' => $allowDeposit,
-                    'withdraw' => $allowWithdraw,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($currecy, 'allowDeposit'),
+                    'withdraw' => $this->safe_bool($currecy, 'allowWithdraw'),
                     'fee' => null,
                     'limits' => array(
                         'deposit' => array(
@@ -1204,20 +1239,10 @@ class hashkey extends Exchange {
                     ),
                     'networks' => $parsedNetworks,
                     'info' => $currecy,
-                );
+                ));
             }
             return $result;
         }) ();
-    }
-
-    public function parse_currency_type($type) {
-        $types = array(
-            'CHAIN_TOKEN' => 'crypto',
-            'ERC20_TOKEN' => 'crypto',
-            'BSC_TOKEN' => 'crypto',
-            'REAL_MONEY' => 'fiat',
-        );
-        return $this->safe_string($types, $type);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {

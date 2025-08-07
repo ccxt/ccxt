@@ -29,7 +29,7 @@ class modetrade(Exchange, ImplicitAPI):
             'countries': ['KY'],  # Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': True,
+            'certified': False,
             'pro': True,
             'dex': True,
             'hostname': 'trade.mode.network',
@@ -1651,7 +1651,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         # {
         #     "success": True,
-        #     "timestamp": 1702989203989,
+        #     "timestamp": 1702989203988,
         #     "data": {
         #       "status": "CANCEL_SENT"
         #     }
@@ -1659,7 +1659,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         # {
         #     "success": True,
-        #     "timestamp": 1702989203989,
+        #     "timestamp": 1702989203988,
         #     "status": "CANCEL_SENT"
         # }
         #
@@ -1750,9 +1750,9 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         return [
-            {
+            self.safe_order({
                 'info': response,
-            },
+            }),
         ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):

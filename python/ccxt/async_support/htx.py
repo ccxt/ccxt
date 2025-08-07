@@ -6342,7 +6342,7 @@ class htx(Exchange, ImplicitAPI):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = await self.fetch_currencies()
-                self.currencies = self.deep_extend(self.currencies, currencies)
+                self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
                 targetNetwork = self.safe_value(currency['networks'], networkCode, {})
                 fee = self.safe_number(targetNetwork, 'fee')
                 if fee is None:
@@ -6577,12 +6577,16 @@ class htx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
             'contract_code': market['id'],
         }
+        if limit is not None:
+            request['page_size'] = limit
+        else:
+            request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = await self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))

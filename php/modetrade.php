@@ -17,7 +17,7 @@ class modetrade extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'dex' => true,
             'hostname' => 'trade.mode.network',
@@ -1709,7 +1709,7 @@ class modetrade extends Exchange {
         //
         // {
         //     "success" => true,
-        //     "timestamp" => 1702989203989,
+        //     "timestamp" => 1702989203988,
         //     "data" => {
         //       "status" => "CANCEL_SENT"
         //     }
@@ -1717,7 +1717,7 @@ class modetrade extends Exchange {
         //
         // {
         //     "success" => true,
-        //     "timestamp" => 1702989203989,
+        //     "timestamp" => 1702989203988,
         //     "status" => "CANCEL_SENT"
         // }
         //
@@ -1815,9 +1815,9 @@ class modetrade extends Exchange {
         // }
         //
         return array(
-            array(
+            $this->safe_order(array(
                 'info' => $response,
-            ),
+            )),
         );
     }
 

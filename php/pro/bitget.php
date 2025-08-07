@@ -1609,7 +1609,7 @@ class bitget extends \ccxt\async\bitget {
             list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
             $instType = null;
             if ($market === null && $type === 'spot') {
-                $instType = 'SPOT';
+                $instType = 'spot';
             } else {
                 list($instType, $params) = $this->get_inst_type($market, $params);
             }
@@ -1964,7 +1964,7 @@ class bitget extends \ccxt\async\bitget {
         $future->resolve (true);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    array( $event => "error", $code => 30015, $msg => "Invalid sign" )
         //

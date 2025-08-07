@@ -1761,9 +1761,9 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         return [
-            {
+            self.safe_order({
                 'info': response,
-            },
+            }),
         ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):

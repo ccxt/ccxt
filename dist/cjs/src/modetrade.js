@@ -23,7 +23,7 @@ class modetrade extends modetrade$1 {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'hostname': 'trade.mode.network',
@@ -1702,7 +1702,7 @@ class modetrade extends modetrade$1 {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "data": {
         //       "status": "CANCEL_SENT"
         //     }
@@ -1710,7 +1710,7 @@ class modetrade extends modetrade$1 {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "status": "CANCEL_SENT"
         // }
         //
@@ -1809,9 +1809,9 @@ class modetrade extends modetrade$1 {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**
