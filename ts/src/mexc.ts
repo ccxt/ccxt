@@ -4250,18 +4250,21 @@ export default class mexc extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
             const openType = this.safeNumber (params, 'openType'); // 1 or 2
             const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
-            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
             if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
@@ -4272,7 +4275,8 @@ export default class mexc extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        const response = await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return this.parseLeverage (response, market);
     }
 
     /**

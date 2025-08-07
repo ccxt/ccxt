@@ -2394,9 +2394,9 @@ export default class paradex extends Exchange {
      * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();
@@ -2408,7 +2408,16 @@ export default class paradex extends Exchange {
             'leverage': leverage,
             'margin_type': this.encodeMarginMode (marginMode),
         };
-        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+        const response = await this.privatePostAccountMarginMarket (this.extend (request, params));
+        //
+        //     {
+        //         "account": "0x342626213dcea27886d4",
+        //         "market": "BTC-USD-PERP",
+        //         "leverage": 10,
+        //         "margin_type": "ISOLATED"
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

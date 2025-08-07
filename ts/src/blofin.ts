@@ -2298,9 +2298,9 @@ export default class blofin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2322,7 +2322,20 @@ export default class blofin extends Exchange {
             'instId': market['id'],
         };
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
-        return response;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "leverage": "100",
+        //             "marginMode": "cross",
+        //             "instId": "BTC-USDT",
+        //             "positionSide": "long"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

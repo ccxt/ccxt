@@ -9597,6 +9597,36 @@
                     "marginMode": null
                 }
             }
+        ],
+        "setLeverage":[
+            {
+                "description": "set the isolated hedged leverage",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated",
+                        "hedged": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "msg": "",
+                        "data": "OK"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }

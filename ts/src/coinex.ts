@@ -4294,15 +4294,15 @@ export default class coinex extends Exchange {
     /**
      * @method
      * @name coinex#setLeverage
-     * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
      * @description set the level of leverage for a market
+     * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4324,7 +4324,7 @@ export default class coinex extends Exchange {
             'margin_mode': marginMode,
             'leverage': leverage,
         };
-        return await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
+        const response = await this.v2PrivatePostFuturesAdjustPositionLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -4335,6 +4335,8 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -5757,10 +5759,11 @@ export default class coinex extends Exchange {
         //
         const marketId = this.safeString (leverage, 'market');
         const leverageValue = this.safeInteger (leverage, 'leverage');
+        const marginMode = this.safeString (leverage, 'margin_mode', 'isolated');
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market, undefined, 'spot'),
-            'marginMode': 'isolated',
+            'marginMode': marginMode,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;

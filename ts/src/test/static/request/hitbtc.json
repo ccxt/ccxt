@@ -861,6 +861,21 @@
                   ]
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a symbol",
+                "method": "setLeverage",
+                "url": "https://api.hitbtc.com/api/3/futures/account/isolated/BTCUSDT_PERP",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "margin_balance": "0.001"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_PERP\",\"leverage\":\"10\",\"margin_balance\":\"0.001\"}"
+            }
         ]
     }
 }

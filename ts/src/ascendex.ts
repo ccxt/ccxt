@@ -3116,9 +3116,9 @@ export default class ascendex extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3138,7 +3138,18 @@ export default class ascendex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        const response = await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "leverage": 10,
+        //             "symbol"  : "BTC-PERP"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

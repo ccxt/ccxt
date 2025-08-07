@@ -5578,9 +5578,9 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5593,8 +5593,9 @@ export default class bingx extends Exchange {
             'side': side,
             'leverage': leverage,
         };
+        let response = undefined;
         if (market['inverse']) {
-            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5612,7 +5613,7 @@ export default class bingx extends Exchange {
             //     }
             //
         } else {
-            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+            response = await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
             //
             //     {
             //         "code": 0,
@@ -5630,6 +5631,8 @@ export default class bingx extends Exchange {
             //     }
             //
         }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**

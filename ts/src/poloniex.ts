@@ -3272,9 +3272,9 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3298,7 +3298,7 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
-        return response;
+        return this.parseLeverage (response, market);
     }
 
     /**

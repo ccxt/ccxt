@@ -6420,7 +6420,7 @@ Parameters
 
 Returns
 
-- response from the exchange
+- a [leverage-structure](#leverage-structure)
 
 ## Leverage
 

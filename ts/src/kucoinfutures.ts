@@ -3371,9 +3371,9 @@ export default class kucoinfutures extends kucoin {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
         if (marginMode !== 'cross') {

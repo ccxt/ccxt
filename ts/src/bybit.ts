@@ -6775,9 +6775,9 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.buyLeverage] leverage for buy side
      * @param {string} [params.sellLeverage] leverage for sell side
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -6803,7 +6803,16 @@ export default class bybit extends Exchange {
             throw new NotSupported (this.id + ' setLeverage() only support linear and inverse market');
         }
         const response = await this.privatePostV5PositionSetLeverage (this.extend (request, params));
-        return response;
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {},
+        //         "retExtInfo": {},
+        //         "time": 1754262269777
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     /**

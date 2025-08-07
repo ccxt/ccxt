@@ -2500,6 +2500,103 @@
                   }
                 }
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage for cross margin mode",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "value": "0",
+                    "leverage": "0",
+                    "mode": "single",
+                    "realised_point": "0",
+                    "contract": "BTC_USDT",
+                    "entry_price": "0",
+                    "mark_price": "113984.31",
+                    "history_point": "0",
+                    "realised_pnl": "0",
+                    "close_order": null,
+                    "size": "0",
+                    "cross_leverage_limit": "10",
+                    "pending_orders": "0",
+                    "adl_ranking": "6",
+                    "maintenance_rate": "0.004",
+                    "unrealised_pnl": "0",
+                    "pnl_pnl": "0",
+                    "pnl_fee": "0",
+                    "pnl_fund": "0",
+                    "user": "10406147",
+                    "leverage_max": "125",
+                    "history_pnl": "0",
+                    "risk_limit": "1000000",
+                    "margin": "0",
+                    "last_close_pnl": "0",
+                    "liq_price": "0",
+                    "update_time": "1754473935",
+                    "update_id": "2",
+                    "initial_margin": "0",
+                    "maintenance_margin": "0",
+                    "open_time": "0",
+                    "trade_max_size": "0",
+                    "risk_limit_table": "",
+                    "average_maintenance_rate": "0",
+                    "voucher_size": "0",
+                    "voucher_margin": "0",
+                    "voucher_id": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "value": "0",
+                        "leverage": "0",
+                        "mode": "single",
+                        "realised_point": "0",
+                        "contract": "BTC_USDT",
+                        "entry_price": "0",
+                        "mark_price": "113984.31",
+                        "history_point": "0",
+                        "realised_pnl": "0",
+                        "close_order": null,
+                        "size": "0",
+                        "cross_leverage_limit": "10",
+                        "pending_orders": "0",
+                        "adl_ranking": "6",
+                        "maintenance_rate": "0.004",
+                        "unrealised_pnl": "0",
+                        "pnl_pnl": "0",
+                        "pnl_fee": "0",
+                        "pnl_fund": "0",
+                        "user": "10406147",
+                        "leverage_max": "125",
+                        "history_pnl": "0",
+                        "risk_limit": "1000000",
+                        "margin": "0",
+                        "last_close_pnl": "0",
+                        "liq_price": "0",
+                        "update_time": "1754473935",
+                        "update_id": "2",
+                        "initial_margin": "0",
+                        "maintenance_margin": "0",
+                        "open_time": "0",
+                        "trade_max_size": "0",
+                        "risk_limit_table": "",
+                        "average_maintenance_rate": "0",
+                        "voucher_size": "0",
+                        "voucher_margin": "0",
+                        "voucher_id": "0"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": 0,
+                    "shortLeverage": 0
+                }
+            }
         ]
     }
 }

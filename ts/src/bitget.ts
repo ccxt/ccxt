@@ -7455,8 +7455,8 @@ export default class bitget extends Exchange {
             'info': leverage,
             'symbol': market['symbol'],
             'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
-            'longLeverage': this.safeInteger (leverage, longLevKey),
-            'shortLeverage': this.safeInteger (leverage, shortLevKey),
+            'longLeverage': this.safeInteger2 (leverage, longLevKey, 'longLeverage'),
+            'shortLeverage': this.safeInteger2 (leverage, shortLevKey, 'shortLeverage'),
         } as Leverage;
     }
 
@@ -7469,9 +7469,9 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7502,7 +7502,8 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
