@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hibachi$1 = require('./abstract/hibachi.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
@@ -14,7 +16,7 @@ var errors = require('./base/errors.js');
  * @class hibachi
  * @augments Exchange
  */
-class hibachi extends hibachi$1 {
+class hibachi extends hibachi$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hibachi',
@@ -2133,4 +2135,4 @@ class hibachi extends hibachi$1 {
     }
 }
 
-module.exports = hibachi;
+exports["default"] = hibachi;

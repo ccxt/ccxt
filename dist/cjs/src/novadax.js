@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var novadax$1 = require('./abstract/novadax.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +15,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class novadax
  * @augments Exchange
  */
-class novadax extends novadax$1 {
+class novadax extends novadax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',
@@ -1672,4 +1674,4 @@ class novadax extends novadax$1 {
     }
 }
 
-module.exports = novadax;
+exports["default"] = novadax;

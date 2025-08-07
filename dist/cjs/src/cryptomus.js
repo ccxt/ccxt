@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptomus$1 = require('./abstract/cryptomus.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class cryptomus
  * @augments Exchange
  */
-class cryptomus extends cryptomus$1 {
+class cryptomus extends cryptomus$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptomus',
@@ -1165,4 +1167,4 @@ class cryptomus extends cryptomus$1 {
     }
 }
 
-module.exports = cryptomus;
+exports["default"] = cryptomus;

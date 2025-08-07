@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance$1 = require('./abstract/binance.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -15,7 +17,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
  * @class binance
  * @augments Exchange
  */
-class binance extends binance$1 {
+class binance extends binance$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
@@ -14394,4 +14396,4 @@ class binance extends binance$1 {
     }
 }
 
-module.exports = binance;
+exports["default"] = binance;

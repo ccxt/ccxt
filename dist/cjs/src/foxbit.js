@@ -1,11 +1,12 @@
 'use strict';
 
-require('../ccxt.js');
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var Precise = require('./base/Precise.js');
 var foxbit$1 = require('./abstract/foxbit.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -13,7 +14,7 @@ var Precise = require('./base/Precise.js');
  * @class foxbit
  * @augments Exchange
  */
-class foxbit extends foxbit$1 {
+class foxbit extends foxbit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'foxbit',
@@ -2013,4 +2014,4 @@ class foxbit extends foxbit$1 {
     }
 }
 
-module.exports = foxbit;
+exports["default"] = foxbit;

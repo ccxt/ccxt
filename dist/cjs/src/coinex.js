@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +15,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class coinex
  * @augments Exchange
  */
-class coinex extends coinex$1 {
+class coinex extends coinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinex',
@@ -6162,4 +6164,4 @@ class coinex extends coinex$1 {
     }
 }
 
-module.exports = coinex;
+exports["default"] = coinex;

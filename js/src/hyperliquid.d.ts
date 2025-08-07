@@ -624,6 +624,15 @@ export default class hyperliquid extends Exchange {
         amount: number;
         rate: number;
     };
+    /**
+     * @method
+     * @name hyperliquid#reserveRequestWeight
+     * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+     * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    reserveRequestWeight(weight: Num, params?: {}): Promise<Dict>;
     extractTypeFromDelta(data?: any[]): any[];
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];

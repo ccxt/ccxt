@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var woofipro$1 = require('./abstract/woofipro.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -15,7 +17,7 @@ var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
  * @class woofipro
  * @augments Exchange
  */
-class woofipro extends woofipro$1 {
+class woofipro extends woofipro$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'woofipro',
@@ -2841,4 +2843,4 @@ class woofipro extends woofipro$1 {
     }
 }
 
-module.exports = woofipro;
+exports["default"] = woofipro;
