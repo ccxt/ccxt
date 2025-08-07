@@ -1460,7 +1460,7 @@ class foxbit(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response['create'], market)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         Make a withdrawal.
 
