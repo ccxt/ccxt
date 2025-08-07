@@ -298,7 +298,7 @@ func (this *Binanceusdm) FetchMarketLeverageTiers(symbol string, options ...Fetc
 func (this *Binanceusdm) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Binanceusdm) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Binanceusdm) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Binanceusdm) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

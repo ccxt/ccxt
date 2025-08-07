@@ -1303,7 +1303,7 @@ func (this *Exmo) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 func (this *Exmo) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Exmo) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Exmo) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Exmo) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

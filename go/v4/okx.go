@@ -5740,7 +5740,7 @@ func (this *okx) Withdraw(code interface{}, amount interface{}, address interfac
 		retRes52018 := (<-this.LoadMarkets())
 		PanicOnError(retRes52018)
 		var currency interface{} = this.Currency(code)
-		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetArrayLength(tag), 0)))) {
+		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
 			address = Add(Add(address, ":"), tag)
 		}
 		var request interface{} = map[string]interface{}{

@@ -1161,7 +1161,7 @@ func (this *Bittrade) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Bittrade) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bittrade) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bittrade) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bittrade) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

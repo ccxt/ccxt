@@ -2032,7 +2032,7 @@ func (this *Mexc) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 func (this *Mexc) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Mexc) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Mexc) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Mexc) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

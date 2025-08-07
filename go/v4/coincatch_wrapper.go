@@ -1907,7 +1907,7 @@ func (this *Coincatch) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Coincatch) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coincatch) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coincatch) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coincatch) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

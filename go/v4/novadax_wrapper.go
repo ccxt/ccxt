@@ -1016,7 +1016,7 @@ func (this *Novadax) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Novadax) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Novadax) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Novadax) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Novadax) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

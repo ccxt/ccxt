@@ -637,7 +637,7 @@ func (this *Tradeogre) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Tradeogre) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Tradeogre) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Tradeogre) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Tradeogre) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

@@ -1591,7 +1591,7 @@ func (this *Hashkey) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Hashkey) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Hashkey) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Hashkey) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Hashkey) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

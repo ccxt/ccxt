@@ -1503,7 +1503,7 @@ func (this *Bitfinex) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Bitfinex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bitfinex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitfinex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitfinex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

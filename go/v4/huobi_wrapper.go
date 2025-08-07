@@ -261,7 +261,7 @@ func (this *Huobi) FetchMarketLeverageTiers(symbol string, options ...FetchMarke
 func (this *Huobi) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Huobi) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Huobi) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Huobi) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

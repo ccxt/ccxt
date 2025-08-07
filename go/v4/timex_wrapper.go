@@ -927,7 +927,7 @@ func (this *Timex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 func (this *Timex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Timex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Timex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Timex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

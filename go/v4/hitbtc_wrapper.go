@@ -1581,7 +1581,7 @@ func (this *Hitbtc) FetchMarginMode(symbol string, options ...FetchMarginModeOpt
 func (this *Hitbtc) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Hitbtc) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Hitbtc) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Hitbtc) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

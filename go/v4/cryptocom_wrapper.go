@@ -1366,7 +1366,7 @@ func (this *Cryptocom) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Cryptocom) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Cryptocom) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Cryptocom) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Cryptocom) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

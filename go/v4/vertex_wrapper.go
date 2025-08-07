@@ -1045,7 +1045,7 @@ func (this *Vertex) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Vertex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Vertex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Vertex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Vertex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

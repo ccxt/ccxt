@@ -210,13 +210,13 @@ func WithTransferParams(params map[string]interface{}) TransferOptions {
 }
 
 type WithdrawOptionsStruct struct {
-	Tag    *interface{}
+	Tag    *string
 	Params *map[string]interface{}
 }
 
 type WithdrawOptions func(opts *WithdrawOptionsStruct)
 
-func WithWithdrawTag(tag interface{}) WithdrawOptions {
+func WithWithdrawTag(tag string) WithdrawOptions {
 	return func(opts *WithdrawOptionsStruct) {
 		opts.Tag = &tag
 	}
@@ -1248,8 +1248,8 @@ func WithFetchPositionModeParams(params map[string]interface{}) FetchPositionMod
 
 type CreateTrailingAmountOrderOptionsStruct struct {
 	Price                *float64
-	TrailingAmount       *interface{}
-	TrailingTriggerPrice *interface{}
+	TrailingAmount       *float64
+	TrailingTriggerPrice *float64
 	Params               *map[string]interface{}
 }
 
@@ -1261,13 +1261,13 @@ func WithCreateTrailingAmountOrderPrice(price float64) CreateTrailingAmountOrder
 	}
 }
 
-func WithCreateTrailingAmountOrderTrailingAmount(trailingAmount interface{}) CreateTrailingAmountOrderOptions {
+func WithCreateTrailingAmountOrderTrailingAmount(trailingAmount float64) CreateTrailingAmountOrderOptions {
 	return func(opts *CreateTrailingAmountOrderOptionsStruct) {
 		opts.TrailingAmount = &trailingAmount
 	}
 }
 
-func WithCreateTrailingAmountOrderTrailingTriggerPrice(trailingTriggerPrice interface{}) CreateTrailingAmountOrderOptions {
+func WithCreateTrailingAmountOrderTrailingTriggerPrice(trailingTriggerPrice float64) CreateTrailingAmountOrderOptions {
 	return func(opts *CreateTrailingAmountOrderOptionsStruct) {
 		opts.TrailingTriggerPrice = &trailingTriggerPrice
 	}
@@ -1281,8 +1281,8 @@ func WithCreateTrailingAmountOrderParams(params map[string]interface{}) CreateTr
 
 type CreateTrailingPercentOrderOptionsStruct struct {
 	Price                *float64
-	TrailingPercent      *interface{}
-	TrailingTriggerPrice *interface{}
+	TrailingPercent      *float64
+	TrailingTriggerPrice *float64
 	Params               *map[string]interface{}
 }
 
@@ -1294,13 +1294,13 @@ func WithCreateTrailingPercentOrderPrice(price float64) CreateTrailingPercentOrd
 	}
 }
 
-func WithCreateTrailingPercentOrderTrailingPercent(trailingPercent interface{}) CreateTrailingPercentOrderOptions {
+func WithCreateTrailingPercentOrderTrailingPercent(trailingPercent float64) CreateTrailingPercentOrderOptions {
 	return func(opts *CreateTrailingPercentOrderOptionsStruct) {
 		opts.TrailingPercent = &trailingPercent
 	}
 }
 
-func WithCreateTrailingPercentOrderTrailingTriggerPrice(trailingTriggerPrice interface{}) CreateTrailingPercentOrderOptions {
+func WithCreateTrailingPercentOrderTrailingTriggerPrice(trailingTriggerPrice float64) CreateTrailingPercentOrderOptions {
 	return func(opts *CreateTrailingPercentOrderOptionsStruct) {
 		opts.TrailingTriggerPrice = &trailingTriggerPrice
 	}

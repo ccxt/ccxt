@@ -1811,7 +1811,7 @@ func (this *Coinbase) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Coinbase) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coinbase) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinbase) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinbase) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

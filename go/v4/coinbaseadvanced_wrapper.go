@@ -261,7 +261,7 @@ func (this *Coinbaseadvanced) FetchMarketLeverageTiers(symbol string, options ..
 func (this *Coinbaseadvanced) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Coinbaseadvanced) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinbaseadvanced) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinbaseadvanced) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

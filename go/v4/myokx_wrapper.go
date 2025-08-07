@@ -261,7 +261,7 @@ func (this *Myokx) FetchMarketLeverageTiers(symbol string, options ...FetchMarke
 func (this *Myokx) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Myokx) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Myokx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Myokx) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

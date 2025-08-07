@@ -1206,7 +1206,7 @@ func (this *Delta) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 func (this *Delta) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Delta) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Delta) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Delta) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

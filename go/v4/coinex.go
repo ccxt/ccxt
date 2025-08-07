@@ -4405,7 +4405,7 @@ func (this *coinex) FetchFundingRates(optionalArgs ...interface{}) <-chan interf
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
+ * @param {string} [tag] memo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}

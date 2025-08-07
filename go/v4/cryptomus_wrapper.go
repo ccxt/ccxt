@@ -572,7 +572,7 @@ func (this *Cryptomus) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Cryptomus) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Cryptomus) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Cryptomus) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Cryptomus) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

@@ -1266,7 +1266,7 @@ func (this *Oxfun) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 func (this *Oxfun) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Oxfun) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Oxfun) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Oxfun) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

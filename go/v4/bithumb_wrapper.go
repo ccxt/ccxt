@@ -668,7 +668,7 @@ func (this *Bithumb) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Bithumb) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bithumb) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bithumb) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bithumb) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

@@ -553,7 +553,7 @@ func (this *Paymium) FetchMarketLeverageTiers(symbol string, options ...FetchMar
 func (this *Paymium) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Paymium) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Paymium) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Paymium) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

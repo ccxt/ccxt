@@ -1124,7 +1124,7 @@ func (this *Alpaca) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Alpaca) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Alpaca) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Alpaca) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Alpaca) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

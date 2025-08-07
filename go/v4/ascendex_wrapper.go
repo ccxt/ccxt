@@ -1270,7 +1270,7 @@ func (this *Ascendex) FetchMarginMode(symbol string, options ...FetchMarginModeO
 func (this *Ascendex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Ascendex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Ascendex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Ascendex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

@@ -1110,7 +1110,7 @@ func (this *Okcoin) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Okcoin) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Okcoin) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Okcoin) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Okcoin) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

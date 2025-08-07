@@ -642,7 +642,7 @@ func (this *Btcbox) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Btcbox) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Btcbox) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Btcbox) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Btcbox) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

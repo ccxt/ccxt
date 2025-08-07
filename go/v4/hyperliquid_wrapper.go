@@ -1611,7 +1611,7 @@ func (this *Hyperliquid) FetchMarginModes(options ...FetchMarginModesOptions) (M
 func (this *Hyperliquid) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Hyperliquid) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Hyperliquid) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Hyperliquid) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

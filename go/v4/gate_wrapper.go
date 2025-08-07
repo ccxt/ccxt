@@ -2327,7 +2327,7 @@ func (this *Gate) FetchMarginMode(symbol string, options ...FetchMarginModeOptio
 func (this *Gate) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Gate) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Gate) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Gate) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

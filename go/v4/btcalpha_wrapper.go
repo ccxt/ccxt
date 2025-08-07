@@ -831,7 +831,7 @@ func (this *Btcalpha) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Btcalpha) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Btcalpha) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Btcalpha) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Btcalpha) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

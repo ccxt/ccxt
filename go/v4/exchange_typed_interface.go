@@ -125,7 +125,7 @@ type IExchange interface {
 	FetchConvertCurrencies(params ...interface{}) (Currencies, error)
 	FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error)
 	FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error)
-	FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error)
+	FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error)
 	FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error)
 	FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error)
 	FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error)

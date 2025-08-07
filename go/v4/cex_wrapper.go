@@ -983,7 +983,7 @@ func (this *Cex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMod
 func (this *Cex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Cex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Cex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Cex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

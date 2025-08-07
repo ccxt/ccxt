@@ -830,7 +830,7 @@ func (this *Wavesexchange) FetchMarginModes(options ...FetchMarginModesOptions) 
 func (this *Wavesexchange) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Wavesexchange) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Wavesexchange) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Wavesexchange) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

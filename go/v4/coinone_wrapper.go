@@ -651,7 +651,7 @@ func (this *Coinone) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Coinone) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coinone) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinone) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinone) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

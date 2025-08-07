@@ -874,7 +874,7 @@ func (this *Bitflyer) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Bitflyer) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bitflyer) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitflyer) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitflyer) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

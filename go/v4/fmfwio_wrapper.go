@@ -261,7 +261,7 @@ func (this *Fmfwio) FetchMarketLeverageTiers(symbol string, options ...FetchMark
 func (this *Fmfwio) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Fmfwio) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Fmfwio) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Fmfwio) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

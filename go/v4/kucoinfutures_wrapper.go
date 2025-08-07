@@ -1524,7 +1524,7 @@ func (this *Kucoinfutures) FetchMarginAdjustmentHistory(options ...FetchMarginAd
 func (this *Kucoinfutures) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Kucoinfutures) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Kucoinfutures) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Kucoinfutures) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {

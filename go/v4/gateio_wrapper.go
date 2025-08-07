@@ -261,7 +261,7 @@ func (this *Gateio) FetchMarketLeverageTiers(symbol string, options ...FetchMark
 func (this *Gateio) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Gateio) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Gateio) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Gateio) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

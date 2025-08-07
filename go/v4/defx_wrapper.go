@@ -1089,7 +1089,7 @@ func (this *Defx) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 func (this *Defx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Defx) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Defx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Defx) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {

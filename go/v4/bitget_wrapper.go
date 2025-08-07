@@ -2393,7 +2393,7 @@ func (this *Bitget) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmen
 func (this *Bitget) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Bitget) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitget) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitget) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {

@@ -1908,7 +1908,7 @@ func (this *Woo) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMod
 func (this *Woo) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Woo) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Woo) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Woo) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

@@ -1058,7 +1058,7 @@ func (this *Apex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 func (this *Apex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Apex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Apex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Apex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

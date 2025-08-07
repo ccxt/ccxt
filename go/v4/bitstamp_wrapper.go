@@ -1069,7 +1069,7 @@ func (this *Bitstamp) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Bitstamp) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bitstamp) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitstamp) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitstamp) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

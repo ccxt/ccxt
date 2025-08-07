@@ -520,7 +520,7 @@ func (this *Coinspot) FetchMarketLeverageTiers(symbol string, options ...FetchMa
 func (this *Coinspot) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Coinspot) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinspot) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinspot) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

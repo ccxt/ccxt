@@ -607,7 +607,7 @@ func (this *Bit2c) FetchMarketLeverageTiers(symbol string, options ...FetchMarke
 func (this *Bit2c) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Bit2c) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bit2c) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bit2c) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

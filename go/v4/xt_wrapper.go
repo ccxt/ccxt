@@ -1624,7 +1624,7 @@ func (this *Xt) FetchMarginMode(symbol string, options ...FetchMarginModeOptions
 func (this *Xt) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Xt) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Xt) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Xt) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

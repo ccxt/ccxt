@@ -3509,7 +3509,7 @@ func (this *Binance) FetchLongShortRatio(symbol string, options ...FetchLongShor
 func (this *Binance) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Binance) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Binance) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Binance) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {

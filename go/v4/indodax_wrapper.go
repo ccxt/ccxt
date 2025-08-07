@@ -806,7 +806,7 @@ func (this *Indodax) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Indodax) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Indodax) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Indodax) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Indodax) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

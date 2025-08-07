@@ -1525,7 +1525,7 @@ func (this *Phemex) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Phemex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Phemex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Phemex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Phemex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

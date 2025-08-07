@@ -1384,7 +1384,7 @@ func (this *Poloniex) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Poloniex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Poloniex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Poloniex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Poloniex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

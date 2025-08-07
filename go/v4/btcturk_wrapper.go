@@ -669,7 +669,7 @@ func (this *Btcturk) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Btcturk) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Btcturk) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Btcturk) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Btcturk) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

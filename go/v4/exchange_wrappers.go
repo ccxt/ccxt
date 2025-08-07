@@ -2846,7 +2846,7 @@ func (this *ExchangeTyped) FetchFundingInterval(symbol string, options ...FetchF
 	}
 	return NewFundingRate(res), nil
 }
-func (this *ExchangeTyped) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *ExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 
 	opts := FetchMarkOHLCVOptionsStruct{}
 

@@ -837,7 +837,7 @@ func (this *Ellipx) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Ellipx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Ellipx) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Ellipx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Ellipx) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

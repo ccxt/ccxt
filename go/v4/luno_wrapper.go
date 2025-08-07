@@ -960,7 +960,7 @@ func (this *Luno) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 func (this *Luno) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Luno) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Luno) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Luno) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

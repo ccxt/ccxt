@@ -1661,7 +1661,7 @@ func (this *Whitebit) FetchMarginModes(options ...FetchMarginModesOptions) (Marg
 func (this *Whitebit) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Whitebit) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Whitebit) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Whitebit) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

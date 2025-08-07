@@ -261,7 +261,7 @@ func (this *Bequant) FetchMarketLeverageTiers(symbol string, options ...FetchMar
 func (this *Bequant) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
-func (this *Bequant) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bequant) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bequant) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

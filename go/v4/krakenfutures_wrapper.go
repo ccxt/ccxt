@@ -1138,7 +1138,7 @@ func (this *Krakenfutures) FetchMarginModes(options ...FetchMarginModesOptions) 
 func (this *Krakenfutures) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Krakenfutures) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Krakenfutures) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Krakenfutures) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

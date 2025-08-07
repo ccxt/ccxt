@@ -1017,7 +1017,7 @@ func (this *Bigone) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Bigone) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bigone) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bigone) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bigone) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

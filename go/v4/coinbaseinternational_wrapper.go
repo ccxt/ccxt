@@ -1139,7 +1139,7 @@ func (this *Coinbaseinternational) FetchMarginModes(options ...FetchMarginModesO
 func (this *Coinbaseinternational) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coinbaseinternational) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinbaseinternational) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinbaseinternational) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

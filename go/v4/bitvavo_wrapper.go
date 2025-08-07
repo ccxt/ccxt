@@ -1011,7 +1011,7 @@ func (this *Bitvavo) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Bitvavo) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bitvavo) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitvavo) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitvavo) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

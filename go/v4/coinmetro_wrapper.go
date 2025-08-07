@@ -769,7 +769,7 @@ func (this *Coinmetro) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Coinmetro) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coinmetro) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Coinmetro) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Coinmetro) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

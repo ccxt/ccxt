@@ -1611,7 +1611,7 @@ func (this *Digifinex) FetchMarginMode(symbol string, options ...FetchMarginMode
 func (this *Digifinex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Digifinex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Digifinex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Digifinex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

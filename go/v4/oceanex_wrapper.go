@@ -866,7 +866,7 @@ func (this *Oceanex) FetchMarginModes(options ...FetchMarginModesOptions) (Margi
 func (this *Oceanex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Oceanex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Oceanex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Oceanex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

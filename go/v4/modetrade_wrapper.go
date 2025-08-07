@@ -1417,7 +1417,7 @@ func (this *Modetrade) FetchMarginModes(options ...FetchMarginModesOptions) (Mar
 func (this *Modetrade) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Modetrade) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Modetrade) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Modetrade) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

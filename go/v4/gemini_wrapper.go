@@ -933,7 +933,7 @@ func (this *Gemini) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Gemini) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Gemini) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Gemini) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Gemini) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

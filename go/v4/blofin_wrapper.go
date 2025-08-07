@@ -1305,7 +1305,7 @@ func (this *Blofin) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Blofin) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Blofin) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Blofin) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Blofin) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {

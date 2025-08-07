@@ -730,7 +730,7 @@ func (this *P2b) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMod
 func (this *P2b) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *P2b) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *P2b) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *P2b) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

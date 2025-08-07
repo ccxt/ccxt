@@ -2988,7 +2988,7 @@ func (this *Bybit) FetchMarginMode(symbol string, options ...FetchMarginModeOpti
 func (this *Bybit) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)
 }
-func (this *Bybit) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bybit) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bybit) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

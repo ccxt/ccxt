@@ -1302,7 +1302,7 @@ func (this *Bitmex) FetchMarginModes(options ...FetchMarginModesOptions) (Margin
 func (this *Bitmex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Bitmex) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Bitmex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Bitmex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {

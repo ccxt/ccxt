@@ -779,7 +779,7 @@ func (this *Zonda) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 func (this *Zonda) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Zonda) FetchMarkOHLCV(symbol interface{}, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+func (this *Zonda) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
 }
 func (this *Zonda) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
