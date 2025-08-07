@@ -337,7 +337,6 @@ func AssertFeeStructure(exchange ccxt.ICoreExchange, skippedProperties interface
 	var logText interface{} = LogTemplate(exchange, method, entry)
 	var keyString interface{} = StringValue(key)
 	if IsTrue(IsInt(key)) {
-		key = key
 		Assert(IsArray(entry), Add("fee container is expected to be an array", logText))
 		Assert(IsLessThan(key, GetArrayLength(entry)), Add(Add(Add("fee key ", keyString), " was expected to be present in entry"), logText))
 	} else {
