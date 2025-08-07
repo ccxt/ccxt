@@ -7,122 +7,122 @@
 
 package ccxt
 
-func (this *coinmetro) PublicGetDemoTemp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDemoTemp", args...)
+func (this *coinmetro) PublicGetDemoTemp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDemoTemp", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeCandlesPairTimeframeFromTo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeCandlesPairTimeframeFromTo", args...)
+func (this *coinmetro) PublicGetExchangeCandlesPairTimeframeFromTo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeCandlesPairTimeframeFromTo", args...)
 }
 
-func (this *coinmetro) PublicGetExchangePrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangePrices", args...)
+func (this *coinmetro) PublicGetExchangePrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangePrices", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeTicksPairFrom (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeTicksPairFrom", args...)
+func (this *coinmetro) PublicGetExchangeTicksPairFrom(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeTicksPairFrom", args...)
 }
 
-func (this *coinmetro) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *coinmetro) PublicGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *coinmetro) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *coinmetro) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeBookPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeBookPair", args...)
+func (this *coinmetro) PublicGetExchangeBookPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeBookPair", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeBookUpdatesPairFrom (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeBookUpdatesPairFrom", args...)
+func (this *coinmetro) PublicGetExchangeBookUpdatesPairFrom(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeBookUpdatesPairFrom", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersBalances", args...)
+func (this *coinmetro) PrivateGetUsersBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersWallets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersWallets", args...)
+func (this *coinmetro) PrivateGetUsersWallets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersWallets", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersWalletsHistorySince (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersWalletsHistorySince", args...)
+func (this *coinmetro) PrivateGetUsersWalletsHistorySince(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersWalletsHistorySince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersStatusOrderID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExchangeOrdersStatusOrderID", args...)
+func (this *coinmetro) PrivateGetExchangeOrdersStatusOrderID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrdersStatusOrderID", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExchangeOrdersActive", args...)
+func (this *coinmetro) PrivateGetExchangeOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrdersActive", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersHistorySince (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExchangeOrdersHistorySince", args...)
+func (this *coinmetro) PrivateGetExchangeOrdersHistorySince(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeOrdersHistorySince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeFillsSince (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExchangeFillsSince", args...)
+func (this *coinmetro) PrivateGetExchangeFillsSince(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeFillsSince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExchangeMargin", args...)
+func (this *coinmetro) PrivateGetExchangeMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExchangeMargin", args...)
 }
 
-func (this *coinmetro) PrivatePostJwt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostJwt", args...)
+func (this *coinmetro) PrivatePostJwt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostJwt", args...)
 }
 
-func (this *coinmetro) PrivatePostJwtDevice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostJwtDevice", args...)
+func (this *coinmetro) PrivatePostJwtDevice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostJwtDevice", args...)
 }
 
-func (this *coinmetro) PrivatePostDevices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDevices", args...)
+func (this *coinmetro) PrivatePostDevices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDevices", args...)
 }
 
-func (this *coinmetro) PrivatePostJwtReadOnly (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostJwtReadOnly", args...)
+func (this *coinmetro) PrivatePostJwtReadOnly(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostJwtReadOnly", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeOrdersCreate", args...)
+func (this *coinmetro) PrivatePostExchangeOrdersCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeOrdersCreate", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersModifyOrderID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeOrdersModifyOrderID", args...)
+func (this *coinmetro) PrivatePostExchangeOrdersModifyOrderID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeOrdersModifyOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeSwap (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeSwap", args...)
+func (this *coinmetro) PrivatePostExchangeSwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeSwap", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeSwapConfirmSwapId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeSwapConfirmSwapId", args...)
+func (this *coinmetro) PrivatePostExchangeSwapConfirmSwapId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeSwapConfirmSwapId", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersCloseOrderID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeOrdersCloseOrderID", args...)
+func (this *coinmetro) PrivatePostExchangeOrdersCloseOrderID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeOrdersCloseOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersHedge (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExchangeOrdersHedge", args...)
+func (this *coinmetro) PrivatePostExchangeOrdersHedge(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExchangeOrdersHedge", args...)
 }
 
-func (this *coinmetro) PrivatePutJwt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutJwt", args...)
+func (this *coinmetro) PrivatePutJwt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutJwt", args...)
 }
 
-func (this *coinmetro) PrivatePutExchangeOrdersCancelOrderID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutExchangeOrdersCancelOrderID", args...)
+func (this *coinmetro) PrivatePutExchangeOrdersCancelOrderID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutExchangeOrdersCancelOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePutUsersMarginCollateral (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutUsersMarginCollateral", args...)
+func (this *coinmetro) PrivatePutUsersMarginCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersMarginCollateral", args...)
 }
 
-func (this *coinmetro) PrivatePutUsersMarginPrimaryCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutUsersMarginPrimaryCurrency", args...)
+func (this *coinmetro) PrivatePutUsersMarginPrimaryCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersMarginPrimaryCurrency", args...)
 }
