@@ -3,8 +3,8 @@
 
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Strings, Ticker, Tickers } from '../base/types.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,10 +14,10 @@ export default class backpack extends backpackRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTrades': false,
-                'watchTradesForSymbols': false,
-                'watchOrderBook': false,
-                'watchOrderBookForSymbols': false,
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': false,
@@ -354,7 +354,7 @@ export default class backpack extends backpackRest {
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
-            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
         const topics = [];
@@ -388,7 +388,7 @@ export default class backpack extends backpackRest {
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
-            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
         const topics = [];
@@ -474,6 +474,182 @@ export default class backpack extends backpackRest {
         ];
     }
 
+    /**
+     * @method
+     * @name backpack#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name backpack#watchTradesForSymbols
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('trade.' + marketId);
+            messageHashes.push ('trades:' + symbol);
+        }
+        const trades = await this.watchPublic (topics, messageHashes, params);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchTradesForSymbols
+     * @description unWatches from the stream channel
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('trade.' + marketId);
+            messageHashes.push ('trades:' + symbol);
+        }
+        return await this.unWatchPublic (topics, messageHashes, params);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         data: {
+        //             E: '1754601477746429',
+        //             T: '1754601477744000',
+        //             a: '5121860761',
+        //             b: '5121861755',
+        //             e: 'trade',
+        //             m: false,
+        //             p: '3870.25',
+        //             q: '0.0008',
+        //             s: 'ETH_USDC_PERP',
+        //             t: 10782547
+        //         },
+        //         stream: 'trade.ETH_USDC_PERP'
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 's');
+        const market = this.market (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        const cache = this.trades[symbol];
+        const trade = this.parseWsTrade (data, market);
+        cache.append (trade);
+        const messageHash = 'trades:' + symbol;
+        client.resolve (cache, messageHash);
+        client.resolve (cache, 'trades');
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         E: '1754601477746429',
+        //         T: '1754601477744000',
+        //         a: '5121860761',
+        //         b: '5121861755',
+        //         e: 'trade',
+        //         m: false,
+        //         p: '3870.25',
+        //         q: '0.0008',
+        //         s: 'ETH_USDC_PERP',
+        //         t: 10782547
+        //     }
+        //
+        const microseconds = this.safeInteger (trade, 'E');
+        const timestamp = this.parseToInt (microseconds / 1000);
+        const id = this.safeString (trade, 't');
+        const marketId = this.safeString (trade, 's');
+        market = this.safeMarket (marketId, market);
+        const isMaker = this.safeBool (trade, 'm');
+        const side = isMaker ? 'sell' : 'buy';
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        let orderId = undefined;
+        if (side === 'buy') {
+            orderId = this.safeString (trade, 'b');
+        } else {
+            orderId = this.safeString (trade, 'a');
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         const data = this.safeValue (message, 'data');
         const event = this.safeString (data, 'e');
@@ -481,6 +657,7 @@ export default class backpack extends backpackRest {
             'ticker': this.handleTicker,
             'bookTicker': this.handleBidAsk,
             'kline': this.handleOHLCV,
+            'trade': this.handleTrades,
         };
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
