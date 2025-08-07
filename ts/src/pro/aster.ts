@@ -17,7 +17,7 @@ export default class aster extends asterRest {
                 'watchBalance': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchOrderBook': false,
                 'watchOHLCV': false,
@@ -148,6 +148,21 @@ export default class aster extends asterRest {
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name aster#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
