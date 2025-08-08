@@ -3298,7 +3298,20 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.swapPrivatePostV3PositionLeverage (this.extend (request, params));
-        return this.parseLeverage (response, market);
+        //
+        //     {
+        //         "code":200,
+        //         "data":{
+        //             "lever":"7",
+        //             "symbol":"DOGE_USDT_PERP",
+        //             "mgnMode": "CROSS",
+        //             "posSide": "BOTH"
+        //         },
+        //         "msg":"Success"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
     }
 
     /**
@@ -3369,12 +3382,27 @@ export default class poloniex extends Exchange {
         let marketId: Str = undefined;
         let marginMode: Str = undefined;
         const data = this.safeList (leverage, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            marketId = this.safeString (entry, 'symbol');
-            marginMode = this.safeStringLower (entry, 'mgnMode');
-            const lever = this.safeInteger (entry, 'lever');
-            const posSide = this.safeString (entry, 'posSide');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                marketId = this.safeString (entry, 'symbol');
+                marginMode = this.safeStringLower (entry, 'mgnMode');
+                const lever = this.safeInteger (entry, 'lever');
+                const posSide = this.safeString (entry, 'posSide');
+                if (posSide === 'LONG') {
+                    longLeverage = lever;
+                } else if (posSide === 'SHORT') {
+                    shortLeverage = lever;
+                } else {
+                    longLeverage = lever;
+                    shortLeverage = lever;
+                }
+            }
+        } else {
+            marketId = this.safeString (leverage, 'symbol');
+            marginMode = this.safeStringLower (leverage, 'mgnMode');
+            const lever = this.safeInteger (leverage, 'lever');
+            const posSide = this.safeString (leverage, 'posSide');
             if (posSide === 'LONG') {
                 longLeverage = lever;
             } else if (posSide === 'SHORT') {
