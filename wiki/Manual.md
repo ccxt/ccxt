@@ -6231,7 +6231,24 @@ Parameters
 
 Returns
 
-- a [margin structure](#margin-structure)
+- A [margin-modification-structure](#margin-modification-structure)
+
+### Margin Modification Structure
+
+```javascript
+{
+    "info": any,
+    "symbol": string,
+    "type": "add" | "reduce" | "set" | undefined,
+    "marginMode": "cross" | "isolated" | undefined,
+    "amount": Num,
+    "total": Num,
+    "code": Str,
+    "status": Str,
+    "timestamp": Int,
+    "datetime": Str,
+}
+```
 
 You can fetch the history of margin adjustments made using the methods above or automatically by the exchange using the following method
 
