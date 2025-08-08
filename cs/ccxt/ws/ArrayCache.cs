@@ -288,7 +288,7 @@ public class ArrayCacheBySymbolById : ArrayCache
         var beforeLength = idSet.Count;
         idSet.Add(itemId);
         var afterLength = idSet.Count;
-        var defaultAllNewUpdates = (this.allNewUpdates == null) ? 0 : this.allNewUpdates;
+        var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
 }
@@ -364,7 +364,7 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         var beforeLength = sideSet.Count;
         sideSet.Add(itemSide);
         var afterLength = sideSet.Count;
-        var defaultAllNewUpdates = (this.allNewUpdates == null) ? 0 : this.allNewUpdates;
+        var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
 }

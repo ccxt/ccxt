@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class mexc
  * @augments Exchange
  */
-class mexc extends mexc$1 {
+class mexc extends mexc$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -6089,4 +6091,4 @@ class mexc extends mexc$1 {
     }
 }
 
-module.exports = mexc;
+exports["default"] = mexc;

@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class apex
  * @augments Exchange
  */
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'apex',
@@ -1937,4 +1939,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;

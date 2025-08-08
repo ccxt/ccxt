@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bybit$1 = require('./abstract/bybit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -7,13 +9,13 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
  * @augments Exchange
  */
-class bybit extends bybit$1 {
+class bybit extends bybit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bybit',
@@ -9374,4 +9376,4 @@ class bybit extends bybit$1 {
     }
 }
 
-module.exports = bybit;
+exports["default"] = bybit;

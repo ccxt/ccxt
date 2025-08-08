@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mexc$1 = require('../mexc.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class mexc extends mexc$1 {
+class mexc extends mexc$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1825,4 +1827,4 @@ class mexc extends mexc$1 {
     }
 }
 
-module.exports = mexc;
+exports["default"] = mexc;

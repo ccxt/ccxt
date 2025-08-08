@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var uint256 = require('../cairoDataTypes/uint256.js');
 var uint512 = require('../cairoDataTypes/uint512.js');
 var encode = require('../encode.js');
@@ -12,6 +14,7 @@ var CairoOption = require('./enum/CairoOption.js');
 var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 
+// ----------------------------------------------------------------------------
 /**
  * Parse base types
  * @param type type of element
@@ -149,7 +152,7 @@ function parseResponseValue(responseIterator, element, structs, enums) {
     }
     // type tuple
     if (cairo.isTypeTuple(element.type)) {
-        const memberTypes = tuple(element.type);
+        const memberTypes = tuple["default"](element.type);
         return memberTypes.reduce((acc, it, idx) => {
             const name = it?.name ? it.name : idx;
             const type = it?.type ? it.type : it;
@@ -212,4 +215,4 @@ function responseParser(responseIterator, output, structs, enums, parsedResult) 
     }
 }
 
-module.exports = responseParser;
+exports["default"] = responseParser;

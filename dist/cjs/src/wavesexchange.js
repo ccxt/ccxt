@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
  * @augments Exchange
  */
-class wavesexchange extends wavesexchange$1 {
+class wavesexchange extends wavesexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wavesexchange',
@@ -2743,4 +2745,4 @@ class wavesexchange extends wavesexchange$1 {
     }
 }
 
-module.exports = wavesexchange;
+exports["default"] = wavesexchange;

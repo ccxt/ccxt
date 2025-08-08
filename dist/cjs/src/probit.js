@@ -1,17 +1,19 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var probit$1 = require('./abstract/probit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class probit
  * @augments Exchange
  */
-class probit extends probit$1 {
+class probit extends probit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'probit',
@@ -1896,4 +1898,4 @@ class probit extends probit$1 {
     }
 }
 
-module.exports = probit;
+exports["default"] = probit;

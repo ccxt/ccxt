@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var derive$1 = require('./abstract/derive.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
@@ -8,13 +10,13 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class derive
  * @augments Exchange
  */
-class derive extends derive$1 {
+class derive extends derive$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'derive',
@@ -2651,4 +2653,4 @@ class derive extends derive$1 {
     }
 }
 
-module.exports = derive;
+exports["default"] = derive;

@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var indodax$1 = require('./abstract/indodax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class indodax
  * @augments Exchange
  */
-class indodax extends indodax$1 {
+class indodax extends indodax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'indodax',
@@ -1450,4 +1452,4 @@ class indodax extends indodax$1 {
     }
 }
 
-module.exports = indodax;
+exports["default"] = indodax;

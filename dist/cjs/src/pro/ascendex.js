@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ascendex$1 = require('../ascendex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class ascendex extends ascendex$1 {
+class ascendex extends ascendex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1008,4 +1010,4 @@ class ascendex extends ascendex$1 {
     }
 }
 
-module.exports = ascendex;
+exports["default"] = ascendex;

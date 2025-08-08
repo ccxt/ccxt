@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var upbit$1 = require('./abstract/upbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -8,13 +10,13 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class upbit
  * @augments Exchange
  */
-class upbit extends upbit$1 {
+class upbit extends upbit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'upbit',
@@ -2336,4 +2338,4 @@ class upbit extends upbit$1 {
     }
 }
 
-module.exports = upbit;
+exports["default"] = upbit;

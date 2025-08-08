@@ -15,7 +15,7 @@ var merkle = require('./merkle.js');
 var num = require('./num.js');
 var shortString = require('./shortString.js');
 
-/* eslint-disable no-param-reassign */
+// ----------------------------------------------------------------------------
 const presetTypes = {
     u256: JSON.parse('[{ "name": "low", "type": "u128" }, { "name": "high", "type": "u128" }]'),
     TokenAmount: JSON.parse('[{ "name": "token_address", "type": "ContractAddress" }, { "name": "amount", "type": "u256" }]'),
@@ -39,7 +39,7 @@ const revisionConfiguration = {
 };
 function assertRange(data, type, { min, max }) {
     const value = BigInt(data);
-    assert(value >= min && value <= max, `${value} (${type}) is out of bounds [${min}, ${max}]`);
+    assert["default"](value >= min && value <= max, `${value} (${type}) is out of bounds [${min}, ${max}]`);
 }
 function identifyRevision({ types, domain }) {
     if (revisionConfiguration[typedData.TypedDataRevision.Active].domain in types && domain.revision === typedData.TypedDataRevision.Active)
@@ -265,7 +265,7 @@ function encodeValue(types, type, data, ctx = {}, revision = typedData.TypedData
         }
         case 'bool': {
             if (revision === typedData.TypedDataRevision.Active) {
-                assert(typeof data === 'boolean', `Type mismatch for ${type} ${data}`);
+                assert["default"](typeof data === 'boolean', `Type mismatch for ${type} ${data}`);
             } // else fall through to default
             return [type, getHex(data)];
         }

@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var zonda$1 = require('./abstract/zonda.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class zonda
  * @augments Exchange
  */
-class zonda extends zonda$1 {
+class zonda extends zonda$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zonda',
@@ -1980,4 +1982,4 @@ class zonda extends zonda$1 {
     }
 }
 
-module.exports = zonda;
+exports["default"] = zonda;

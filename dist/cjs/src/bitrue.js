@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitrue$1 = require('./abstract/bitrue.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
  * @augments Exchange
  */
-class bitrue extends bitrue$1 {
+class bitrue extends bitrue$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitrue',
@@ -3378,4 +3380,4 @@ class bitrue extends bitrue$1 {
     }
 }
 
-module.exports = bitrue;
+exports["default"] = bitrue;

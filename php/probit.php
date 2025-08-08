@@ -1450,7 +1450,7 @@ class probit extends Exchange {
         return $this->parse_deposit_addresses($data, $codes);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://docs-en.probit.com/reference/withdrawal

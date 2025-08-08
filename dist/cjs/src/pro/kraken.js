@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kraken$1 = require('../kraken.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class kraken extends kraken$1 {
+class kraken extends kraken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1780,4 +1782,4 @@ class kraken extends kraken$1 {
     }
 }
 
-module.exports = kraken;
+exports["default"] = kraken;

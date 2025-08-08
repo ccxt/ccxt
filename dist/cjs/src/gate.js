@@ -1,17 +1,19 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
  */
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -8236,4 +8238,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

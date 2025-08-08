@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hollaex$1 = require('./abstract/hollaex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
  * @augments Exchange
  */
-class hollaex extends hollaex$1 {
+class hollaex extends hollaex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hollaex',
@@ -2042,4 +2044,4 @@ class hollaex extends hollaex$1 {
     }
 }
 
-module.exports = hollaex;
+exports["default"] = hollaex;

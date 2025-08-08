@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kraken$1 = require('./abstract/kraken.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -7,14 +9,14 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class kraken extends kraken$1 {
+class kraken extends kraken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kraken',
@@ -3514,4 +3516,4 @@ class kraken extends kraken$1 {
     }
 }
 
-module.exports = kraken;
+exports["default"] = kraken;

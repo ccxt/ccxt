@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitget$1 = require('./abstract/bitget.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
  * @augments Exchange
  */
-class bitget extends bitget$1 {
+class bitget extends bitget$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitget',
@@ -11005,4 +11007,4 @@ class bitget extends bitget$1 {
     }
 }
 
-module.exports = bitget;
+exports["default"] = bitget;

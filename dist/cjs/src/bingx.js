@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bingx$1 = require('./abstract/bingx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
  * @augments Exchange
  */
-class bingx extends bingx$1 {
+class bingx extends bingx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bingx',
@@ -6671,4 +6673,4 @@ class bingx extends bingx$1 {
     }
 }
 
-module.exports = bingx;
+exports["default"] = bingx;

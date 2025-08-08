@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var blofin$1 = require('./abstract/blofin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class blofin
  * @augments Exchange
  */
-class blofin extends blofin$1 {
+class blofin extends blofin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'blofin',
@@ -2572,4 +2574,4 @@ class blofin extends blofin$1 {
     }
 }
 
-module.exports = blofin;
+exports["default"] = blofin;

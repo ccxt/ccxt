@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var oxfun$1 = require('../oxfun.js');
 var errors = require('../base/errors.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class oxfun extends oxfun$1 {
+class oxfun extends oxfun$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1108,4 +1110,4 @@ class oxfun extends oxfun$1 {
     }
 }
 
-module.exports = oxfun;
+exports["default"] = oxfun;

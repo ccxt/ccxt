@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mercado$1 = require('./abstract/mercado.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class mercado
  * @augments Exchange
  */
-class mercado extends mercado$1 {
+class mercado extends mercado$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mercado',
@@ -1007,4 +1009,4 @@ class mercado extends mercado$1 {
     }
 }
 
-module.exports = mercado;
+exports["default"] = mercado;

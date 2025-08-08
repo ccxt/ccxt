@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -7,13 +9,13 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
  * @augments Exchange
  */
-class coinex extends coinex$1 {
+class coinex extends coinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinex',
@@ -4803,7 +4805,7 @@ class coinex extends coinex$1 {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} [tag] memo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -6162,4 +6164,4 @@ class coinex extends coinex$1 {
     }
 }
 
-module.exports = coinex;
+exports["default"] = coinex;

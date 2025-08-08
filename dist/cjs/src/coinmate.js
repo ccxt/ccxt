@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinmate$1 = require('./abstract/coinmate.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinmate
  * @augments Exchange
  */
-class coinmate extends coinmate$1 {
+class coinmate extends coinmate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinmate',
@@ -1211,4 +1213,4 @@ class coinmate extends coinmate$1 {
     }
 }
 
-module.exports = coinmate;
+exports["default"] = coinmate;

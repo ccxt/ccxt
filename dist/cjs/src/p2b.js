@@ -1,17 +1,19 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var p2b$1 = require('./abstract/p2b.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class p2b
  * @augments Exchange
  */
-class p2b extends p2b$1 {
+class p2b extends p2b$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'p2b',
@@ -1308,4 +1310,4 @@ class p2b extends p2b$1 {
     }
 }
 
-module.exports = p2b;
+exports["default"] = p2b;

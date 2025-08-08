@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var woo$1 = require('./abstract/woo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woo
  * @augments Exchange
  */
-class woo extends woo$1 {
+class woo extends woo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'woo',
@@ -4179,4 +4181,4 @@ class woo extends woo$1 {
     }
 }
 
-module.exports = woo;
+exports["default"] = woo;
