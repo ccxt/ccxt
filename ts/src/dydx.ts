@@ -43,7 +43,7 @@ export default class dydx extends Exchange {
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -205,7 +205,12 @@ export default class dydx extends Exchange {
                         'broadcast_tx_async': 1,
                         'broadcast_tx_sync': 1,
                         'tx': 1,
-                    }
+                    },
+                },
+                'nodeRest': {
+                    'get': {
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                    },
                 },
             },
             'fees': {
@@ -1072,6 +1077,304 @@ export default class dydx extends Exchange {
         //
         const rows = this.safeList (response, 'positions', []);
         return this.parsePositions (rows, symbols);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //
+        const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
+        const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString2 (order, 'order_price', 'price');
+        const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
+        const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
+        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
+        let status = this.safeValue2 (order, 'status', 'algoStatus');
+        const success = this.safeBool (order, 'success');
+        if (success !== undefined) {
+            status = (success) ? 'NEW' : 'REJECTED';
+        }
+        const side = this.safeStringLower (order, 'side');
+        const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
+        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
+        const remaining = Precise.stringSub (cost, filled);
+        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
+        const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
+        const transactions = this.safeValue (order, 'Transactions');
+        const triggerPrice = this.safeNumber (order, 'triggerPrice');
+        let takeProfitPrice: Num = undefined;
+        let stopLossPrice: Num = undefined;
+        const childOrders = this.safeValue (order, 'childOrders');
+        if (childOrders !== undefined) {
+            const first = this.safeValue (childOrders, 0);
+            const innerChildOrders = this.safeValue (first, 'childOrders', []);
+            const innerChildOrdersLength = innerChildOrders.length;
+            if (innerChildOrdersLength > 0) {
+                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
+                const stopLossOrder = this.safeValue (innerChildOrders, 1);
+                takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
+                stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
+            }
+        }
+        const lastUpdateTimestamp = this.safeInteger2 (order, 'updatedTime', 'updated_time');
+        return this.safeOrder ({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'status': this.parseOrderStatus (status),
+            'symbol': symbol,
+            'type': this.parseOrderType (orderType),
+            'timeInForce': this.parseTimeInForce (orderType),
+            'postOnly': undefined, // TO_DO
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'side': side,
+            'price': price,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining, // TO_DO
+            'cost': cost,
+            'trades': transactions,
+            'fee': {
+                'cost': fee,
+                'currency': feeCurrency,
+            },
+            'info': order,
+        }, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const orderType = type.toUpperCase ();
+        const market = this.market (symbol);
+        const orderSide = side.toUpperCase ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': orderSide,
+        };
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const algoType = this.safeString (params, 'algoType');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const isMarket = orderType === 'MARKET';
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
+        const typeKey = isConditional ? 'type' : 'order_type';
+        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        let clientMetadata = 0;
+        let conditionalType = 0;
+        let orderFlag = undefined;
+        let timeInForceNumber = undefined;
+        if (type === 'market') {
+            // short-term
+            orderFlag = 0;
+            clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'FOK') {
+                    timeInForceNumber = 3
+                } else {
+                    // default is ioc
+                    timeInForceNumber = 1;
+                }
+            }
+        } else if (type === 'limit') {
+            if (timeInForce !== undefined) {
+                if (timeInForce === 'GTT') {
+                    // long-term
+                    orderFlag = 64;
+                    if (postOnly) {
+                        timeInForceNumber = 2;
+                    } else {
+                        timeInForceNumber = 0;
+                    }
+                } else {
+                    orderFlag = 0;
+                    if (timeInForce === 'FOK') {
+                        timeInForceNumber = 3;
+                    } else if (timeInForce === 'IOC') {
+                        timeInForceNumber = 1;
+                    } else {
+                        throw new Error('unexpected code path: timeInForce');
+                    }
+                }
+            }
+        } else if (isConditional) {
+            // conditional
+            orderFlag = 32;
+            // TODO: change timeInForceNumber
+            if (stopLoss !== undefined) {
+                conditionalType = 1;
+            } else if (takeProfit !== undefined) {
+                conditionalType = 2;
+            }
+        }
+        let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        let goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
+        if (orderFlag === 0) {
+            if (goodTillBlock === undefined) {
+                // TODO: fetch gtb
+                throw new Error('goodTillBlock is required');
+            }
+        } else {
+            if (goodTillBlockTime === undefined) {
+                // TODO: set gtt
+                throw new Error('goodTillBlockTime is required');
+            }
+        }
+        const sideNumber = (orderSide === 'buy') ? 1 : 2;
+        // TODO: quantums / subticks / conditionalOrderTriggerSubticks
+        // if (!isConditional) {
+        //     if (postOnly) {
+        //         request['order_type'] = 'POST_ONLY';
+        //     } else if (timeInForce === 'fok') {
+        //         request['order_type'] = 'FOK';
+        //     } else if (timeInForce === 'ioc') {
+        //         request['order_type'] = 'IOC';
+        //     }
+        // }
+        // if (reduceOnly) {
+        //     request['reduce_only'] = reduceOnly;
+        // }
+        // if (price !== undefined) {
+        //     request[priceKey] = this.priceToPrecision (symbol, price);
+        // }
+        // if (isMarket && !isConditional) {
+        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        // } else if (algoType !== 'POSITIONAL_TP_SL') {
+        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        // }
+        // const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        // if (clientOrderId !== undefined) {
+        //     request['client_order_id'] = clientOrderId;
+        // }
+        // if (triggerPrice !== undefined) {
+        //     request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        //     request['algo_type'] = 'STOP';
+        // } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        //     request['algo_type'] = 'TP_SL';
+        //     const outterOrder: Dict = {
+        //         'symbol': market['id'],
+        //         'reduce_only': false,
+        //         'algo_type': 'POSITIONAL_TP_SL',
+        //         'child_orders': [],
+        //     };
+        //     const childOrders = outterOrder['child_orders'];
+        //     const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+        //     if (stopLoss !== undefined) {
+        //         const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
+        //         const stopLossOrder: Dict = {
+        //             'side': closeSide,
+        //             'algo_type': 'TP_SL',
+        //             'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
+        //             'type': 'LIMIT',
+        //             'reduce_only': true,
+        //         };
+        //         childOrders.push (stopLossOrder);
+        //     }
+        //     if (takeProfit !== undefined) {
+        //         const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
+        //         const takeProfitOrder: Dict = {
+        //             'side': closeSide,
+        //             'algo_type': 'TP_SL',
+        //             'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
+        //             'type': 'LIMIT',
+        //             'reduce_only': true,
+        //         };
+        //         outterOrder.push (takeProfitOrder);
+        //     }
+        //     request['child_orders'] = [ outterOrder ];
+        // }
+        const orderPayload = {
+            'order': {
+                'orderId': {
+                    'subaccountId': {
+                        'owner': 'dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art',
+                        'number': 0
+                    },
+                    'clientId': 2804375012,
+                    'orderFlags': 64,
+                    'clobPairId': '1'
+                },
+                'side': sideNumber,
+                'quantums': {
+                    'low': 10000000,
+                    'high': 0,
+                    'unsigned': false
+                },
+                'subticks': {
+                    'low': 1345294336,
+                    'high': 9,
+                    'unsigned': false
+                },
+                'goodTilBlockTime': 1754556429,
+                'timeInForce': timeInForceNumber,
+                'reduceOnly': reduceOnly,
+                'clientMetadata': clientMetadata,
+                'conditionType': conditionalType,
+                'conditionalOrderTriggerSubticks': {
+                    'low': 0,
+                    'high': 0,
+                    'unsigned': false
+                }
+            }
+        }
+        const signingPayload = {
+            'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
+            'value': orderPayload,
+        }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name dydx#createOrder
+     * @description create a trade order
+     * @see
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const response = await this.v1PrivatePostAlgoOrder (request);
+        //
+        //
+        const data = this.safeDict (response, 'data');
+        data['timestamp'] = this.safeInteger (response, 'timestamp');
+        const order = this.parseOrder (data, market);
+        order['type'] = type;
+        return order;
     }
 
     /**
