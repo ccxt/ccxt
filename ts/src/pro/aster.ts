@@ -3,8 +3,8 @@
 
 import asterRest from '../aster.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook } from '../base/types.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,7 +21,8 @@ export default class aster extends asterRest {
                 'watchTradesForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -44,8 +45,6 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -64,7 +63,7 @@ export default class aster extends asterRest {
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -297,7 +296,7 @@ export default class aster extends asterRest {
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -360,17 +359,143 @@ export default class aster extends asterRest {
         client.resolve (orderbook, messageHash);
     }
 
+    /**
+     * @method
+     * @name aster#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name aster#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOHLCVForSymbols() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            symbolString = market['symbol'];
+            const unfiedTimeframe = this.safeString (data, 1);
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
+            messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
+        }
+        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "stream": "btcusdt@kline_1m",
+        //         "data": {
+        //             "e": "kline",
+        //             "E": 1754655777119,
+        //             "s": "BTCUSDT",
+        //             "k": {
+        //                 "t": 1754655720000,
+        //                 "T": 1754655779999,
+        //                 "s": "BTCUSDT",
+        //                 "i": "1m",
+        //                 "f": 26032629,
+        //                 "L": 26032629,
+        //                 "o": "116546.9",
+        //                 "c": "116546.9",
+        //                 "h": "116546.9",
+        //                 "l": "116546.9",
+        //                 "v": "0.011",
+        //                 "n": 1,
+        //                 "x": false,
+        //                 "q": "1282.0159",
+        //                 "V": "0.000",
+        //                 "Q": "0.0000",
+        //                 "B": "0"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const kline = this.safeDict (data, 'k');
+        const timeframeId = this.safeString (kline, 'i');
+        const timeframe = this.findTimeframe (timeframeId);
+        const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
+        if (ohlcvsByTimeframe === undefined) {
+            this.ohlcvs[symbol] = {};
+        }
+        if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const parsed = this.parseWsOHLCV (kline);
+        stored.append (parsed);
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const resolveData = [ symbol, timeframe, stored ];
+        client.resolve (resolveData, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
     handleMessage (client: Client, message) {
         const stream = this.safeString (message, 'stream');
         if (stream !== undefined) {
             const part = stream.split ('@');
-            const topic = this.safeString (part, 1);
+            let topic = this.safeString (part, 1, '');
+            const part2 = topic.split ('_');
+            topic = this.safeString (part2, 0, '');
             const methods: Dict = {
                 'ticker': this.handleTicker,
                 'aggTrade': this.handleTrade,
                 'depth5': this.handleOrderBook,
                 'depth10': this.handleOrderBook,
                 'depth20': this.handleOrderBook,
+                'kline': this.handleOHLCV,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
