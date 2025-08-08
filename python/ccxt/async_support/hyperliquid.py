@@ -2469,6 +2469,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
+        if status is None:
+            return None
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2477,6 +2479,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         }
+        if status.endswith('Rejected'):
+            return 'rejected'
+        if status.endswith('Canceled'):
+            return 'canceled'
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
