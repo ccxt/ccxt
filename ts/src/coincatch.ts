@@ -4719,7 +4719,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         const methodName = 'setLeverage';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');

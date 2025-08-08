@@ -3649,7 +3649,7 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<Leverage> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
