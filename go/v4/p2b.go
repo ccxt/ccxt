@@ -29,6 +29,9 @@ func (this *p2b) Describe() interface{} {
 			"future":                         false,
 			"option":                         false,
 			"addMargin":                      false,
+			"borrowCrossMargin":              false,
+			"borrowIsolatedMargin":           false,
+			"borrowMargin":                   false,
 			"cancelAllOrders":                false,
 			"cancelOrder":                    true,
 			"cancelOrders":                   false,
@@ -44,9 +47,14 @@ func (this *p2b) Describe() interface{} {
 			"createStopMarketOrder":          false,
 			"createStopOrder":                false,
 			"fetchAccounts":                  false,
+			"fetchAllGreeks":                 false,
 			"fetchBalance":                   true,
 			"fetchBorrowInterest":            false,
+			"fetchBorrowRate":                false,
+			"fetchBorrowRateHistories":       false,
 			"fetchBorrowRateHistory":         false,
+			"fetchBorrowRates":               false,
+			"fetchBorrowRatesPerSymbol":      false,
 			"fetchClosedOrders":              true,
 			"fetchCrossBorrowRate":           false,
 			"fetchCrossBorrowRates":          false,
@@ -57,23 +65,42 @@ func (this *p2b) Describe() interface{} {
 			"fetchDeposits":                  false,
 			"fetchDepositsWithdrawals":       false,
 			"fetchFundingHistory":            false,
+			"fetchFundingInterval":           false,
+			"fetchFundingIntervals":          false,
 			"fetchFundingRate":               false,
 			"fetchFundingRateHistory":        false,
 			"fetchFundingRates":              false,
+			"fetchGreeks":                    false,
 			"fetchIndexOHLCV":                false,
 			"fetchIsolatedBorrowRate":        false,
 			"fetchIsolatedBorrowRates":       false,
+			"fetchIsolatedPositions":         false,
 			"fetchLedger":                    false,
 			"fetchLedgerEntry":               false,
+			"fetchLeverage":                  false,
+			"fetchLeverages":                 false,
 			"fetchLeverageTiers":             false,
+			"fetchLiquidations":              false,
+			"fetchLongShortRatio":            false,
+			"fetchLongShortRatioHistory":     false,
+			"fetchMarginAdjustmentHistory":   false,
+			"fetchMarginMode":                false,
+			"fetchMarginModes":               false,
 			"fetchMarketLeverageTiers":       false,
 			"fetchMarkets":                   true,
 			"fetchMarkOHLCV":                 false,
+			"fetchMarkPrice":                 false,
+			"fetchMarkPrices":                false,
+			"fetchMyLiquidations":            false,
+			"fetchMySettlementHistory":       false,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
 			"fetchOpenInterest":              false,
 			"fetchOpenInterestHistory":       false,
+			"fetchOpenInterests":             false,
 			"fetchOpenOrders":                true,
+			"fetchOption":                    false,
+			"fetchOptionChain":               false,
 			"fetchOrderBook":                 true,
 			"fetchOrderBooks":                false,
 			"fetchOrders":                    false,
@@ -86,6 +113,7 @@ func (this *p2b) Describe() interface{} {
 			"fetchPositionsHistory":          false,
 			"fetchPositionsRisk":             false,
 			"fetchPremiumIndexOHLCV":         false,
+			"fetchSettlementHistory":         false,
 			"fetchTicker":                    true,
 			"fetchTickers":                   true,
 			"fetchTrades":                    true,
@@ -94,10 +122,14 @@ func (this *p2b) Describe() interface{} {
 			"fetchTransactionFees":           false,
 			"fetchTransactions":              false,
 			"fetchTransfers":                 false,
+			"fetchUnderlyingAssets":          false,
+			"fetchVolatilityHistory":         false,
 			"fetchWithdrawAddresses":         false,
 			"fetchWithdrawal":                false,
 			"fetchWithdrawals":               false,
 			"reduceMargin":                   false,
+			"repayCrossMargin":               false,
+			"repayIsolatedMargin":            false,
 			"setLeverage":                    false,
 			"setMargin":                      false,
 			"setMarginMode":                  false,
@@ -407,8 +439,8 @@ func (this *p2b) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes4158 := (<-this.LoadMarkets())
-		PanicOnError(retRes4158)
+		retRes4478 := (<-this.LoadMarkets())
+		PanicOnError(retRes4478)
 
 		response := (<-this.PublicGetTickers(params))
 		PanicOnError(response)
@@ -463,8 +495,8 @@ func (this *p2b) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes4568 := (<-this.LoadMarkets())
-		PanicOnError(retRes4568)
+		retRes4888 := (<-this.LoadMarkets())
+		PanicOnError(retRes4888)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -590,8 +622,8 @@ func (this *p2b) FetchOrderBook(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5658 := (<-this.LoadMarkets())
-		PanicOnError(retRes5658)
+		retRes5978 := (<-this.LoadMarkets())
+		PanicOnError(retRes5978)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -661,8 +693,8 @@ func (this *p2b) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes6178 := (<-this.LoadMarkets())
-		PanicOnError(retRes6178)
+		retRes6498 := (<-this.LoadMarkets())
+		PanicOnError(retRes6498)
 		var lastId interface{} = this.SafeInteger(params, "lastId")
 		if IsTrue(IsEqual(lastId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTrades () requires an extra parameter params[\"lastId\"]")))
@@ -802,8 +834,8 @@ func (this *p2b) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7368 := (<-this.LoadMarkets())
-		PanicOnError(retRes7368)
+		retRes7688 := (<-this.LoadMarkets())
+		PanicOnError(retRes7688)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market":   GetValue(market, "id"),
@@ -879,8 +911,8 @@ func (this *p2b) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8048 := (<-this.LoadMarkets())
-		PanicOnError(retRes8048)
+		retRes8368 := (<-this.LoadMarkets())
+		PanicOnError(retRes8368)
 
 		response := (<-this.PrivatePostAccountBalances(params))
 		PanicOnError(response)
@@ -964,8 +996,8 @@ func (this *p2b) CreateOrder(symbol interface{}, typeVar interface{}, side inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8738 := (<-this.LoadMarkets())
-		PanicOnError(retRes8738)
+		retRes9058 := (<-this.LoadMarkets())
+		PanicOnError(retRes9058)
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
 		}
@@ -1033,8 +1065,8 @@ func (this *p2b) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes9258 := (<-this.LoadMarkets())
-		PanicOnError(retRes9258)
+		retRes9578 := (<-this.LoadMarkets())
+		PanicOnError(retRes9578)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market":  GetValue(market, "id"),
@@ -1105,8 +1137,8 @@ func (this *p2b) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{}
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders () requires the symbol argument")))
 		}
 
-		retRes9768 := (<-this.LoadMarkets())
-		PanicOnError(retRes9768)
+		retRes10088 := (<-this.LoadMarkets())
+		PanicOnError(retRes10088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -1180,8 +1212,8 @@ func (this *p2b) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10308 := (<-this.LoadMarkets())
-		PanicOnError(retRes10308)
+		retRes10628 := (<-this.LoadMarkets())
+		PanicOnError(retRes10628)
 		var market interface{} = this.SafeMarket(symbol)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
@@ -1257,8 +1289,8 @@ func (this *p2b) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes10868 := (<-this.LoadMarkets())
-		PanicOnError(retRes10868)
+		retRes11188 := (<-this.LoadMarkets())
+		PanicOnError(retRes11188)
 		var until interface{} = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		if IsTrue(IsEqual(until, nil)) {
@@ -1351,8 +1383,8 @@ func (this *p2b) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11598 := (<-this.LoadMarkets())
-		PanicOnError(retRes11598)
+		retRes11918 := (<-this.LoadMarkets())
+		PanicOnError(retRes11918)
 		var until interface{} = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		var market interface{} = nil
