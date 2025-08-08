@@ -17,6 +17,8 @@ export default class aster extends asterRest {
                 'watchBalance': false,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchMarkPrice': true,
+                'watchMarkPrices': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchOrderBook': true,
@@ -45,6 +47,9 @@ export default class aster extends asterRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        params['callerMethodName'] = 'watchTicker';
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -62,8 +67,11 @@ export default class aster extends asterRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
+        params = this.omit (params, 'callerMethodName');
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -81,6 +89,69 @@ export default class aster extends asterRest {
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name aster#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        params['callerMethodName'] = 'watchMarkPrice';
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
+        const tickers = await this.watchMarkPrices ([ symbol ], params);
+        return tickers[symbol];
+    }
+
+    /**
+     * @method
+     * @name aster#watchMarkPrices
+     * @description watches the mark price for all markets
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const suffix = (use1sFreq) ? '@1s' : '';
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
+            messageHashes.push ('ticker:' + market['symbol']);
+        }
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const result = {};
             result[newTicker['symbol']] = newTicker;
             return result;
         }
@@ -112,6 +183,19 @@ export default class aster extends asterRest {
         //             "n": 3119
         //         }
         //     }
+        //     {
+        //         "stream": "btcusdt@markPrice",
+        //         "data": {
+        //             "e": "markPriceUpdate",
+        //             "E": 1754660466000,
+        //             "s": "BTCUSDT",
+        //             "p": "116809.60000000",
+        //             "P": "116595.54012838",
+        //             "i": "116836.93534884",
+        //             "r": "0.00010000",
+        //             "T": 1754668800000
+        //         }
+        //     }
         //
         const ticker = this.safeDict (message, 'data');
         const parsed = this.parseWsTicker (ticker);
@@ -122,10 +206,23 @@ export default class aster extends asterRest {
     }
 
     parseWsTicker (message) {
+        const event = this.safeString (message, 'e');
+        const part = event.split ('@');
+        const channel = this.safeString (part, 1);
         const marketId = this.safeString (message, 's');
         const timestamp = this.safeInteger (message, 'E');
         const market = this.safeMarket (marketId);
         const last = this.safeString (message, 'c');
+        if (channel === 'markPriceUpdate') {
+            return this.safeTicker ({
+                'symbol': market['symbol'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': message,
+                'markPrice': this.safeString (message, 'p'),
+                'indexPrice': this.safeString (message, 'i'),
+            });
+        }
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -162,6 +259,7 @@ export default class aster extends asterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -180,8 +278,11 @@ export default class aster extends asterRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
+        params = this.omit (params, 'callerMethodName');
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -278,6 +379,7 @@ export default class aster extends asterRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -295,8 +397,11 @@ export default class aster extends asterRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        params = this.omit (params, 'callerMethodName');
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -372,6 +477,9 @@ export default class aster extends asterRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        params['callerMethodName'] = 'watchOHLCV';
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
     }
@@ -390,8 +498,11 @@ export default class aster extends asterRest {
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const symbolsLength = symbolsAndTimeframes.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOHLCVForSymbols');
+        params = this.omit (params, 'callerMethodName');
         if (symbolsLength === 0) {
-            throw new ArgumentsRequired (this.id + ' watchOHLCVForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
@@ -496,6 +607,7 @@ export default class aster extends asterRest {
                 'depth10': this.handleOrderBook,
                 'depth20': this.handleOrderBook,
                 'kline': this.handleOHLCV,
+                'markPrice': this.handleTicker,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
