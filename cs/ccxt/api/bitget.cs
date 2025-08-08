@@ -2626,6 +2626,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaGetV3AccountSettings",parameters);
     }
 
+    public async Task<object> privateUtaGetV3AccountDepositRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountDepositRecords",parameters);
+    }
+
     public async Task<object> privateUtaGetV3AccountFinancialRecords (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3AccountFinancialRecords",parameters);
@@ -2716,9 +2721,19 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaGetV3TradeUnfilledOrders",parameters);
     }
 
+    public async Task<object> privateUtaGetV3TradeUnfilledStrategyOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeUnfilledStrategyOrders",parameters);
+    }
+
     public async Task<object> privateUtaGetV3TradeHistoryOrders (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3TradeHistoryOrders",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeHistoryStrategyOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeHistoryStrategyOrders",parameters);
     }
 
     public async Task<object> privateUtaGetV3TradeFills (object parameters = null)
@@ -2776,14 +2791,29 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaPostV3TradePlaceOrder",parameters);
     }
 
+    public async Task<object> privateUtaPostV3TradePlaceStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradePlaceStrategyOrder",parameters);
+    }
+
     public async Task<object> privateUtaPostV3TradeModifyOrder (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3TradeModifyOrder",parameters);
     }
 
+    public async Task<object> privateUtaPostV3TradeModifyStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeModifyStrategyOrder",parameters);
+    }
+
     public async Task<object> privateUtaPostV3TradeCancelOrder (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3TradeCancelOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCancelStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCancelStrategyOrder",parameters);
     }
 
     public async Task<object> privateUtaPostV3TradePlaceBatch (object parameters = null)

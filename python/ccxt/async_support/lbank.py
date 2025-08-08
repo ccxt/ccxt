@@ -2235,7 +2235,7 @@ class lbank(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

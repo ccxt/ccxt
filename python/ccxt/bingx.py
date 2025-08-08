@@ -5315,7 +5315,7 @@ class bingx(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'shortLeverage'),
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -5562,7 +5562,7 @@ class bingx(Exchange, ImplicitAPI):
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
         return depositWithdrawFees
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

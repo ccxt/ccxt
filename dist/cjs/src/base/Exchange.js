@@ -925,7 +925,7 @@ class Exchange {
                     'agent': finalAgent,
                 }
             }, wsOptions);
-            this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
+            this.clients[url] = new WsClient["default"](url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
     }

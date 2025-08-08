@@ -1094,7 +1094,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

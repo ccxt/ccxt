@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cex$1 = require('../cex.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var errors = require('../base/errors.js');
@@ -8,7 +10,7 @@ var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class cex extends cex$1 {
+class cex extends cex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1448,6 +1450,7 @@ class cex extends cex$1 {
             const future = this.safeValue(client['futures'], messageHash);
             if (future !== undefined) {
                 client.reject(error, messageHash);
+                return true;
             }
             else {
                 throw error;
@@ -1530,4 +1533,4 @@ class cex extends cex$1 {
     }
 }
 
-module.exports = cex;
+exports["default"] = cex;

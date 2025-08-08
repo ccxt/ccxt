@@ -1,6 +1,6 @@
 import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
     describe(): any;
     /**
@@ -176,7 +176,7 @@ export default class hyperliquid extends hyperliquidRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;

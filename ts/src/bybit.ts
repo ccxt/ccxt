@@ -6168,10 +6168,15 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let accountType = undefined;
+        const accounts = await this.isUnifiedEnabled ();
+        const isUta = accounts[1];
         [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'SPOT');
+        if (isUta) {
+            accountType = 'UTA';
+        }
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
@@ -8391,7 +8396,7 @@ export default class bybit extends Exchange {
             }
             symbol = market['symbol'];
         }
-        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 40 }, params));
+        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 50 }, params));
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }

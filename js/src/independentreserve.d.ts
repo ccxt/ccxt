@@ -158,7 +158,7 @@ export default class independentreserve extends Exchange {
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

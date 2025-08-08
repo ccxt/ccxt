@@ -1,5 +1,5 @@
 import gateRest from '../gate.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
@@ -331,10 +331,10 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleUnSubscribe(client: Client, message: any): void;

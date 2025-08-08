@@ -485,7 +485,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     array( $error => "Bearer or HMAC authentication required" )
         //     array( $error => "Error => wrong input" )

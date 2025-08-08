@@ -3799,7 +3799,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -4704,9 +4704,6 @@ export default class bitmart extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
         this.checkRequiredArgument ('setLeverage', marginMode, 'marginMode', [ 'isolated', 'cross' ]);

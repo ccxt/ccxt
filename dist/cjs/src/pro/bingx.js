@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bingx extends bingx$1 {
+class bingx extends bingx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1564,4 +1566,4 @@ class bingx extends bingx$1 {
     }
 }
 
-module.exports = bingx;
+exports["default"] = bingx;

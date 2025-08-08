@@ -2330,7 +2330,7 @@ class modetrade(Exchange, ImplicitAPI):
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2460,7 +2460,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

@@ -1176,7 +1176,7 @@ class testMainClass {
             'uid' => 'uid',
             'token' => 'token',
             'login' => 'login',
-            'accountId' => 'accountId',
+            'accountId' => '12345',
             'accounts' => [array(
     'id' => 'myAccount',
     'code' => 'USDT',

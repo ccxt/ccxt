@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
  * @class kucoinfutures
  * @augments Exchange
  */
-class kucoinfutures extends kucoinfutures$1 {
+class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoinfutures',
@@ -3376,4 +3378,4 @@ class kucoinfutures extends kucoinfutures$1 {
     }
 }
 
-module.exports = kucoinfutures;
+exports["default"] = kucoinfutures;

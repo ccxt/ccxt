@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var poloniex$1 = require('./abstract/poloniex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class poloniex
  * @augments Exchange
  */
-class poloniex extends poloniex$1 {
+class poloniex extends poloniex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'poloniex',
@@ -3677,4 +3679,4 @@ class poloniex extends poloniex$1 {
     }
 }
 
-module.exports = poloniex;
+exports["default"] = poloniex;

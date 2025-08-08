@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var phemex$1 = require('./abstract/phemex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class phemex
  * @augments Exchange
  */
-class phemex extends phemex$1 {
+class phemex extends phemex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'phemex',
@@ -5329,4 +5331,4 @@ class phemex extends phemex$1 {
     }
 }
 
-module.exports = phemex;
+exports["default"] = phemex;

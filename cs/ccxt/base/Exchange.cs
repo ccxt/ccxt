@@ -210,7 +210,7 @@ public partial class Exchange
         {
             if (key.ToLower() != "content-type")
             {
-                request.Headers.Add(key, headers[key].ToString());
+                request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
             else
             {
@@ -315,7 +315,12 @@ public partial class Exchange
         var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
-        var httpStatusCode = (int)response?.StatusCode;
+        var statusCode = -1;
+        if (response != null)
+        {
+            statusCode = (int)response.StatusCode;
+        }
+        var httpStatusCode = statusCode;
         var httpStatusText = response?.ReasonPhrase;
 
         if (this.verbose)

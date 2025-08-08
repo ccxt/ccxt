@@ -430,6 +430,7 @@ public partial class cryptocom : Exchange
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "219", typeof(InvalidOrder) },
+                    { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
                     { "325", typeof(InvalidOrder) },
                     { "415", typeof(InvalidOrder) },
@@ -1171,7 +1172,7 @@ public partial class cryptocom : Exchange
         };
         if (isTrue(limit))
         {
-            ((IDictionary<string,object>)request)["depth"] = limit;
+            ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // max 50
         }
         object response = await this.v1PublicGetPublicGetBook(this.extend(request, parameters));
         //

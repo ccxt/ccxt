@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('../errors.js');
 var browser = require('../../static_dependencies/fflake/browser.js');
 var Future = require('./Future.js');
@@ -304,4 +306,4 @@ class Client {
     }
 }
 
-module.exports = Client;
+exports["default"] = Client;

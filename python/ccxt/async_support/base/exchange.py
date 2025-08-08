@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.96'
+__version__ = '4.4.99'
 
 # -----------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ class Exchange(BaseExchange):
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
                 self.open()  # ensure `asyncio_loop` is set
-                proxy_session = self.get_socks_proxy_session(socksProxy)
+            proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -742,13 +742,13 @@ class Exchange(BaseExchange):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     async def fetch_leverage(self, symbol: str, params={}):
@@ -797,7 +797,7 @@ class Exchange(BaseExchange):
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchDepositAddressesByNetwork() is not supported yet')
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
@@ -1182,7 +1182,7 @@ class Exchange(BaseExchange):
     async def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -1204,7 +1204,7 @@ class Exchange(BaseExchange):
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
 
-    async def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -1226,7 +1226,7 @@ class Exchange(BaseExchange):
             return await self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrderWs() is not supported yet')
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -1248,7 +1248,7 @@ class Exchange(BaseExchange):
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
 
-    async def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    async def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -1815,7 +1815,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchFundingInterval() is not supported yet')
 
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_mark_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

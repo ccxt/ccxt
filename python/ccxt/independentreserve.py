@@ -922,7 +922,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'Tag'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
