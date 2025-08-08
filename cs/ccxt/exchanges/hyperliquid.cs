@@ -2829,6 +2829,10 @@ public partial class hyperliquid : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
@@ -2837,6 +2841,14 @@ public partial class hyperliquid : Exchange
             { "rejected", "rejected" },
             { "marginCanceled", "canceled" },
         };
+        if (isTrue(((string)status).EndsWith(((string)"Rejected"))))
+        {
+            return "rejected";
+        }
+        if (isTrue(((string)status).EndsWith(((string)"Canceled"))))
+        {
+            return "canceled";
+        }
         return this.safeString(statuses, status, status);
     }
 
