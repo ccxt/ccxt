@@ -2589,6 +2589,9 @@ class hyperliquid extends Exchange {
     }
 
     public function parse_order_status(?string $status) {
+        if ($status === null) {
+            return null;
+        }
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
@@ -2597,6 +2600,12 @@ class hyperliquid extends Exchange {
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
         );
+        if (str_ends_with($status, 'Rejected')) {
+            return 'rejected';
+        }
+        if (str_ends_with($status, 'Canceled')) {
+            return 'canceled';
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
