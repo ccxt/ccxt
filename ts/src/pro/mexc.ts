@@ -44,7 +44,7 @@ export default class mexc extends mexcRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://wbs.mexc.com/ws',
+                        'spot': 'wss://wbs-api.mexc.com/ws',
                         'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
@@ -889,7 +889,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'trades:' + symbol;
         let trades = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.deals.v3.api@' + market['id'];
+            const channel = 'spot@public.deals.v3.api.pb@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.deal';

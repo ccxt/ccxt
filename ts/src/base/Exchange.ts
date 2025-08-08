@@ -808,15 +808,15 @@ export default class Exchange {
     }
 
     getHttpAgentIfNeeded (url) {
-        if (isNode) {
-            // only for non-ssl proxy
-            if (url.substring(0, 5) === 'ws://') {
-                if (this.httpAgent === undefined) {
-                    throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
-                }
-                return this.httpAgent;
-            }
-        }
+        // if (isNode) {
+        //     // only for non-ssl proxy
+        //     if (url.substring(0, 5) === 'ws://') {
+        //         if (this.httpAgent === undefined) {
+        //             throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+        //         }
+        //         return this.httpAgent;
+        //     }
+        // }
         return undefined;
     }
 
