@@ -2572,6 +2572,9 @@ export default class hyperliquid extends Exchange {
         }, market);
     }
     parseOrderStatus(status) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2580,6 +2583,12 @@ export default class hyperliquid extends Exchange {
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         };
+        if (status.endsWith('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith('Canceled')) {
+            return 'canceled';
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {

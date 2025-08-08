@@ -2571,6 +2571,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }, market);
     }
     parseOrderStatus(status) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2579,6 +2582,12 @@ class hyperliquid extends hyperliquid$1["default"] {
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         };
+        if (status.endsWith('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith('Canceled')) {
+            return 'canceled';
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
