@@ -3372,7 +3372,7 @@ export default class poloniex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString (entry, 'symbol');
-            marginMode = this.safeString (entry, 'mgnMode');
+            marginMode = this.safeStringLower (entry, 'mgnMode');
             const lever = this.safeInteger (entry, 'lever');
             const posSide = this.safeString (entry, 'posSide');
             if (posSide === 'LONG') {

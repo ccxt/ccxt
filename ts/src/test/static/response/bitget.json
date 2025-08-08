@@ -7587,10 +7587,16 @@
                     "data": "success"
                 },
                 "parsedResponse": {
-                    "code": "00000",
-                    "msg": "success",
-                    "requestTime": "1752815940833",
-                    "data": "success"
+                    "info":{
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1752815940833",
+                        "data": "success"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated",
+                    "longLeverage": null,
+                    "shortLeverage": null
                 }
             }
         ],
