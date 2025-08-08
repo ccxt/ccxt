@@ -1083,7 +1083,7 @@
                         ]
                     },
                     "symbol": "BTC/USDT:USDT",
-                    "marginMode": "CROSS",
+                    "marginMode": "cross",
                     "longLeverage": 20,
                     "shortLeverage": 20
                 }
@@ -1101,25 +1101,17 @@
                     }
                 ],
                 "httpResponse": {
-                    "code": 200,
-                    "msg": "Success",
-                    "data": {
+                    "symbol": "BTC_USDT_PERP",
+                    "lever": 20,
+                    "mgnMode": "CROSS",
+                    "posSide": ""
+                },
+                "parsedResponse": {
+                    "info":{
                         "symbol": "BTC_USDT_PERP",
                         "lever": 20,
                         "mgnMode": "CROSS",
                         "posSide": ""
-                    }
-                },
-                "parsedResponse": {
-                    "info":{
-                        "code": 200,
-                        "msg": "Success",
-                        "data": {
-                            "symbol": "BTC_USDT_PERP",
-                            "lever": 20,
-                            "mgnMode": "CROSS",
-                            "posSide": ""
-                        }
                     },
                     "symbol": "BTC/USDT:USDT",
                     "marginMode": "cross",
