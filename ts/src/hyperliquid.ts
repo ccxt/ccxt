@@ -2611,6 +2611,9 @@ export default class hyperliquid extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2619,6 +2622,12 @@ export default class hyperliquid extends Exchange {
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         };
+        if (status.endsWith ('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith ('Canceled')) {
+            return 'canceled';
+        }
         return this.safeString (statuses, status, status);
     }
 
