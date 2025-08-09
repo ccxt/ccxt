@@ -80,7 +80,7 @@ func (this *foxbit) Describe() interface{} {
 			"1M":  "1M",
 		},
 		"urls": map[string]interface{}{
-			"logo": "https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3",
+			"logo": "https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd",
 			"api": map[string]interface{}{
 				"public":  "https://api.foxbit.com.br",
 				"private": "https://api.foxbit.com.br",
@@ -2205,7 +2205,7 @@ func (this *foxbit) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"percentage":    this.SafeString(rolling_24h, "price_change_percent"),
 		"average":       nil,
 		"baseVolume":    this.SafeString(rolling_24h, "volume"),
-		"quoteVolume":   nil,
+		"quoteVolume":   this.SafeString(rolling_24h, "quote_volume"),
 		"info":          ticker,
 	}, market)
 }
