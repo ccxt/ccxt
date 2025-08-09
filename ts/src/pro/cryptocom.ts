@@ -120,8 +120,10 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols (symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
-            limit = 50;
+        if (limit === undefined) {
+            limit = 50; // max
+        } else {
+            limit = this.findNearestCeiling ([ 10, 50 ], limit);
         }
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
@@ -131,13 +133,16 @@ export default class cryptocom extends cryptocomRest {
         let bookSubscriptionType2 = undefined;
         [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        params['params']['book_subscription_type'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
         let bookUpdateFrequency2 = undefined;
         [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
         [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            if ((bookSubscriptionType === 'SNAPSHOT' && bookUpdateFrequency2 !== 500) || (bookSubscriptionType === 'SNAPSHOT_AND_UPDATE' && !this.inArray (bookUpdateFrequency2, [ 10, 100 ]))) {
+                throw new ExchangeError (this.id + ' watchOrderBookForSymbols(): bookUpdateFrequency must be 500 for SNAPSHOT subscription, but for SNAPSHOT_AND_UPDATE subscription - 10 or 100');
+            }
+            params['params']['book_update_frequency'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
