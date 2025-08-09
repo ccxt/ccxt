@@ -808,7 +808,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?clientOid=myid1",
                 "input": [
-                    null,
+                    "",
                     "LTC/USDT",
                     {
                         "clientOid": "myid1"
