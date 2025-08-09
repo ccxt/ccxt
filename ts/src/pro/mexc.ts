@@ -96,14 +96,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
         if (market['spot']) {
-            let miniTicker = false;
-            [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            let channel = undefined;
-            if (miniTicker) {
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
-            } else {
-                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
-            }
+            const channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.ticker';
@@ -183,9 +176,9 @@ export default class mexc extends mexcRest {
         //     }
         //
         this.handleBidAsk (client, message);
-        const rawTicker = this.safeDict2 (message, 'd', 'data');
+        const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
-        const timestamp = this.safeInteger (message, 't');
+        const timestamp = this.safeInteger2 (message, 't', 'sendtime');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let ticker = undefined;
@@ -358,6 +351,11 @@ export default class mexc extends mexcRest {
     }
 
     parseWsTicker (ticker, market = undefined) {
+        // protobuf ticker
+        // "bidprice": "93387.28",  // Best bid price
+        // "bidquantity": "3.73485", // Best bid quantity
+        // "askprice": "93387.29", // Best ask price
+        // "askquantity": "7.669875" // Best ask quantity
         //
         // spot
         //
@@ -398,10 +396,10 @@ export default class mexc extends mexcRest {
             'low': this.safeNumber (ticker, 'l'),
             'close': price,
             'last': price,
-            'bid': this.safeNumber (ticker, 'b'),
-            'bidVolume': this.safeNumber (ticker, 'B'),
-            'ask': this.safeNumber (ticker, 'a'),
-            'askVolume': this.safeNumber (ticker, 'A'),
+            'bid': this.safeNumber2 (ticker, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2 (ticker, 'B', 'bidQuantity'),
+            'ask': this.safeNumber2 (ticker, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2 (ticker, 'A', 'askQuantity'),
             'vwap': undefined,
             'previousClose': undefined,
             'change': undefined,
@@ -748,6 +746,7 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -757,7 +756,9 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            let frequency = undefined;
+            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
@@ -841,8 +842,31 @@ export default class mexc extends mexcRest {
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
+        // protofbuf
+        // {
+        //      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
+        //      "symbol":"BTCUSDT",
+        //      "sendTime":"1754741322152",
+        //      "publicAggreDepths":{
+        //          "asks":[
+        //              {
+        //                  "price":"117145.49",
+        //                  "quantity":"0"
+        //              }
+        //          ],
+        //          "bids":[
+        //              {
+        //                  "price":"117053.41",
+        //                  "quantity":"1.86837271"
+        //              }
+        //          ],
+        //          "eventType":"spot@public.aggre.depth.v3.api.pb@100ms",
+        //          "fromVersion":"43296363236",
+        //          "toVersion":"43296363255"
+        //      }
+        // }
         //
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
@@ -864,9 +888,10 @@ export default class mexc extends mexcRest {
         }
         try {
             this.handleDelta (storedOrderBook, data);
-            const timestamp = this.safeInteger2 (message, 't', 'ts');
+            const timestamp = this.safeIntegerN (message, [ 't', 'ts', 'sendTime' ]);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            storedOrderBook['nonce'] = this.safeInteger (message, 'toVersion');
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
@@ -886,8 +911,8 @@ export default class mexc extends mexcRest {
             if (Array.isArray (bidask)) {
                 bookside.storeArray (bidask);
             } else {
-                const price = this.safeFloat (bidask, 'p');
-                const amount = this.safeFloat (bidask, 'v');
+                const price = this.safeFloat2 (bidask, 'p', 'price');
+                const amount = this.safeFloat2 (bidask, 'v', 'quantity');
                 bookside.store (price, amount);
             }
         }
@@ -1511,13 +1536,7 @@ export default class mexc extends mexcRest {
         let url = undefined;
         let channel = undefined;
         if (market['spot']) {
-            let miniTicker = false;
-            [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            if (miniTicker) {
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
-            } else {
-                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
-            }
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
             await this.watchSpotPublic (channel, messageHash, params);
@@ -1841,6 +1860,7 @@ export default class mexc extends mexcRest {
             const channel = this.safeString (parts, 1);
             const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
+                'public.aggre.depth.v3.api.pb': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
@@ -1875,6 +1895,10 @@ export default class mexc extends mexcRest {
             this.handleOHLCV (client, message);
         } else if (channelId === 'public.aggre.deals.v3.api.pb') {
             this.handleTrades (client, message);
+        } else if (channelId === 'public.aggre.bookTicker.v3.api.pb') {
+            this.handleTicker (client, message);
+        } else if (channelId === 'public.aggre.depth.v3.api.pb') {
+            this.handleOrderBook (client, message);
         }
         return true;
     }
