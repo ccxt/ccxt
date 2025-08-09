@@ -44,7 +44,7 @@ export default class mexc extends mexcRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://wbs.mexc.com/ws',
+                        'spot': 'wss://wbs-api.mexc.com/ws',
                         'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
@@ -96,14 +96,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
         if (market['spot']) {
-            let miniTicker = false;
-            [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            let channel = undefined;
-            if (miniTicker) {
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
-            } else {
-                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
-            }
+            const channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.ticker';
@@ -183,9 +176,9 @@ export default class mexc extends mexcRest {
         //     }
         //
         this.handleBidAsk (client, message);
-        const rawTicker = this.safeDict2 (message, 'd', 'data');
+        const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
-        const timestamp = this.safeInteger (message, 't');
+        const timestamp = this.safeInteger2 (message, 't', 'sendtime');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let ticker = undefined;
@@ -358,6 +351,11 @@ export default class mexc extends mexcRest {
     }
 
     parseWsTicker (ticker, market = undefined) {
+        // protobuf ticker
+        // "bidprice": "93387.28",  // Best bid price
+        // "bidquantity": "3.73485", // Best bid quantity
+        // "askprice": "93387.29", // Best ask price
+        // "askquantity": "7.669875" // Best ask quantity
         //
         // spot
         //
@@ -398,10 +396,10 @@ export default class mexc extends mexcRest {
             'low': this.safeNumber (ticker, 'l'),
             'close': price,
             'last': price,
-            'bid': this.safeNumber (ticker, 'b'),
-            'bidVolume': this.safeNumber (ticker, 'B'),
-            'ask': this.safeNumber (ticker, 'a'),
-            'askVolume': this.safeNumber (ticker, 'A'),
+            'bid': this.safeNumber2 (ticker, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2 (ticker, 'B', 'bidQuantity'),
+            'ask': this.safeNumber2 (ticker, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2 (ticker, 'A', 'askQuantity'),
             'vwap': undefined,
             'previousClose': undefined,
             'change': undefined,
@@ -572,7 +570,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         let ohlcv = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
+            const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.kline';
@@ -634,17 +632,46 @@ export default class mexc extends mexcRest {
         //       "symbol": "BTC_USDT",
         //       "ts": 1651230713067
         //   }
+        // protobuf
+        //  {
+        //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        //    "symbol":"BTCUSDT",
+        //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        //    "createTime":"1754737941062",
+        //    "publicSpotKline":{
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
+        //    }
+        // }
         //
-        const d = this.safeValue2 (message, 'd', 'data', {});
-        const rawOhlcv = this.safeValue (d, 'k', d);
-        const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const timeframe = this.findTimeframe (timeframeId, timeframes);
-        const marketId = this.safeString2 (message, 's', 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        let parsed: Dict = undefined;
+        let symbol: Str = undefined;
+        let timeframe: Str = undefined;
+        if ('publicSpotKline' in message) {
+            symbol = this.symbol (this.safeString (message, 'symbol'));
+            const data = this.safeDict (message, 'publicSpotKline', {});
+            const timeframeId = this.safeString (data, 'interval');
+            timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
+            parsed = this.parseWsOHLCV (data, this.safeMarket (symbol));
+        } else {
+            const d = this.safeValue2 (message, 'd', 'data', {});
+            const rawOhlcv = this.safeValue (d, 'k', d);
+            const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
+            const timeframes = this.safeValue (this.options, 'timeframes', {});
+            timeframe = this.findTimeframe (timeframeId, timeframes);
+            const marketId = this.safeString2 (message, 's', 'symbol');
+            const market = this.safeMarket (marketId);
+            symbol = market['symbol'];
+            parsed = this.parseWsOHLCV (rawOhlcv, market);
+        }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const parsed = this.parseWsOHLCV (rawOhlcv, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -688,14 +715,25 @@ export default class mexc extends mexcRest {
         //       "rh": 27301.8,
         //       "rl": 27301.8
         //     }
+        // protobuf
+        //
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
         //
         return [
-            this.safeTimestamp (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber2 (ohlcv, 'v', 'q'),
+            this.safeTimestamp2 (ohlcv, 't', 'windowStart'),
+            this.safeNumber2 (ohlcv, 'o', 'openingPrice'),
+            this.safeNumber2 (ohlcv, 'h', 'highestPrice'),
+            this.safeNumber2 (ohlcv, 'l', 'lowestPrice'),
+            this.safeNumber2 (ohlcv, 'c', 'closingPrice'),
+            this.safeNumber2 (ohlcv, 'v', 'volume'),
         ];
     }
 
@@ -708,6 +746,7 @@ export default class mexc extends mexcRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -717,7 +756,9 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            let frequency = undefined;
+            [ frequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'frequency', '100ms');
+            const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
@@ -801,8 +842,31 @@ export default class mexc extends mexcRest {
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
+        // protofbuf
+        // {
+        //      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
+        //      "symbol":"BTCUSDT",
+        //      "sendTime":"1754741322152",
+        //      "publicAggreDepths":{
+        //          "asks":[
+        //              {
+        //                  "price":"117145.49",
+        //                  "quantity":"0"
+        //              }
+        //          ],
+        //          "bids":[
+        //              {
+        //                  "price":"117053.41",
+        //                  "quantity":"1.86837271"
+        //              }
+        //          ],
+        //          "eventType":"spot@public.aggre.depth.v3.api.pb@100ms",
+        //          "fromVersion":"43296363236",
+        //          "toVersion":"43296363255"
+        //      }
+        // }
         //
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'publicAggreDepths' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
@@ -824,9 +888,10 @@ export default class mexc extends mexcRest {
         }
         try {
             this.handleDelta (storedOrderBook, data);
-            const timestamp = this.safeInteger2 (message, 't', 'ts');
+            const timestamp = this.safeIntegerN (message, [ 't', 'ts', 'sendTime' ]);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            storedOrderBook['nonce'] = this.safeInteger (message, 'toVersion');
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
@@ -846,8 +911,8 @@ export default class mexc extends mexcRest {
             if (Array.isArray (bidask)) {
                 bookside.storeArray (bidask);
             } else {
-                const price = this.safeFloat (bidask, 'p');
-                const amount = this.safeFloat (bidask, 'v');
+                const price = this.safeFloat2 (bidask, 'p', 'price');
+                const amount = this.safeFloat2 (bidask, 'v', 'quantity');
                 bookside.store (price, amount);
             }
         }
@@ -889,7 +954,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'trades:' + symbol;
         let trades = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.deals.v3.api@' + market['id'];
+            const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.deal';
@@ -905,6 +970,23 @@ export default class mexc extends mexcRest {
     }
 
     handleTrades (client: Client, message) {
+        // protobuf
+        // {
+        // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
+        // "publicdeals": {
+        //     "dealsList": [
+        //     {
+        //         "price": "93220.00", // Trade price
+        //         "quantity": "0.04438243", // Trade quantity
+        //         "tradetype": 2, // Trade type (1: Buy, 2: Sell)
+        //         "time": 1736409765051 // Trade time
+        //     }
+        //     ],
+        //     "eventtype": "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
+        // },
+        // "symbol": "BTCUSDT", // Trading pair
+        // "sendtime": 1736409765052 // Event time
+        // }
         //
         //    {
         //        "c": "spot@public.deals.v3.api@BTCUSDT",
@@ -946,8 +1028,8 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeValue2 (message, 'd', 'data');
-        const trades = this.safeValue (d, 'deals', [ d ]);
+        const d = this.safeDictN (message, [ 'd', 'data', 'publicdeals' ]);
+        const trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
             if (market['spot']) {
@@ -985,7 +1067,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades = undefined;
         if (type === 'spot') {
-            const channel = 'spot@private.deals.v3.api';
+            const channel = 'spot@private.deals.v3.api.pb';
             trades = await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             trades = await this.watchSwapPrivate (messageHash, params);
@@ -1014,11 +1096,27 @@ export default class mexc extends mexcRest {
         //        "s": "BTCUSDT",
         //        "t": 1678670940700
         //    }
+        //    {
+        //      channel: "spot@private.deals.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034332,
+        //      privateDeals {
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
+        //      }
+        // }
         //
         const messageHash = 'myTrades';
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateDeals' ]);
         const futuresMarketId = this.safeString (data, 'symbol');
-        const marketId = this.safeString (message, 's', futuresMarketId);
+        const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let trade = undefined;
@@ -1041,7 +1139,7 @@ export default class mexc extends mexcRest {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // public trade
+        // public trade (protobuf)
         //    {
         //        "p": "20382.70",
         //        "v": "0.043800",
@@ -1061,7 +1159,6 @@ export default class mexc extends mexcRest {
         //        "v": "5"
         //    }
         //
-        //
         //   d: {
         //       p: '1.0005',
         //       v: '5.71',
@@ -1076,15 +1173,29 @@ export default class mexc extends mexcRest {
         //       n: '0.005712855',
         //       N: 'USDT'
         //   }
-        let timestamp = this.safeInteger (trade, 'T');
-        let tradeId = this.safeString (trade, 't');
+        // protobuf
+        //
+        //     {
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
+        //      }
+        //
+        let timestamp = this.safeInteger2 (trade, 'T', 'time');
+        let tradeId = this.safeString2 (trade, 't', 'tradeId');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 't');
             tradeId = undefined;
         }
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 'v');
-        const rawSide = this.safeString (trade, 'S');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'v', 'quantity');
+        const rawSide = this.safeString2 (trade, 'S', 'tradeType');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
         const feeAmount = this.safeNumber (trade, 'n');
@@ -1092,7 +1203,7 @@ export default class mexc extends mexcRest {
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
-            'order': this.safeString (trade, 'i'),
+            'order': this.safeString2 (trade, 'i', 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (undefined, market),
@@ -1101,7 +1212,7 @@ export default class mexc extends mexcRest {
             'takerOrMaker': (isMaker) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': this.safeString (trade, 'amount'),
             'fee': {
                 'cost': feeAmount,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1135,7 +1246,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders = undefined;
         if (type === 'spot') {
-            const channel = type + '@private.orders.v3.api';
+            const channel = 'spot@private.orders.v3.api.pb';
             orders = await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             orders = await this.watchSwapPrivate (messageHash, params);
@@ -1211,9 +1322,16 @@ export default class mexc extends mexcRest {
         //        "s": "MXUSDT",
         //        "t":1661938138193
         //    }
+        // protobuf
+        //   {
+        //      channel: "spot@private.orders.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034281,
+        //      privateOrders {}
+        //   }
         //
         const messageHash = 'orders';
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateOrders' ]);
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString (message, 's', futuresMarketId);
         const market = this.safeMarket (marketId);
@@ -1377,7 +1495,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         if (type === 'spot') {
-            const channel = 'spot@private.account.v3.api';
+            const channel = 'spot@private.account.v3.api.pb';
             return await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             return await this.watchSwapPrivate (messageHash, params);
@@ -1453,13 +1571,7 @@ export default class mexc extends mexcRest {
         let url = undefined;
         let channel = undefined;
         if (market['spot']) {
-            let miniTicker = false;
-            [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTicker', 'miniTicker');
-            if (miniTicker) {
-                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8';
-            } else {
-                channel = 'spot@public.bookTicker.v3.api@' + market['id'];
-            }
+            channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
             await this.watchSpotPublic (channel, messageHash, params);
@@ -1783,6 +1895,7 @@ export default class mexc extends mexcRest {
             const channel = this.safeString (parts, 1);
             const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
+                'public.aggre.depth.v3.api.pb': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
@@ -1791,12 +1904,57 @@ export default class mexc extends mexcRest {
         }
     }
 
+    handleProtobufMessage (client: Client, message) {
+        // protobuf message decoded
+        //  {
+        //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        //    "symbol":"BTCUSDT",
+        //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        //    "createTime":"1754737941062",
+        //    "publicSpotKline":{
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
+        //    }
+        // }
+        const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('@');
+        const channelId = this.safeString (channelParts, 1);
+        if (channelId === 'public.kline.v3.api.pb') {
+            this.handleOHLCV (client, message);
+        } else if (channelId === 'public.aggre.deals.v3.api.pb') {
+            this.handleTrades (client, message);
+        } else if (channelId === 'public.aggre.bookTicker.v3.api.pb') {
+            this.handleTicker (client, message);
+        } else if (channelId === 'public.aggre.depth.v3.api.pb') {
+            this.handleOrderBook (client, message);
+        } else if (channelId === 'private.account.v3.api.pb') {
+            this.handleBalance (client, message);
+        } else if (channelId === 'private.deals.v3.api.pb') {
+            this.handleMyTrade (client, message);
+        } else if (channelId === 'private.orders.v3.api.pb') {
+            this.handleOrder (client, message);
+        }
+        return true;
+    }
+
     handleMessage (client: Client, message) {
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
                 const error = new AuthenticationError (this.id + ' invalid listen key');
                 client.reject (error);
             }
+            return;
+        }
+        if (this.isBinaryMessage (message)) {
+            message = this.decodeProtoMsg (message);
+            this.handleProtobufMessage (client, message);
             return;
         }
         if ('msg' in message) {

@@ -346,11 +346,12 @@ export default class Client {
                 }
                 message = utf8.encode (arrayBuffer)
             } else {
-                message = message.toString ()
+                // message = message.toString ()
             }
         }
         try {
             if (isJsonEncodedObject (message)) {
+                message = message.toString ()
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
             if (this.verbose) {
