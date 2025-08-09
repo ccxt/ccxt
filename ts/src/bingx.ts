@@ -557,7 +557,9 @@ export default class bingx extends Exchange {
                 'networks': {
                     'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
-                    'LUNC': 'TERRA_CLASSIC'
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
