@@ -174,8 +174,7 @@ import Client from './ws/Client.js'
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
 
-import { fromBinary } from "@bufbuild/protobuf";
-import { PushDataV3ApiWrapperSchema } from '../protobuf/mexc/PushDataV3ApiWrapper_pb.js'
+import protobufMexc from '../protobuf/mexc/compiled.cjs'
 //-----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -825,16 +824,31 @@ export default class Exchange {
     }
 
     isBinaryMessage(msg) {
-        return data instanceof Uint8Array
+        return msg instanceof Uint8Array
     }
 
     decodeProtoMsg(data) {
         if (data instanceof Uint8Array) {
-            const message = fromBinary(PushDataV3ApiWrapperSchema, data);
-            const body = message.body;
-            const value = body.value;
-            console.log('decoded proto message', message);
-            return value;
+            const decoded = (protobufMexc as any).PushDataV3ApiWrapper.decode(data)
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
         }
         return data;
     }

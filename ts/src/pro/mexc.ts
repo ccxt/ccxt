@@ -929,7 +929,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'trades:' + symbol;
         let trades = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.deals.v3.api.pb@' + market['id'];
+            const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.deal';
@@ -945,6 +945,23 @@ export default class mexc extends mexcRest {
     }
 
     handleTrades (client: Client, message) {
+        // protobuf
+        // {
+        // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
+        // "publicdeals": {
+        //     "dealsList": [
+        //     {
+        //         "price": "93220.00", // Trade price
+        //         "quantity": "0.04438243", // Trade quantity
+        //         "tradetype": 2, // Trade type (1: Buy, 2: Sell)
+        //         "time": 1736409765051 // Trade time
+        //     }
+        //     ],
+        //     "eventtype": "spot@public.aggre.deals.v3.api.pb@100ms" // Event type
+        // },
+        // "symbol": "BTCUSDT", // Trading pair
+        // "sendtime": 1736409765052 // Event time
+        // }
         //
         //    {
         //        "c": "spot@public.deals.v3.api@BTCUSDT",
@@ -986,8 +1003,8 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeValue2 (message, 'd', 'data');
-        const trades = this.safeValue (d, 'deals', [ d ]);
+        const d = this.safeDictN (message, [ 'd', 'data', 'publicdeals' ]);
+        const trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
             if (market['spot']) {
@@ -1081,13 +1098,14 @@ export default class mexc extends mexcRest {
 
     parseWsTrade (trade, market = undefined) {
         //
-        // public trade
+        // public trade (protobuf)
         //    {
         //        "p": "20382.70",
         //        "v": "0.043800",
         //        "S": 1,
         //        "t": 1678593222456,
         //    }
+
         // private trade
         //    {
         //        "S": 1,
@@ -1855,6 +1873,8 @@ export default class mexc extends mexcRest {
         const channelId = this.safeString (channelParts, 1);
         if (channelId === 'public.kline.v3.api.pb') {
             this.handleOHLCV (client, message);
+        } else if (channelId === 'public.aggre.deals.v3.api.pb') {
+            this.handleTrades (client, message);
         }
         return true;
     }
