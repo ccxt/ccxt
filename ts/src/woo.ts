@@ -360,7 +360,7 @@ export default class woo extends Exchange {
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
                     'EOS': 'VAULTA',
-                    'ZKSYNC', 'ZK'
+                    'ZKSYNC', 'ZK',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
