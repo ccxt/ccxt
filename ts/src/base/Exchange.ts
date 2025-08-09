@@ -174,7 +174,12 @@ import Client from './ws/Client.js'
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
 
-import protobufMexc from '../protobuf/mexc/compiled.cjs'
+let protobufMexc = undefined;
+try {
+    protobufMexc = await import('../protobuf/mexc/compiled.cjs')
+} catch (e) {
+    // do nothing
+}
 //-----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -828,6 +833,9 @@ export default class Exchange {
     }
 
     decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new Error ('Mexc requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
         if (data instanceof Uint8Array) {
             const decoded = (protobufMexc as any).PushDataV3ApiWrapper.decode(data)
             const dict = decoded.toJSON();

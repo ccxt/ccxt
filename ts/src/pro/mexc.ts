@@ -1067,7 +1067,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let trades = undefined;
         if (type === 'spot') {
-            const channel = 'spot@private.deals.v3.api';
+            const channel = 'spot@private.deals.v3.api.pb';
             trades = await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             trades = await this.watchSwapPrivate (messageHash, params);
@@ -1096,11 +1096,27 @@ export default class mexc extends mexcRest {
         //        "s": "BTCUSDT",
         //        "t": 1678670940700
         //    }
+        //    {
+        //      channel: "spot@private.deals.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034332,
+        //      privateDeals {
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
+        //      }
+        // }
         //
         const messageHash = 'myTrades';
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateDeals' ]);
         const futuresMarketId = this.safeString (data, 'symbol');
-        const marketId = this.safeString (message, 's', futuresMarketId);
+        const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let trade = undefined;
@@ -1157,14 +1173,28 @@ export default class mexc extends mexcRest {
         //       n: '0.005712855',
         //       N: 'USDT'
         //   }
-        let timestamp = this.safeInteger (trade, 'T');
-        let tradeId = this.safeString (trade, 't');
+        // protobuf
+        //
+        //     {
+        //        price: "3.6962",
+        //        quantity: "1",
+        //        amount: "3.6962",
+        //        tradeType: 2,
+        //        tradeId: "505979017439002624X1",
+        //        orderId: "C02__505979017439002624115",
+        //        feeAmount: "0.0003998377369698171",
+        //        feeCurrency: "MX",
+        //        time: 1736417034280
+        //      }
+        //
+        let timestamp = this.safeInteger2 (trade, 'T', 'time');
+        let tradeId = this.safeString2 (trade, 't', 'tradeId');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 't');
             tradeId = undefined;
         }
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 'v');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'v', 'quantity');
         const rawSide = this.safeString (trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
@@ -1173,7 +1203,7 @@ export default class mexc extends mexcRest {
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
-            'order': this.safeString (trade, 'i'),
+            'order': this.safeString2 (trade, 'i', 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (undefined, market),
@@ -1182,7 +1212,7 @@ export default class mexc extends mexcRest {
             'takerOrMaker': (isMaker) ? 'maker' : 'taker',
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': this.safeString (trade, 'amount'),
             'fee': {
                 'cost': feeAmount,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1216,7 +1246,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let orders = undefined;
         if (type === 'spot') {
-            const channel = type + '@private.orders.v3.api';
+            const channel = 'spot@private.orders.v3.api.pb';
             orders = await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             orders = await this.watchSwapPrivate (messageHash, params);
@@ -1292,9 +1322,16 @@ export default class mexc extends mexcRest {
         //        "s": "MXUSDT",
         //        "t":1661938138193
         //    }
+        // protobuf
+        //   {
+        //      channel: "spot@private.orders.v3.api.pb",
+        //      symbol: "MXUSDT",
+        //      sendTime: 1736417034281,
+        //      privateOrders {}
+        //   }
         //
         const messageHash = 'orders';
-        const data = this.safeValue2 (message, 'd', 'data');
+        const data = this.safeDictN (message, [ 'd', 'data', 'privateOrders' ]);
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString (message, 's', futuresMarketId);
         const market = this.safeMarket (marketId);
@@ -1458,7 +1495,7 @@ export default class mexc extends mexcRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         if (type === 'spot') {
-            const channel = 'spot@private.account.v3.api';
+            const channel = 'spot@private.account.v3.api.pb';
             return await this.watchSpotPrivate (channel, messageHash, params);
         } else {
             return await this.watchSwapPrivate (messageHash, params);
@@ -1897,6 +1934,12 @@ export default class mexc extends mexcRest {
             this.handleTicker (client, message);
         } else if (channelId === 'public.aggre.depth.v3.api.pb') {
             this.handleOrderBook (client, message);
+        } else if (channelId === 'private.account.v3.api.pb') {
+            this.handleBalance (client, message);
+        } else if (channelId === 'private.deals.v3.api.pb') {
+            this.handleMyTrade (client, message);
+        } else if (channelId === 'private.orders.v3.api.pb') {
+            this.handleOrder (client, message);
         }
         return true;
     }
