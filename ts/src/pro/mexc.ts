@@ -1195,7 +1195,7 @@ export default class mexc extends mexcRest {
         }
         const priceString = this.safeString2 (trade, 'p', 'price');
         const amountString = this.safeString2 (trade, 'v', 'quantity');
-        const rawSide = this.safeString (trade, 'S');
+        const rawSide = this.safeString2 (trade, 'S', 'tradeType');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
         const feeAmount = this.safeNumber (trade, 'n');
