@@ -634,17 +634,46 @@ export default class mexc extends mexcRest {
         //       "symbol": "BTC_USDT",
         //       "ts": 1651230713067
         //   }
+        // protobuf
+        //  {
+        //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        //    "symbol":"BTCUSDT",
+        //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        //    "createTime":"1754737941062",
+        //    "publicSpotKline":{
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
+        //    }
+        // }
         //
-        const d = this.safeValue2 (message, 'd', 'data', {});
-        const rawOhlcv = this.safeValue (d, 'k', d);
-        const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const timeframe = this.findTimeframe (timeframeId, timeframes);
-        const marketId = this.safeString2 (message, 's', 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        let parsed: Dict = undefined;
+        let symbol: Str = undefined;
+        let timeframe: Str = undefined;
+        if ('publicSpotKline' in message) {
+            symbol = this.symbol (this.safeString (message, 'symbol'));
+            const data = this.safeDict (message, 'publicSpotKline', {});
+            const timeframeId = this.safeString (data, 'interval');
+            timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
+            parsed = this.parseWsOHLCV (data, this.safeMarket (symbol));
+        } else {
+            const d = this.safeValue2 (message, 'd', 'data', {});
+            const rawOhlcv = this.safeValue (d, 'k', d);
+            const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
+            const timeframes = this.safeValue (this.options, 'timeframes', {});
+            timeframe = this.findTimeframe (timeframeId, timeframes);
+            const marketId = this.safeString2 (message, 's', 'symbol');
+            const market = this.safeMarket (marketId);
+            symbol = market['symbol'];
+            parsed = this.parseWsOHLCV (rawOhlcv, market);
+        }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const parsed = this.parseWsOHLCV (rawOhlcv, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -688,14 +717,25 @@ export default class mexc extends mexcRest {
         //       "rh": 27301.8,
         //       "rl": 27301.8
         //     }
+        // protobuf
+        //
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
         //
         return [
-            this.safeTimestamp (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber2 (ohlcv, 'v', 'q'),
+            this.safeTimestamp2 (ohlcv, 't', 'windowStart'),
+            this.safeNumber2 (ohlcv, 'o', 'openingPrice'),
+            this.safeNumber2 (ohlcv, 'h', 'highestPrice'),
+            this.safeNumber2 (ohlcv, 'l', 'lowestPrice'),
+            this.safeNumber2 (ohlcv, 'c', 'closingPrice'),
+            this.safeNumber2 (ohlcv, 'v', 'volume'),
         ];
     }
 
@@ -1791,6 +1831,34 @@ export default class mexc extends mexcRest {
         }
     }
 
+    handleProtobufMessage (client: Client, message) {
+        // protobuf message decoded
+        //  {
+        //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        //    "symbol":"BTCUSDT",
+        //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        //    "createTime":"1754737941062",
+        //    "publicSpotKline":{
+        //       "interval":"Min1",
+        //       "windowStart":"1754737920",
+        //       "openingPrice":"117317.31",
+        //       "closingPrice":"117325.26",
+        //       "highestPrice":"117341",
+        //       "lowestPrice":"117317.3",
+        //       "volume":"3.12599854",
+        //       "amount":"366804.43",
+        //       "windowEnd":"1754737980"
+        //    }
+        // }
+        const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('@');
+        const channelId = this.safeString (channelParts, 1);
+        if (channelId === 'public.kline.v3.api.pb') {
+            this.handleOHLCV (client, message);
+        }
+        return true;
+    }
+
     handleMessage (client: Client, message) {
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
@@ -1801,6 +1869,8 @@ export default class mexc extends mexcRest {
         }
         if (this.isBinaryMessage (message)) {
             message = this.decodeProtoMsg (message);
+            this.handleProtobufMessage (client, message);
+            return;
         }
         if ('msg' in message) {
             this.handleSubscriptionStatus (client, message);
