@@ -22,7 +22,7 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-import PublicMiniTickerV3Api_pb2 as PublicMiniTickerV3Api__pb2
+from ccxt.protobuf.mexc import PublicMiniTickerV3Api_pb2 as PublicMiniTickerV3Api__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1cPublicMiniTickersV3Api.proto\x1a\x1bPublicMiniTickerV3Api.proto\"?\n\x16PublicMiniTickersV3Api\x12%\n\x05items\x18\x01 \x03(\x0b\x32\x16.PublicMiniTickerV3ApiB?\n\x1c\x63om.mxc.push.common.protobufB\x1bPublicMiniTickersV3ApiProtoH\x01P\x01\x62\x06proto3')

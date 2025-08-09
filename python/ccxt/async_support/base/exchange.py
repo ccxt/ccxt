@@ -54,6 +54,11 @@ __all__ = [
 ]
 
 # -----------------------------------------------------------------------------
+# --- PROTO BUF IMPORTS
+
+from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+
+# -----------------------------------------------------------------------------
 
 
 class Exchange(BaseExchange):
@@ -572,6 +577,29 @@ class Exchange(BaseExchange):
         if n == 0:
             return '0e-00'
         return format(n, 'g')
+
+    def protobuf_test(self):
+        item = PublicDealsV3Api_pb2.PublicDealsV3ApiItem(
+            price = "100.0",
+            quantity = "1.0",
+            tradeType = 1,
+            time = 1723111111,
+        )
+        original_msg = PublicDealsV3Api_pb2.PublicDealsV3Api(
+        deals=[item],
+        eventType="trade"
+        )
+        msg = PublicDealsV3Api_pb2.PublicDealsV3Api()
+        msg.ParseFromString(original_msg.SerializeToString())
+        print(msg)
+
+    def decode_proto_msg(self, data):
+        message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
+        decoded = message.ParseFromBinary(data)
+        print(decoded)
+        body = message.body
+        value = body.value
+        return value
 
     # ########################################################################
     # ########################################################################

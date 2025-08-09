@@ -173,6 +173,10 @@ import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
+
+import { fromBinary } from "@bufbuild/protobuf";
+import { PushDataV3ApiWrapperSchema } from '../protobuf/mexc/PushDataV3ApiWrapper_pb.js'
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -819,6 +823,22 @@ export default class Exchange {
         // }
         return undefined;
     }
+
+    isBinaryMessage(msg) {
+        return data instanceof Uint8Array
+    }
+
+    decodeProtoMsg(data) {
+        if (data instanceof Uint8Array) {
+            const message = fromBinary(PushDataV3ApiWrapperSchema, data);
+            const body = message.body;
+            const value = body.value;
+            console.log('decoded proto message', message);
+            return value;
+        }
+        return data;
+    }
+
 
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {

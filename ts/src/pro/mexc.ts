@@ -572,7 +572,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         let ohlcv = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
+            const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.kline';
@@ -1798,6 +1798,9 @@ export default class mexc extends mexcRest {
                 client.reject (error);
             }
             return;
+        }
+        if (this.isBinaryMessage (message)) {
+            message = this.decodeProtoMsg (message);
         }
         if ('msg' in message) {
             this.handleSubscriptionStatus (client, message);
