@@ -55,8 +55,12 @@ __all__ = [
 
 # -----------------------------------------------------------------------------
 # --- PROTO BUF IMPORTS
-
-from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+try:
+    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+    from google.protobuf.json_format import MessageToDict
+except ImportError:
+    PushDataV3ApiWrapper_pb2 = None
+    MessageToDict = None
 
 # -----------------------------------------------------------------------------
 
@@ -578,28 +582,28 @@ class Exchange(BaseExchange):
             return '0e-00'
         return format(n, 'g')
 
-    def protobuf_test(self):
-        item = PublicDealsV3Api_pb2.PublicDealsV3ApiItem(
-            price = "100.0",
-            quantity = "1.0",
-            tradeType = 1,
-            time = 1723111111,
-        )
-        original_msg = PublicDealsV3Api_pb2.PublicDealsV3Api(
-        deals=[item],
-        eventType="trade"
-        )
-        msg = PublicDealsV3Api_pb2.PublicDealsV3Api()
-        msg.ParseFromString(original_msg.SerializeToString())
-        print(msg)
-
     def decode_proto_msg(self, data):
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
-        decoded = message.ParseFromBinary(data)
-        print(decoded)
-        body = message.body
-        value = body.value
-        return value
+        message.ParseFromString(data)
+        dict_msg = MessageToDict(message)
+        # {
+        #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        #    "symbol":"BTCUSDT",
+        #    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        #    "createTime":"1754735110559",
+        #    "publicSpotKline":{
+        #       "interval":"Min1",
+        #       "windowStart":"1754735100",
+        #       "openingPrice":"117792.45",
+        #       "closingPrice":"117805.32",
+        #       "highestPrice":"117814.63",
+        #       "lowestPrice":"117792.45",
+        #       "volume":"0.13425465",
+        #       "amount":"15815.77",
+        #       "windowEnd":"1754735160"
+        #    }
+        # }
+        return dict_msg
 
     # ########################################################################
     # ########################################################################

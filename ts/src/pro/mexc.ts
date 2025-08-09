@@ -1130,7 +1130,6 @@ export default class mexc extends mexcRest {
         //        "S": 1,
         //        "t": 1678593222456,
         //    }
-
         // private trade
         //    {
         //        "S": 1,
@@ -1143,7 +1142,6 @@ export default class mexc extends mexcRest {
         //        "t": "4079b1522a0b40e7919f609e1ea38d44",
         //        "v": "5"
         //    }
-        //
         //
         //   d: {
         //       p: '1.0005',

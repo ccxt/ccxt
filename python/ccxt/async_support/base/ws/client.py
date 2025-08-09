@@ -218,7 +218,8 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
-            data = data.decode()
+            # data = data.decode()
+            pass # add decodeBinary option later
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
