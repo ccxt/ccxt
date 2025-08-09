@@ -8783,8 +8783,8 @@ export default class bitget extends Exchange {
             'info': leverage,
             'symbol': market['symbol'],
             'marginMode': isCrossMarginMode ? 'cross' : 'isolated',
-            'longLeverage': this.safeInteger (leverage, longLevKey),
-            'shortLeverage': this.safeInteger (leverage, shortLevKey),
+            'longLeverage': this.safeInteger2 (leverage, longLevKey, 'longLeverage'),
+            'shortLeverage': this.safeInteger2 (leverage, shortLevKey, 'shortLeverage'),
         } as Leverage;
     }
 
@@ -8800,9 +8800,9 @@ export default class bitget extends Exchange {
      * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -8836,6 +8836,7 @@ export default class bitget extends Exchange {
             //         "data": "success"
             //     }
             //
+            return this.parseLeverage (response, market);
         } else {
             request['marginCoin'] = market['settleId'];
             request['productType'] = productType;
@@ -8855,8 +8856,9 @@ export default class bitget extends Exchange {
             //         }
             //     }
             //
+            const data = this.safeDict (response, 'data', {});
+            return this.parseLeverage (data, market);
         }
-        return response;
     }
 
     /**
@@ -8867,9 +8869,9 @@ export default class bitget extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} response from the exchange
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=add-margin-mode-structure}
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<MarginMode> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -8905,7 +8907,8 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
     }
 
     /**

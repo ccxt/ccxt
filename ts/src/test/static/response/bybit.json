@@ -4695,6 +4695,39 @@
                     }
                 }
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set isolated leverage",
+                "method": "setLeverage",
+                "input": [
+                    15,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {},
+                    "retExtInfo": {},
+                    "time": "1754262269777"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {},
+                        "retExtInfo": {},
+                        "time": "1754262269777"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }
