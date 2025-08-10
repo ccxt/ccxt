@@ -1460,6 +1460,19 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"123abc\"}"
+            },
+            {
+                "description": "cancel linear swap order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-order",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc321"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"abc321\",\"productType\":\"USDT-FUTURES\"}"
             }
         ],
         "cancelOrders": [
