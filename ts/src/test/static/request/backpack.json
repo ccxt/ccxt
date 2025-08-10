@@ -1,0 +1,25 @@
+{
+    "exchange": "backpack",
+    "skipKeys": [ ],
+    "outputType": "json",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.backpack.exchange/api/v1/capital",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}
