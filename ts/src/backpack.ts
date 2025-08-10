@@ -1356,9 +1356,9 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name bybit#withdraw
+     * @name backpack#withdraw
      * @description make a withdrawal
-     * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
+     * @see https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -1374,6 +1374,9 @@ export default class backpack extends Exchange {
             'amount': this.numberToString (amount),
             'address': address,
         };
+        if (tag !== undefined) {
+            request['clientId'] = tag; // memo or tag
+        }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
         if (networkId === undefined) {
