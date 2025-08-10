@@ -6181,6 +6181,59 @@
                     "fees": [],
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "cancel uta linear swap order using the clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "123abc",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754804372555",
+                    "data": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    },
+                    "id": "1338311846888062976",
+                    "clientOrderId": "123abc",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "cancelAllOrders": [
