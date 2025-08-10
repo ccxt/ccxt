@@ -2058,6 +2058,7 @@ export default class paradex extends Exchange {
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,
+            'side': undefined,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
