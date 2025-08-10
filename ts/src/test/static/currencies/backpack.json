@@ -1,0 +1,124 @@
+{
+    "ETH": {
+        "info": {
+            "coingeckoId": "ethereum",
+            "displayName": "Ethereum",
+            "symbol": "ETH",
+            "tokens": [
+                {
+                    "blockchain": "Ethereum",
+                    "contractAddress": "0x0",
+                    "depositEnabled": true,
+                    "displayName": "Ethereum",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "0.00072",
+                    "minimumWithdrawal": "0.00144",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "0.00072"
+                }
+            ]
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": null,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00012,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "id": "Ethereum",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": { "min": 0.00144, "max": null },
+                    "deposit": { "min": 0.00072, "max": null }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00072,
+                "precision": null,
+                "info": {
+                    "blockchain": "Ethereum",
+                    "contractAddress": "0x0",
+                    "depositEnabled": true,
+                    "displayName": "Ethereum",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "0.00072",
+                    "minimumWithdrawal": "0.00144",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "0.00072"
+                }
+            }
+        },
+        "limits": {
+            "deposit": { "min": 0.00012, "max": null },
+            "withdraw": { "min": 0.00024, "max": null }
+        }
+    },
+    "USDC": {
+        "info": {
+            "coingeckoId": "usd-coin",
+            "displayName": "USD Coin",
+            "symbol": "USDC",
+            "tokens": [
+                {
+                    "blockchain": "Ethereum",
+                    "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "depositEnabled": true,
+                    "displayName": "USD Coin",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "3",
+                    "minimumWithdrawal": "6",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "3"
+                }
+            ]
+        },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": null,
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.5,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "id": "Ethereum",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": { "min": 6, "max": null },
+                    "deposit": { "min": 3, "max": null }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 3,
+                "precision": null,
+                "info": {
+                    "blockchain": "Ethereum",
+                    "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "depositEnabled": true,
+                    "displayName": "USD Coin",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "3",
+                    "minimumWithdrawal": "6",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "3"
+                }
+            }
+        },
+        "limits": {
+            "deposit": { "min": 0.5, "max": null },
+            "withdraw": { "min": 1, "max": null }
+        }
+    }
+}
