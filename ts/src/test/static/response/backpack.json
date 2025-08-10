@@ -1,0 +1,63 @@
+{
+    "exchange": "backpack",
+    "skipKeys": [ ],
+    "options": {},
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "ETH": {
+                        "available": "0.0019918",
+                        "locked": "0",
+                        "staked": "0"
+                    },
+                    "POINTS": {
+                        "available": "2",
+                        "locked": "0",
+                        "staked": "0"
+                    },
+                    "USDC": {
+                        "available": "112.847976936",
+                        "locked": "0",
+                        "staked": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "ETH": {
+                        "free": 0.0019918,
+                        "used": 0,
+                        "total": 0.0019918
+                    },
+                    "POINTS": {
+                        "free": 2,
+                        "used": 0,
+                        "total": 2
+                    },
+                    "USDC": {
+                        "free": 112.847976936,
+                        "used": 0,
+                        "total": 112.847976936
+                    },
+                    "free": {
+                        "ETH": 0.0019918,
+                        "POINTS": 2,
+                        "USDC": 112.847976936
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "POINTS": 0,
+                        "USDC": 0
+                    },
+                    "total": {
+                        "ETH": 0.0019918,
+                        "POINTS": 2,
+                        "USDC": 112.847976936
+                    }
+                }
+            }
+        ]
+    }
+}
