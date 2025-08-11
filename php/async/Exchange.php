@@ -329,6 +329,12 @@ class Exchange extends \ccxt\Exchange {
     }
 
     function decode_proto_msg($msg) {
+        if (!class_exists(\Google\Protobuf\Internal\Message::class)) {
+            throw new \RuntimeException(
+                "Google Protobuf PHP runtime is not installed or not loaded and it's required to use MEXC WS.\n" .
+                "Install it via Composer: composer require google/protobuf\n"
+            );
+        }
         $wrapper = new \PushDataV3ApiWrapper();
         $wrapper->mergeFromString($msg);
         $str = $wrapper->serializeToJsonString();
