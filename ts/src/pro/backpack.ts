@@ -1189,9 +1189,7 @@ export default class backpack extends backpackRest {
             this.handleTrades (client, message);
         } else if (event === 'depth') {
             this.handleOrderBook (client, message);
-        } else if (event === 'orderAccepted' || event === 'orderUpdate' || event === 'orderFill'
-            || event === 'orderCancelled' || event === 'orderExpired' || event === 'orderModified'
-            || event === 'triggerPlaced' || event === 'triggerFailed') {
+        } else if (event === 'orderAccepted' || event === 'orderUpdate' || event === 'orderFill' || event === 'orderCancelled' || event === 'orderExpired' || event === 'orderModified' || event === 'triggerPlaced' || event === 'triggerFailed') {
             this.handleOrder (client, message);
         } else if (event === 'positionAdjusted' || event === 'positionOpened' || event === 'positionClosed' || event === 'positionUpdated') {
             this.handlePositions (client, message);
