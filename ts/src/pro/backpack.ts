@@ -821,11 +821,11 @@ export default class backpack extends backpackRest {
             symbol = market['symbol'];
         }
         let topic = 'account.orderUpdate';
+        let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            messageHash = 'orders:' + symbol;
         }
-        let messageHash = 'orders';
-        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
         const orders = await this.watchPrivate ([ topic ], [ messageHash ], params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -850,11 +850,11 @@ export default class backpack extends backpackRest {
             symbol = market['symbol'];
         }
         let topic = 'account.orderUpdate';
+        let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            messageHash = 'orders:' + symbol;
         }
-        let messageHash = 'orders';
-        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
 
