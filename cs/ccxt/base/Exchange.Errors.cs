@@ -249,3 +249,10 @@ namespace ccxt;
         public UnsubscribeError(string message) : base(message) { }
         public UnsubscribeError(string message, BaseError inner) : base(message, inner) { }
     }
+   public class ConsumerFunctionError : BaseError
+    {
+        public ConsumerFunctionError() : base() { }
+        public ConsumerFunctionError(string message) : base(message) { }
+        public ConsumerFunctionError(string message, BaseError inner) : base(message, inner) { }
+    }
+

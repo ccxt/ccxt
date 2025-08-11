@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitstampRest from '../bitstamp.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -121,6 +121,7 @@ export default class bitstamp extends bitstampRest {
             return;
         }
         this.handleDelta (storedOrderBook, delta);
+        this.streamProduce ('orderbooks', storedOrderBook);
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -269,6 +270,7 @@ export default class bitstamp extends bitstampRest {
             this.trades[symbol] = tradesArray;
         }
         tradesArray.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (tradesArray, messageHash);
     }
 
@@ -335,6 +337,7 @@ export default class bitstamp extends bitstampRest {
         order['event'] = this.safeString (message, 'event');
         const parsed = this.parseWsOrder (order, market);
         stored.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (this.orders, channel);
     }
 
@@ -505,15 +508,23 @@ export default class bitstamp extends bitstampRest {
         // }
         const event = this.safeString (message, 'event');
         if (event === 'bts:error') {
-            const feedback = this.id + ' ' + this.json (message);
-            const data = this.safeValue (message, 'data', {});
-            const code = this.safeNumber (data, 'code');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            try {
+                const feedback = this.id + ' ' + this.json (message);
+                const data = this.safeValue (message, 'data', {});
+                const code = this.safeNumber (data, 'code');
+                const msg = this.safeString (data, 'message');
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+                throw new ExchangeError (feedback);
+            } catch (e) {
+                this.streamProduce ('errors', undefined, e);
+            }
         }
         return true;
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

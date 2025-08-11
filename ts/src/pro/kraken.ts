@@ -544,6 +544,7 @@ export default class kraken extends krakenRest {
             'info': ticker,
         });
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -579,6 +580,7 @@ export default class kraken extends krakenRest {
         const parsed = this.parseTrades (data, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
+            this.streamProduce ('trades', parsed[i]);
         }
         client.resolve (stored, messageHash);
     }
@@ -632,6 +634,8 @@ export default class kraken extends krakenRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, result);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
     }
@@ -1008,10 +1012,12 @@ export default class kraken extends krakenRest {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
+                this.streamProduce ('errors', error);
                 client.reject (error, messageHash);
                 return;
             }
         }
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -1205,6 +1211,7 @@ export default class kraken extends krakenRest {
                     stored.append (parsed);
                     const symbol = parsed['symbol'];
                     symbols[symbol] = true;
+                    this.streamProduce ('myTrades', parsed);
                 }
             }
             const name = 'ownTrades';
@@ -1432,6 +1439,7 @@ export default class kraken extends krakenRest {
                         }
                     }
                     stored.append (newOrder);
+                    this.streamProduce ('orders', newOrder);
                     symbols[symbol] = true;
                 }
             }
@@ -1655,6 +1663,7 @@ export default class kraken extends krakenRest {
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         const channel = this.safeString (message, 'channel');
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], channel);
     }
 
@@ -1730,14 +1739,19 @@ export default class kraken extends krakenRest {
         //
         const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            // const requestId = this.safeValue2 (message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception = undefined;
-            if (broadKey === undefined) {
-                exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
-            } else {
-                exception = new broad[broadKey] (errorMessage);
+            const requestId = this.safeValue2 (message, 'reqid', 'req_id');
+            if (requestId !== undefined) {
+                const broad = this.exceptions['ws']['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
+                let exception = undefined;
+                if (broadKey === undefined) {
+                    exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
+                } else {
+                    exception = new broad[broadKey] (errorMessage);
+                }
+                this.streamProduce ('errors', undefined, exception);
+                client.reject (exception, requestId);
+                return false;
             }
             // if (requestId !== undefined) {
             //     client.reject (exception, requestId);
@@ -1750,6 +1764,7 @@ export default class kraken extends krakenRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});

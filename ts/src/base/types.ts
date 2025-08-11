@@ -24,6 +24,45 @@ export type NullableList = List | undefined;
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 
+// Stream Types
+export type Topic = string;
+
+export interface BaseStream {
+    maxMessagesPerTopic: number;
+    produce: (topic: Topic, payload: any, error?: any) => void;
+    close(): void;
+}
+
+export interface Message {
+    payload: any;
+    error: any;
+    metadata: {
+        stream: BaseStream
+        topic: Topic
+        index: number
+        history: Message [];
+    }
+}
+
+export type ConsumerFunction = (message: Message) => Promise<void> | void;
+
+export interface Stream extends BaseStream {
+    topics: Map<Topic, Message[]>;
+    subscribe: (topic: Topic, consumerFn: ConsumerFunction, synchronous?: boolean) => void;
+    unsubscribe: (topic: Topic, consumerFn: ConsumerFunction) => void;
+    getMessageHistory: (topic: Topic) => Message[];
+}
+
+export interface Consumer {
+    fn: ConsumerFunction;
+    synchronous: boolean;
+    currentIndex: number;
+    running: boolean;
+    publish: (message: Message) => void;
+}
+
+//
+
 export interface MinMax {
     min: Num;
     max: Num;

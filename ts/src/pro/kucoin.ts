@@ -324,6 +324,7 @@ export default class kucoin extends kucoinRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const allTickers: Dict = {};
@@ -488,6 +489,8 @@ export default class kucoin extends kucoinRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const ohlcv = this.parseOHLCV (candles, market);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, ohlcv);
+        this.streamProduce ('ohlcvs', ohlcvs);
         stored.append (ohlcv);
         client.resolve (stored, messageHash);
     }
@@ -621,6 +624,7 @@ export default class kucoin extends kucoinRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 
@@ -860,6 +864,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         this.handleDelta (this.orderbooks[symbol], data);
+        this.streamProduce ('orderbooks', this.orderbooks[symbol]);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
@@ -1135,6 +1140,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         cachedOrders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (cachedOrders, symbolSpecificMessageHash);
@@ -1210,6 +1216,7 @@ export default class kucoin extends kucoinRest {
         const parsed = this.parseWsTrade (data);
         const myTrades = this.myTrades;
         myTrades.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         const messageHash = 'myTrades';
         client.resolve (this.myTrades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
@@ -1366,6 +1373,7 @@ export default class kucoin extends kucoinRest {
         this.balance[uniformType][code] = account;
         this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
         if (uniformType === selectedType) {
+            this.streamProduce ('balances', this.balance[uniformType]);
             client.resolve (this.balance[uniformType], messageHash);
         }
     }
@@ -1445,11 +1453,16 @@ export default class kucoin extends kucoinRest {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
-        return false;
+        try {
+            this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        } catch (e) {
+            this.streamProduce ('errors', undefined, e);
+            client.reject (e);
+        }
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,

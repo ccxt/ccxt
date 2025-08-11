@@ -2,6 +2,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
+using System.Reflection;
+using ccxt.pro;
 using StarkSharp.StarkCurve.Signature;
 using StarkSharp.Rpc.Utils;
 using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
@@ -23,6 +25,7 @@ public partial class Exchange
         transformApiNew(this.api);
 
         this.initHttpClient();
+        this.initStream();
 
         this.afterConstruct();
 
@@ -30,6 +33,25 @@ public partial class Exchange
         {
             this.setSandboxMode(true);
         }
+    }
+
+    private void initStream()
+    {
+        int maxMessagesPerTopic = 0;
+        bool verbose = this.verbose;
+
+        // TODO: fix to reference streaming values
+        // if (!this.streaming.TryGetValue("maxMessagesPerTopic", out maxMessagesPerTopic))
+        // {
+        //     maxMessagesPerTopic = 10000; // default value
+        // }
+
+        // if (!this.streaming.TryGetValue("verbose", out verbose))
+        // {
+        //     verbose = this.verbose; // default value
+        // }
+
+        this.stream = new ccxt.pro.Stream(maxMessagesPerTopic, verbose);
     }
 
     private void initHttpClient()
@@ -1144,19 +1166,62 @@ public partial class Exchange
             // {
             //     throw new Exception("Method not found.");
             // }
-            Delegate myDelegate = action as Delegate;
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action), "Action cannot be null.");
+            }
 
+            Delegate myDelegate = action as Delegate;
+            if (myDelegate == null) {
+                throw new ArgumentNullException(nameof(action), "Action must be a delegate.");
+            }
             // Get parameter types
-            // MethodInfo methodInfo = myDelegate.Method;
-            // ParameterInfo[] parametersAux = methodInfo.GetParameters();
+            MethodInfo methodInfo = myDelegate.Method;
+            ParameterInfo[] methodParameters = methodInfo.GetParameters();
 
             // Prepare arguments (in a real scenario, these would be dynamically determined)
             // object[] args = new object[parametersAux.Length];
             // args[0] = 123; // Assuming the first parameter is an int
             // args[1] = "Hello"; // Assuming the second parameter is a string
 
+            object[] finalParameters = new object[methodParameters.Length];
+            int providedParametersCount = parameters.Length;
+
+            // Fill in provided parameters
+            for (int i = 0; i < providedParametersCount; i++)
+            {
+                Type expectedType = methodParameters[i].ParameterType;
+                object parameter = parameters[i];
+
+                // Convert List<object> to object[] if expected
+                if (expectedType == typeof(object[]) && parameter is List<object> parameterList)
+                {
+                    finalParameters[i] = parameterList.ToArray();
+                }
+                else if (expectedType == typeof(object))
+                {
+                    finalParameters[i] = (object)parameter;
+                }
+                else
+                {
+                    finalParameters[i] = parameters[i];
+                }
+            }
+
+            // Fill in default values for optional parameters, if any are missing
+            for (int i = providedParametersCount; i < methodParameters.Length; i++)
+            {
+                if (methodParameters[i].IsOptional)
+                {
+                    finalParameters[i] = methodParameters[i].DefaultValue;
+                }
+                else
+                {
+                    throw new ArgumentException($"Missing required parameter at position {i}. Method cannot be invoked without it.");
+                }
+            }
             // Dynamically invoke the action
-            var result = myDelegate.DynamicInvoke(parameters);
+            var result = myDelegate.DynamicInvoke(finalParameters);
             return result;
         }
     }

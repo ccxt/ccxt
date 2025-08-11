@@ -171,6 +171,7 @@ export default class bitvavo extends bitvavoRest {
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             result.push (ticker);
             client.resolve (ticker, messageHash);
         }
@@ -272,6 +273,7 @@ export default class bitvavo extends bitvavoRest {
         }
         tradesArray.append (trade);
         this.trades[symbol] = tradesArray;
+        this.streamProduce ('trades', trade);
         client.resolve (tradesArray, messageHash);
     }
 
@@ -366,6 +368,8 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseOHLCV (candle, market);
+            const ohlcv = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcv);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
@@ -484,6 +488,7 @@ export default class bitvavo extends bitvavoRest {
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -541,6 +546,7 @@ export default class bitvavo extends bitvavoRest {
             this.handleOrderBookMessage (client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -893,6 +899,9 @@ export default class bitvavo extends bitvavoRest {
         const trades = this.parseTrades (response, undefined, undefined, undefined);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         const messageHash = this.safeString (message, 'requestId');
+        for (let i = 0; i < trades.length; i++) {
+            this.streamProduce ('trades', trades[i]);
+        }
         client.resolve (trades, messageHash);
     }
 
@@ -1280,6 +1289,7 @@ export default class bitvavo extends bitvavoRest {
         }
         const orders = this.orders;
         orders.append (order);
+        this.streamProduce ('orders', order);
         client.resolve (this.orders, messageHash);
     }
 
@@ -1310,6 +1320,7 @@ export default class bitvavo extends bitvavoRest {
         }
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
+        this.streamProduce ('myTrades', trade);
         client.resolve (tradesArray, messageHash);
     }
 
@@ -1376,6 +1387,7 @@ export default class bitvavo extends bitvavoRest {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
@@ -1410,9 +1422,11 @@ export default class bitvavo extends bitvavoRest {
             this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
         } catch (e) {
             rejected = true;
+            this.streamProduce ('errors', undefined, e);
             client.reject (e, messageHash);
         }
         if (!rejected) {
+            this.streamProduce ('errors', undefined, message);
             client.reject (message, messageHash);
             return true;
         }
@@ -1463,6 +1477,7 @@ export default class bitvavo extends bitvavoRest {
         //         "authenticated": true
         //     }
         //
+        this.streamProduce ('raw', message);
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

@@ -91,6 +91,7 @@ export default class independentreserve extends independentreserveRest {
         }
         const trade = this.parseWsTrade (data);
         stored.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
     }
@@ -230,10 +231,12 @@ export default class independentreserve extends independentreserveRest {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
+                this.streamProduce ('orderbooks::' + symbol, undefined, error);
                 client.reject (error, messageHash);
             }
         }
         if (receivedSnapshot) {
+            this.streamProduce ('orderbooks', orderBook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -280,6 +283,7 @@ export default class independentreserve extends independentreserveRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'Event');
         const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,

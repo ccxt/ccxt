@@ -1,5 +1,4 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -13,7 +12,6 @@ import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
-import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
 
@@ -120,6 +118,7 @@ class NewTranspiler {
             [/\(client,/g, '(client as WebSocketClient,'],
             [/\(object client,/gm, '(WebSocketClient client,'],
             [/\(object client\)/gm, '(WebSocketClient client)'],
+            [/(stream)(\.close.+)/gm, '((stream)$1)$2'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
         ]
@@ -289,6 +288,7 @@ class NewTranspiler {
         const values = [
             // "using ccxt;",
             namespace,
+            "using ccxt.pro;"
         ]
         // if (ws) {
         //     values.push("using System.Reflection;");
@@ -359,6 +359,10 @@ class NewTranspiler {
 
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('List<List<string>>');
+        }
+
+        if (wrappedType === 'Message') {
+            return addTaskIfNeeded('Message');
         }
 
         // check if returns a list
@@ -471,6 +475,7 @@ class NewTranspiler {
             'transfer',
             'withdraw',
             'watch',
+            'subscribe',
             // 'load',
         ];
         // const allowedPrefixesWs = [
@@ -537,7 +542,9 @@ class NewTranspiler {
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
-        if (unwrappedType.startsWith('List<')) {
+        if (unwrappedType.startsWith('void')) {
+            returnStatement = 'return;';
+        } else if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
             } else {
@@ -599,14 +606,21 @@ class NewTranspiler {
         if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
             methodDoc.push(csharpComments[exchangeName][methodName]);
         }
+        const isVoid = returnType === 'Task' || returnType === 'void' || returnType === 'Task<>' || returnType === 'virtual void';
         const method = [
             `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
             this.getDefaultParamsWrappers(methodWrapper.parameters),
-            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
-            `${one}}`
         ];
+        if (isVoid) {
+            method.push (`${isAsync ? 'await ' : ''}this.${methodName}(${params});`)
+        } else {
+            method.push (
+                `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
+                `${two}${this.createReturnStatement(methodName, unwrappedType)}`
+                )
+        }
+        method.push(`${one}}`);
         return methodDoc.concat(method).filter(e => !!e).join('\n')
     }
 
@@ -627,7 +641,7 @@ class NewTranspiler {
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;\nusing ccxt.pro;';
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const file = [
@@ -741,10 +755,13 @@ class NewTranspiler {
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
-
+        
+        // spread operator
+        baseClass = baseClass.replace(/\.\.\.(\w+)/g, 'new object[] {$1}');
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/object stream/gm, 'ccxt.pro.Stream stream');
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
         baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
 
@@ -1350,8 +1367,9 @@ class NewTranspiler {
             ];
 
             if (isWs) {
-                // add ws-tests specific regeces
+                // add ws-tests specific regexes
                 regexes = regexes.concat([
+                    [ /object message/g, 'Message message' ],
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
                     [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
                 ]);

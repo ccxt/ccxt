@@ -195,17 +195,17 @@ class testMainClass {
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
-    addPadding(message, size) {
+    addPadding(msg, size) {
         // has to be transpilable
         let res = '';
-        const messageLength = message.length; // avoid php transpilation issue
+        const messageLength = msg.length; // avoid php transpilation issue
         const missingSpace = size - messageLength - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
             }
         }
-        return message + res;
+        return msg + res;
     }
     async testMethod(methodName, exchange, args, isPublic) {
         // todo: temporary skip for c#
@@ -895,13 +895,13 @@ class testMainClass {
         }
         return true; // required in c#
     }
-    assertStaticError(cond, message, calculatedOutput, storedOutput, key = undefined) {
+    assertStaticError(cond, msg, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify(calculatedOutput);
         const storedString = jsonStringify(storedOutput);
-        let errorMessage = message;
+        let errorMessage = msg;
         if (key !== undefined) {
             errorMessage = '[' + key + ']';
         }

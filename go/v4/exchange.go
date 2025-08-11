@@ -157,6 +157,8 @@ type Exchange struct {
 	FetchResponse interface{}
 
 	IsSandboxModeEnabled bool
+
+	Stream *Stream
 }
 
 const (
@@ -232,6 +234,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 
 func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
+	exchange.Stream = &Stream{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
 }
@@ -1299,18 +1302,105 @@ func (this *Exchange) UpdateProxySettings() {
 	}
 }
 
-func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {
-	parameters := GetArg(args, 0, nil)
+// StreamToSymbol returns a callback that produces messages to topic::symbol
+func (this *Exchange) StreamToSymbol(topic interface{}) interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		symbol, _ := payload["symbol"].(string)
+		topicStr := ToString(topic)
+		this.Stream.Produce(topicStr+"::"+symbol, payload, nil)
+	}
+}
+
+// StreamReconnectOnError returns a callback that attempts to reconnect on error
+func (this *Exchange) StreamReconnectOnError() interface{} {
+	return func(message map[string]interface{}) {
+		error := message["payload"]
+		msgErr := message["error"]
+		if error != nil && !isExchangeClosedByUser(msgErr) {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Failed to reconnect to stream:", r)
+				}
+			}()
+			// In Go, just call the method (no await)
+			_ = this.StreamReconnect()
+		}
+	}
+}
+
+// isExchangeClosedByUser checks if the error is of type ExchangeClosedByUser (dummy for now)
+func isExchangeClosedByUser(err interface{}) bool {
+	// You can implement a more robust check if you have a custom error type
+	return false // always false for now
+}
+
+// StreamOHLCVS returns a callback that parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
+func (this *Exchange) StreamOHLCVS() interface{} {
+	return func(message map[string]interface{}) {
+		payload, _ := message["payload"].(map[string]interface{})
+		err := message["error"]
+		symbol, _ := payload["symbol"].(string)
+		ohlcv := payload["ohlcv"]
+		if symbol != "" {
+			this.StreamProduce("ohlcvs::"+symbol, ohlcv, err)
+			timeframe, _ := payload["timeframe"].(string)
+			if timeframe != "" {
+				this.StreamProduce("ohlcvs::"+symbol+"::"+timeframe, ohlcv, err)
+			}
+		}
+	}
+}
+
+// Spawn executes a method asynchronously and returns a channel that will receive the result
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
+
 	go func() {
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				if r != "break" {
+					ch <- "panic:" + ToString(r)
+				}
 			}
 		}()
-		ch <- (<-this.callEndpoint(endpointName, parameters))
-		PanicOnError(ch)
+
+		// Convert method to reflect.Value
+		methodValue := reflect.ValueOf(method)
+		if methodValue.Kind() != reflect.Func {
+			ch <- "panic:method is not a function"
+			return
+		}
+
+		// Convert args to reflect.Value slice
+		in := make([]reflect.Value, len(args))
+		for i, arg := range args {
+			in[i] = reflect.ValueOf(arg)
+		}
+
+		// Call the method
+		results := methodValue.Call(in)
+
+		// Handle the results
+		if len(results) > 0 {
+			if results[0].Kind() == reflect.Chan {
+				// If the result is a channel, forward its values
+				resultChan := results[0]
+				for {
+					val, ok := resultChan.Recv()
+					if !ok {
+						break // channel is closed
+					}
+					ch <- val.Interface()
+				}
+			} else {
+				// If the result is not a channel, send it directly
+				ch <- results[0].Interface()
+			}
+		} else {
+			ch <- nil
+		}
 	}()
 	return ch
 }
