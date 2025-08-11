@@ -2022,6 +2022,57 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1754906233308",
+                    "data": {
+                        "assets": [
+                            {
+                                "asset": "USDT",
+                                "free": "44.37692200000000237300",
+                                "locked": "0.00000000000000000000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "timestamp": "1754906233308",
+                        "data": {
+                            "assets": [
+                                {
+                                    "asset": "USDT",
+                                    "free": "44.37692200000000237300",
+                                    "locked": "0.00000000000000000000"
+                                }
+                            ]
+                        }
+                    },
+                    "USDT": {
+                        "free": 44.376922,
+                        "used": 0,
+                        "total": 44.376922
+                    },
+                    "free": {
+                        "USDT": 44.376922
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 44.376922
+                    }
+                }
+            },
+            {
                 "description": "spot fetchBalance",
                 "method": "fetchBalance",
                 "input": [],
