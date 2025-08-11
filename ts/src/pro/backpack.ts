@@ -821,7 +821,9 @@ export default class backpack extends backpackRest {
             symbol = market['symbol'];
         }
         let topic = 'account.orderUpdate';
-        topic = (market !== undefined) ? (topic + '.' + market['id']) : topic;
+        if (market !== undefined) {
+            topic = 'account.orderUpdate.' + market['id'];
+        }
         let messageHash = 'orders';
         messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
         const orders = await this.watchPrivate ([ topic ], [ messageHash ], params);
@@ -848,7 +850,9 @@ export default class backpack extends backpackRest {
             symbol = market['symbol'];
         }
         let topic = 'account.orderUpdate';
-        topic = (market !== undefined) ? (topic + '.' + market['id']) : topic;
+        if (market !== undefined) {
+            topic = 'account.orderUpdate.' + market['id'];
+        }
         let messageHash = 'orders';
         messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
@@ -1009,9 +1013,9 @@ export default class backpack extends backpackRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let positions = undefined;
+        let messageHashes = [];
+        let topics = [];
         if (symbols !== undefined) {
-            const messageHashes = [];
-            const topics = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions' + ':' + symbol);
@@ -1019,8 +1023,8 @@ export default class backpack extends backpackRest {
             }
             positions = await this.watchPrivate (topics, messageHashes, params);
         } else {
-            const messageHashes = [ 'positions' ];
-            const topics = [ 'account.positionUpdate' ];
+            messageHashes = [ 'positions' ];
+            topics = [ 'account.positionUpdate' ];
             positions = await this.watchPrivate (topics, messageHashes, params);
         }
         if (this.newUpdates) {
