@@ -3887,7 +3887,7 @@ export default class hyperliquid extends Exchange {
         return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: Int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

@@ -3771,7 +3771,7 @@ export default class hitbtc extends Exchange {
         return [ marginMode, params ];
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: Int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
         //
         //     {
         //       "error": {

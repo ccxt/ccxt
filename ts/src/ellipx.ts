@@ -6,7 +6,7 @@ import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from './base/types.js';
+import { Str, Int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from './base/types.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
 
@@ -2070,7 +2070,7 @@ export default class ellipx extends Exchange {
         };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: Int, reason: Str, url: Str, method: Str, headers: Dict, body: Str, response, requestHeaders, requestBody) {
         // {
         //     "code": 404,
         //     "error": "Not Found: Crypto\\Token(US)",

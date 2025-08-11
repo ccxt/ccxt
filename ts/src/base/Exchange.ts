@@ -5419,7 +5419,7 @@ export default class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: Int, statusText: Str, url: Str, method: Str, responseHeaders: Dict, responseBody: Str, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;

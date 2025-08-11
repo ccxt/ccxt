@@ -4419,7 +4419,7 @@ export default class digifinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: Int, statusText: Str, url: Str, method: Str, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fall back to default error handler
         }
