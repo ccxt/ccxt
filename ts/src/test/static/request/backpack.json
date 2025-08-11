@@ -1,6 +1,6 @@
 {
     "exchange": "backpack",
-    "skipKeys": [ ],
+    "skipKeys": [ "X-Signature" ],
     "outputType": "json",
     "methods": {
         "fetchBalance": [
