@@ -7634,7 +7634,7 @@ export default class gate extends Exchange {
         if (quoteValueString === undefined) {
             quoteValueString = Precise.stringMul (baseValueString, priceString);
         }
-                // --- derive side ---
+        // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
         const optPos = this.safeStringLower (liquidation, 'side');
         let side: Str = undefined;
