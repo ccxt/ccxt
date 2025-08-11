@@ -1758,7 +1758,7 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",

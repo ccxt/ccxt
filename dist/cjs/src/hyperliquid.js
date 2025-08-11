@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hyperliquid$1 = require('./abstract/hyperliquid.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +16,7 @@ var crypto = require('./base/functions/crypto.js');
  * @class hyperliquid
  * @augments Exchange
  */
-class hyperliquid extends hyperliquid$1 {
+class hyperliquid extends hyperliquid$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hyperliquid',
@@ -2569,6 +2571,9 @@ class hyperliquid extends hyperliquid$1 {
         }, market);
     }
     parseOrderStatus(status) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2577,6 +2582,12 @@ class hyperliquid extends hyperliquid$1 {
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         };
+        if (status.endsWith('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith('Canceled')) {
+            return 'canceled';
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
@@ -3747,6 +3758,29 @@ class hyperliquid extends hyperliquid$1 {
             'rate': rate,
         };
     }
+    /**
+     * @method
+     * @name hyperliquid#reserveRequestWeight
+     * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+     * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async reserveRequestWeight(weight, params = {}) {
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const action = {
+            'type': 'reserveRequestWeight',
+            'weight': weight,
+        };
+        const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        return response;
+    }
     extractTypeFromDelta(data = []) {
         const records = [];
         for (let i = 0; i < data.length; i++) {
@@ -3868,4 +3902,4 @@ class hyperliquid extends hyperliquid$1 {
     }
 }
 
-module.exports = hyperliquid;
+exports["default"] = hyperliquid;

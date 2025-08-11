@@ -2829,6 +2829,10 @@ public partial class hyperliquid : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
@@ -2837,6 +2841,14 @@ public partial class hyperliquid : Exchange
             { "rejected", "rejected" },
             { "marginCanceled", "canceled" },
         };
+        if (isTrue(((string)status).EndsWith(((string)"Rejected"))))
+        {
+            return "rejected";
+        }
+        if (isTrue(((string)status).EndsWith(((string)"Canceled"))))
+        {
+            return "canceled";
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -4135,6 +4147,32 @@ public partial class hyperliquid : Exchange
             { "amount", this.parseNumber(amount) },
             { "rate", rate },
         };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#reserveRequestWeight
+     * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+     * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> reserveRequestWeight(object weight, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object action = new Dictionary<string, object>() {
+            { "type", "reserveRequestWeight" },
+            { "weight", weight },
+        };
+        object signature = this.signL1Action(action, nonce);
+        ((IDictionary<string,object>)request)["action"] = action;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
     }
 
     public virtual object extractTypeFromDelta(object data = null)

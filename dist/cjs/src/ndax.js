@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ndax$1 = require('./abstract/ndax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class ndax
  * @augments Exchange
  */
-class ndax extends ndax$1 {
+class ndax extends ndax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ndax',
@@ -2594,4 +2596,4 @@ class ndax extends ndax$1 {
     }
 }
 
-module.exports = ndax;
+exports["default"] = ndax;

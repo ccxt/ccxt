@@ -5842,7 +5842,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(types, type, type)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5857,7 +5857,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
+        accounts = await self.is_unified_enabled()
+        isUta = accounts[1]
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
+        if isUta:
+            accountType = 'UTA'
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -6402,7 +6406,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 response = await self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

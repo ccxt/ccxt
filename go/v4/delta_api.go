@@ -7,186 +7,186 @@
 
 package ccxt
 
-func (this *delta) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *delta) PublicGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *delta) PublicGetIndices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetIndices", args...)
+func (this *delta) PublicGetIndices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetIndices", args...)
 }
 
-func (this *delta) PublicGetProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetProducts", args...)
+func (this *delta) PublicGetProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *delta) PublicGetProductsSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetProductsSymbol", args...)
+func (this *delta) PublicGetProductsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetProductsSymbol", args...)
 }
 
-func (this *delta) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *delta) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *delta) PublicGetTickersSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickersSymbol", args...)
+func (this *delta) PublicGetTickersSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickersSymbol", args...)
 }
 
-func (this *delta) PublicGetL2orderbookSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
+func (this *delta) PublicGetL2orderbookSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetL2orderbookSymbol", args...)
 }
 
-func (this *delta) PublicGetTradesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradesSymbol", args...)
+func (this *delta) PublicGetTradesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradesSymbol", args...)
 }
 
-func (this *delta) PublicGetStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStats", args...)
+func (this *delta) PublicGetStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *delta) PublicGetHistoryCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistoryCandles", args...)
+func (this *delta) PublicGetHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistoryCandles", args...)
 }
 
-func (this *delta) PublicGetHistorySparklines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistorySparklines", args...)
+func (this *delta) PublicGetHistorySparklines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistorySparklines", args...)
 }
 
-func (this *delta) PublicGetSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSettings", args...)
+func (this *delta) PublicGetSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSettings", args...)
 }
 
-func (this *delta) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *delta) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *delta) PrivateGetProductsProductIdOrdersLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
+func (this *delta) PrivateGetProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *delta) PrivateGetPositionsMargined (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPositionsMargined", args...)
+func (this *delta) PrivateGetPositionsMargined(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositionsMargined", args...)
 }
 
-func (this *delta) PrivateGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPositions", args...)
+func (this *delta) PrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *delta) PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersHistory", args...)
+func (this *delta) PrivateGetOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *delta) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *delta) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *delta) PrivateGetFillsHistoryDownloadCsv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
+func (this *delta) PrivateGetFillsHistoryDownloadCsv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFillsHistoryDownloadCsv", args...)
 }
 
-func (this *delta) PrivateGetWalletBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletBalances", args...)
+func (this *delta) PrivateGetWalletBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalances", args...)
 }
 
-func (this *delta) PrivateGetWalletTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *delta) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *delta) PrivateGetWalletTransactionsDownload (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
+func (this *delta) PrivateGetWalletTransactionsDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactionsDownload", args...)
 }
 
-func (this *delta) PrivateGetWalletsSubAccountsTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
+func (this *delta) PrivateGetWalletsSubAccountsTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletsSubAccountsTransferHistory", args...)
 }
 
-func (this *delta) PrivateGetUsersTradingPreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
+func (this *delta) PrivateGetUsersTradingPreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersTradingPreferences", args...)
 }
 
-func (this *delta) PrivateGetSubAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccounts", args...)
+func (this *delta) PrivateGetSubAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
 }
 
-func (this *delta) PrivateGetProfile (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetProfile", args...)
+func (this *delta) PrivateGetProfile(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProfile", args...)
 }
 
-func (this *delta) PrivateGetDepositsAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositsAddress", args...)
+func (this *delta) PrivateGetDepositsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsAddress", args...)
 }
 
-func (this *delta) PrivateGetOrdersLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersLeverage", args...)
+func (this *delta) PrivateGetOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersLeverage", args...)
 }
 
-func (this *delta) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *delta) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *delta) PrivatePostOrdersBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBracket", args...)
+func (this *delta) PrivatePostOrdersBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBracket", args...)
 }
 
-func (this *delta) PrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *delta) PrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *delta) PrivatePostProductsProductIdOrdersLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
+func (this *delta) PrivatePostProductsProductIdOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostProductsProductIdOrdersLeverage", args...)
 }
 
-func (this *delta) PrivatePostPositionsChangeMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
+func (this *delta) PrivatePostPositionsChangeMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionsChangeMargin", args...)
 }
 
-func (this *delta) PrivatePostPositionsCloseAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
+func (this *delta) PrivatePostPositionsCloseAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionsCloseAll", args...)
 }
 
-func (this *delta) PrivatePostWalletsSubAccountBalanceTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
+func (this *delta) PrivatePostWalletsSubAccountBalanceTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletsSubAccountBalanceTransfer", args...)
 }
 
-func (this *delta) PrivatePostOrdersCancelAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
+func (this *delta) PrivatePostOrdersCancelAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancelAfter", args...)
 }
 
-func (this *delta) PrivatePostOrdersLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersLeverage", args...)
+func (this *delta) PrivatePostOrdersLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersLeverage", args...)
 }
 
-func (this *delta) PrivatePutOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrders", args...)
+func (this *delta) PrivatePutOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrders", args...)
 }
 
-func (this *delta) PrivatePutOrdersBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrdersBracket", args...)
+func (this *delta) PrivatePutOrdersBracket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersBracket", args...)
 }
 
-func (this *delta) PrivatePutOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrdersBatch", args...)
+func (this *delta) PrivatePutOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersBatch", args...)
 }
 
-func (this *delta) PrivatePutPositionsAutoTopup (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
+func (this *delta) PrivatePutPositionsAutoTopup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutPositionsAutoTopup", args...)
 }
 
-func (this *delta) PrivatePutUsersUpdateMmp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
+func (this *delta) PrivatePutUsersUpdateMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersUpdateMmp", args...)
 }
 
-func (this *delta) PrivatePutUsersResetMmp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutUsersResetMmp", args...)
+func (this *delta) PrivatePutUsersResetMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutUsersResetMmp", args...)
 }
 
-func (this *delta) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *delta) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *delta) PrivateDeleteOrdersAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersAll", args...)
+func (this *delta) PrivateDeleteOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
 
-func (this *delta) PrivateDeleteOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
+func (this *delta) PrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }

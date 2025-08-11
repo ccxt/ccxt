@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var oxfun$1 = require('./abstract/oxfun.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class oxfun
  * @augments Exchange
  */
-class oxfun extends oxfun$1 {
+class oxfun extends oxfun$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'oxfun',
@@ -2916,4 +2918,4 @@ class oxfun extends oxfun$1 {
     }
 }
 
-module.exports = oxfun;
+exports["default"] = oxfun;

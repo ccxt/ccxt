@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var bitfinex$1 = require('./abstract/bitfinex.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bitfinex
  * @augments Exchange
  */
-class bitfinex extends bitfinex$1 {
+class bitfinex extends bitfinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitfinex',
@@ -3944,4 +3946,4 @@ class bitfinex extends bitfinex$1 {
     }
 }
 
-module.exports = bitfinex;
+exports["default"] = bitfinex;

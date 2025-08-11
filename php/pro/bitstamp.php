@@ -499,7 +499,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         // {
         //     "event" => "bts:error",
         //     "channel" => '',
@@ -512,7 +512,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             $code = $this->safe_number($data, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

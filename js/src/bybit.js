@@ -6177,7 +6177,12 @@ export default class bybit extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         let accountType = undefined;
+        const accounts = await this.isUnifiedEnabled();
+        const isUta = accounts[1];
         [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType', 'SPOT');
+        if (isUta) {
+            accountType = 'UTA';
+        }
         await this.loadMarkets();
         this.checkAddress(address);
         const currency = this.currency(code);

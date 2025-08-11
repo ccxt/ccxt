@@ -6573,9 +6573,15 @@ public partial class bybit : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         object accountType = null;
+        object accounts = await this.isUnifiedEnabled();
+        object isUta = getValue(accounts, 1);
         var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "accountType", "SPOT");
         accountType = ((IList<object>)accountTypeparametersVariable)[0];
         parameters = ((IList<object>)accountTypeparametersVariable)[1];
+        if (isTrue(isUta))
+        {
+            accountType = "UTA";
+        }
         await this.loadMarkets();
         this.checkAddress(address);
         object currency = this.currency(code);

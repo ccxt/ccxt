@@ -2716,12 +2716,14 @@ class binance extends Exchange {
                 }
                 return $markets[0];
             } elseif ((mb_strpos($symbol, '/') > -1) && (mb_strpos($symbol, ':') === false)) {
-                // support legacy symbols
-                list($base, $quote) = explode('/', $symbol);
-                $settle = ($quote === 'USD') ? $base : $quote;
-                $futuresSymbol = $symbol . ':' . $settle;
-                if (is_array($this->markets) && array_key_exists($futuresSymbol, $this->markets)) {
-                    return $this->markets[$futuresSymbol];
+                if (($defaultType !== null) && ($defaultType !== 'spot')) {
+                    // support legacy symbols
+                    list($base, $quote) = explode('/', $symbol);
+                    $settle = ($quote === 'USD') ? $base : $quote;
+                    $futuresSymbol = $symbol . ':' . $settle;
+                    if (is_array($this->markets) && array_key_exists($futuresSymbol, $this->markets)) {
+                        return $this->markets[$futuresSymbol];
+                    }
                 }
             } elseif ((mb_strpos($symbol, '-C') > -1) || (mb_strpos($symbol, '-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the $defaultType
                 return $this->create_expired_option_market($symbol);
@@ -9257,7 +9259,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -11085,7 +11087,7 @@ class binance extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

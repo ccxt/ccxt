@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bybit$1 = require('./abstract/bybit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var rsa = require('./base/functions/rsa.js');
  * @class bybit
  * @augments Exchange
  */
-class bybit extends bybit$1 {
+class bybit extends bybit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bybit',
@@ -6174,7 +6176,12 @@ class bybit extends bybit$1 {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         let accountType = undefined;
+        const accounts = await this.isUnifiedEnabled();
+        const isUta = accounts[1];
         [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType', 'SPOT');
+        if (isUta) {
+            accountType = 'UTA';
+        }
         await this.loadMarkets();
         this.checkAddress(address);
         const currency = this.currency(code);
@@ -9369,4 +9376,4 @@ class bybit extends bybit$1 {
     }
 }
 
-module.exports = bybit;
+exports["default"] = bybit;
