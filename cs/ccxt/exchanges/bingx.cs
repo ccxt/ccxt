@@ -556,8 +556,11 @@ public partial class bingx : Exchange
                     { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARB" },
                     { "MATIC", "POLYGON" },
+                    { "ZKSYNC", "ZKSYNCERA" },
+                    { "AVAXC", "AVAX-C" },
+                    { "HBAR", "HEDERA" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
