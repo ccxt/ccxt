@@ -15,6 +15,7 @@ export default class aster extends asterRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchMarkPrice': true,
@@ -243,6 +244,86 @@ export default class aster extends asterRest {
             'average': undefined,
             'baseVolume': this.safeString (message, 'v'),
             'quoteVolume': this.safeString (message, 'q'),
+            'info': message,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name aster#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-book-ticker-streams
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
+            messageHashes.push ('bidask:' + market['symbol']);
+        }
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const result = {};
+            result[newTicker['symbol']] = newTicker;
+            return result;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "stream": "btcusdt@bookTicker",
+        //         "data": {
+        //             "e": "bookTicker",
+        //             "u": 157240846459,
+        //             "s": "BTCUSDT",
+        //             "b": "122046.7",
+        //             "B": "1.084",
+        //             "a": "122046.8",
+        //             "A": "0.001",
+        //             "T": 1754896692922,
+        //             "E": 1754896692926
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const ticker = this.parseWsBidAsk (data);
+        const symbol = ticker['symbol'];
+        this.bidsasks[symbol] = ticker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve (ticker, messageHash);
+    }
+
+    parseWsBidAsk (message, market = undefined) {
+        const timestamp = this.safeInteger (message, 'T');
+        const marketId = this.safeString (message, 's');
+        market = this.safeMarket (marketId, market);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString (message, 'a'),
+            'askVolume': this.safeString (message, 'A'),
+            'bid': this.safeString (message, 'b'),
+            'bidVolume': this.safeString (message, 'B'),
             'info': message,
         }, market);
     }
@@ -608,6 +689,7 @@ export default class aster extends asterRest {
                 'depth20': this.handleOrderBook,
                 'kline': this.handleOHLCV,
                 'markPrice': this.handleTicker,
+                'bookTicker': this.handleBidAsk,
             };
             const method = this.safeValue (methods, topic);
             if (method !== undefined) {
