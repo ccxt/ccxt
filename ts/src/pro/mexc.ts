@@ -1029,7 +1029,7 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeDictN (message, [ 'd', 'data', 'publicdeals' ]);
+        const d = this.safeDictN (message, [ 'd', 'data', 'publicAggreDeals' ]);
         const trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
@@ -1199,8 +1199,8 @@ export default class mexc extends mexcRest {
         const rawSide = this.safeString2 (trade, 'S', 'tradeType');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
-        const feeAmount = this.safeNumber (trade, 'n');
-        const feeCurrencyId = this.safeString (trade, 'N');
+        const feeAmount = this.safeString2 (trade, 'n', 'feeAmount');
+        const feeCurrencyId = this.safeString2 (trade, 'N', 'feeCurrency');
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,

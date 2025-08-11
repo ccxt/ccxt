@@ -837,7 +837,7 @@ export default class Exchange {
             throw new Error ('Mexc requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
         if (data instanceof Uint8Array) {
-            const decoded = (protobufMexc as any).PushDataV3ApiWrapper.decode(data)
+            const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode(data)
             const dict = decoded.toJSON();
             //  {
             //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
