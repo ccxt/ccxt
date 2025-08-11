@@ -51,6 +51,7 @@ export default class mexc extends mexcRest {
             },
             'options': {
                 'listenKeyRefreshRate': 1200000,
+                'decompressBinary': false,
                 // TODO add reset connection after #16754 is merged
                 'timeframes': {
                     '1m': 'Min1',
