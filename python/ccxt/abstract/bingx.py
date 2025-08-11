@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    fund_v1_private_get_account_balance = fundV1PrivateGetAccountBalance = Entry('account/balance', ['fund', 'v1', 'private'], 'GET', {'cost': 1})
     spot_v1_public_get_server_time = spotV1PublicGetServerTime = Entry('server/time', ['spot', 'v1', 'public'], 'GET', {'cost': 1})
     spot_v1_public_get_common_symbols = spotV1PublicGetCommonSymbols = Entry('common/symbols', ['spot', 'v1', 'public'], 'GET', {'cost': 1})
     spot_v1_public_get_market_trades = spotV1PublicGetMarketTrades = Entry('market/trades', ['spot', 'v1', 'public'], 'GET', {'cost': 1})

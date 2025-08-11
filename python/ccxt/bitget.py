@@ -5935,6 +5935,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param str [params.clientOrderId]: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5942,8 +5943,14 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'orderId': id,
+            # 'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
+        if clientOrderId is not None:
+            params = self.omit(params, ['clientOrderId'])
+            request['clientOid'] = clientOrderId
+        else:
+            request['orderId'] = id
         response = None
         uta = None
         uta, params = self.handle_option_and_params(params, 'fetchOrder', 'uta', False)
