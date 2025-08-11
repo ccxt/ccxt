@@ -105,6 +105,7 @@ export default class bingx extends Exchange {
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -141,6 +142,15 @@ export default class bingx extends Exchange {
                 'secret': true,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
