@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -618,7 +618,7 @@ class derive(ccxt.async_support.derive):
             messageHash = topic + trade['symbol']
             client.resolve(myTrades, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         # {
         #     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',

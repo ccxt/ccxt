@@ -228,7 +228,7 @@ export default class ellipx extends Exchange {
      * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: string): string;
     parseOrderStatus(status: any): string;
     parseAmount(amount: any): Str;

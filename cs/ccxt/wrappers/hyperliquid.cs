@@ -433,10 +433,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -478,6 +478,27 @@ public partial class hyperliquid
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
+    /// build the request payload for cancelling multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :          * @returns {object} the raw request object to be sent to the exchange
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw request object to be sent to the exchange.</returns>
+    public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrdersRequest(ids, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>
@@ -505,10 +526,10 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
@@ -1156,7 +1177,7 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

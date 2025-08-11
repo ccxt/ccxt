@@ -17,7 +17,7 @@ class modetrade extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'dex' => true,
             'hostname' => 'trade.mode.network',
@@ -1815,9 +1815,9 @@ class modetrade extends Exchange {
         // }
         //
         return array(
-            array(
+            $this->safe_order(array(
                 'info' => $response,
-            ),
+            )),
         );
     }
 
@@ -2438,7 +2438,7 @@ class modetrade extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2574,7 +2574,7 @@ class modetrade extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
          *

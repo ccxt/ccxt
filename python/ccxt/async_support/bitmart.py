@@ -3083,7 +3083,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         if market['swap']:
-            return response
+            return self.safe_order({'info': response})
         data = self.safe_value(response, 'data')
         if data is True:
             return self.safe_order({'id': id}, market)
@@ -3200,7 +3200,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:
@@ -3606,7 +3606,7 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string_2(depositAddress, 'address_memo', 'memo'),
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4466,7 +4466,7 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var modetrade$1 = require('./abstract/modetrade.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -15,7 +17,7 @@ var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
  * @class modetrade
  * @augments Exchange
  */
-class modetrade extends modetrade$1 {
+class modetrade extends modetrade$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'modetrade',
@@ -23,7 +25,7 @@ class modetrade extends modetrade$1 {
             'countries': ['KY'],
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'dex': true,
             'hostname': 'trade.mode.network',
@@ -1809,9 +1811,9 @@ class modetrade extends modetrade$1 {
         // }
         //
         return [
-            {
+            this.safeOrder({
                 'info': response,
-            },
+            }),
         ];
     }
     /**
@@ -2836,4 +2838,4 @@ class modetrade extends modetrade$1 {
     }
 }
 
-module.exports = modetrade;
+exports["default"] = modetrade;

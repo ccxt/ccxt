@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmex$1 = require('./abstract/bitmex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class bitmex
  * @augments Exchange
  */
-class bitmex extends bitmex$1 {
+class bitmex extends bitmex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
@@ -3083,4 +3085,4 @@ class bitmex extends bitmex$1 {
     }
 }
 
-module.exports = bitmex;
+exports["default"] = bitmex;

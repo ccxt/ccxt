@@ -55,6 +55,7 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
+	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
 	Symbol         *string
@@ -98,6 +99,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 	return MarketInterface{
 		Info:           m,
+		Id:             SafeStringTyped(m, "id"),
 		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
 		Symbol:         SafeStringTyped(m, "symbol"),
@@ -625,7 +627,8 @@ type Balances struct {
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData map[string]interface{}) Balance {
+func NewBalance(balanceData2 interface{}) Balance {
+	balanceData := balanceData2.(map[string]interface{})
 	return Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
@@ -2076,5 +2079,19 @@ func NewCancellationRequest(request map[string]interface{}) CancellationRequest 
 	return CancellationRequest{
 		Id:     SafeStringTyped(request, "id"),
 		Symbol: SafeStringTyped(request, "symbol"),
+	}
+}
+
+// DepositWithdrawFeeNetwork
+
+type DepositWithdrawFeeNetwork struct {
+	fee        *float64
+	percentage *float64
+}
+
+func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
+	return DepositWithdrawFeeNetwork{
+		fee:        SafeFloatTyped(data, "fee"),
+		percentage: SafeFloatTyped(data, "percentage"),
 	}
 }

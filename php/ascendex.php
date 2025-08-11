@@ -2521,9 +2521,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $this->safe_order(array(
+        return array( $this->safe_order(array(
             'info' => $response,
-        ));
+        )) );
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -3071,7 +3071,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

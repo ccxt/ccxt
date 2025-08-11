@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -738,6 +738,7 @@ export default class okx extends Exchange {
                     '51137': InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138': InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51155': RestrictedLocation, // {"code":"1","data":[{"clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade this pair or borrow this crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157"}],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874"}
                     '51156': BadRequest, // You're leading trades in long/short mode and can't use this API endpoint to close positions
                     '51159': BadRequest, // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
                     '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
@@ -1149,7 +1150,9 @@ export default class okx extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'fetchMarkets': {
+                    'types': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                },
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
@@ -1551,7 +1554,13 @@ export default class okx extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const types = this.safeList (this.options, 'fetchMarkets', []);
+        let types = [ 'spot', 'future', 'swap', 'option' ];
+        const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList (fetchMarketsOption, 'types', types);
+        } else {
+            types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -3464,7 +3473,7 @@ export default class okx extends Exchange {
         const trailing = this.safeBool (params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (orderInner, 0);
+            return this.safeDict (orderInner, 0) as Order;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5187,7 +5196,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -6668,7 +6677,7 @@ export default class okx extends Exchange {
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

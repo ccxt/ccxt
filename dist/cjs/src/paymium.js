@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var paymium$1 = require('./abstract/paymium.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class paymium
  * @augments Exchange
  */
-class paymium extends paymium$1 {
+class paymium extends paymium$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'paymium',
@@ -640,4 +642,4 @@ class paymium extends paymium$1 {
     }
 }
 
-module.exports = paymium;
+exports["default"] = paymium;

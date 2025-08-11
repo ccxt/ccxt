@@ -667,9 +667,7 @@ export default class gate extends Exchange {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
-                    'OP': 'OPETH',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',
@@ -3949,7 +3947,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        [ request, params ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params, 0.001);
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -3966,7 +3964,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -5777,7 +5775,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

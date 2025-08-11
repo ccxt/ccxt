@@ -2433,9 +2433,9 @@ class ascendex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.safe_order({
+        return [self.safe_order({
             'info': response,
-        })
+        })]
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
@@ -2958,7 +2958,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

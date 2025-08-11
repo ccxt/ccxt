@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptomus$1 = require('./abstract/cryptomus.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class cryptomus
  * @augments Exchange
  */
-class cryptomus extends cryptomus$1 {
+class cryptomus extends cryptomus$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptomus',
@@ -30,11 +32,15 @@ class cryptomus extends cryptomus$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
@@ -44,6 +50,8 @@ class cryptomus extends cryptomus$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopLossOrder': false,
@@ -55,6 +63,12 @@ class cryptomus extends cryptomus$1 {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -63,27 +77,48 @@ class cryptomus extends cryptomus$1 {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -94,7 +129,9 @@ class cryptomus extends cryptomus$1 {
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': true,
@@ -104,11 +141,16 @@ class cryptomus extends cryptomus$1 {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -722,7 +764,7 @@ class cryptomus extends cryptomus$1 {
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method
@@ -1125,4 +1167,4 @@ class cryptomus extends cryptomus$1 {
     }
 }
 
-module.exports = cryptomus;
+exports["default"] = cryptomus;

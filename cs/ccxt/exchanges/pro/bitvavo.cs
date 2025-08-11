@@ -1500,7 +1500,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1534,7 +1534,9 @@ public partial class bitvavo : ccxt.bitvavo
         if (!isTrue(rejected))
         {
             ((WebSocketClient)client).reject(message, messageHash);
+            return true;
         }
+        return null;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

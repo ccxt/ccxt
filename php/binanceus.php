@@ -43,7 +43,9 @@ class binanceus extends binance {
                 ),
             ),
             'options' => array(
-                'fetchMarkets' => array( 'spot' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot' ),
+                ),
                 'defaultType' => 'spot',
                 'fetchMargins' => false,
                 'quoteOrderQty' => false,

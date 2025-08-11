@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class gate
  * @augments Exchange
  */
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -667,9 +669,7 @@ class gate extends gate$1 {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
-                    'OP': 'OPETH',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',
                     'AVAXC': 'AVAX_C',
@@ -3946,7 +3946,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
-        [request, params] = this.handleUntilOption('to', request, params);
+        [request, params] = this.handleUntilOption('to', request, params, 0.001);
         const response = await this.privateWalletGetWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -8238,4 +8238,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

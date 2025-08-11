@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1166,7 +1166,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        "id": "64d8732c856851144bded10d",
@@ -1182,6 +1182,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 type = 'private'
             self.options['urls'][type] = None
         self.handle_errors(None, None, client.url, None, None, data, message, None, None)
+        return True
 
     def handle_subscription_status(self, client: Client, message):
         #

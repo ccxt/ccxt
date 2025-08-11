@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinbase$1 = require('../coinbase.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinbase extends coinbase$1 {
+class coinbase extends coinbase$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -730,4 +732,4 @@ class coinbase extends coinbase$1 {
     }
 }
 
-module.exports = coinbase;
+exports["default"] = coinbase;

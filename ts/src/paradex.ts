@@ -1286,7 +1286,7 @@ export default class paradex extends Exchange {
         const cancelReason = this.safeString (order, 'cancel_reason');
         let status = this.safeString (order, 'status');
         if (cancelReason !== undefined) {
-            if (cancelReason === 'NOT_ENOUGH_MARGIN') {
+            if (cancelReason === 'NOT_ENOUGH_MARGIN' || cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
                 status = 'rejected';
             } else {
                 status = 'canceled';
@@ -1588,7 +1588,7 @@ export default class paradex extends Exchange {
         //
         // if success, no response...
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2387,7 +2387,7 @@ export default class paradex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
         await this.authenticateRest ();
         await this.loadMarkets ();

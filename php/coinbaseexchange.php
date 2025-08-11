@@ -1594,7 +1594,8 @@ class coinbaseexchange extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        return $this->$method ($this->extend($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1614,14 +1615,15 @@ class coinbaseexchange extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        return $this->privateDeleteOrders ($this->extend($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_payment_methods($params = array ()) {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

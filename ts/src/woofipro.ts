@@ -1747,10 +1747,10 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response), extendParams);
+            return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
-        return this.extend (this.parseOrder (data), extendParams);
+        return this.extend (this.parseOrder (data), extendParams) as Order;
     }
 
     /**
@@ -1834,9 +1834,9 @@ export default class woofipro extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder ({
                 'info': response,
-            },
+            }),
         ];
     }
 
@@ -2469,7 +2469,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         this.checkAddress (address);
         if (code !== undefined) {
@@ -2603,7 +2603,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 50');

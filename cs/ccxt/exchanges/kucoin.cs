@@ -705,7 +705,7 @@ public partial class kucoin : Exchange
                     { "TLOS", "tlos" },
                     { "CFX", "cfx" },
                     { "ACA", "aca" },
-                    { "OP", "optimism" },
+                    { "OPTIMISM", "optimism" },
                     { "ONT", "ont" },
                     { "GLMR", "glmr" },
                     { "CSPR", "cspr" },
@@ -822,6 +822,7 @@ public partial class kucoin : Exchange
                     { "CS", "cs" },
                     { "ORAI", "orai" },
                     { "BASE", "base" },
+                    { "TARA", "tara" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
@@ -2671,7 +2672,9 @@ public partial class kucoin : Exchange
         {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

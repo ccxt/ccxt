@@ -1719,7 +1719,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        return self.safe_order({'info': response})
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -1811,7 +1811,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
+        return [self.safe_order({'info': data})]
 
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
@@ -3216,7 +3217,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'marginMode': marginMode,
         })
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

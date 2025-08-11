@@ -684,9 +684,7 @@ class gate(Exchange, ImplicitAPI):
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
-                    'OP': 'OPETH',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',  # CARDANO
                     'AVAXC': 'AVAX_C',
@@ -3788,11 +3786,11 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5460,7 +5458,7 @@ class gate(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

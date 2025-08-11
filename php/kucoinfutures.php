@@ -1769,7 +1769,7 @@ class kucoinfutures extends kucoin {
         //       ),
         //   }
         //
-        return $this->safe_value($response, 'data');
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
@@ -1869,7 +1869,8 @@ class kucoinfutures extends kucoin {
         //       ),
         //   }
         //
-        return $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
+        return array( $this->safe_order(array( 'info' => $data )) );
     }
 
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
@@ -3350,7 +3351,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

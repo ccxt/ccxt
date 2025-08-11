@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okx$1 = require('./abstract/okx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okx
  * @augments Exchange
  */
-class okx extends okx$1 {
+class okx extends okx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okx',
@@ -736,6 +738,7 @@ class okx extends okx$1 {
                     '51137': errors.InvalidOrder,
                     '51138': errors.InvalidOrder,
                     '51139': errors.InvalidOrder,
+                    '51155': errors.RestrictedLocation,
                     '51156': errors.BadRequest,
                     '51159': errors.BadRequest,
                     '51162': errors.InvalidOrder,
@@ -1147,7 +1150,9 @@ class okx extends okx$1 {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
+                },
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1544,7 +1549,14 @@ class okx extends okx$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const types = this.safeList(this.options, 'fetchMarkets', []);
+        let types = ['spot', 'future', 'swap', 'option'];
+        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList(fetchMarketsOption, 'types', types);
+        }
+        else {
+            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -3477,7 +3489,7 @@ class okx extends okx$1 {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -8995,4 +9007,4 @@ class okx extends okx$1 {
     }
 }
 
-module.exports = okx;
+exports["default"] = okx;

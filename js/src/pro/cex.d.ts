@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
@@ -213,7 +213,7 @@ export default class cex extends cexRest {
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     resolveData(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleAuthenticationMessage(client: Client, message: any): void;
     authenticate(params?: {}): Promise<any>;

@@ -43,4 +43,7 @@ export default {
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
   },
+  performance: {
+    hints: false,
+  }
 }

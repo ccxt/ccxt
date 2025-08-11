@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -163,6 +163,6 @@ export default class bitmart extends bitmartRest {
     authenticate(type: any, params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

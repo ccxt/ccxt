@@ -169,6 +169,7 @@ export default class binance extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    parseTickersForRolling(response: any, symbols: any): any;
     /**
      * @method
      * @name binance#fetchMarkPrice
@@ -813,7 +814,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
@@ -1083,7 +1084,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name binance#setMarginMode

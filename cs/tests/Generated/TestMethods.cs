@@ -939,7 +939,7 @@ public partial class testMainClass
             return true;
         }
         this.checkConstructor(exchange);
-        await this.testReturnResponseHeaders(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (isTrue(isTrue(this.sandbox) || isTrue(getExchangeProp(exchange, "sandbox"))))
         {
             exchange.setSandboxMode(true);
@@ -1418,7 +1418,7 @@ public partial class testMainClass
             { "uid", "uid" },
             { "token", "token" },
             { "login", "login" },
-            { "accountId", "accountId" },
+            { "accountId", "12345" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },

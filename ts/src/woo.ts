@@ -695,7 +695,7 @@ export default class woo extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': null,
+            'created': undefined,
             'info': market,
         };
     }
@@ -1146,7 +1146,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
@@ -1173,7 +1173,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -1565,8 +1565,11 @@ export default class woo extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let response = undefined;
         if (trigger) {
-            return await this.v3PrivateDeleteTradeAlgoOrders (params);
+            response = await this.v3PrivateDeleteTradeAlgoOrders (params);
+        } else {
+            response = await this.v3PrivateDeleteTradeOrders (this.extend (request, params));
         }
         //
         //     {
@@ -1577,7 +1580,8 @@ export default class woo extends Exchange {
         //         "timestamp": 1751941988134
         //     }
         //
-        return await this.v3PrivateDeleteTradeOrders (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return [ this.safeOrder ({ 'info': data }) ];
     }
 
     /**
@@ -2983,7 +2987,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -3645,7 +3649,7 @@ export default class woo extends Exchange {
      * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
