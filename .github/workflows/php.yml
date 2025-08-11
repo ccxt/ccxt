@@ -53,6 +53,8 @@ jobs:
       run: npm ci --include=dev
     - name: Composer install
       run: composer install
+    - name: Install protobuf with PECL
+      run: pecl install protobuf
     - name: Determine modified files
       run: ./utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)

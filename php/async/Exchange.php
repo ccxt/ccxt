@@ -332,7 +332,8 @@ class Exchange extends \ccxt\Exchange {
         if (!class_exists(\Google\Protobuf\Internal\Message::class)) {
             throw new \RuntimeException(
                 "Google Protobuf PHP runtime is not installed or not loaded and it's required to use MEXC WS.\n" .
-                "Install it via Composer: composer require google/protobuf\n"
+                "Install it via Composer: composer require google/protobuf\n" .
+                "Alternatively, you can add it with: pecl install protobuf\n"
             );
         }
         $wrapper = new \PushDataV3ApiWrapper();
