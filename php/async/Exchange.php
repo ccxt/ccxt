@@ -320,6 +320,22 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
+    function is_binary_message($data): bool {
+        if (!is_string($data)) {
+            return false;
+        }
+        $res = preg_match('~[^\x20-\x7E\t\r\n]~', $data) > 0;
+        return $res;
+    }
+
+    function decode_proto_msg($msg) {
+        $wrapper = new \PushDataV3ApiWrapper();
+        $wrapper->mergeFromString($msg);
+        $str = $wrapper->serializeToJsonString();
+        $dict = json_decode($str, true);
+        return $dict;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################

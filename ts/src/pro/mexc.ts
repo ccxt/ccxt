@@ -1950,8 +1950,8 @@ export default class mexc extends mexcRest {
             if (message === 'Invalid listen key') {
                 const error = new AuthenticationError (this.id + ' invalid listen key');
                 client.reject (error);
+                return;
             }
-            return;
         }
         if (this.isBinaryMessage (message)) {
             message = this.decodeProtoMsg (message);
