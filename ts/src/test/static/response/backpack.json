@@ -1,6 +1,8 @@
 {
     "exchange": "backpack",
-    "skipKeys": [ "X-Signature" ],
+    "skipKeys": [ "X-Signature", "X-API-Key", "X-Window", "X-Timestamp" ],
+    "outputType": "both",
+    "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
     "options": {},
     "methods": {
         "fetchBalance": [
