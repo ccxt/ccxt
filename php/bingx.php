@@ -560,8 +560,11 @@ class bingx extends Exchange {
                     'LTC' => 'LTC',
                 ),
                 'networks' => array(
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARB',
                     'MATIC' => 'POLYGON',
+                    'ZKSYNC' => 'ZKSYNCERA',
+                    'AVAXC' => 'AVAX-C',
+                    'HBAR' => 'HEDERA',
                 ),
             ),
             'features' => array(
