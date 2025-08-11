@@ -174,12 +174,14 @@ import Client from './ws/Client.js'
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
 
+
 let protobufMexc = undefined;
-try {
-    protobufMexc = await import('../protobuf/mexc/compiled.cjs')
-} catch (e) {
-    // do nothing
-}
+(async () => {
+  try {
+    protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+  } catch {}
+})();
+
 //-----------------------------------------------------------------------------
 /**
  * @class Exchange
