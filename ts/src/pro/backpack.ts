@@ -3,7 +3,7 @@
 
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -22,7 +22,8 @@ export default class backpack extends backpackRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
-                'watchOrders': false,
+                'watchOrders': true,
+                'watchPositions': true,
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
@@ -993,6 +994,186 @@ export default class backpack extends backpackRest {
         return this.safeString (sides, side, side);
     }
 
+    /**
+     * @method
+     * @name backpack#watchPositions
+     * @description watch all open positions
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let positions = undefined;
+        if (symbols !== undefined) {
+            const messageHashes = [];
+            const topics = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('positions' + ':' + symbol);
+                topics.push ('account.positionUpdate.' + this.marketId (symbol));
+            }
+            positions = await this.watchPrivate (topics, messageHashes, params);
+        } else {
+            const messageHashes = [ 'positions' ];
+            const topics = [ 'account.positionUpdate' ];
+            positions = await this.watchPrivate (topics, messageHashes, params);
+        }
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchPositions
+     * @description unWatches from the stream channel
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let positions = undefined;
+        if (symbols !== undefined) {
+            const messageHashes = [];
+            const topics = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push ('positions' + ':' + symbol);
+                topics.push ('account.positionUpdate.' + this.marketId (symbol));
+            }
+            positions = await this.watchPrivate (topics, messageHashes, params, true);
+        } else {
+            const messageHashes = [ 'positions' ];
+            const topics = [ 'account.positionUpdate' ];
+            positions = await this.watchPrivate (topics, messageHashes, params, true);
+        }
+        return positions;
+    }
+
+    handlePositions (client, message) {
+        //
+        //     {
+        //         data: {
+        //             B: '4236.36',
+        //             E: '1754943862040486',
+        //             M: '4235.88650933',
+        //             P: '-0.000473',
+        //             Q: '0.0010',
+        //             T: '1754943862040487',
+        //             b: '4238.479',
+        //             e: 'positionOpened',
+        //             f: '0.02',
+        //             i: 5411399049,
+        //             l: '0',
+        //             m: '0.0125',
+        //             n: '4.23588650933',
+        //             p: '0',
+        //             q: '0.0010',
+        //             s: 'ETH_USDC_PERP'
+        //         },
+        //         stream: 'account.positionUpdate'
+        //     }
+        //
+        const messageHash = 'positions';
+        const data = this.safeDict (message, 'data', {});
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolById ();
+        }
+        const cache = this.positions;
+        const parsedPosition = this.parseWsPosition (data);
+        const microseconds = this.safeInteger (data, 'E');
+        const timestamp = this.parseToInt (microseconds / 1000);
+        parsedPosition['timestamp'] = timestamp;
+        parsedPosition['datetime'] = this.iso8601 (timestamp);
+        cache.append (parsedPosition);
+        const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
+        client.resolve ([ parsedPosition ], messageHash);
+        client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         B: '4236.36',
+        //         E: '1754943862040486',
+        //         M: '4235.88650933',
+        //         P: '-0.000473',
+        //         Q: '0.0010',
+        //         T: '1754943862040487',
+        //         b: '4238.479',
+        //         e: 'positionOpened',
+        //         f: '0.02',
+        //         i: 5411399049,
+        //         l: '0',
+        //         m: '0.0125',
+        //         n: '4.23588650933',
+        //         p: '0',
+        //         q: '0.0010',
+        //         s: 'ETH_USDC_PERP'
+        //     }
+        //
+        const id = this.safeString (position, 'i');
+        const marketId = this.safeString (position, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const notional = this.safeString (position, 'n');
+        const liquidationPrice = this.safeString (position, 'l');
+        const entryPrice = this.safeString (position, 'b');
+        const realizedPnl = this.safeString (position, 'p');
+        const unrealisedPnl = this.safeString (position, 'P');
+        const contracts = this.safeString (position, 'Q');
+        const markPrice = this.safeString (position, 'M');
+        const netQuantity = this.safeNumber (position, 'q');
+        let hedged = false;
+        let side = 'long';
+        if (netQuantity <= 0) {
+            side = 'short';
+        }
+        if (netQuantity === undefined) {
+            hedged = undefined;
+            side = undefined;
+        }
+        const microseconds = this.safeInteger (position, 'E');
+        const timestamp = this.parseToInt (microseconds / 1000);
+        const maintenanceMargin = this.safeNumber (position, 'm');
+        const initialMargin = this.safeNumber (position, 'f');
+        return this.safePosition ({
+            'info': position,
+            'id': id,
+            'symbol': symbol,
+            'notional': notional,
+            'marginMode': undefined,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': entryPrice,
+            'realizedPnl': realizedPnl,
+            'unrealizedPnl': unrealisedPnl,
+            'percentage': undefined,
+            'contracts': contracts,
+            'contractSize': undefined,
+            'markPrice': markPrice,
+            'side': side,
+            'hedged': hedged,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+
     handleMessage (client: Client, message) {
         // add handleError message
         // { id: null, error: { code: 4006, message: 'Invalid stream' } }
@@ -1012,6 +1193,8 @@ export default class backpack extends backpackRest {
             || event === 'orderCancelled' || event === 'orderExpired' || event === 'orderModified'
             || event === 'triggerPlaced' || event === 'triggerFailed') {
             this.handleOrder (client, message);
+        } else if (event === 'positionAdjusted' || event === 'positionOpened' || event === 'positionClosed' || event === 'positionUpdated') {
+            this.handlePositions (client, message);
         }
     }
 }
