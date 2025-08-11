@@ -945,7 +945,7 @@ class oxfun extends oxfun$1["default"] {
             const method = this.safeString(message, 'event');
             const stringMsg = this.json(message);
             const code = this.safeInteger(message, 'code');
-            this.handleErrors(code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors(code, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const data = this.safeValue(message, 'data', {});
         const order = this.parseOrder(data);

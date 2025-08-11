@@ -2070,7 +2070,7 @@ export default class okx extends okxRest {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
