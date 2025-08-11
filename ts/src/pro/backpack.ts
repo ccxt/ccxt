@@ -3,9 +3,11 @@
 
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
+import { eddsa } from '../base/functions/crypto.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,6 +59,26 @@ export default class backpack extends backpackRest {
         const request: Dict = {
             'method': method,
             'params': topics,
+        };
+        const message = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    async watchPrivate (topics, messageHashes, params = {}, unwatch = false) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'];
+        const instruction = 'subscribe';
+        const ts = this.nonce ().toString ();
+        const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
+        const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
+        const payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow;
+        const secretBytes = this.base64ToBinary (this.secret);
+        const seed = this.arraySlice (secretBytes, 0, 32);
+        const signature = eddsa (this.encode (payload), seed, ed25519);
+        const request: Dict = {
+            'method': method,
+            'params': topics,
+            'signature': [ this.apiKey, signature, ts, recvWindow ],
         };
         const message = this.deepExtend (request, params);
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
@@ -779,21 +801,203 @@ export default class backpack extends backpackRest {
         return cache.length;
     }
 
+    /**
+     * @method
+     * @name backpack#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        let topic = 'account.orderUpdate';
+        topic = (market !== undefined) ? (topic + '.' + market['id']) : topic;
+        let messageHash = 'orders';
+        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
+        const orders = await this.watchPrivate ([ topic ], [ messageHash ], params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        let topic = 'account.orderUpdate';
+        topic = (market !== undefined) ? (topic + '.' + market['id']) : topic;
+        let messageHash = 'orders';
+        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash
+        return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         data: {
+        //             E: '1754939110175843',
+        //             O: 'USER',
+        //             Q: '4.30',
+        //             S: 'Bid',
+        //             T: '1754939110174703',
+        //             V: 'RejectTaker',
+        //             X: 'New',
+        //             Z: '0',
+        //             e: 'orderAccepted',
+        //             f: 'GTC',
+        //             i: '5406825793',
+        //             o: 'MARKET',
+        //             q: '0.0010',
+        //             r: false,
+        //             s: 'ETH_USDC',
+        //             t: null,
+        //             z: '0'
+        //         },
+        //         stream: 'account.orderUpdate.ETH_USDC'
+        //     }
+        //
+        const messageHash = 'orders';
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const parsed = this.parseWsOrder (data, market);
+        let orders = this.orders;
+        if (orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            orders = new ArrayCacheBySymbolById (limit);
+            this.orders = orders;
+        }
+        orders.append (parsed);
+        client.resolve (orders, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (orders, symbolSpecificMessageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //     {
+        //         E: '1754939110175879',
+        //         L: '4299.16',
+        //         N: 'ETH',
+        //         O: 'USER',
+        //         Q: '4.30',
+        //         S: 'Bid',
+        //         T: '1754939110174705',
+        //         V: 'RejectTaker',
+        //         X: 'Filled',
+        //         Z: '4.299160',
+        //         e: 'orderFill',
+        //         f: 'GTC',
+        //         i: '5406825793',
+        //         l: '0.0010',
+        //         m: false,
+        //         n: '0.000001',
+        //         o: 'MARKET',
+        //         q: '0.0010',
+        //         r: false,
+        //         s: 'ETH_USDC',
+        //         t: 2888471,
+        //         z: '0.0010'
+        //     },
+        //
+        const id = this.safeString (order, 'i');
+        const clientOrderId = this.safeString (order, 'c');
+        const microseconds = this.safeInteger (order, 'E');
+        const timestamp = this.parseToInt (microseconds / 1000);
+        const status = this.parseWsOrderStatus (this.safeString (order, 'X'), market);
+        const marketId = this.safeString (order, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const type = this.safeStringLower (order, 'o');
+        const timeInForce = this.safeString (order, 'f');
+        const side = this.parseWsOrderSide (this.safeString (order, 'S'));
+        const price = this.safeString (order, 'p');
+        const triggerPrice = this.safeNumber (order, 'P');
+        const amount = this.safeString (order, 'q');
+        const cost = this.safeString (order, 'Z');
+        const filled = this.safeString (order, 'l');
+        let fee = undefined;
+        const feeCurrency = this.safeString (order, 'N');
+        if (feeCurrency !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': undefined,
+            };
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': triggerPrice,
+            'average': undefined,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': undefined,
+            'fee': fee,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseWsOrderStatus (status, market = undefined) {
+        const statuses: Dict = {
+            'New': 'open',
+            'Filled': 'closed',
+            'Cancelled': 'canceled',
+            'Expired': 'canceled',
+            'PartiallyFilled': 'open',
+            'TriggerPending': 'open',
+            'TriggerFailed': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWsOrderSide (side: Str) {
+        const sides: Dict = {
+            'Bid': 'buy',
+            'Ask': 'sell',
+        };
+        return this.safeString (sides, side, side);
+    }
+
     handleMessage (client: Client, message) {
         // add handleError message
         // { id: null, error: { code: 4006, message: 'Invalid stream' } }
         const data = this.safeDict (message, 'data');
         const event = this.safeString (data, 'e');
-        const methods: Dict = {
-            'ticker': this.handleTicker,
-            'bookTicker': this.handleBidAsk,
-            'kline': this.handleOHLCV,
-            'trade': this.handleTrades,
-        };
-        const method = this.safeValue (methods, event);
-        if (method !== undefined) {
-            method.call (this, client, message);
-        }
         if (event === 'ticker') {
             this.handleTicker (client, message);
         } else if (event === 'bookTicker') {
@@ -804,6 +1008,10 @@ export default class backpack extends backpackRest {
             this.handleTrades (client, message);
         } else if (event === 'depth') {
             this.handleOrderBook (client, message);
+        } else if (event === 'orderAccepted' || event === 'orderUpdate' || event === 'orderFill'
+            || event === 'orderCancelled' || event === 'orderExpired' || event === 'orderModified'
+            || event === 'triggerPlaced' || event === 'triggerFailed') {
+            this.handleOrder (client, message);
         }
     }
 }
