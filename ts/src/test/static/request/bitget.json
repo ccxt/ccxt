@@ -1473,6 +1473,20 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"abc321\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "trailing cancel order using clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "a1b2c3",
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"a1b2c3\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [

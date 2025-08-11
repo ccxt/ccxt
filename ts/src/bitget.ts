@@ -5804,8 +5804,22 @@ export default class bitget extends Exchange {
         }
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', false);
+        const isPlanOrder = trigger || trailing;
+        const isContract = market['swap'] || market['future'];
+        const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
-        if (!((market['swap'] || market['future']) && trigger && !uta)) {
+        if (isContractTriggerEndpoint) {
+            const orderIdList = [];
+            const orderId: Dict = {};
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
+                orderId['clientOid'] = clientOrderId;
+            } else {
+                orderId['orderId'] = id;
+            }
+            orderIdList.push (orderId);
+            request['orderIdList'] = orderIdList;
+        } else {
             if (clientOrderId !== undefined) {
                 params = this.omit (params, 'clientOrderId');
                 request['clientOid'] = clientOrderId;
@@ -5823,18 +5837,6 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (trigger || trailing) {
-                const orderIdList = [];
-                const orderId: Dict = {};
-                if (clientOrderId !== undefined) {
-                    params = this.omit (params, 'clientOrderId');
-                    orderId['clientOid'] = clientOrderId;
-                } else {
-                    orderId['orderId'] = id;
-                }
-                orderIdList.push (orderId);
-                request['orderIdList'] = orderIdList;
-            }
             if (trailing) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
@@ -5913,7 +5915,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let order = undefined;
-        if ((market['swap'] || market['future']) && trigger && !uta) {
+        if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
