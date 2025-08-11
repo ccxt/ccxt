@@ -1723,6 +1723,46 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets();
+        const request = this.cancelOrdersRequest(ids, symbol, params);
+        const response = await this.privatePostExchange(request);
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const innerResponse = this.safeDict(response, 'response');
+        const data = this.safeDict(innerResponse, 'data');
+        const statuses = this.safeList(data, 'statuses');
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push(this.safeOrder({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
+    }
+    cancelOrdersRequest(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersRequest
+         * @description build the request payload for cancelling multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params]
+         * @returns {object} the raw request object to be sent to the exchange
+         */
         const market = this.market(symbol);
         let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
         params = this.omit(params, ['clientOrderId', 'client_id']);
@@ -1769,32 +1809,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange(request);
-        //
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //             "type":"cancel",
-        //             "data":{
-        //                 "statuses":[
-        //                     "success"
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        const innerResponse = this.safeDict(response, 'response');
-        const data = this.safeDict(innerResponse, 'data');
-        const statuses = this.safeList(data, 'statuses');
-        const orders = [];
-        for (let i = 0; i < statuses.length; i++) {
-            const status = statuses[i];
-            orders.push(this.safeOrder({
-                'info': status,
-                'status': status,
-            }));
-        }
-        return orders;
+        return request;
     }
     /**
      * @method
@@ -3844,8 +3859,12 @@ export default class hyperliquid extends Exchange {
             const responsePayload = this.safeDict(response, 'response', {});
             const data = this.safeDict(responsePayload, 'data', {});
             const statuses = this.safeList(data, 'statuses', []);
-            const firstStatus = this.safeDict(statuses, 0);
-            message = this.safeString(firstStatus, 'error');
+            for (let i = 0; i < statuses.length; i++) {
+                message = this.safeString(statuses[i], 'error');
+                if (message !== undefined) {
+                    break;
+                }
+            }
         }
         const feedback = this.id + ' ' + body;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));

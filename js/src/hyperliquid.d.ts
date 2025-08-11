@@ -246,6 +246,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
+    cancelOrdersRequest(ids: string[], symbol?: Str, params?: {}): Dict;
     /**
      * @method
      * @name hyperliquid#cancelOrdersForSymbols
