@@ -3,7 +3,7 @@
 
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -45,30 +45,20 @@ export default class backpack extends backpackRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 50000,
+                'keepAlive': 119000,
             },
         });
     }
 
-    async watchPublic (topics, messageHashes, params = {}) {
+    async watchPublic (topics, messageHashes, params = {}, unwatch = false) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['public'];
+        const method = unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
         const request: Dict = {
-            'method': 'SUBSCRIBE',
+            'method': method,
             'params': topics,
         };
-        const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
-    }
-
-    async unWatchPublic (topics, messageHashes, params = {}) {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': topics,
-        };
-        const message = this.extend (request, params);
+        const message = this.deepExtend (request, params);
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
@@ -147,7 +137,7 @@ export default class backpack extends backpackRest {
             topics.push ('ticker.' + marketId);
             messageHashes.push ('ticker:' + symbol);
         }
-        return await this.unWatchPublic (topics, messageHashes, params);
+        return await this.watchPublic (topics, messageHashes, params, true);
     }
 
     handleTicker (client: Client, message) {
@@ -402,7 +392,7 @@ export default class backpack extends backpackRest {
             topics.push ('kline.' + interval + '.' + market['id']);
             messageHashes.push ('candles:' + interval + ':' + market['symbol']);
         }
-        return await this.unWatchPublic (topics, messageHashes, params);
+        return await this.watchPublic (topics, messageHashes, params, true);
     }
 
     handleOHLCV (client: Client, message) {
@@ -561,7 +551,7 @@ export default class backpack extends backpackRest {
             topics.push ('trade.' + marketId);
             messageHashes.push ('trades:' + symbol);
         }
-        return await this.unWatchPublic (topics, messageHashes, params);
+        return await this.watchPublic (topics, messageHashes, params, true);
     }
 
     handleTrades (client: Client, message) {
@@ -650,8 +640,149 @@ export default class backpack extends backpackRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name backpack#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name backpack#watchOrderBookForSymbols
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const marketIds = this.marketIds (symbols);
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('orderbook:' + symbol);
+            const marketId = marketIds[i];
+            const topic = 'depth.' + marketId;
+            topics.push (topic);
+        }
+        const orderbook = await this.watchPublic (topics, messageHashes, params);
+        return orderbook.limit (); // todo check if limit is needed
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
+        //
+        //     {
+        //         "data": {
+        //             "E": "1754903057555305",
+        //             "T": "1754903057554352",
+        //             "U": 1345937436,
+        //             "a": [],
+        //             "b": [],
+        //             "e": "depth",
+        //             "s": "ETH_USDC",
+        //             "u": 1345937436
+        //         },
+        //         "stream": "depth.ETH_USDC"
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 's');
+        const symbol = this.safeSymbol (marketId);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        const deltaNonce = this.safeInteger (data, 'u');
+        const messageHash = 'orderbook:' + symbol;
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            // the rest API is very delayed
+            // usually it takes at least 9 deltas to resolve
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            if (cacheLength === snapshotDelay) {
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
+            }
+            storedOrderBook.cache.push (data);
+            return;
+        } else if (nonce >= deltaNonce) {
+            return;
+        }
+        this.handleDelta (storedOrderBook, data);
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    handleDelta (orderbook, delta) {
+        const timestamp = this.safeTimestamp (delta, 'T');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'u');
+        const bids = this.safeDict (delta, 'b', []);
+        const asks = this.safeDict (delta, 'a', []);
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
+    }
+
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            bookSide.storeArray (bidAsk);
+        }
+    }
+
+    getCacheIndex (orderbook, cache) {
+        const firstDelta = this.safeDict (cache, 0);
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        const firstDeltaStart = this.safeInteger (firstDelta, 'sequenceStart');
+        if (nonce < firstDeltaStart - 1) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const deltaStart = this.safeInteger (delta, 'sequenceStart');
+            const deltaEnd = this.safeInteger (delta, 'sequenceEnd');
+            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+                return i;
+            }
+        }
+        return cache.length;
+    }
+
     handleMessage (client: Client, message) {
-        const data = this.safeValue (message, 'data');
+        // add handleError message
+        // { id: null, error: { code: 4006, message: 'Invalid stream' } }
+        const data = this.safeDict (message, 'data');
         const event = this.safeString (data, 'e');
         const methods: Dict = {
             'ticker': this.handleTicker,
@@ -662,6 +793,17 @@ export default class backpack extends backpackRest {
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
+        }
+        if (event === 'ticker') {
+            this.handleTicker (client, message);
+        } else if (event === 'bookTicker') {
+            this.handleBidAsk (client, message);
+        } else if (event === 'kline') {
+            this.handleOHLCV (client, message);
+        } else if (event === 'trade') {
+            this.handleTrades (client, message);
+        } else if (event === 'depth') {
+            this.handleOrderBook (client, message);
         }
     }
 }
