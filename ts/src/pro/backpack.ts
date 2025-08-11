@@ -849,7 +849,7 @@ export default class backpack extends backpackRest {
         let topic = 'account.orderUpdate';
         topic = (market !== undefined) ? (topic + '.' + market['id']) : topic;
         let messageHash = 'orders';
-        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash
+        messageHash = (symbol !== undefined) ? ('orders:' + symbol) : messageHash;
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
 
