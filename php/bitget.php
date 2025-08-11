@@ -6195,6 +6195,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->clientOrderId] the $clientOrderId of the order, $id does not need to be provided if $clientOrderId is provided
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -6203,8 +6204,15 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'orderId' => $id,
+            // 'orderId' => $id,
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $request['clientOid'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
         $response = null;
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'uta', false);
