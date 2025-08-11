@@ -71,5 +71,78 @@
             "quoteSymbol": "USDC",
             "symbol": "ETH_USDC"
         }
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETH_USDC_PERP",
+        "lowercaseId": "null",
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": { "amount": 0.0001, "price": 0.01 },
+        "limits": {
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": 0.0001, "max": null },
+            "price": { "min": 0.01, "max": 1000000 },
+            "cost": { "min": null, "max": null }
+        },
+        "marginModes": { "cross": null, "isolated": null },
+        "created": 1737441294691,
+        "info": {
+            "baseSymbol": "ETH",
+            "createdAt": "2025-01-21T06:34:54.691858",
+            "filters": {
+                "price": {
+                    "borrowEntryFeeMaxMultiplier": null,
+                    "borrowEntryFeeMinMultiplier": null,
+                    "maxImpactMultiplier": "1.02",
+                    "maxMultiplier": "1.25",
+                    "maxPrice": "1000000",
+                    "meanMarkPriceBand": { "maxMultiplier": "1.09", "minMultiplier": "0.92" },
+                    "meanPremiumBand": { "tolerancePct": "0.05" },
+                    "minImpactMultiplier": "0.98",
+                    "minMultiplier": "0.75",
+                    "minPrice": "0.01",
+                    "tickSize": "0.01"
+                },
+            "quantity": {
+                "maxQuantity": null,
+                "minQuantity": "0.0001",
+                "stepSize": "0.0001"
+            }
+        },
+            "fundingInterval": "28800000",
+            "fundingRateLowerBound": "-100",
+            "fundingRateUpperBound": "100",
+            "imfFunction": { "base": "0.02", "factor": "0.0000935", "type": "sqrt" },
+            "marketType": "PERP",
+            "mmfFunction": { "base": "0.0125", "factor": "0.0000561", "type": "sqrt" },
+            "openInterestLimit": "64000",
+            "orderBookState": "Open",
+            "quoteSymbol": "USDC",
+            "symbol": "ETH_USDC_PERP"
+        }
     }
 }
