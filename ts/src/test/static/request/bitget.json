@@ -804,6 +804,19 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetching order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?clientOid=myid1",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    {
+                        "clientOid": "myid1"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot fetch order",
                 "method": "fetchOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?orderId=1112193234476896261",
