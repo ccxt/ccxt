@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import backpackRest from '../backpack.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -87,7 +87,7 @@ export default class backpack extends backpackRest {
 
     /**
      * @method
-     * @name crybackpackptocom#watchTicker
+     * @name backpack#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -1179,8 +1179,9 @@ export default class backpack extends backpackRest {
     }
 
     handleMessage (client: Client, message) {
-        // add handleError message
-        // { id: null, error: { code: 4006, message: 'Invalid stream' } }
+        if (!this.handleErrorMessage (client, message)) {
+            return;
+        }
         const data = this.safeDict (message, 'data');
         const event = this.safeString (data, 'e');
         if (event === 'ticker') {
@@ -1198,5 +1199,29 @@ export default class backpack extends backpackRest {
         } else if (event === 'positionAdjusted' || event === 'positionOpened' || event === 'positionClosed' || event === 'positionUpdated') {
             this.handlePositions (client, message);
         }
+    }
+
+    handleErrorMessage (client: Client, message): Bool {
+        //
+        //     {
+        //         id: null,
+        //         error: {
+        //             code: 4006,
+        //             message: 'Invalid stream'
+        //         }
+        //     }
+        //
+        const error = this.safeDict (message, 'error', {});
+        const code = this.safeInteger (error, 'code');
+        try {
+            if (code !== undefined) {
+                const msg = this.safeString (error, 'message');
+                throw new ExchangeError (this.id + ' ' + msg);
+            }
+            return true;
+        } catch (e) {
+            client.reject (e);
+        }
+        return true;
     }
 }
