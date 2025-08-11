@@ -1770,7 +1770,7 @@ class hyperliquid extends Exchange {
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
              *
              * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol
+             * @param {string} [$symbol] unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address
@@ -1782,51 +1782,7 @@ class hyperliquid extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
-            $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
-            $nonce = $this->milliseconds();
-            $request = array(
-                'nonce' => $nonce,
-                // 'vaultAddress' => $vaultAddress,
-            );
-            $cancelReq = array();
-            $cancelAction = array(
-                'type' => '',
-                'cancels' => array(),
-            );
-            $baseId = $this->parse_to_numeric($market['baseId']);
-            if ($clientOrderId !== null) {
-                if (gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId))) {
-                    $clientOrderId = array( $clientOrderId );
-                }
-                $cancelAction['type'] = 'cancelByCloid';
-                for ($i = 0; $i < count($clientOrderId); $i++) {
-                    $cancelReq[] = array(
-                        'asset' => $baseId,
-                        'cloid' => $clientOrderId[$i],
-                    );
-                }
-            } else {
-                $cancelAction['type'] = 'cancel';
-                for ($i = 0; $i < count($ids); $i++) {
-                    $cancelReq[] = array(
-                        'a' => $baseId,
-                        'o' => $this->parse_to_numeric($ids[$i]),
-                    );
-                }
-            }
-            $cancelAction['cancels'] = $cancelReq;
-            $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
-            $vaultAddress = $this->format_vault_address($vaultAddress);
-            $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
-            $request['action'] = $cancelAction;
-            $request['signature'] = $signature;
-            if ($vaultAddress !== null) {
-                $params = $this->omit($params, 'vaultAddress');
-                $request['vaultAddress'] = $vaultAddress;
-            }
+            $request = $this->cancel_orders_request($ids, $symbol, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
             //     {
@@ -1854,6 +1810,64 @@ class hyperliquid extends Exchange {
             }
             return $orders;
         }) ();
+    }
+
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array ()): array {
+        /**
+         * build the $request payload for cancelling multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params]
+         * @return {array} the raw $request object to be sent to the exchange
+         */
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
+        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+            // 'vaultAddress' => $vaultAddress,
+        );
+        $cancelReq = array();
+        $cancelAction = array(
+            'type' => '',
+            'cancels' => array(),
+        );
+        $baseId = $this->parse_to_numeric($market['baseId']);
+        if ($clientOrderId !== null) {
+            if (gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId))) {
+                $clientOrderId = array( $clientOrderId );
+            }
+            $cancelAction['type'] = 'cancelByCloid';
+            for ($i = 0; $i < count($clientOrderId); $i++) {
+                $cancelReq[] = array(
+                    'asset' => $baseId,
+                    'cloid' => $clientOrderId[$i],
+                );
+            }
+        } else {
+            $cancelAction['type'] = 'cancel';
+            for ($i = 0; $i < count($ids); $i++) {
+                $cancelReq[] = array(
+                    'a' => $baseId,
+                    'o' => $this->parse_to_numeric($ids[$i]),
+                );
+            }
+        }
+        $cancelAction['cancels'] = $cancelReq;
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
+        $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
+        $request['action'] = $cancelAction;
+        $request['signature'] = $signature;
+        if ($vaultAddress !== null) {
+            $params = $this->omit($params, 'vaultAddress');
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        return $request;
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
@@ -3968,8 +3982,12 @@ class hyperliquid extends Exchange {
             $responsePayload = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responsePayload, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            $firstStatus = $this->safe_dict($statuses, 0);
-            $message = $this->safe_string($firstStatus, 'error');
+            for ($i = 0; $i < count($statuses); $i++) {
+                $message = $this->safe_string($statuses[$i], 'error');
+                if ($message !== null) {
+                    break;
+                }
+            }
         }
         $feedback = $this->id . ' ' . $body;
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
