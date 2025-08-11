@@ -578,8 +578,11 @@ class bingx(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
