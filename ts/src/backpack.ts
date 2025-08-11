@@ -729,9 +729,9 @@ export default class backpack extends Exchange {
 
     /**
      * @method
-     * @name bigone#fetchTicker
+     * @name backpack#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://open.big.one/docs/spot_tickers.html
+     * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
