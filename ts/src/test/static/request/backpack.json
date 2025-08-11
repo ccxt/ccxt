@@ -1,6 +1,6 @@
 {
     "exchange": "backpack",
-    "skipKeys": [ "X-Signature", "X-API-Key", "X-Window", "X-Timestamp" ],
+    "skipKeys": [ "X-Signature", "X-API-Key", "X-Window", "X-Timestamp", "signature" ],
     "outputType": "json",
     "methods": {
         "fetchBalance": [
