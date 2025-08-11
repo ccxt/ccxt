@@ -233,6 +233,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
