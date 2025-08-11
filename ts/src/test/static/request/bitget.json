@@ -1405,7 +1405,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
             },
             {
                 "description": "uta spot cancelOrder",
@@ -1486,7 +1486,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"a1b2c3\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [
