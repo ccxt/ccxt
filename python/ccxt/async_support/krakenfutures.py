@@ -246,6 +246,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
