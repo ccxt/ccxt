@@ -149,7 +149,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.4.6'
           extensions: protobuf
           # cache: true
           ini-values: |
