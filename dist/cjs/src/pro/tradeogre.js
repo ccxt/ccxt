@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var tradeogre$1 = require('../tradeogre.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class tradeogre extends tradeogre$1["default"] {
     describe() {
