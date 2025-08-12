@@ -1452,7 +1452,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.bitget.com/api/v3/trade/cancel-order",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "123abc",
@@ -1466,7 +1466,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/cancel-order",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "abc321"
@@ -1479,7 +1479,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "a1b2c3",
