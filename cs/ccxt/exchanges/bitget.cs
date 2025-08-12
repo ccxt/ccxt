@@ -6215,6 +6215,7 @@ public partial class bitget : Exchange
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -6239,17 +6240,41 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (!isTrue((isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger))))
-        {
-            ((IDictionary<string,object>)request)["orderId"] = id;
-        }
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
+        object isPlanOrder = isTrue(trigger) || isTrue(trailing);
+        object isContract = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
+        object isContractTriggerEndpoint = isTrue(isTrue(isContract) && isTrue(isPlanOrder)) && !isTrue(uta);
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
+        if (isTrue(isContractTriggerEndpoint))
+        {
+            object orderIdList = new List<object>() {};
+            object orderId = new Dictionary<string, object>() {};
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                parameters = this.omit(parameters, "clientOrderId");
+                ((IDictionary<string,object>)orderId)["clientOid"] = clientOrderId;
+            } else
+            {
+                ((IDictionary<string,object>)orderId)["orderId"] = id;
+            }
+            ((IList<object>)orderIdList).Add(orderId);
+            ((IDictionary<string,object>)request)["orderIdList"] = orderIdList;
+        } else
+        {
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                parameters = this.omit(parameters, "clientOrderId");
+                ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+            } else
+            {
+                ((IDictionary<string,object>)request)["orderId"] = id;
+            }
+        }
         if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["orderId"] = id;
             if (isTrue(trigger))
             {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder(this.extend(request, parameters));
@@ -6264,15 +6289,6 @@ public partial class bitget : Exchange
             productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
-            if (isTrue(isTrue(trigger) || isTrue(trailing)))
-            {
-                object orderIdList = new List<object>() {};
-                object orderId = new Dictionary<string, object>() {
-                    { "orderId", id },
-                };
-                ((IList<object>)orderIdList).Add(orderId);
-                ((IDictionary<string,object>)request)["orderIdList"] = orderIdList;
-            }
             if (isTrue(trailing))
             {
                 object planType = this.safeString(parameters, "planType", "track_plan");
@@ -6362,7 +6378,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = null;
-        if (isTrue(isTrue(isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger)) && !isTrue(uta)))
+        if (isTrue(isContractTriggerEndpoint))
         {
             object orderInfo = this.safeValue(data, "successList", new List<object>() {});
             order = getValue(orderInfo, 0);
