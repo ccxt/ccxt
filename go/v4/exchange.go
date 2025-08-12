@@ -213,22 +213,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		this.SetSandboxMode(true)
 	}
 
-	exchangeId := this.Id
-
-	market, ok := globalMarkets.GetUnifiedMarket(exchangeId)
-	if !ok {
-		markets := <-this.LoadMarkets()
-		switch markets.(type) {
-		case *sync.Map:
-			break
-		default:
-		}
-		globalMarkets.InsertUnifiedMarket(this.Markets, exchangeId)
-	} else {
-		this.MarketsMutex.Lock()
-		this.Markets = market.markets
-		this.MarketsMutex.Unlock()
-	}
 	// fmt.Println(this.TransformedApi)
 }
 
@@ -365,6 +349,15 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
+
+		// if marketsMap.(*sync.Map); ok {
+		//
+		// }
+		// marketsMap := markets.(*sync.Map)
+		// marketsMap.Range(func(key, value interface{}) bool {
+		// 	this.Markets.Store(key, value)
+		// 	return true
+		// })
 
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")

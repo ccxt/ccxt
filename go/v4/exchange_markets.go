@@ -8,7 +8,10 @@ import (
 var globalMarkets = NewMarkets()
 
 type UnifiedMarket struct {
-	markets *sync.Map
+	Markets          *sync.Map
+	Markets_by_id    *sync.Map
+	Currencies       *sync.Map
+	Currencies_by_id *sync.Map
 }
 
 type UnifiedMarkets struct {
@@ -35,12 +38,22 @@ func (u *UnifiedMarkets) GetUnifiedMarket(marketName string) (UnifiedMarket, boo
 	return market, true
 }
 
-// Insert the unified market to the global map
-func (u *UnifiedMarkets) InsertUnifiedMarket(market *sync.Map, marketName string) {
-	u.marketsRwMu.Lock()
-	defer u.marketsRwMu.Unlock()
+func (u *UnifiedMarkets) GetOrCreateUnifiedMarket(marketName string) UnifiedMarket {
+	u.marketsRwMu.RLock()
+	market, ok := u.markets[marketName]
+	u.marketsRwMu.RUnlock()
 
-	u.markets[marketName] = UnifiedMarket{
-		markets: market,
+	if !ok {
+		market = UnifiedMarket{
+			Markets:          &sync.Map{},
+			Markets_by_id:    &sync.Map{},
+			Currencies:       &sync.Map{},
+			Currencies_by_id: &sync.Map{},
+		}
+		u.marketsRwMu.Lock()
+		u.markets[marketName] = market
+		u.marketsRwMu.Unlock()
 	}
+
+	return market
 }
