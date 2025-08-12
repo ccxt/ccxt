@@ -28,6 +28,8 @@ export default class aster extends asterRest {
                 'watchOHLCVForSymbols': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
             },
             'urls': {
                 'api': {
@@ -167,6 +169,21 @@ export default class aster extends asterRest {
 
     /**
      * @method
+     * @name aster#unWatchMarkPrice
+     * @description unWatches a mark price for a specific market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchMarkPrice';
+        return await this.unWatchMarkPrices ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name aster#watchMarkPrices
      * @description watches the mark price for all markets
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
@@ -208,6 +225,45 @@ export default class aster extends asterRest {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchMarkPrices
+     * @description watches the mark price for all markets
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const suffix = (use1sFreq) ? '@1s' : '';
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
+            messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleTicker (client: Client, message) {
