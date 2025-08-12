@@ -3600,6 +3600,7 @@ func (this *bitmex) ParseLiquidation(liquidation interface{}, optionalArgs ...in
 		"contracts":    nil,
 		"contractSize": this.SafeNumber(market, "contractSize"),
 		"price":        this.SafeNumber(liquidation, "price"),
+		"side":         this.SafeStringLower(liquidation, "side"),
 		"baseValue":    nil,
 		"quoteValue":   nil,
 		"timestamp":    nil,

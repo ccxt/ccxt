@@ -10418,6 +10418,7 @@ func (this *htx) ParseLiquidation(liquidation interface{}, optionalArgs ...inter
 		"contracts":    this.SafeNumber(liquidation, "volume"),
 		"contractSize": this.SafeNumber(market, "contractSize"),
 		"price":        this.SafeNumber(liquidation, "price"),
+		"side":         this.SafeStringLower(liquidation, "direction"),
 		"baseValue":    this.SafeNumber(liquidation, "amount"),
 		"quoteValue":   this.SafeNumber(liquidation, "trade_turnover"),
 		"timestamp":    timestamp,
@@ -10454,8 +10455,8 @@ func (this *htx) ClosePosition(symbol interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes93788 := (<-this.LoadMarkets())
-		PanicOnError(retRes93788)
+		retRes93798 := (<-this.LoadMarkets())
+		PanicOnError(retRes93798)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		if !IsTrue(GetValue(market, "contract")) {
@@ -10533,8 +10534,8 @@ func (this *htx) SetPositionMode(hedged interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes94328 := (<-this.LoadMarkets())
-		PanicOnError(retRes94328)
+		retRes94338 := (<-this.LoadMarkets())
+		PanicOnError(retRes94338)
 		var posMode interface{} = Ternary(IsTrue(hedged), "dual_side", "single_side")
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
