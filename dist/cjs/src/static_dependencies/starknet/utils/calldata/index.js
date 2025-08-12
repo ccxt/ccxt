@@ -19,7 +19,7 @@ var requestParser = require('./requestParser.js');
 var responseParser = require('./responseParser.js');
 var validate = require('./validate.js');
 
-// ----------------------------------------------------------------------------
+/* eslint-disable no-plusplus */
 class CallData {
     constructor(abi) {
         this.structs = CallData.getAbiStruct(abi);

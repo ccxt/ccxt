@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var hyperliquid$1 = require('../hyperliquid.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hyperliquid extends hyperliquid$1["default"] {
     describe() {

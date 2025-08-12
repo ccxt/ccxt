@@ -1571,7 +1571,7 @@ public partial class kucoin : ccxt.kucoin
             }
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }
-        this.handleErrors(null, null, client.url, null, null, data, message, null, null);
+        this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         return false;
     }
 

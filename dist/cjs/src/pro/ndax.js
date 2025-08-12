@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var ndax$1 = require('../ndax.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class ndax extends ndax$1["default"] {
     describe() {
