@@ -31,6 +31,8 @@ export default class aster extends asterRest {
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
                 'unWatchBidsAsks': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -206,7 +208,6 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -251,7 +252,6 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -375,7 +375,6 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -414,7 +413,6 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
@@ -487,6 +485,20 @@ export default class aster extends asterRest {
 
     /**
      * @method
+     * @name aster#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchTrades';
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name aster#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
@@ -509,7 +521,6 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
@@ -527,6 +538,41 @@ export default class aster extends asterRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchTradesForSymbols
+     * @description unsubscribe from the trades channel
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
+            messageHashes.push ('unsubscribe:trade:' + market['symbol']);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleTrade (client: Client, message) {
