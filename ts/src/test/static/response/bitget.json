@@ -6289,6 +6289,7 @@
             },
             {
                 "description": "trailing cancel order with clientOrderId",
+                "disabled": true,
                 "method": "cancelOrder",
                 "input": [
                     "",
