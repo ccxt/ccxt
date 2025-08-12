@@ -1139,7 +1139,7 @@ export default class backpack extends backpackRest {
         const netQuantity = this.safeNumber (position, 'q');
         let hedged = false;
         let side = 'long';
-        if (netQuantity <= 0) {
+        if (netQuantity < 0) {
             side = 'short';
         }
         if (netQuantity === undefined) {
@@ -1148,8 +1148,8 @@ export default class backpack extends backpackRest {
         }
         const microseconds = this.safeInteger (position, 'E');
         const timestamp = this.parseToInt (microseconds / 1000);
-        const maintenanceMargin = this.safeNumber (position, 'm');
-        const initialMargin = this.safeNumber (position, 'f');
+        const maintenanceMarginPercentage = this.safeNumber (position, 'm');
+        const initialMarginPercentage = this.safeNumber (position, 'f');
         return this.safePosition ({
             'info': position,
             'id': id,
@@ -1168,11 +1168,11 @@ export default class backpack extends backpackRest {
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': undefined,
-            'initialMargin': initialMargin,
-            'initialMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': initialMarginPercentage,
             'leverage': undefined,
             'marginRatio': undefined,
         });
