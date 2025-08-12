@@ -6186,7 +6186,7 @@
                 "description": "cancel uta linear swap order using the clientOrderId",
                 "method": "cancelOrder",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "123abc",
@@ -6239,7 +6239,7 @@
                 "description": "linear swap cancelOrder by clientOrderId",
                 "method": "cancelOrder",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "abc321"
@@ -6291,7 +6291,7 @@
                 "description": "trailing cancel order with clientOrderId",
                 "method": "cancelOrder",
                 "input": [
-                    null,
+                    "",
                     "BTC/USDT:USDT",
                     {
                         "clientOrderId": "a1b2c3",
