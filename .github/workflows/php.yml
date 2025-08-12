@@ -41,7 +41,6 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.4'
-        extensions: protobuf
         # cache: true
         ini-values: |
           zend.assertions=1
@@ -151,6 +150,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: protobuf
           # cache: true
           ini-values: |
             zend.assertions=1

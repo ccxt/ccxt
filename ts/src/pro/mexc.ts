@@ -372,7 +372,7 @@ export default class mexc extends mexcRest {
         //
         //     {
         //         "s": "BTCUSDT",
-        //         "p": "76522",
+        //         "p": "76521",
         //         "r": "0.0012",
         //         "tr": "0.0012",
         //         "h": "77196.3",
