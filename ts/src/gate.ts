@@ -7643,8 +7643,7 @@ export default class gate extends Exchange {
         } else if (optPos === 'short') {
             side = 'sell';
         } else {
-        // 2) futures/perpetual (and fallback for options): infer from size
-            if (size !== undefined) {
+            if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
                 if (Precise.stringGt (size, '0')) {
                     side = 'buy';
                 } else if (Precise.stringLt (size, '0')) {
