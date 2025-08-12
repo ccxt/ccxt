@@ -966,6 +966,7 @@ class okx extends \ccxt\async\okx {
             'contracts' => $this->safe_number($liquidationDetails, 'sz'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidationDetails, 'bkPx'),
+            'side' => $this->safe_string($liquidationDetails, 'side'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,

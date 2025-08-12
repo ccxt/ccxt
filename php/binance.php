@@ -13155,6 +13155,7 @@ class binance extends Exchange {
             'contracts' => $this->safe_number($liquidation, 'executedQty'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'avgPrice'),
+            'side' => $this->safe_string_lower($liquidation, 'side'),
             'baseValue' => $this->safe_number($liquidation, 'cumBase'),
             'quoteValue' => $this->safe_number($liquidation, 'cumQuote'),
             'timestamp' => $timestamp,

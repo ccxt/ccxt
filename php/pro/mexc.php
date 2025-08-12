@@ -379,7 +379,7 @@ class mexc extends \ccxt\async\mexc {
         //
         //     {
         //         "s" => "BTCUSDT",
-        //         "p" => "76522",
+        //         "p" => "76521",
         //         "r" => "0.0012",
         //         "tr" => "0.0012",
         //         "h" => "77196.3",
@@ -808,13 +808,13 @@ class mexc extends \ccxt\async\mexc {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
-        $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'r', 'version');
+        $firstDeltaNonce = $this->safe_integer_n($firstDelta, array( 'r', 'version', 'fromVersion' ));
         if ($nonce < $firstDeltaNonce - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
-            $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
+            $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
             if ($deltaNonce >= $nonce) {
                 return $i;
             }
@@ -914,7 +914,7 @@ class mexc extends \ccxt\async\mexc {
             $timestamp = $this->safe_integer_n($message, array( 't', 'ts', 'sendTime' ));
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-            $storedOrderBook['nonce'] = $this->safe_integer($message, 'toVersion');
+            $storedOrderBook['nonce'] = $this->safe_integer($data, 'fromVersion');
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($e, $messageHash);
@@ -943,7 +943,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function handle_delta($orderbook, $delta) {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
-        $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
+        $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
         if ($deltaNonce < $existingNonce) {
             // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates

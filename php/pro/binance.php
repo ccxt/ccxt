@@ -427,6 +427,7 @@ class binance extends \ccxt\async\binance {
             'contracts' => $this->safe_number($liquidation, 'l'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'ap'),
+            'side' => $this->safe_string_lower($liquidation, 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,

@@ -2050,6 +2050,7 @@ class paradex extends Exchange {
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
+            'side' => null,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
