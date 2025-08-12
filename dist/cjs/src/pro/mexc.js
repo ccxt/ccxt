@@ -369,7 +369,7 @@ class mexc extends mexc$1["default"] {
         //
         //     {
         //         "s": "BTCUSDT",
-        //         "p": "76522",
+        //         "p": "76521",
         //         "r": "0.0012",
         //         "tr": "0.0012",
         //         "h": "77196.3",
@@ -774,13 +774,13 @@ class mexc extends mexc$1["default"] {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDelta = this.safeValue(cache, 0);
-        const firstDeltaNonce = this.safeInteger2(firstDelta, 'r', 'version');
+        const firstDeltaNonce = this.safeIntegerN(firstDelta, ['r', 'version', 'fromVersion']);
         if (nonce < firstDeltaNonce - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaNonce = this.safeInteger2(delta, 'r', 'version');
+            const deltaNonce = this.safeIntegerN(delta, ['r', 'version', 'fromVersion']);
             if (deltaNonce >= nonce) {
                 return i;
             }
@@ -879,7 +879,7 @@ class mexc extends mexc$1["default"] {
             const timestamp = this.safeIntegerN(message, ['t', 'ts', 'sendTime']);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
-            storedOrderBook['nonce'] = this.safeInteger(message, 'toVersion');
+            storedOrderBook['nonce'] = this.safeInteger(data, 'fromVersion');
         }
         catch (e) {
             delete client.subscriptions[messageHash];
@@ -908,7 +908,7 @@ class mexc extends mexc$1["default"] {
     }
     handleDelta(orderbook, delta) {
         const existingNonce = this.safeInteger(orderbook, 'nonce');
-        const deltaNonce = this.safeInteger2(delta, 'r', 'version');
+        const deltaNonce = this.safeIntegerN(delta, ['r', 'version', 'fromVersion']);
         if (deltaNonce < existingNonce) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
