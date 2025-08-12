@@ -4,26 +4,24 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 type huobi struct {
-    htx
-
+	htx
 }
 
 func NewHuobiCore() *huobi {
-    p := &huobi{}
-    setDefaults(p)
-    return p
+	p := &huobi{}
+	setDefaults(p)
+	return p
 }
 
-func  (this *huobi) Describe() interface{}  {
-    return this.DeepExtend(this.htx.Describe(), map[string]interface{} {
-        "id": "huobi",
-        "alias": true,
-    })
+func (this *huobi) Describe() interface{} {
+	return this.DeepExtend(this.htx.Describe(), map[string]interface{}{
+		"id":    "huobi",
+		"alias": true,
+	})
 }
-
 
 func (this *huobi) Init(userConfig map[string]interface{}) {
-    this.htx.Init(this.DeepExtend(this.Describe(), userConfig))
-    this.Itf = this
-    this.Exchange.DerivedExchange = this
+	this.htx.Init(this.DeepExtend(this.Describe(), userConfig))
+	this.Itf = this
+	this.Exchange.DerivedExchange = this
 }
