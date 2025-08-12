@@ -1117,15 +1117,15 @@ export default class woofipro extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = this.numberToString (since);
+            request['start_t'] = since;
         }
-        const until = this.safeString (params, 'until'); // unified in milliseconds
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
         params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['end_t'] = until;
         }
         if (limit !== undefined) {
-            request['size'] = this.numberToString (Math.min (limit, 500));
+            request['size'] = Math.min (limit, 500);
         }
         const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
         //
