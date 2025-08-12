@@ -554,7 +554,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchOHLCV
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -742,7 +742,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchOrderBook
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -940,7 +940,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchTrades
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1047,7 +1047,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchMyTrades
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
@@ -1225,7 +1225,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchOrders
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -1503,7 +1503,7 @@ export default class mexc extends mexcRest {
     /**
      * @method
      * @name mexc#watchBalance
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+     * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
