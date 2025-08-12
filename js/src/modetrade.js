@@ -1035,6 +1035,102 @@ export default class modetrade extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
+    parseIncome(income, market = undefined) {
+        //
+        // {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
+        // }
+        //
+        const marketId = this.safeString(income, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        let amount = this.safeString(income, 'funding_fee');
+        const code = this.safeCurrencyCode('USDC');
+        const timestamp = this.safeInteger(income, 'updated_time');
+        const rate = this.safeNumber(income, 'funding_rate');
+        const paymentType = this.safeString(income, 'payment_type');
+        amount = (paymentType === 'Pay') ? Precise.stringNeg(amount) : amount;
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': undefined,
+            'amount': this.parseNumber(amount),
+            'rate': rate,
+        };
+    }
+    /**
+     * @method
+     * @name modetrade#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500);
+        }
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const until = this.safeInteger(params, 'until'); // unified in milliseconds
+        params = this.omit(params, ['until']);
+        if (until !== undefined) {
+            request['end_t'] = until;
+        }
+        if (limit !== undefined) {
+            request['size'] = Math.min(limit, 500);
+        }
+        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        return this.parseIncomes(rows, market, since, limit);
+    }
     /**
      * @method
      * @name modetrade#fetchTradingFees
