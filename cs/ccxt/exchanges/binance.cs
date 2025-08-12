@@ -14011,6 +14011,7 @@ public partial class binance : Exchange
             { "contracts", this.safeNumber(liquidation, "executedQty") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "avgPrice") },
+            { "side", this.safeStringLower(liquidation, "side") },
             { "baseValue", this.safeNumber(liquidation, "cumBase") },
             { "quoteValue", this.safeNumber(liquidation, "cumQuote") },
             { "timestamp", timestamp },
