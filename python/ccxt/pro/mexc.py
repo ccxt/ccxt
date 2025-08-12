@@ -365,7 +365,7 @@ class mexc(ccxt.async_support.mexc):
         #
         #     {
         #         "s": "BTCUSDT",
-        #         "p": "76522",
+        #         "p": "76521",
         #         "r": "0.0012",
         #         "tr": "0.0012",
         #         "h": "77196.3",
@@ -756,12 +756,12 @@ class mexc(ccxt.async_support.mexc):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
-        firstDeltaNonce = self.safe_integer_2(firstDelta, 'r', 'version')
+        firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if nonce < firstDeltaNonce - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaNonce = self.safe_integer_2(delta, 'r', 'version')
+            deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
             if deltaNonce >= nonce:
                 return i
         return len(cache)
@@ -855,7 +855,7 @@ class mexc(ccxt.async_support.mexc):
             timestamp = self.safe_integer_n(message, ['t', 'ts', 'sendTime'])
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
-            storedOrderBook['nonce'] = self.safe_integer(message, 'toVersion')
+            storedOrderBook['nonce'] = self.safe_integer(data, 'fromVersion')
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
@@ -879,7 +879,7 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_delta(self, orderbook, delta):
         existingNonce = self.safe_integer(orderbook, 'nonce')
-        deltaNonce = self.safe_integer_2(delta, 'r', 'version')
+        deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
         if deltaNonce < existingNonce:
             # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             # so, we just skip old updates
