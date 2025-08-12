@@ -1017,6 +1017,7 @@ public struct Liquidation
     public double? baseValue;
     public Int64? timestamp;
     public string? datetime;
+    public string? side;
     public Dictionary<string, object> info;
 
     public Liquidation(object openInterest)
@@ -1026,6 +1027,7 @@ public struct Liquidation
         baseValue = Exchange.SafeFloat(openInterest, "baseValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
+        side = Exchange.SafeString(openInterest, "side");
         info = Helper.GetInfo(openInterest);
     }
 }
