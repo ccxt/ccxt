@@ -4,6 +4,86 @@
     "outputType": "both",
     "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
     "methods": {
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.backpack.exchange/wapi/v1/capital/withdrawals",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.backpack.exchange/wapi/v1/capital/deposits",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "url": "https://api.backpack.exchange/api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://api.backpack.exchange/api/v1/status",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.backpack.exchange/wapi/v1/history/fills?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.backpack.exchange/api/v1/trades?symbol=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.backpack.exchange/api/v1/fundingRates?symbol=ETH_USDC_PERP",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.backpack.exchange/api/v1/openInterest?symbol=ETH_USDC_PERP",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "Fetch funding rate",
