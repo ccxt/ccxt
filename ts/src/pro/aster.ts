@@ -26,6 +26,8 @@ export default class aster extends asterRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
             },
             'urls': {
                 'api': {
@@ -42,7 +44,7 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -57,9 +59,23 @@ export default class aster extends asterRest {
 
     /**
      * @method
+     * @name aster#unWatchTicker
+     * @description unWatches a price ticker
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchTicker';
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name aster#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -94,6 +110,41 @@ export default class aster extends asterRest {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
+            messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     /**
