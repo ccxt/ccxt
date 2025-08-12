@@ -836,7 +836,7 @@ export default class Exchange {
 
     decodeProtoMsg(data) {
         if (!protobufMexc) {
-            throw new Error ('Mexc requires protobuf to decode messages, please install it with `npm install protobufjs`');
+            throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
         if (data instanceof Uint8Array) {
             const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode(data)
