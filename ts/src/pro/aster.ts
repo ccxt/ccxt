@@ -33,6 +33,8 @@ export default class aster extends asterRest {
                 'unWatchBidsAsks': true,
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -653,6 +655,21 @@ export default class aster extends asterRest {
 
     /**
      * @method
+     * @name aster#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @param {string} symbol symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchOrderBook';
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
      * @name aster#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
@@ -674,19 +691,62 @@ export default class aster extends asterRest {
         const url = this.urls['api']['ws'];
         const subscriptionArgs = [];
         const messageHashes = [];
-        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const request: Dict = {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
+        if (limit === undefined || (limit !== 5 && limit !== 10 && limit !== 20)) {
+            limit = 20;
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth20');
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
             messageHashes.push ('orderbook:' + market['symbol']);
         }
         const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchOrderBookForSymbols
+     * @description unsubscribe from the orderbook channel
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        let limit = this.safeNumber (params, 'limit');
+        params = this.omit (params, 'limit');
+        if (limit === undefined || (limit !== 5 && limit !== 10 && limit !== 20)) {
+            limit = 20;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
+            messageHashes.push ('unsubscribe:orderbook:' + market['symbol']);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleOrderBook (client: Client, message) {
