@@ -2027,6 +2027,7 @@ class paradex extends paradex$1["default"] {
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,
+            'side': undefined,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

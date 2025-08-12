@@ -911,6 +911,7 @@ export default class okx extends okxRest {
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
+            'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

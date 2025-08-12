@@ -910,6 +910,7 @@ class okx extends okx$1["default"] {
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
+            'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

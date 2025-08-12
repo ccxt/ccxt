@@ -29,6 +29,14 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+let protobufMexc = undefined;
+(async () => {
+    try {
+        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+    }
+    catch { }
+})();
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -523,16 +531,47 @@ export default class Exchange {
         return this.httpAgent;
     }
     getHttpAgentIfNeeded(url) {
-        if (isNode) {
-            // only for non-ssl proxy
-            if (url.substring(0, 5) === 'ws://') {
-                if (this.httpAgent === undefined) {
-                    throw new NotSupported(this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
-                }
-                return this.httpAgent;
-            }
-        }
+        // if (isNode) {
+        //     // only for non-ssl proxy
+        //     if (url.substring(0, 5) === 'ws://') {
+        //         if (this.httpAgent === undefined) {
+        //             throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+        //         }
+        //         return this.httpAgent;
+        //     }
+        // }
         return undefined;
+    }
+    isBinaryMessage(msg) {
+        return msg instanceof Uint8Array;
+    }
+    decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof Uint8Array) {
+            const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
+        }
+        return data;
     }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // load node-http(s) modules only on first call
@@ -905,7 +944,8 @@ export default class Exchange {
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
-                }
+                },
+                'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }

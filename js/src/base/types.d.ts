@@ -409,6 +409,7 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    side?: OrderSide;
 }
 export interface OrderRequest {
     symbol: string;
