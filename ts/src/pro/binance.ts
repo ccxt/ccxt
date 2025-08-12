@@ -422,6 +422,7 @@ export default class binance extends binanceRest {
             'contracts': this.safeNumber (liquidation, 'l'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'ap'),
+            'side': this.safeStringLower (liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

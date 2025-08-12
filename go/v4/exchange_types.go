@@ -1089,6 +1089,7 @@ type Liquidation struct {
 	BaseValue  *float64
 	Timestamp  *int64
 	Datetime   *string
+	Side       *string
 	Info       map[string]interface{}
 }
 
@@ -1099,6 +1100,7 @@ func NewLiquidation(data interface{}) Liquidation {
 		BaseValue:  SafeFloatTyped(data, "baseValue"),
 		Timestamp:  SafeInt64Typed(data, "timestamp"),
 		Datetime:   SafeStringTyped(data, "datetime"),
+		Side:       SafeStringTyped(data, "side"),
 		Info:       GetInfo(data),
 	}
 }
