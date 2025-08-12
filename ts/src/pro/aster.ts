@@ -30,6 +30,7 @@ export default class aster extends asterRest {
                 'unWatchTickers': true,
                 'unWatchMarkPrice': true,
                 'unWatchMarkPrices': true,
+                'unWatchBidsAsks': true,
             },
             'urls': {
                 'api': {
@@ -392,6 +393,39 @@ export default class aster extends asterRest {
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-book-ticker-streams
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
+            messageHashes.push ('unsubscribe:bidask:' + market['symbol']);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleBidAsk (client: Client, message) {
