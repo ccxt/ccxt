@@ -1862,6 +1862,8 @@ class Exchange(object):
         signature = auth_data.signature
         return signature
 
+    def is_binary_message(self, message):
+        return isinstance(message, bytes) or isinstance(message, bytearray)
 
     # ########################################################################
     # ########################################################################
