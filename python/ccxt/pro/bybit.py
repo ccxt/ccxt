@@ -1631,6 +1631,7 @@ class bybit(ccxt.async_support.bybit):
             'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number_2(liquidation, 'price', 'p'),
+            'side': self.safe_string_lower(liquidation, 'side', 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,

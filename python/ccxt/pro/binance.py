@@ -409,6 +409,7 @@ class binance(ccxt.async_support.binance):
             'contracts': self.safe_number(liquidation, 'l'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'ap'),
+            'side': self.safe_string_lower(liquidation, 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,

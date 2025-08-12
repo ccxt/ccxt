@@ -876,6 +876,7 @@ class okx(ccxt.async_support.okx):
             'contracts': self.safe_number(liquidationDetails, 'sz'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidationDetails, 'bkPx'),
+            'side': self.safe_string(liquidationDetails, 'side'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,

@@ -8853,6 +8853,7 @@ class htx(Exchange, ImplicitAPI):
             'contracts': self.safe_number(liquidation, 'volume'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'direction'),
             'baseValue': self.safe_number(liquidation, 'amount'),
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
