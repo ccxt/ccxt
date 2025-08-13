@@ -585,7 +585,7 @@ class Exchange(BaseExchange):
 
     def decode_proto_msg(self, data):
         if not MessageToDict:
-            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.3"`')
+            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)
         dict_msg = MessageToDict(message)
