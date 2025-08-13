@@ -28,7 +28,6 @@ jobs:
         echo "SHA: $GITHUB_SHA"
         echo "Head Commit: ${{ github.event.head_commit.message }}"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
-        echo "Test smart version: $(./utils/smart-bump.sh)"
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
       with:
@@ -49,6 +48,9 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: Debug Node version smart bump tmp remove
+      run: |
+        echo "Test smart version: $(./utils/smart-bump.sh)"
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Debug files changes
