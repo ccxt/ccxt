@@ -1514,14 +1514,14 @@ class mexc(ccxt.async_support.mexc):
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id']
             url = self.urls['api']['ws']['spot']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'unsub.ticker'
             requestParams: dict = {
                 'symbol': market['id'],
             }
             url = self.urls['api']['ws']['swap']
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1578,7 +1578,7 @@ class mexc(ccxt.async_support.mexc):
             request['params'] = {}
             messageHashes.append('unsubscribe:ticker')
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
@@ -1612,7 +1612,7 @@ class mexc(ccxt.async_support.mexc):
             'params': topics,
         }
         client = self.client(url)
-        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         self.handle_unsubscriptions(client, messageHashes)
         return None
 
@@ -1636,7 +1636,7 @@ class mexc(ccxt.async_support.mexc):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.kline'
@@ -1644,7 +1644,7 @@ class mexc(ccxt.async_support.mexc):
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1668,14 +1668,14 @@ class mexc(ccxt.async_support.mexc):
             frequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.depth'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
@@ -1697,14 +1697,14 @@ class mexc(ccxt.async_support.mexc):
             url = self.urls['api']['ws']['spot']
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id']
             params['unsubscribed'] = True
-            await self.watch_spot_public(channel, messageHash, params)
+            self.watch_spot_public(channel, messageHash, params)
         else:
             url = self.urls['api']['ws']['swap']
             channel = 'unsub.deal'
             requestParams: dict = {
                 'symbol': market['id'],
             }
-            await self.watch_swap_public(channel, messageHash, requestParams, params)
+            self.watch_swap_public(channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
         return None
