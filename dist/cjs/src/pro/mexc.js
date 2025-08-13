@@ -1572,7 +1572,7 @@ class mexc extends mexc$1["default"] {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
-            await this.watchSpotPublic(channel, messageHash, params);
+            this.watchSpotPublic(channel, messageHash, params);
         }
         else {
             channel = 'unsub.ticker';
@@ -1580,7 +1580,7 @@ class mexc extends mexc$1["default"] {
                 'symbol': market['id'],
             };
             url = this.urls['api']['ws']['swap'];
-            await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1643,7 +1643,7 @@ class mexc extends mexc$1["default"] {
             messageHashes.push('unsubscribe:ticker');
         }
         const client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
         this.handleUnsubscriptions(client, messageHashes);
         return undefined;
     }
@@ -1683,7 +1683,7 @@ class mexc extends mexc$1["default"] {
             'params': topics,
         };
         const client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
         this.handleUnsubscriptions(client, messageHashes);
         return undefined;
     }
@@ -1709,7 +1709,7 @@ class mexc extends mexc$1["default"] {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             params['unsubscribed'] = true;
-            await this.watchSpotPublic(channel, messageHash, params);
+            this.watchSpotPublic(channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1718,7 +1718,7 @@ class mexc extends mexc$1["default"] {
                 'symbol': market['id'],
                 'interval': timeframeId,
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1745,7 +1745,7 @@ class mexc extends mexc$1["default"] {
             [frequency, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             params['unsubscribed'] = true;
-            await this.watchSpotPublic(channel, messageHash, params);
+            this.watchSpotPublic(channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1753,7 +1753,7 @@ class mexc extends mexc$1["default"] {
             const requestParams = {
                 'symbol': market['id'],
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1778,7 +1778,7 @@ class mexc extends mexc$1["default"] {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             params['unsubscribed'] = true;
-            await this.watchSpotPublic(channel, messageHash, params);
+            this.watchSpotPublic(channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1786,7 +1786,7 @@ class mexc extends mexc$1["default"] {
             const requestParams = {
                 'symbol': market['id'],
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.watchSwapPublic(channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
