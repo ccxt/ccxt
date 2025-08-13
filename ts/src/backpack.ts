@@ -1421,8 +1421,6 @@ export default class backpack extends Exchange {
             request['to'] = until;
         }
         const response = await this.privateGetWapiV1CapitalWithdrawals (this.extend (request, params));
-        // todo add after withdrawal
-        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1436,6 +1434,7 @@ export default class backpack extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -1456,8 +1455,6 @@ export default class backpack extends Exchange {
         }
         request['blockchain'] = networkId;
         const response = await this.privatePostWapiV1CapitalWithdrawals (this.extend (request, query));
-        //
-        //
         return this.parseTransaction (response, currency);
     }
 
@@ -1482,6 +1479,57 @@ export default class backpack extends Exchange {
         //         }
         //     ]
         //
+        // withdraw
+        //     {
+        //         "accountIdentifier": null,
+        //         "bankIdentifier": null,
+        //         "bankName": null,
+        //         "blockchain": "Ethereum",
+        //         "clientId": null,
+        //         "createdAt": "2025-08-13T19:27:13.817",
+        //         "fee": "3",
+        //         "fiatFee": null,
+        //         "fiatState": null,
+        //         "fiatSymbol": null,
+        //         "id": 5479929,
+        //         "identifier": null,
+        //         "isInternal": false,
+        //         "providerId": null,
+        //         "quantity": "10",
+        //         "status": "pending",
+        //         "subaccountId": null,
+        //         "symbol": "USDC",
+        //         "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //         "transactionHash": null,
+        //         "triggerAt": null
+        //     }
+        //
+        // fetchWithdrawals
+        //     [
+        //         {
+        //             "accountIdentifier": null,
+        //             "bankIdentifier": null,
+        //             "bankName": null,
+        //             "blockchain": "Ethereum",
+        //             "clientId": null,
+        //             "createdAt": "2025-08-13T19:27:13.817",
+        //             "fee": "3",
+        //             "fiatFee": null,
+        //             "fiatState": null,
+        //             "fiatSymbol": null,
+        //             "id": 5479929,
+        //             "identifier": null,
+        //             "isInternal": false,
+        //             "providerId": null,
+        //             "quantity": "10",
+        //             "status": "confirmed",
+        //             "subaccountId": null,
+        //             "symbol": "USDC",
+        //             "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //             "transactionHash": "0x658b6d082af4afa0d3cf85caf344ff7c19d980117726bf193b00d8850f8746a1",
+        //             "triggerAt": null
+        //         }
+        //     ]
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'transactionHash');
@@ -1489,12 +1537,13 @@ export default class backpack extends Exchange {
         const code = this.safeCurrencyCode (coin, currency);
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const amount = this.safeNumber (transaction, 'quantity');
-        const networkId = this.safeString (transaction, 'source');
+        const networkId = this.safeString2 (transaction, 'source', 'blockchain');
         const network = this.networkCodeToId (networkId);
         const addressTo = this.safeString (transaction, 'toAddress');
         const addressFrom = this.safeString (transaction, 'fromAddress');
         const tag = this.safeString (transaction, 'platformMemo');
         const feeCost = this.safeNumber (transaction, 'fee');
+        const internal = this.safeBool (transaction, 'isInternal', false);
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1520,7 +1569,7 @@ export default class backpack extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
-            'internal': undefined,
+            'internal': internal,
             'comment': undefined,
             'fee': fee,
         } as Transaction;
@@ -1535,6 +1584,7 @@ export default class backpack extends Exchange {
             'initiated': 'initiated',
             'pending': 'pending',
             'refunded': 'refunded',
+            'information required': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
