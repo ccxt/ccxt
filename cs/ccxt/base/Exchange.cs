@@ -1,3 +1,4 @@
+using Google.Protobuf;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -7,8 +8,8 @@ using StarkSharp.Rpc.Utils;
 using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
 using System.IO.Compression;
 using System.Numerics;
-
 namespace ccxt;
+
 
 using dict = Dictionary<string, object>;
 
@@ -210,7 +211,7 @@ public partial class Exchange
         {
             if (key.ToLower() != "content-type")
             {
-                request.Headers.Add(key, headers[key].ToString());
+                request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
             else
             {
@@ -315,7 +316,12 @@ public partial class Exchange
         var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
-        var httpStatusCode = (int)response?.StatusCode;
+        var statusCode = -1;
+        if (response != null)
+        {
+            statusCode = (int)response.StatusCode;
+        }
+        var httpStatusCode = statusCode;
         var httpStatusText = response?.ReasonPhrase;
 
         if (this.verbose)
@@ -1164,6 +1170,38 @@ public partial class Exchange
     public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
     {
         throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public bool isBinaryMessage(object msg)
+    {
+        if (msg is byte[] bytes)
+        {
+            return bytes.Length > 0;
+        }
+        if (msg is string str)
+        {
+            return str.StartsWith("0x") && str.Length > 2;
+        }
+        return false;
+    }
+
+    public object decodeProtoMsg(object data)
+    {
+        if (data is byte[] bytes)
+        {
+            try
+            {
+                var message = PushDataV3ApiWrapper.Parser.ParseFrom(bytes);
+                string json = Google.Protobuf.JsonFormatter.Default.Format(message);
+                var dict = this.parseJson(json);
+                return dict;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to decode protobuf message: " + e.Message);
+            }
+        }
+        throw new Exception("Data is not a valid byte array for protobuf decoding.");
     }
 
 

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitget$1 = require('../bitget.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
@@ -13,7 +15,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
  * @augments Exchange
  * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
-class bitget extends bitget$1 {
+class bitget extends bitget$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1557,7 +1559,7 @@ class bitget extends bitget$1 {
         [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
         if (market === undefined && type === 'spot') {
-            instType = 'SPOT';
+            instType = 'spot';
         }
         else {
             [instType, params] = this.getInstType(market, params);
@@ -2181,4 +2183,4 @@ class bitget extends bitget$1 {
     }
 }
 
-module.exports = bitget;
+exports["default"] = bitget;

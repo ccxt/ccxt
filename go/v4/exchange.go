@@ -451,7 +451,7 @@ func Unique(obj interface{}) []string {
 
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
-	fmt.Println(args)
+	fmt.Println(args...)
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {

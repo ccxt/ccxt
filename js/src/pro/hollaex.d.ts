@@ -1,5 +1,5 @@
 import hollaexRest from '../hollaex.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hollaex extends hollaexRest {
     describe(): any;
@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
     watchPrivate(messageHash: any, params?: {}): Promise<any>;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         op: string;

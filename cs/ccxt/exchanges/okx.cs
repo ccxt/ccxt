@@ -695,6 +695,7 @@ public partial class okx : Exchange
                     { "51137", typeof(InvalidOrder) },
                     { "51138", typeof(InvalidOrder) },
                     { "51139", typeof(InvalidOrder) },
+                    { "51155", typeof(RestrictedLocation) },
                     { "51156", typeof(BadRequest) },
                     { "51159", typeof(BadRequest) },
                     { "51162", typeof(InvalidOrder) },
@@ -5424,7 +5425,7 @@ public partial class okx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(getArrayLength(tag), 0)))))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(((string)tag).Length, 0)))))
         {
             address = add(add(address, ":"), tag);
         }

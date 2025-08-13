@@ -969,7 +969,7 @@ class testMainClass:
             'uid': 'uid',
             'token': 'token',
             'login': 'login',
-            'accountId': 'accountId',
+            'accountId': '12345',
             'accounts': [{
     'id': 'myAccount',
     'code': 'USDT',

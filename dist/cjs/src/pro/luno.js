@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var luno$1 = require('../luno.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class luno extends luno$1 {
+class luno extends luno$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -318,4 +320,4 @@ class luno extends luno$1 {
     }
 }
 
-module.exports = luno;
+exports["default"] = luno;

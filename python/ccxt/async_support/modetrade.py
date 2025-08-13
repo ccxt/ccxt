@@ -1025,6 +1025,97 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #         "symbol": "PERP_ETH_USDC",
+        #         "funding_rate": 0.00046875,
+        #         "mark_price": 2100,
+        #         "funding_fee": 0.000016,
+        #         "payment_type": "Pay",
+        #         "status": "Accrued",
+        #         "created_time": 1682235722003,
+        #         "updated_time": 1682235722003
+        # }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_string(income, 'funding_fee')
+        code = self.safe_currency_code('USDC')
+        timestamp = self.safe_integer(income, 'updated_time')
+        rate = self.safe_number(income, 'funding_rate')
+        paymentType = self.safe_string(income, 'payment_type')
+        amount = Precise.string_neg(amount) if (paymentType == 'Pay') else amount
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.parse_number(amount),
+            'rate': rate,
+        }
+
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
+        request: dict = {}
+        market: Market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['start_t'] = since
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
+        if until is not None:
+            request['end_t'] = until
+        if limit is not None:
+            request['size'] = min(limit, 500)
+        response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989,
+        #     "data": {
+        #         "meta": {
+        #             "total": 9,
+        #             "records_per_page": 25,
+        #             "current_page": 1
+        #         },
+        #         "rows": [{
+        #                 "symbol": "PERP_ETH_USDC",
+        #                 "funding_rate": 0.00046875,
+        #                 "mark_price": 2100,
+        #                 "funding_fee": 0.000016,
+        #                 "payment_type": "Pay",
+        #                 "status": "Accrued",
+        #                 "created_time": 1682235722003,
+        #                 "updated_time": 1682235722003
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        return self.parse_incomes(rows, market, since, limit)
+
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
@@ -2330,7 +2421,7 @@ class modetrade(Exchange, ImplicitAPI):
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2460,7 +2551,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

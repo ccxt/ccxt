@@ -481,6 +481,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     '219': InvalidOrder,
+                    '306': InsufficientFunds,  # {"id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : {"client_oid" : "1753xxx", "order_id" : "6530xxx"}}
                     '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
                     '325': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
                     '415': InvalidOrder,  # {"id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : {"client_oid" : "1741xxx", "order_id" : "6530xxx"}}
@@ -1133,7 +1134,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
         }
         if limit:
-            request['depth'] = limit
+            request['depth'] = min(limit, 50)  # max 50
         response = self.v1PublicGetPublicGetBook(self.extend(request, params))
         #
         #     {
@@ -1868,7 +1869,7 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressString
         return [address, tag]
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

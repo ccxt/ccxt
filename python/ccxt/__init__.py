@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.97'
+__version__ = '4.4.100'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -144,6 +145,7 @@ from ccxt.gate import gate                                            # noqa: F4
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
+from ccxt.hibachi import hibachi                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
@@ -252,6 +254,7 @@ exchanges = [
     'gateio',
     'gemini',
     'hashkey',
+    'hibachi',
     'hitbtc',
     'hollaex',
     'htx',

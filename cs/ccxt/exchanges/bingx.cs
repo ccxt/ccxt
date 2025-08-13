@@ -96,6 +96,7 @@ public partial class bingx : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg" },
                 { "api", new Dictionary<string, object>() {
+                    { "fund", "https://open-api.{hostname}/openApi" },
                     { "spot", "https://open-api.{hostname}/openApi" },
                     { "swap", "https://open-api.{hostname}/openApi" },
                     { "contract", "https://open-api.{hostname}/openApi" },
@@ -132,6 +133,15 @@ public partial class bingx : Exchange
                 { "secret", true },
             } },
             { "api", new Dictionary<string, object>() {
+                { "fund", new Dictionary<string, object>() {
+                    { "v1", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "account/balance", 1 },
+                            } },
+                        } },
+                    } },
+                } },
                 { "spot", new Dictionary<string, object>() {
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
@@ -546,8 +556,11 @@ public partial class bingx : Exchange
                     { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARB" },
                     { "MATIC", "POLYGON" },
+                    { "ZKSYNC", "ZKSYNCERA" },
+                    { "AVAXC", "AVAX-C" },
+                    { "HBAR", "HEDERA" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -2276,6 +2289,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract balances
+     * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2297,6 +2311,9 @@ public partial class bingx : Exchange
         if (isTrue(standard))
         {
             response = await this.contractV1PrivateGetBalance(marketTypeQuery);
+        } else if (isTrue(isTrue((isEqual(marketType, "funding"))) || isTrue((isEqual(marketType, "fund")))))
+        {
+            response = await this.fundV1PrivateGetAccountBalance(marketTypeQuery);
         } else if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
@@ -2400,7 +2417,7 @@ public partial class bingx : Exchange
         object firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
         object isStandardOrInverse = !isEqual(firstStandardOrInverse, null);
         object spotData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object spotBalances = this.safeList(spotData, "balances");
+        object spotBalances = this.safeList2(spotData, "balances", "assets", new List<object>() {});
         object firstSpot = this.safeDict(spotBalances, 0);
         object isSpot = !isEqual(firstSpot, null);
         if (isTrue(isStandardOrInverse))

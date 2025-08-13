@@ -859,6 +859,12 @@ public partial class kucoinfutures
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// object : the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
