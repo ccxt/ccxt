@@ -331,8 +331,8 @@ class Exchange extends \ccxt\Exchange {
     function decode_proto_msg($msg) {
         if (!class_exists(\Google\Protobuf\Internal\Message::class)) {
             throw new NotSupported(
-                $this->id . " requires Google Protobuf PHP runtime to decode message.\n" .
-                "Install it via Composer: composer require google/protobuf\n" .
+                $this->id . " requires protobuf to decode messages.\n" .
+                "You can install it via Composer: composer require google/protobuf\n" .
                 "Alternatively, you can add it with: pecl install protobuf\n"
             );
         }
