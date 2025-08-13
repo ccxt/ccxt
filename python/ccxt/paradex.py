@@ -1249,7 +1249,7 @@ class paradex(Exchange, ImplicitAPI):
         cancelReason = self.safe_string(order, 'cancel_reason')
         status = self.safe_string(order, 'status')
         if cancelReason is not None:
-            if cancelReason == 'NOT_ENOUGH_MARGIN':
+            if cancelReason == 'NOT_ENOUGH_MARGIN' or cancelReason == 'ORDER_EXCEEDS_POSITION_LIMIT':
                 status = 'rejected'
             else:
                 status = 'canceled'
@@ -1527,7 +1527,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         # if success, no response...
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1971,6 +1971,7 @@ class paradex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': None,
             'price': None,
+            'side': None,
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2268,7 +2269,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(modes, mode, mode)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

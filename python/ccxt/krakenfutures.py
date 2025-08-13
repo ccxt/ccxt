@@ -246,6 +246,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
@@ -2606,7 +2607,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

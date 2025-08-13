@@ -1442,7 +1442,7 @@ class coincatch extends \ccxt\async\coincatch {
         ));
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    array( $event => "error", $code => 30001, $msg => "Channel does not exist" )
         //

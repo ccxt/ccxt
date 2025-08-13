@@ -234,7 +234,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         const subscriptionHashes = [];
         const messageHashes = [];
@@ -422,6 +422,7 @@ export default class binance extends binanceRest {
             'contracts': this.safeNumber (liquidation, 'l'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'ap'),
+            'side': this.safeStringLower (liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -4040,11 +4041,8 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new BadRequest (this.id + ' fetchTradesWs () requires a symbol argument');
-        }
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchTradesWs', market, params);
         if (type !== 'spot' && type !== 'future') {
@@ -4304,7 +4302,7 @@ export default class binance extends binanceRest {
         const code = this.safeInteger (error, 'code');
         const msg = this.safeString (error, 'msg');
         try {
-            this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
+            this.handleErrors (code, msg, client.url, '', {}, this.json (error), error, {}, {});
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash

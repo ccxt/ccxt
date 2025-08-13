@@ -1150,7 +1150,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
@@ -1179,7 +1179,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -1595,8 +1595,11 @@ class woo extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $response = null;
             if ($trigger) {
-                return Async\await($this->v3PrivateDeleteTradeAlgoOrders ($params));
+                $response = Async\await($this->v3PrivateDeleteTradeAlgoOrders ($params));
+            } else {
+                $response = Async\await($this->v3PrivateDeleteTradeOrders ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1607,7 +1610,8 @@ class woo extends Exchange {
             //         "timestamp" => 1751941988134
             //     }
             //
-            return Async\await($this->v3PrivateDeleteTradeOrders ($this->extend($request, $params)));
+            $data = $this->safe_dict($response, 'data', array());
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 
@@ -3040,7 +3044,7 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3719,7 +3723,7 @@ class woo extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

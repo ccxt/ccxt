@@ -34,13 +34,13 @@ import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
 import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs } from './src/base/types.js'
-import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.95';
+const version = '4.4.100';
 
 (Exchange as any).ccxtVersion = version
 
@@ -102,10 +102,12 @@ import digifinex from  './src/digifinex.js'
 import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
+import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
 import hashkey from  './src/hashkey.js'
+import hibachi from  './src/hibachi.js'
 import hitbtc from  './src/hitbtc.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
@@ -285,10 +287,12 @@ const exchanges = {
     'ellipx':                 ellipx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
+    'foxbit':                 foxbit,
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
     'hashkey':                hashkey,
+    'hibachi':                hibachi,
     'hitbtc':                 hitbtc,
     'hollaex':                hollaex,
     'htx':                    htx,
@@ -449,6 +453,7 @@ export {
     MarginModeAlreadySet,
     MarketClosed,
     ManualInteractionNeeded,
+    RestrictedLocation,
     InsufficientFunds,
     InvalidAddress,
     AddressPending,
@@ -609,10 +614,12 @@ export {
     ellipx,
     exmo,
     fmfwio,
+    foxbit,
     gate,
     gateio,
     gemini,
     hashkey,
+    hibachi,
     hitbtc,
     hollaex,
     htx,

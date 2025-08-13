@@ -1041,7 +1041,9 @@ class bybit(Exchange, ImplicitAPI):
             'options': {
                 'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
-                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'linear', 'inverse', 'option'],
+                },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
@@ -1702,9 +1704,16 @@ class bybit(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         promisesUnresolved = []
-        fetchMarkets = self.safe_list(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
-        for i in range(0, len(fetchMarkets)):
-            marketType = fetchMarkets[i]
+        types = None
+        defaultTypes = ['spot', 'linear', 'inverse', 'option']
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        if fetchMarketsOptions is not None:
+            types = self.safe_list(fetchMarketsOptions, 'types', defaultTypes)
+        else:
+            # for backward-compatibility
+            types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
+        for i in range(0, len(types)):
+            marketType = types[i]
             if marketType == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif marketType == 'linear':
@@ -4577,7 +4586,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         orders = self.safe_list(result, 'list')
         if not isinstance(orders, list):
-            return response
+            return [self.safe_order({'info': response})]
         return self.parse_orders(orders, market)
 
     async def fetch_order_classic(self, id: str, symbol: Str = None, params={}) -> Order:
@@ -5833,7 +5842,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(types, type, type)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5848,7 +5857,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
+        accounts = await self.is_unified_enabled()
+        isUta = accounts[1]
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
+        if isUta:
+            accountType = 'UTA'
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -6393,7 +6406,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 response = await self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -7926,7 +7939,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
+        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 50}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

@@ -29,6 +29,14 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+let protobufMexc = undefined;
+(async () => {
+    try {
+        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+    }
+    catch { }
+})();
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -523,16 +531,47 @@ export default class Exchange {
         return this.httpAgent;
     }
     getHttpAgentIfNeeded(url) {
-        if (isNode) {
-            // only for non-ssl proxy
-            if (url.substring(0, 5) === 'ws://') {
-                if (this.httpAgent === undefined) {
-                    throw new NotSupported(this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
-                }
-                return this.httpAgent;
-            }
-        }
+        // if (isNode) {
+        //     // only for non-ssl proxy
+        //     if (url.substring(0, 5) === 'ws://') {
+        //         if (this.httpAgent === undefined) {
+        //             throw new NotSupported (this.id + ' to use proxy with non-ssl ws:// urls, at first run  `await exchange.loadHttpProxyAgent()` method');
+        //         }
+        //         return this.httpAgent;
+        //     }
+        // }
         return undefined;
+    }
+    isBinaryMessage(msg) {
+        return msg instanceof Uint8Array;
+    }
+    decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof Uint8Array) {
+            const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
+        }
+        return data;
     }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // load node-http(s) modules only on first call
@@ -905,7 +944,8 @@ export default class Exchange {
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
-                }
+                },
+                'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }
@@ -1566,6 +1606,17 @@ export default class Exchange {
                 'watchLiquidations': undefined,
                 'watchLiquidationsForSymbols': undefined,
                 'watchMyLiquidations': undefined,
+                'unWatchOrders': undefined,
+                'unWatchTrades': undefined,
+                'unWatchTradesForSymbols': undefined,
+                'unWatchOHLCVForSymbols': undefined,
+                'unWatchOrderBookForSymbols': undefined,
+                'unWatchPositions': undefined,
+                'unWatchOrderBook': undefined,
+                'unWatchTickers': undefined,
+                'unWatchMyTrades': undefined,
+                'unWatchTicker': undefined,
+                'unWatchOHLCV': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
                 'ws': undefined,
@@ -2126,6 +2177,9 @@ export default class Exchange {
     }
     async unWatchOrderBookForSymbols(symbols, params = {}) {
         throw new NotSupported(this.id + ' unWatchOrderBookForSymbols() is not supported yet');
+    }
+    async unWatchPositions(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchPositions() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
@@ -3243,19 +3297,7 @@ export default class Exchange {
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
-    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        /**
-         * @method
-         * @description calculates the presumptive fee that would be charged for an order
-         * @param {string} symbol unified market symbol
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-         * @param {float} price the price for the order to be filled at, in units of the quote currency
-         * @param {string} takerOrMaker 'taker' or 'maker'
-         * @param {object} params
-         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-         */
+    calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker = 'taker', feeRate = undefined, params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired(this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3292,7 +3334,7 @@ export default class Exchange {
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
-        const rate = this.safeString(market, takerOrMaker);
+        const rate = (feeRate !== undefined) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return {
             'type': takerOrMaker,
@@ -3300,6 +3342,21 @@ export default class Exchange {
             'rate': this.parseNumber(rate),
             'cost': this.parseNumber(cost),
         };
+    }
+    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
+        return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, undefined, params);
     }
     safeLiquidation(liquidation, market = undefined) {
         const contracts = this.safeString(liquidation, 'contracts');
@@ -3344,6 +3401,26 @@ export default class Exchange {
         trade['price'] = this.parseNumber(price);
         trade['cost'] = this.parseNumber(cost);
         return trade;
+    }
+    createCcxtTradeId(timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
+        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
+        let id = undefined;
+        if (timestamp !== undefined) {
+            id = this.numberToString(timestamp);
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString(amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString(price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+        }
+        return id;
     }
     parsedFeeAndFees(container) {
         let fee = this.safeDict(container, 'fee');
@@ -5502,10 +5579,10 @@ export default class Exchange {
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
-    async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDeposits() is not supported yet');
     }
-    async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
     }
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6589,7 +6666,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
-        const until = this.safeInteger2(params, 'untill', 'till'); // do not omit it from params here
+        const until = this.safeIntegerN(params, ['until', 'untill', 'till']); // do not omit it from params here
         [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
@@ -7282,6 +7359,17 @@ export default class Exchange {
             }
             else if (topic === 'orders' && (this.orders !== undefined)) {
                 this.orders = undefined;
+            }
+            else if (topic === 'positions' && (this.positions !== undefined)) {
+                this.positions = undefined;
+                const clients = Object.values(this.clients);
+                for (let i = 0; i < clients.length; i++) {
+                    const client = clients[i];
+                    const futures = this.safeDict(client, 'futures');
+                    if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
+                        delete futures['fetchPositionsSnapshot'];
+                    }
+                }
             }
             else if (topic === 'ticker' && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys(this.tickers);

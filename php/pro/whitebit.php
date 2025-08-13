@@ -917,7 +917,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "error" => array( $code => 1, $message => "invalid argument" ),

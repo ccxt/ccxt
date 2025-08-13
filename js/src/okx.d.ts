@@ -297,7 +297,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseIds(ids: any): any;
     /**
      * @method
@@ -488,7 +488,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name okx#fetchDeposits
@@ -678,7 +678,7 @@ export default class okx extends Exchange {
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name okx#fetchPositionMode

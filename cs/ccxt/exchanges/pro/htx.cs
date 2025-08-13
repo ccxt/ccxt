@@ -2182,7 +2182,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

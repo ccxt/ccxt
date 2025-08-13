@@ -214,7 +214,6 @@ class coinmetro extends Exchange {
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
                 'currencyIdsListForParseMarket' => array( 'QRDO' ),
-                'skippedMarkets' => array( 'VXVUSDT' ), // broken markets which do not have enough info in API
             ),
             'features' => array(
                 'spot' => array(
@@ -466,11 +465,11 @@ class coinmetro extends Exchange {
             //         ...
             //     )
             //
-            $skippedMarkets = $this->safe_list($this->options, 'skippedMarkets', array());
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $market = $this->parse_market($response[$i]);
-                if ($this->in_array($market['id'], $skippedMarkets)) {
+                // there are several broken (unavailable info) markets
+                if ($market['base'] === null || $market['quote'] === null) {
                     continue;
                 }
                 $result[] = $market;

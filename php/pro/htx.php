@@ -1950,7 +1950,7 @@ class htx extends \ccxt\async\htx {
         $promise->resolve ($message);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "action" => "sub",
@@ -2022,7 +2022,7 @@ class htx extends \ccxt\async\htx {
                 }
             }
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

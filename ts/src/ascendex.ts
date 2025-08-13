@@ -2544,9 +2544,9 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        return this.safeOrder ({
+        return [ this.safeOrder ({
             'info': response,
-        });
+        }) ];
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
@@ -3118,7 +3118,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

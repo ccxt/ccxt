@@ -1119,6 +1119,17 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "url": "https://open-api.bingx.com/openApi/fund/v1/account/balance?timestamp=1754906232985&signature=8bd3c224b5ec5252a51bb89b00c04a5ecc46e2dd88bb2a48eb6ea3ae4ae2c0a5",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/account/balance?timestamp=1699458295362&signature=1a1e94a11aafb72eaa8b1ee228d7f0330f043fdcfaaaffc41063a8d6304d9295",

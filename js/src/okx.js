@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -739,6 +739,7 @@ export default class okx extends Exchange {
                     '51137': InvalidOrder,
                     '51138': InvalidOrder,
                     '51139': InvalidOrder,
+                    '51155': RestrictedLocation,
                     '51156': BadRequest,
                     '51159': BadRequest,
                     '51162': InvalidOrder,
@@ -1150,7 +1151,9 @@ export default class okx extends Exchange {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
+                },
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1547,7 +1550,14 @@ export default class okx extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const types = this.safeList(this.options, 'fetchMarkets', []);
+        let types = ['spot', 'future', 'swap', 'option'];
+        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList(fetchMarketsOption, 'types', types);
+        }
+        else {
+            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -3480,7 +3490,7 @@ export default class okx extends Exchange {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);

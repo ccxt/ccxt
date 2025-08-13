@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinspot$1 = require('./abstract/coinspot.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var Precise = require('./base/Precise.js');
  * @class coinspot
  * @augments Exchange
  */
-class coinspot extends coinspot$1 {
+class coinspot extends coinspot$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
@@ -596,7 +598,8 @@ class coinspot extends coinspot$1 {
             'amount': amount,
             'rate': price,
         };
-        return await this[method](this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
+        return this.parseOrder(response);
     }
     /**
      * @method
@@ -648,4 +651,4 @@ class coinspot extends coinspot$1 {
     }
 }
 
-module.exports = coinspot;
+exports["default"] = coinspot;

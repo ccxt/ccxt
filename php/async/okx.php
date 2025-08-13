@@ -744,6 +744,7 @@ class okx extends Exchange {
                     '51137' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139' => '\\ccxt\\InvalidOrder', // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51155' => '\\ccxt\\RestrictedLocation', // array("code":"1","data":[array("clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade this pair or borrow this crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157")],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874")
                     '51156' => '\\ccxt\\BadRequest', // You're leading trades in long/short mode and can't use this API endpoint to close positions
                     '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction existing positions and open orders.
                     '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
@@ -1155,7 +1156,9 @@ class okx extends Exchange {
                 ),
                 'createOrder' => 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
+                ),
                 'timeDifference' => 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
@@ -1564,7 +1567,13 @@ class okx extends Exchange {
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
             }
-            $types = $this->safe_list($this->options, 'fetchMarkets', array());
+            $types = array( 'spot', 'future', 'swap', 'option' );
+            $fetchMarketsOption = $this->safe_dict($this->options, 'fetchMarkets');
+            if ($fetchMarketsOption !== null) {
+                $types = $this->safe_list($fetchMarketsOption, 'types', $types);
+            } else {
+                $types = $this->safe_list($this->options, 'fetchMarkets', $types); // backward-support
+            }
             $promises = array();
             $result = array();
             for ($i = 0; $i < count($types); $i++) {
@@ -3513,7 +3522,7 @@ class okx extends Exchange {
             $trailing = $this->safe_bool($params, 'trailing', false);
             if ($trigger || $trailing) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-                return $this->safe_value($orderInner, 0);
+                return $this->safe_dict($orderInner, 0);
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -5247,7 +5256,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6760,7 +6769,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

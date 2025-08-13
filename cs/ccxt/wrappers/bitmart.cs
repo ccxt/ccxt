@@ -762,10 +762,10 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -809,10 +809,10 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1078,7 +1078,7 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

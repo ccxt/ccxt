@@ -687,7 +687,7 @@ class okx extends \ccxt\async\okx {
         ), $market);
     }
 
-    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -785,7 +785,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function watch_my_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the private liquidations of a trading pair
@@ -966,6 +966,7 @@ class okx extends \ccxt\async\okx {
             'contracts' => $this->safe_number($liquidationDetails, 'sz'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidationDetails, 'bkPx'),
+            'side' => $this->safe_string($liquidationDetails, 'side'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2161,7 +2162,7 @@ class okx extends \ccxt\async\okx {
         if ($this->is_empty($args)) {
             $method = $this->safe_string($message, 'op');
             $stringMsg = $this->json($message);
-            $this->handle_errors(null, null, $client->url, $method, null, $stringMsg, $message, null, null);
+            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
         }
         $orders = $this->parse_orders($args, null, null, null);
         $first = $this->safe_dict($orders, 0, array());
@@ -2361,7 +2362,7 @@ class okx extends \ccxt\async\okx {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     array( event => 'error', $msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
         //     array( event => 'error", $msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
@@ -2413,7 +2414,7 @@ class okx extends \ccxt\async\okx {
             $client->reject ($e);
             return false;
         }
-        return $message;
+        return true;
     }
 
     public function handle_message(Client $client, $message) {

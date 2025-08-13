@@ -1025,7 +1025,9 @@ export default class bybit extends Exchange {
             'options': {
                 'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
-                'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'fetchMarkets': {
+                    'types': [ 'spot', 'linear', 'inverse', 'option' ],
+                },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
@@ -1721,9 +1723,17 @@ export default class bybit extends Exchange {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [];
-        const fetchMarkets = this.safeList (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
-        for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+        let types = undefined;
+        const defaultTypes = [ 'spot', 'linear', 'inverse', 'option' ];
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
+        } else {
+            // for backward-compatibility
+            types = this.safeList (this.options, 'fetchMarkets', defaultTypes);
+        }
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
             if (marketType === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (marketType === 'linear') {
@@ -4807,7 +4817,7 @@ export default class bybit extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const orders = this.safeList (result, 'list');
         if (!Array.isArray (orders)) {
-            return response;
+            return [ this.safeOrder ({ 'info': response }) ];
         }
         return this.parseOrders (orders, market);
     }
@@ -6158,10 +6168,15 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let accountType = undefined;
+        const accounts = await this.isUnifiedEnabled ();
+        const isUta = accounts[1];
         [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'SPOT');
+        if (isUta) {
+            accountType = 'UTA';
+        }
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
@@ -6759,7 +6774,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -8364,7 +8379,7 @@ export default class bybit extends Exchange {
             }
             symbol = market['symbol'];
         }
-        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 40 }, params));
+        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 50 }, params));
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }

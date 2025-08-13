@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -210,7 +210,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     /**
@@ -584,7 +584,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     /**
      * @method
      * @name hashkey#fetchLeverageTiers

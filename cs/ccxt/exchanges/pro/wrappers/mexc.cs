@@ -106,7 +106,7 @@ public partial class mexc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -140,7 +140,7 @@ public partial class mexc
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -153,6 +153,12 @@ public partial class mexc
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.frequency</term>
+    /// <description>
+    /// string : the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
     /// </description>
     /// </item>
     /// </list>
@@ -168,7 +174,7 @@ public partial class mexc
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -203,7 +209,7 @@ public partial class mexc
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -238,7 +244,7 @@ public partial class mexc
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -273,7 +279,7 @@ public partial class mexc
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
