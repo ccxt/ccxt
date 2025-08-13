@@ -879,7 +879,6 @@ class mexc extends mexc$1["default"] {
             const timestamp = this.safeIntegerN(message, ['t', 'ts', 'sendTime']);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
-            storedOrderBook['nonce'] = this.safeInteger(data, 'fromVersion');
         }
         catch (e) {
             delete client.subscriptions[messageHash];
