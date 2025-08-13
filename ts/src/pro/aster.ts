@@ -35,6 +35,8 @@ export default class aster extends asterRest {
                 'unWatchTradesForSymbols': true,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -732,7 +734,7 @@ export default class aster extends asterRest {
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
-            'method': 'SUBSCRIBE',
+            'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
         let limit = this.safeNumber (params, 'limit');
@@ -814,6 +816,21 @@ export default class aster extends asterRest {
 
     /**
      * @method
+     * @name aster#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        params['callerMethodName'] = 'unWatchOHLCV';
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
      * @name aster#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
@@ -855,6 +872,44 @@ export default class aster extends asterRest {
         }
         const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    /**
+     * @method
+     * @name aster#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const symbolsLength = symbolsAndTimeframes.length;
+        let methodName = undefined;
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchOHLCVForSymbols');
+        params = this.omit (params, 'callerMethodName');
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
+        const url = this.urls['api']['ws'];
+        const subscriptionArgs = [];
+        const messageHashes = [];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        };
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            symbolString = market['symbol'];
+            const unfiedTimeframe = this.safeString (data, 1);
+            const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
+            messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
+        }
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
     handleOHLCV (client: Client, message) {
