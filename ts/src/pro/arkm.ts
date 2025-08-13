@@ -73,6 +73,7 @@ export default class arkm extends arkmRest {
         // }
         const methods: Dict = {
             'ticker': this.handleTicker,
+            'candles': this.handleOHLCV,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -124,8 +125,8 @@ export default class arkm extends arkmRest {
             'args': {
                 'channel': 'ticker',
                 'params': {
-                    'snapshot': true,
-                    'symbol': 'BTC_USDT',
+                    'snapshot': false,
+                    'symbol': market['id'],
                 },
             },
             'confirmationId': this.uuid (),
@@ -177,5 +178,85 @@ export default class arkm extends arkmRest {
     parseWsTicker (message, market = undefined) {
         // same dict as REST api
         return this.parseTicker (message, market);
+    }
+
+    /**
+     * @method
+     * @name arkm#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://arkm.com/docs#stream/candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const rawTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const messageHash = this.getMessageHash ('ohlcv', market['symbol'], timeframe);
+        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
+        const request: Dict = {
+            'args': {
+                'channel': 'candles',
+                'params': {
+                    'snapshot': false,
+                    'symbol': market['id'],
+                },
+            },
+            'confirmationId': this.uuid (),
+            'method': 'subscribe',
+        };
+        const result = await this.watchSingle (messageHash, this.extend (request, params), subscriptionHash);
+        const ohlcv = result;
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        // {
+        //   channel: 'candles',
+        //   type: 'update',
+        //   data: {
+        //     symbol: 'BTC_USDT',
+        //     time: '1755076380000000',
+        //     duration: 60000000,
+        //     open: '120073.01',
+        //     high: '120073.01',
+        //     low: '120073.01',
+        //     close: '120073.01',
+        //     volume: '0',
+        //     quoteVolume: '0'
+        //   }
+        // }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId, undefined);
+        const symbol = market['symbol'];
+        const parsed = this.parseWsOHLCV (data, market);
+        const duration = this.safeInteger (data, 'duration');
+        const timeframe = this.findTimeframeByDuration (duration);
+        const messageHash = this.getMessageHash ('ohlcv', symbol, timeframe);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+        return message;
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        // same as REST api
+        return this.parseOHLCV (ohlcv, market);
     }
 }

@@ -60,6 +60,7 @@ export default class arkm extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                // enums are wrong in DOCS, these string values need to be in request
                 '1m': '1m',
                 '5m': '5m',
                 '15m': '15m',
@@ -236,6 +237,15 @@ export default class arkm extends Exchange {
                     'ERC20': 'ERC20',
                 },
                 'requestExpiration': 5000, // 5 seconds
+                'timeframeDurations': {
+                    '1m': 60000000,
+                    '5m': 300000000,
+                    '15m': 900000000,
+                    '30m': 1800000000,
+                    '1h': 3600000000,
+                    '6h': 21600000000,
+                    '1d': 86400000000,
+                },
             },
             'features': {
                 'default': {
@@ -2287,6 +2297,20 @@ export default class arkm extends Exchange {
             minNotional = maxNotional;
         }
         return tiers as LeverageTier[];
+    }
+
+    findTimeframeByDuration (duration: Int): string {
+        // this method is used to find the timeframe by duration in seconds
+        const timeframes = this.safeDict (this.options, 'timeframeDurations', {});
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const timeframe = keys[i];
+            const durationInMicroseconds = this.safeInteger (timeframes, timeframe);
+            if (durationInMicroseconds === duration) {
+                return timeframe;
+            }
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
