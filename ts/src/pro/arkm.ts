@@ -74,6 +74,7 @@ export default class arkm extends arkmRest {
         const methods: Dict = {
             'ticker': this.handleTicker,
             'candles': this.handleOHLCV,
+            'l2_updates': this.handleOrderBook,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -260,4 +261,101 @@ export default class arkm extends arkmRest {
         return this.parseOHLCV (ohlcv, market);
     }
 
+    /**
+     * @method
+     * @name arkm#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = this.getMessageHash ('orderBook', market['symbol']);
+        const subscriptionHash = messageHash;
+        const request: Dict = {
+            'args': {
+                'channel': 'l2_updates',
+                'params': {
+                    'snapshot': true,
+                    'symbol': market['id'],
+                },
+            },
+            'confirmationId': this.uuid (),
+            'method': 'subscribe',
+        };
+        const orderBook = await this.watchSingle (messageHash, this.extend (request, params), subscriptionHash);
+        return orderBook;
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // snapshot:
+        //
+        // {
+        //     channel: 'l2_updates',
+        //     type: 'snapshot',
+        //     data: {
+        //         symbol: 'BTC_USDT',
+        //         group: '0.01',
+        //         asks: [  [Object], [Object], ... ],
+        //         bids: [  [Object], [Object], ... ],
+        //         lastTime: 1755115180608299
+        //     }
+        // }
+        //
+        // update:
+        //
+        // {
+        //   channel: "l2_updates",
+        //   type: "update",
+        //   data: {
+        //     symbol: "BTC_USDT",
+        //     group: "0.01",
+        //     side: "sell",
+        //     size: "0.05295",
+        //     price: "122722.76",
+        //     revisionId: 2455511217,
+        //     time: 1755115736475207,
+        //   }
+        // }
+        //
+        const data = this.safeDict (message, 'data');
+        const type = this.safeString (message, 'type');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = this.getMessageHash ('orderBook', symbol);
+        const timestamp = this.safeInteger (data, 'lastTime');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ({});
+            ob['symbol'] = symbol;
+            this.orderbooks[symbol] = ob;
+        }
+        const storedOrderBook = this.orderbooks[symbol];
+        if (type === 'snapshot') {
+            const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp);
+            storedOrderBook.reset (parsedOrderBook);
+        } else if (type === 'update') {
+            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            const asks = this.safeList (data, 'asks', []);
+            const bids = this.safeList (data, 'bids', []);
+            this.handleDeltas (storedOrderBook['asks'], asks);
+            this.handleDeltas (storedOrderBook['bids'], bids);
+            storedOrderBook['timestamp'] = timestamp;
+            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+        }
+        this.orderbooks[symbol] = storedOrderBook;
+        client.resolve (this.orderbooks[symbol], messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        // we store the string representations in the orderbook for checksum calculation
+        // this simplifies the code for generating checksums as we do not need to do any complex number transformations
+        bidAsk.push (delta);
+        bookside.storeArray (bidAsk);
+    }
 }
