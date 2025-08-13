@@ -227,7 +227,6 @@ export default class backpack extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -357,6 +356,7 @@ export default class backpack extends Exchange {
                     },
                     'api/v1/orders': {
                         'GET': 'orderQueryAll',
+                        'POST': 'orderExecute',
                         'DELETE': 'orderCancelAll',
                     },
                     'wapi/v1/history/orders': {
@@ -1637,8 +1637,8 @@ export default class backpack extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
@@ -2226,13 +2226,7 @@ export default class backpack extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
         let url = this.urls['api'][api];
-        const sortedParams = this.keysort (params);
-        const query = this.urlencode (sortedParams);
-        if (method === 'GET') {
-            if (query.length !== 0) {
-                endpoint += '?' + query;
-            }
-        }
+        const sortedParams = Array.isArray (params) ? params : this.keysort (params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const ts = this.nonce ().toString ();
@@ -2240,11 +2234,16 @@ export default class backpack extends Exchange {
             const optionInstructions = this.safeDict (this.options, 'instructions', {});
             const optionPathInstructions = this.safeDict (optionInstructions, path, {});
             const instruction = this.safeString (optionPathInstructions, method, '');
-            let queryString = query;
-            if (queryString.length > 0) {
-                queryString += '&';
+            let payload = '';
+            if ((path === 'api/v1/orders') && (method === 'POST')) { // for createOrders
+                payload = this.generateBatchPayload (sortedParams, ts, recvWindow, instruction);
+            } else {
+                let queryString = this.urlencode (sortedParams);
+                if (queryString.length > 0) {
+                    queryString += '&';
+                }
+                payload = 'instruction=' + instruction + '&' + queryString + 'timestamp=' + ts + '&window=' + recvWindow;
             }
-            const payload = 'instruction=' + instruction + '&' + queryString + 'timestamp=' + ts + '&window=' + recvWindow;
             const secretBytes = this.base64ToBinary (this.secret);
             const seed = this.arraySlice (secretBytes, 0, 32);
             const signature = eddsa (this.encode (payload), seed, ed25519);
@@ -2259,7 +2258,27 @@ export default class backpack extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
+        if (method === 'GET') {
+            const query = this.urlencode (sortedParams);
+            if (query.length !== 0) {
+                endpoint += '?' + query;
+            }
+        }
         url += endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    generateBatchPayload (params, ts, recvWindow, instruction) {
+        let payload = '';
+        for (let i = 0; i < params.length; i++) {
+            const order = this.safeDict (params, i, {});
+            const sortedOrder = this.keysort (order);
+            const orderQuery = this.urlencode (sortedOrder);
+            payload += 'instruction=' + instruction + '&' + orderQuery + '&';
+            if (i === (params.length - 1)) {
+                payload += 'timestamp=' + ts + '&window=' + recvWindow;
+            }
+        }
+        return payload;
     }
 }
