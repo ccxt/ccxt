@@ -119,8 +119,8 @@ export default class arkm extends arkmRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
+        const subscriptionHash = messageHash;
         const request: Dict = {
             'args': {
                 'channel': 'ticker',
@@ -197,12 +197,12 @@ export default class arkm extends arkmRest {
         const market = this.market (symbol);
         const rawTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = this.getMessageHash ('ohlcv', market['symbol'], timeframe);
-        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
+        const subscriptionHash = messageHash;
         const request: Dict = {
             'args': {
                 'channel': 'candles',
                 'params': {
-                    'snapshot': false,
+                    'duration': rawTimeframe,
                     'symbol': market['id'],
                 },
             },
@@ -259,4 +259,5 @@ export default class arkm extends arkmRest {
         // same as REST api
         return this.parseOHLCV (ohlcv, market);
     }
+
 }
