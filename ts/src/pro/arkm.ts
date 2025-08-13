@@ -68,9 +68,9 @@ export default class arkm extends arkmRest {
         //
         //     {channel: 'confirmations', confirmationId: 'myCustomId-123'}
         //
-        if (!this.handleErrorMessage (client, message)) {
-            return;
-        }
+        // if (!this.handleErrorMessage (client, message)) {
+        //     return;
+        // }
         const methods: Dict = {
             'ticker': this.handleTicker,
             // 'confirmations': this.handleTicker,
