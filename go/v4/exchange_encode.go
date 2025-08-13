@@ -175,9 +175,24 @@ func (e *Exchange) Decode(data interface{}) string {
 	return data.(string) // stub
 }
 
+// func (e *Exchange) IntToBase16(number interface{}) string {
+// 	n := number.(int64)
+// 	return fmt.Sprintf("%x", n)
+// }
+
 func (e *Exchange) IntToBase16(number interface{}) string {
-	n := number.(int64)
-	return fmt.Sprintf("%x", n)
+	switch v := number.(type) {
+	case int:
+		return fmt.Sprintf("%x", int64(v))
+	case int64:
+		return fmt.Sprintf("%x", v)
+	case uint:
+		return fmt.Sprintf("%x", uint64(v))
+	case uint64:
+		return fmt.Sprintf("%x", v)
+	default:
+		return "" // return empty string for unsupported types
+	}
 }
 
 // This function requires implementation of a message packer
@@ -185,12 +200,18 @@ func (e *Exchange) packb(data interface{}) interface{} {
 	return nil
 }
 
-func (e *Exchange) Rawencode(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+func (e *Exchange) Rawencode(params ...interface{}) string {
+	parameters := params[0].(map[string]interface{})
+	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
 		keys = append(keys, k)
 	}
+
+	if shouldSort {
+		sort.Strings(keys)
+	}
+
 	var outList []string
 	for _, key := range keys {
 		value := parameters[key]

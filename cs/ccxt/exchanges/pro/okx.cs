@@ -994,6 +994,7 @@ public partial class okx : ccxt.okx
             { "contracts", this.safeNumber(liquidationDetails, "sz") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidationDetails, "bkPx") },
+            { "side", this.safeString(liquidationDetails, "side") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -2305,7 +2306,7 @@ public partial class okx : ccxt.okx
         {
             object method = this.safeString(message, "op");
             object stringMsg = this.json(message);
-            this.handleErrors(null, null, client.url, method, null, stringMsg, message, null, null);
+            this.handleErrors(1, "", client.url, method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         object orders = this.parseOrders(args, null, null, null);
         object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2585,7 +2586,7 @@ public partial class okx : ccxt.okx
             ((WebSocketClient)client).reject(e);
             return false;
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    base_public_get_v1_public_get_announcements = basePublicGetV1PublicGetAnnouncements = Entry('v1/public/get-announcements', ['base', 'public'], 'GET', {'cost': 1})
     v1_public_get_public_auth = v1PublicGetPublicAuth = Entry('public/auth', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_instruments = v1PublicGetPublicGetInstruments = Entry('public/get-instruments', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_book = v1PublicGetPublicGetBook = Entry('public/get-book', ['v1', 'public'], 'GET', {'cost': 1})
@@ -19,6 +20,7 @@ class ImplicitAPI:
     v1_private_post_private_user_balance_history = v1PrivatePostPrivateUserBalanceHistory = Entry('private/user-balance-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_positions = v1PrivatePostPrivateGetPositions = Entry('private/get-positions', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_create_order = v1PrivatePostPrivateCreateOrder = Entry('private/create-order', ['v1', 'private'], 'POST', {'cost': 0.6666666666666666})
+    v1_private_post_private_amend_order = v1PrivatePostPrivateAmendOrder = Entry('private/amend-order', ['v1', 'private'], 'POST', {'cost': 1.3333333333333333})
     v1_private_post_private_create_order_list = v1PrivatePostPrivateCreateOrderList = Entry('private/create-order-list', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_cancel_order = v1PrivatePostPrivateCancelOrder = Entry('private/cancel-order', ['v1', 'private'], 'POST', {'cost': 0.6666666666666666})
     v1_private_post_private_cancel_order_list = v1PrivatePostPrivateCancelOrderList = Entry('private/cancel-order-list', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})

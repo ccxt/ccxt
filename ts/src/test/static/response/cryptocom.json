@@ -2,6 +2,117 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "disabledGO": true,
+                "disabledCS": true,
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-valuations",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "v": "0.000043997",
+                                "t": 1753436579000
+                            }
+                        ],
+                        "instrument_name": "BTCUSD-PERP"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "v": "0.000043997",
+                        "t": 1753436579000
+                    },
+                    "symbol": "BTC/USD:USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1753436579000,
+                    "datetime": "2025-07-25T09:42:59.000Z",
+                    "fundingRate": 0.000043997,
+                    "fundingTimestamp": 1753437600000,
+                    "fundingDatetime": "2025-07-25T10:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "httpResponse": {
+                    "id": 1749674362537,
+                    "method": "private/amend-order",
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    },
+                    "id": "6142909930410561608",
+                    "clientOrderId": "1749674362537",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
@@ -2081,13 +2192,13 @@
                     "ask": 73375.26,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
+                    "open": 73362.71497573915,
                     "close": 73375.26,
                     "last": 73375.26,
                     "previousClose": null,
-                    "change": null,
+                    "change": 12.545024260851394,
                     "percentage": 0.0171,
-                    "average": null,
+                    "average": 73368.98,
                     "baseVolume": 6921.5068,
                     "quoteVolume": null,
                     "markPrice":  null,

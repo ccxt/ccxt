@@ -382,7 +382,6 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
-                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
@@ -630,6 +629,17 @@ public partial class testMainClass : BaseTest
                 assert(condition, msg);
                 return;
             }
+        }
+        public object getActiveMarkets(Exchange exchange, object includeUnknown = null)
+        {
+            includeUnknown ??= true;
+            object filteredActive = exchange.filterBy(exchange.markets, "active", true);
+            if (isTrue(includeUnknown))
+            {
+                object filteredUndefined = exchange.filterBy(exchange.markets, "active", null);
+                return exchange.arrayConcat(filteredActive, filteredUndefined);
+            }
+            return filteredActive;
         }
         public object removeProxyOptions(Exchange exchange, object skippedProperties)
         {

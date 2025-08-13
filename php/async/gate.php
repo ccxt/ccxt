@@ -116,7 +116,7 @@ class gate extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
-                'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -675,9 +675,7 @@ class gate extends Exchange {
                     'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
-                    'POLYGON' => 'POL',
-                    'MATIC' => 'POL',
-                    'OP' => 'OPETH',
+                    'MATIC' => 'MATIC',
                     'OPTIMISM' => 'OPETH',
                     'ADA' => 'ADA', // CARDANO
                     'AVAXC' => 'AVAX_C',
@@ -1252,7 +1250,7 @@ class gate extends Exchange {
                 $this->fetch_option_markets($params),
             );
             if (!$sandboxMode) {
-                // gate does not have a sandbox for spot $markets
+                // gate doesn't have a sandbox for spot $markets
                 $mainnetOnly = array( $this->fetch_spot_markets($params) );
                 $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
             }
@@ -1278,21 +1276,25 @@ class gate extends Exchange {
             //         {
             //             "id" => "QTUM_ETH",
             //             "base" => "QTUM",
+            //             "base_name" => "Quantum",
             //             "quote" => "ETH",
+            //             "quote_name" => "Ethereum",
             //             "fee" => "0.2",
             //             "min_base_amount" => "0.01",
             //             "min_quote_amount" => "0.001",
+            //             "max_quote_amount" => "50000",
             //             "amount_precision" => 3,
             //             "precision" => 6,
             //             "trade_status" => "tradable",
-            //             "sell_start" => 0,
-            //             "buy_start" => 0
+            //             "sell_start" => 1607313600,
+            //             "buy_start" => 1700492400,
+            //             "type" => "normal",
+            //             "trade_url" => "https://www.gate.io/trade/QTUM_ETH",
             //         }
-            //     )
             //
             //  Margin
             //
-            //     array(
+            //     [
             //         {
             //             "id" => "ETH_USDT",
             //             "base" => "ETH",
@@ -1319,6 +1321,8 @@ class gate extends Exchange {
                 $tradeStatus = $this->safe_string($market, 'trade_status');
                 $leverage = $this->safe_number($market, 'leverage');
                 $margin = $leverage !== null;
+                $buyStart = $this->safe_integer_product($spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
+                $createdTs = ($buyStart !== 0) ? $buyStart : null;
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -1368,7 +1372,7 @@ class gate extends Exchange {
                             'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                         ),
                     ),
-                    'created' => null,
+                    'created' => $createdTs,
                     'info' => $market,
                 );
             }
@@ -1443,6 +1447,7 @@ class gate extends Exchange {
         //        "funding_next_apply" => 1610035200,
         //        "short_users" => 977,
         //        "config_change_time" => 1609899548,
+        //        "create_time" => 1609800048,
         //        "trade_size" => 28530850594,
         //        "position_size" => 5223816,
         //        "long_users" => 455,
@@ -1575,7 +1580,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => null,
+            'created' => $this->safe_integer_product($market, 'create_time', 1000),
             'info' => $market,
         );
     }
@@ -1674,7 +1679,7 @@ class gate extends Exchange {
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
-                        'strike' => $strike,
+                        'strike' => $this->parse_number($strike),
                         'optionType' => $optionType,
                         'precision' => array(
                             'amount' => $this->parse_number('1'), // all options have this step size
@@ -2236,9 +2241,7 @@ class gate extends Exchange {
             $chains = $this->safe_value($response, 'multichain_addresses', array());
             $currencyId = $this->safe_string($response, 'currency');
             $currency = $this->safe_currency($currencyId, $currency);
-            $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-                'currency' => $currency['id'],
-            ));
+            $parsed = $this->parse_deposit_addresses($chains, null, false);
             return $this->index_by($parsed, 'network');
         }) ();
     }
@@ -2259,8 +2262,8 @@ class gate extends Exchange {
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $chainsIndexedById = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            $selectedNetworkId = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
-            return $chainsIndexedById[$selectedNetworkId];
+            $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
+            return $chainsIndexedById[$selectedNetworkIdOrCode];
         }) ();
     }
 
@@ -3960,7 +3963,7 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();
@@ -4001,13 +4004,13 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetWithdrawals ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -5847,7 +5850,7 @@ class gate extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -7757,12 +7760,30 @@ class gate extends Exchange {
         if ($quoteValueString === null) {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
+        // --- derive $side ---
+        // 1) options payload has explicit 'side' => 'long' | 'short'
+        $optPos = $this->safe_string_lower($liquidation, 'side');
+        $side = null;
+        if ($optPos === 'long') {
+            $side = 'buy';
+        } elseif ($optPos === 'short') {
+            $side = 'sell';
+        } else {
+            if ($size !== null) { // 2) futures/perpetual (and fallback for options) => infer from $size
+                if (Precise::string_gt($size, '0')) {
+                    $side = 'buy';
+                } elseif (Precise::string_lt($size, '0')) {
+                    $side = 'sell';
+                }
+            }
+        }
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
             'contractSize' => $this->parse_number($contractSizeString),
             'price' => $this->parse_number($priceString),
+            'side' => $side,
             'baseValue' => $this->parse_number($baseValueString),
             'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
             'timestamp' => $timestamp,

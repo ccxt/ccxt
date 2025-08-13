@@ -789,7 +789,7 @@ class kucoin extends Exchange {
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
-                    'OP' => 'optimism',
+                    'OPTIMISM' => 'optimism',
                     'ONT' => 'ont',
                     'GLMR' => 'glmr',
                     'CSPR' => 'cspr',
@@ -909,6 +909,7 @@ class kucoin extends Exchange {
                     'CS' => 'cs',
                     'ORAI' => 'orai',
                     'BASE' => 'base',
+                    'TARA' => 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON' => 'bcd',
                     // 'BITCOINGOLD' => 'btg',
@@ -1389,36 +1390,32 @@ class kucoin extends Exchange {
         //    }
         //
         $currenciesData = $this->safe_list($response, 'data', array());
+        $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
+        $otherFiats = $this->safe_list($this->options, 'fiats', array( 'KWD', 'IRR', 'PKR' ));
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $entry = $currenciesData[$i];
             $id = $this->safe_string($entry, 'currency');
-            $name = $this->safe_string($entry, 'fullName');
+            if ($this->in_array($id, $brokenCurrencies)) {
+                continue; // skip buggy entries => https://t.me/KuCoin_API/217798
+            }
             $code = $this->safe_currency_code($id);
             $networks = array();
             $chains = $this->safe_list($entry, 'chains', array());
-            $rawPrecision = $this->safe_string($entry, 'precision');
-            $precision = $this->parse_number($this->parse_precision($rawPrecision));
             $chainsLength = count($chains);
-            if (!$chainsLength) {
-                // one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
-                continue;
-            }
             for ($j = 0; $j < $chainsLength; $j++) {
                 $chain = $chains[$j];
                 $chainId = $this->safe_string($chain, 'chainId');
                 $networkCode = $this->network_id_to_code($chainId, $code);
-                $chainWithdrawEnabled = $this->safe_bool($chain, 'isWithdrawEnabled', false);
-                $chainDepositEnabled = $this->safe_bool($chain, 'isDepositEnabled', false);
                 $networks[$networkCode] = array(
                     'info' => $chain,
                     'id' => $chainId,
                     'name' => $this->safe_string($chain, 'chainName'),
                     'code' => $networkCode,
-                    'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                    'active' => null,
                     'fee' => $this->safe_number($chain, 'withdrawalMinFee'),
-                    'deposit' => $chainDepositEnabled,
-                    'withdraw' => $chainWithdrawEnabled,
+                    'deposit' => $this->safe_bool($chain, 'isDepositEnabled'),
+                    'withdraw' => $this->safe_bool($chain, 'isWithdrawEnabled'),
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
                     'limits' => array(
                         'withdraw' => array(
@@ -1433,10 +1430,12 @@ class kucoin extends Exchange {
                 );
             }
             // kucoin has determined 'fiat' currencies with below logic
-            $isFiat = ($rawPrecision === '2') && ($chainsLength === 0);
+            $rawPrecision = $this->safe_string($entry, 'precision');
+            $precision = $this->parse_number($this->parse_precision($rawPrecision));
+            $isFiat = $this->in_array($id, $otherFiats) || (($rawPrecision === '2') && ($chainsLength === 0));
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
-                'name' => $name,
+                'name' => $this->safe_string($entry, 'fullName'),
                 'code' => $code,
                 'type' => $isFiat ? 'fiat' : 'crypto',
                 'precision' => $precision,
@@ -2698,7 +2697,7 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $trigger = $this->safe_bool($params, 'stop', false);
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         $params = $this->omit($params, 'stop');
@@ -2724,7 +2723,7 @@ class kucoin extends Exchange {
         } else {
             $response = $this->privateDeleteOrders ($this->extend($request, $query));
         }
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3513,7 +3512,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -5018,7 +5017,7 @@ class kucoin extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

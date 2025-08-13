@@ -7,4082 +7,1022 @@
 
 package ccxt
 
-func (this *bitstamp) PublicGetOhlcPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOhlcPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetOrderBookPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBookPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTickerHourPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerHourPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTickerPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTransactionsPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTransactionsPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTradingPairsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradingPairsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetEurUsd (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetEurUsd", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PublicGetTravelRuleVasps (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTravelRuleVasps", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivateGetTravelRuleContacts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTravelRuleContacts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivateGetContactsContactUuid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetContactsContactUuid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivateGetEarnSubscriptions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetEarnSubscriptions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivateGetEarnTransactions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetEarnTransactions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAccountBalancesCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalancesCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBalancePair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBalancePair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBchWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBchWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBchAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBchAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUserTransactions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserTransactions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUserTransactionsPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserTransactionsPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCryptoTransactions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCryptoTransactions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOpenOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOpenOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOpenOrdersPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOpenOrdersPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOrderStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCancelAllOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelAllOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCancelAllOrdersPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelAllOrdersPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBuyPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBuyPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBuyMarketPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBuyMarketPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBuyInstantPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBuyInstantPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSellPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSellPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSellMarketPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSellMarketPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSellInstantPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSellInstantPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTransferToMain (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferToMain", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTransferFromMain (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferFromMain", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMyTradingPairs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMyTradingPairs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFeesTrading (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFeesTrading", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFeesTradingMarketSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFeesTradingMarketSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFeesWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFeesWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFeesWithdrawalCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFeesWithdrawalCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWithdrawalRequests (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawalRequests", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWithdrawalOpen (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawalOpen", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWithdrawalStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawalStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWithdrawalCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawalCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLiquidationAddressNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLiquidationAddressNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLiquidationAddressInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLiquidationAddressInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBtcUnconfirmed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBtcUnconfirmed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWebsocketsToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWebsocketsToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBtcWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBtcWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBtcAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBtcAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRippleWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRippleWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRippleAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRippleAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLtcWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLtcWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLtcAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLtcAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEthWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEthWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEthAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEthAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostXrpWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostXrpWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostXrpAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostXrpAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostXlmWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostXlmWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostXlmAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostXlmAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPaxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPaxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPaxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPaxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLinkWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLinkWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLinkAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLinkAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUsdcWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsdcWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUsdcAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsdcAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOmgWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOmgWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOmgAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOmgAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDaiWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDaiWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDaiAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDaiAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostKncWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostKncWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostKncAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostKncAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMkrWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMkrWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMkrAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMkrAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostZrxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostZrxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostZrxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostZrxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGusdWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGusdWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGusdAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGusdAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAaveWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAaveWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAaveAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAaveAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBatWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBatWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBatAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBatAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUmaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUmaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUmaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUmaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSnxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSnxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSnxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSnxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUniWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUniWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUniAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUniAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostYfiWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostYfiWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostYfiAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostYfiAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAudioWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAudioWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAudioAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAudioAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCrvWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCrvWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCrvAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCrvAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAlgoWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAlgoWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAlgoAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAlgoAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCompWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCompWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCompAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCompAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGrtWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGrtWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGrtAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGrtAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUsdtWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsdtWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUsdtAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsdtAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurtWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurtWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurtAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurtAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMaticWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMaticWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMaticAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMaticAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSushiWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSushiWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSushiAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSushiAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostChzWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostChzWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostChzAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostChzAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEnjWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEnjWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEnjAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEnjAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAlphaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAlphaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAlphaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAlphaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFttWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFttWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFttAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFttAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostStorjWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostStorjWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostStorjAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostStorjAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAxsWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAxsWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAxsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAxsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSandWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSandWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSandAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSandAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostHbarWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHbarWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostHbarAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHbarAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRgtWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRgtWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRgtAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRgtAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFetWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFetWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFetAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFetAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSklWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSklWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSklAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSklAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCelWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCelWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCelAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCelAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSxpWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSxpWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSxpAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSxpAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAdaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAdaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAdaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAdaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSlpWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSlpWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSlpAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSlpAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFtmWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFtmWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFtmAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFtmAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPerpWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPerpWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPerpAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPerpAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDydxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDydxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDydxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDydxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGalaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGalaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGalaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGalaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostShibWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostShibWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostShibAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostShibAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAmpWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAmpWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAmpAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAmpAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSgbWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSgbWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSgbAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSgbAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAvaxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAvaxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAvaxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAvaxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWbtcWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWbtcWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWbtcAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWbtcAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCtsiWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCtsiWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCtsiAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCtsiAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCvxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCvxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCvxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCvxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostImxWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostImxWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostImxAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostImxAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostNexoWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostNexoWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostNexoAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostNexoAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUstWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUstWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostUstAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUstAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAntWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAntWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostAntAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAntAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGodsWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGodsWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostGodsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGodsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRadWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRadWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRadAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRadAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBandWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBandWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBandAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBandAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostInjWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostInjWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostInjAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostInjAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRlyWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRlyWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRlyAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRlyAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRndrWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRndrWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostRndrAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRndrAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVegaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVegaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVegaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVegaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePost1inchWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePost1inchWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePost1inchAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePost1inchAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEnsWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEnsWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEnsAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEnsAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostManaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostManaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostManaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostManaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLrcWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLrcWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLrcAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLrcAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostApeWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApeWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostApeAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApeAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMplWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMplWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostMplAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMplAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurocWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurocWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurocAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurocAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSolWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSolWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSolAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSolAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDotWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDotWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDotAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDotAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostNearWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostNearWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostNearAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostNearAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDogeWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDogeWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDogeAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDogeAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFlrWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFlrWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostFlrAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostFlrAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDgldWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDgldWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostDgldAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDgldAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLdoWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLdoWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLdoAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLdoAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTravelRuleContacts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTravelRuleContacts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEarnSubscribe (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEarnSubscribe", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEarnSubscriptionsSetting (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEarnSubscriptionsSetting", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEarnUnsubscribe (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEarnUnsubscribe", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWecanWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWecanWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWecanAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWecanAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTracWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTracWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTracAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTracAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurcvWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurcvWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostEurcvAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEurcvAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPyusdWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPyusdWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPyusdAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPyusdAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLmwrWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLmwrWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostLmwrAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLmwrAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPepeWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPepeWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPepeAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPepeAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBlurWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBlurWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBlurAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBlurAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVextWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVextWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVextAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVextAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCsprWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCsprWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostCsprAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCsprAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVchfWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVchfWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVchfAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVchfAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVeurWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVeurWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostVeurAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostVeurAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTrufWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTrufWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostTrufAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTrufAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWifWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWifWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostWifAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWifAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSmtWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSmtWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSmtAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSmtAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSuiWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSuiWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostSuiAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSuiAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostJupWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostJupWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostJupAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostJupAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOndoWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOndoWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostOndoAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOndoAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBobaWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBobaWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostBobaAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBobaAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPythWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPythWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitstamp) PrivatePostPythAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPythAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *bitstamp) PublicGetOhlcPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOhlcPair", args...)
+}
+
+func (this *bitstamp) PublicGetOrderBookPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBookPair", args...)
+}
+
+func (this *bitstamp) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
+}
+
+func (this *bitstamp) PublicGetTickerHourPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerHourPair", args...)
+}
+
+func (this *bitstamp) PublicGetTickerPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerPair", args...)
+}
+
+func (this *bitstamp) PublicGetTransactionsPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTransactionsPair", args...)
+}
+
+func (this *bitstamp) PublicGetTradingPairsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradingPairsInfo", args...)
+}
+
+func (this *bitstamp) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
+}
+
+func (this *bitstamp) PublicGetEurUsd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetEurUsd", args...)
+}
+
+func (this *bitstamp) PublicGetTravelRuleVasps(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTravelRuleVasps", args...)
+}
+
+func (this *bitstamp) PrivateGetTravelRuleContacts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTravelRuleContacts", args...)
+}
+
+func (this *bitstamp) PrivateGetContactsContactUuid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetContactsContactUuid", args...)
+}
+
+func (this *bitstamp) PrivateGetEarnSubscriptions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEarnSubscriptions", args...)
+}
+
+func (this *bitstamp) PrivateGetEarnTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEarnTransactions", args...)
+}
+
+func (this *bitstamp) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalances", args...)
+}
+
+func (this *bitstamp) PrivatePostAccountBalancesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalancesCurrency", args...)
+}
+
+func (this *bitstamp) PrivatePostBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBalance", args...)
+}
+
+func (this *bitstamp) PrivatePostBalancePair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBalancePair", args...)
+}
+
+func (this *bitstamp) PrivatePostBchWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBchWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBchAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBchAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUserTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserTransactions", args...)
+}
+
+func (this *bitstamp) PrivatePostUserTransactionsPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserTransactionsPair", args...)
+}
+
+func (this *bitstamp) PrivatePostCryptoTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCryptoTransactions", args...)
+}
+
+func (this *bitstamp) PrivatePostOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenOrder", args...)
+}
+
+func (this *bitstamp) PrivatePostOpenOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenOrdersAll", args...)
+}
+
+func (this *bitstamp) PrivatePostOpenOrdersPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOpenOrdersPair", args...)
+}
+
+func (this *bitstamp) PrivatePostOrderStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderStatus", args...)
+}
+
+func (this *bitstamp) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
+}
+
+func (this *bitstamp) PrivatePostCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelAllOrders", args...)
+}
+
+func (this *bitstamp) PrivatePostCancelAllOrdersPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelAllOrdersPair", args...)
+}
+
+func (this *bitstamp) PrivatePostBuyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBuyPair", args...)
+}
+
+func (this *bitstamp) PrivatePostBuyMarketPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBuyMarketPair", args...)
+}
+
+func (this *bitstamp) PrivatePostBuyInstantPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBuyInstantPair", args...)
+}
+
+func (this *bitstamp) PrivatePostSellPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSellPair", args...)
+}
+
+func (this *bitstamp) PrivatePostSellMarketPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSellMarketPair", args...)
+}
+
+func (this *bitstamp) PrivatePostSellInstantPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSellInstantPair", args...)
+}
+
+func (this *bitstamp) PrivatePostTransferToMain(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferToMain", args...)
+}
+
+func (this *bitstamp) PrivatePostTransferFromMain(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferFromMain", args...)
+}
+
+func (this *bitstamp) PrivatePostMyTradingPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMyTradingPairs", args...)
+}
+
+func (this *bitstamp) PrivatePostFeesTrading(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFeesTrading", args...)
+}
+
+func (this *bitstamp) PrivatePostFeesTradingMarketSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFeesTradingMarketSymbol", args...)
+}
+
+func (this *bitstamp) PrivatePostFeesWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFeesWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostFeesWithdrawalCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFeesWithdrawalCurrency", args...)
+}
+
+func (this *bitstamp) PrivatePostWithdrawalRequests(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawalRequests", args...)
+}
+
+func (this *bitstamp) PrivatePostWithdrawalOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawalOpen", args...)
+}
+
+func (this *bitstamp) PrivatePostWithdrawalStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawalStatus", args...)
+}
+
+func (this *bitstamp) PrivatePostWithdrawalCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawalCancel", args...)
+}
+
+func (this *bitstamp) PrivatePostLiquidationAddressNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLiquidationAddressNew", args...)
+}
+
+func (this *bitstamp) PrivatePostLiquidationAddressInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLiquidationAddressInfo", args...)
+}
+
+func (this *bitstamp) PrivatePostBtcUnconfirmed(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBtcUnconfirmed", args...)
+}
+
+func (this *bitstamp) PrivatePostWebsocketsToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWebsocketsToken", args...)
+}
+
+func (this *bitstamp) PrivatePostBtcWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBtcWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBtcAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBtcAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostRippleWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostRippleAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRippleAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostLtcWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLtcWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostLtcAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLtcAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEthWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEthWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEthAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEthAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostXrpWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostXrpWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostXrpAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostXrpAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostXlmWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostXlmWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostXlmAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostXlmAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostPaxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPaxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostPaxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPaxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostLinkWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLinkWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostLinkAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLinkAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUsdcWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsdcWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostUsdcAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsdcAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostOmgWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOmgWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostOmgAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOmgAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostDaiWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDaiWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostDaiAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDaiAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostKncWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostKncWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostKncAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostKncAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostMkrWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMkrWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostMkrAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMkrAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostZrxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostZrxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostZrxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostZrxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostGusdWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGusdWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostGusdAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGusdAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAaveWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAaveWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAaveAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAaveAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostBatWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBatWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBatAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBatAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUmaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUmaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostUmaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUmaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSnxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSnxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSnxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSnxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUniWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUniWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostUniAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUniAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostYfiWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostYfiWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostYfiAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostYfiAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAudioWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAudioWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAudioAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAudioAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCrvWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrvWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCrvAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCrvAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAlgoWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAlgoWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAlgoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAlgoAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCompWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCompWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCompAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCompAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostGrtWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGrtWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostGrtAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGrtAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUsdtWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsdtWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostUsdtAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsdtAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEurtWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurtWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEurtAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurtAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostMaticWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMaticWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostMaticAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMaticAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSushiWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSushiWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSushiAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSushiAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostChzWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostChzWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostChzAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostChzAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEnjWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEnjWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEnjAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEnjAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAlphaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAlphaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAlphaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAlphaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostFttWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFttWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostFttAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFttAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostStorjWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStorjWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostStorjAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStorjAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAxsWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAxsWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAxsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAxsAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSandWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSandWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSandAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSandAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostHbarWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHbarWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostHbarAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHbarAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostRgtWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRgtWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostRgtAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRgtAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostFetWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFetWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostFetAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFetAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSklWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSklWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSklAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSklAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCelWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCelWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCelAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCelAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSxpWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSxpWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSxpAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSxpAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAdaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAdaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAdaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAdaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSlpWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSlpWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSlpAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSlpAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostFtmWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFtmWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostFtmAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFtmAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostPerpWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPerpWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostPerpAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPerpAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostDydxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDydxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostDydxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDydxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostGalaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGalaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostGalaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGalaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostShibWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostShibWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostShibAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostShibAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAmpWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAmpWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAmpAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAmpAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSgbWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSgbWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSgbAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSgbAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAvaxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAvaxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAvaxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAvaxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostWbtcWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWbtcWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostWbtcAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWbtcAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCtsiWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCtsiWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCtsiAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCtsiAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCvxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCvxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCvxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCvxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostImxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostImxWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostImxAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostImxAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostNexoWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNexoWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostNexoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNexoAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostUstWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUstWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostUstAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUstAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostAntWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAntWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostAntAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAntAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostGodsWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGodsWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostGodsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGodsAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostRadWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRadWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostRadAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRadAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostBandWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBandWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBandAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBandAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostInjWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostInjWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostInjAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostInjAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostRlyWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRlyWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostRlyAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRlyAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostRndrWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRndrWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostRndrAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRndrAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostVegaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVegaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostVegaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVegaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePost1inchWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePost1inchWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePost1inchAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePost1inchAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEnsWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEnsWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEnsAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEnsAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostManaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostManaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostManaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostManaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostLrcWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLrcWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostLrcAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLrcAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostApeWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApeWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostApeAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApeAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostMplWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMplWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostMplAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMplAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEurocWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurocWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEurocAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurocAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSolWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSolWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSolAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSolAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostDotWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDotWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostDotAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDotAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostNearWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNearWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostNearAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNearAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostDogeWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDogeWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostDogeAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDogeAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostFlrWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFlrWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostFlrAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFlrAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostDgldWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDgldWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostDgldAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDgldAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostLdoWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLdoWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostLdoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLdoAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostTravelRuleContacts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTravelRuleContacts", args...)
+}
+
+func (this *bitstamp) PrivatePostEarnSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEarnSubscribe", args...)
+}
+
+func (this *bitstamp) PrivatePostEarnSubscriptionsSetting(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEarnSubscriptionsSetting", args...)
+}
+
+func (this *bitstamp) PrivatePostEarnUnsubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEarnUnsubscribe", args...)
+}
+
+func (this *bitstamp) PrivatePostWecanWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWecanWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostWecanAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWecanAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostTracWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTracWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostTracAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTracAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostEurcvWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurcvWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostEurcvAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEurcvAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostPyusdWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPyusdWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostPyusdAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPyusdAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostLmwrWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLmwrWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostLmwrAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLmwrAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostPepeWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPepeWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostPepeAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPepeAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostBlurWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBlurWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBlurAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBlurAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostVextWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVextWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostVextAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVextAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostCsprWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCsprWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostCsprAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCsprAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostVchfWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVchfWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostVchfAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVchfAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostVeurWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVeurWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostVeurAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostVeurAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostTrufWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTrufWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostTrufAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTrufAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostWifWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWifWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostWifAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWifAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSmtWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSmtWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSmtAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSmtAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostSuiWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSuiWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostSuiAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSuiAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostJupWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostJupWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostJupAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostJupAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostOndoWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOndoWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostOndoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOndoAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostBobaWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBobaWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostBobaAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBobaAddress", args...)
+}
+
+func (this *bitstamp) PrivatePostPythWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPythWithdrawal", args...)
+}
+
+func (this *bitstamp) PrivatePostPythAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPythAddress", args...)
 }

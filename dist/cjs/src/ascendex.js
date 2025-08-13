@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ascendex$1 = require('./abstract/ascendex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class ascendex
  * @augments Exchange
  */
-class ascendex extends ascendex$1 {
+class ascendex extends ascendex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ascendex',
@@ -1438,6 +1440,8 @@ class ascendex extends ascendex$1 {
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1445,7 +1449,7 @@ class ascendex extends ascendex$1 {
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1534,14 +1538,14 @@ class ascendex extends ascendex$1 {
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '/');
-        let timestamp = this.safeInteger2(order, 'timestamp', 'sendingTime');
+        let timestamp = this.safeIntegerN(order, ['timestamp', 'sendingTime', 'time']);
         const lastTradeTimestamp = this.safeInteger(order, 'lastExecTime');
         if (timestamp === undefined) {
             timestamp = lastTradeTimestamp;
         }
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'orderQty');
-        const average = this.safeString(order, 'avgPx');
+        const average = this.safeString2(order, 'avgPx', 'avgFilledPx');
         const filled = this.safeStringN(order, ['cumFilledQty', 'cumQty', 'fillQty']);
         const id = this.safeString(order, 'orderId');
         let clientOrderId = this.safeString(order, 'id');
@@ -1573,12 +1577,12 @@ class ascendex extends ascendex$1 {
         }
         const triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
-        const execInst = this.safeString(order, 'execInst');
-        if (execInst === 'reduceOnly') {
+        const execInst = this.safeStringLower(order, 'execInst');
+        if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
         let postOnly = undefined;
-        if (execInst === 'Post') {
+        if (execInst === 'post') {
             postOnly = true;
         }
         return this.safeOrder({
@@ -2342,8 +2346,7 @@ class ascendex extends ascendex$1 {
         //     }
         //
         let data = this.safeList(response, 'data', []);
-        const isArray = Array.isArray(data);
-        if (!isArray) {
+        if (!Array.isArray(data)) {
             data = this.safeList(data, 'data', []);
         }
         return this.parseOrders(data, market, since, limit);
@@ -2539,9 +2542,9 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        return this.safeOrder({
-            'info': response,
-        });
+        return [this.safeOrder({
+                'info': response,
+            })];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -3694,4 +3697,4 @@ class ascendex extends ascendex$1 {
     }
 }
 
-module.exports = ascendex;
+exports["default"] = ascendex;

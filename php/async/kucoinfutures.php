@@ -1809,7 +1809,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1913,7 +1913,8 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 
@@ -2561,6 +2562,7 @@ class kucoinfutures extends kucoin {
              * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3435,7 +3437,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

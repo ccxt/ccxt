@@ -39,6 +39,7 @@ exports.merge = generic.merge;
 exports.omit = generic.omit;
 exports.ordered = generic.ordered;
 exports.pluck = generic.pluck;
+exports.sort = generic.sort;
 exports.sortBy = generic.sortBy;
 exports.sortBy2 = generic.sortBy2;
 exports.sum = generic.sum;

@@ -2847,7 +2847,7 @@ class xt(Exchange, ImplicitAPI):
             if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
             elif type == 'swap':
-                request['state'] = 'NEW'
+                request['state'] = 'UNFINISHED'  # NEW & PARTIALLY_FILLED
         elif status == 'closed':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'TRIGGERED'
@@ -3781,7 +3781,7 @@ class xt(Exchange, ImplicitAPI):
         withdrawals = self.safe_value(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3911,7 +3911,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def set_leverage(self, leverage: Int, symbol: str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: str = None, params={}):
         """
         set the level of leverage for a market
 

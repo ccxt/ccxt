@@ -9,9 +9,37 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=BTCUSD-PERP&valuation_type=estimated_funding_rate&count=1",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "url": "https://api.crypto.com/exchange/v1/private/amend-order",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "output": "{\"id\":\"1749674362537\",\"method\":\"private/amend-order\",\"params\":{\"order_id\":\"6142909930410561608\",\"new_quantity\":\"0.001\",\"new_price\":\"1100\"},\"api_key\":\"s189CRCSm9RcUgdsBx62mD\",\"sig\":\"8d898136711ab8ea37d41caecbb0af871ba017c25ec5a014d30629f4263d563f\",\"nonce\":\"1749674362537\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
+                "disabled": true,
                 "method": "fetchCurrencies",
                 "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
                 "input": [],
@@ -258,6 +286,26 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "above 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=50",
+                "input": [
+                    "BTC/USDT",
+                    150
+                ],
+                "output": null
+            },
+            {
+                "description": "below 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=40",
+                "input": [
+                    "BTC/USDT",
+                    40
+                ],
+                "output": null
+            },
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",

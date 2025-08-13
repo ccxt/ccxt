@@ -2461,7 +2461,7 @@ export default class vertex extends Exchange {
             // }
             //
         }
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2476,7 +2476,8 @@ export default class vertex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        return await this.cancelOrders ([ id ], symbol, params);
+        const order = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeOrder ({ 'info': order });
     }
 
     /**
@@ -3043,7 +3044,7 @@ export default class vertex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const currency = this.currency (code);

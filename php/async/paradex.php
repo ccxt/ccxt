@@ -53,6 +53,7 @@ class paradex extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
@@ -806,7 +807,7 @@ class paradex extends Exchange {
         //         "ask" => "69578.2",
         //         "volume_24h" => "5815541.397939004",
         //         "total_volume" => "584031465.525259686",
-        //         "created_at" => 1718170156580,
+        //         "created_at" => 1718170156581,
         //         "underlying_price" => "67367.37268422",
         //         "open_interest" => "162.272",
         //         "funding_rate" => "0.01629574927887",
@@ -1311,7 +1312,11 @@ class paradex extends Exchange {
         $cancelReason = $this->safe_string($order, 'cancel_reason');
         $status = $this->safe_string($order, 'status');
         if ($cancelReason !== null) {
-            $status = 'canceled';
+            if ($cancelReason === 'NOT_ENOUGH_MARGIN' || $cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
+                $status = 'rejected';
+            } else {
+                $status = 'canceled';
+            }
         }
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
@@ -1614,7 +1619,7 @@ class paradex extends Exchange {
             //
             // if success, no $response->..
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
@@ -2101,6 +2106,7 @@ class paradex extends Exchange {
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
+            'side' => null,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2429,7 +2435,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2511,6 +2517,62 @@ class paradex extends Exchange {
             $data = $this->safe_list($response, 'results', array());
             $greeks = $this->safe_dict($data, 0, array());
             return $this->parse_greeks($greeks, $market);
+        }) ();
+    }
+
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
+             * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+             *
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $request = array(
+                'market' => 'ALL',
+            );
+            $response = Async\await($this->publicGetMarketsSummary ($this->extend($request, $params)));
+            //
+            //     {
+            //         "results" => array(
+            //             {
+            //                 "symbol" => "BTC-USD-114000-P",
+            //                 "mark_price" => "10835.66892602",
+            //                 "mark_iv" => "0.71781855",
+            //                 "delta" => "-0.98726024",
+            //                 "greeks" => array(
+            //                     "delta" => "-0.9872602390817709",
+            //                     "gamma" => "0.000004560958862297231",
+            //                     "vega" => "227.11344863639806",
+            //                     "rho" => "-302.0617972461581",
+            //                     "vanna" => "0.06609830491614832",
+            //                     "volga" => "925.9501532805552"
+            //                 ),
+            //                 "last_traded_price" => "10551.5",
+            //                 "bid" => "10794.9",
+            //                 "bid_iv" => "0.05",
+            //                 "ask" => "10887.3",
+            //                 "ask_iv" => "0.8783283",
+            //                 "last_iv" => "0.05",
+            //                 "volume_24h" => "0",
+            //                 "total_volume" => "195240.72672261014",
+            //                 "created_at" => 1747644009995,
+            //                 "underlying_price" => "103164.79162649",
+            //                 "open_interest" => "0",
+            //                 "funding_rate" => "0.000004464241170536191",
+            //                 "price_change_rate_24h" => "0.074915",
+            //                 "future_funding_rate" => "0.0001"
+            //             }
+            //         )
+            //     }
+            //
+            $results = $this->safe_list($response, 'results', array());
+            return $this->parse_all_greeks($results, $symbols);
         }) ();
     }
 

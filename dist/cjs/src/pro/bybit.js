@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bybit$1 = require('../bybit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bybit extends bybit$1 {
+class bybit extends bybit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -38,6 +40,17 @@ class bybit extends bybit$1 {
                 'watchTrades': true,
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': true,
+                'unWatchOrders': true,
+                'unWatchPositions': true,
             },
             'urls': {
                 'api': {
@@ -1279,11 +1292,10 @@ class bybit extends bybit$1 {
     async unWatchMyTrades(symbol = undefined, params = {}) {
         const method = 'watchMyTrades';
         const messageHash = 'unsubscribe:myTrades';
-        let subHash = 'myTrades';
+        const subHash = 'myTrades';
         await this.loadMarkets();
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new errors.NotSupported(this.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
@@ -1556,6 +1568,28 @@ class bybit extends bybit$1 {
     }
     /**
      * @method
+     * @name bybit#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unWatchPositions(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const method = 'watchPositions';
+        const messageHash = 'unsubscribe:positions';
+        const subHash = 'positions';
+        if (!this.isEmpty(symbols)) {
+            throw new errors.NotSupported(this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
+        }
+        const url = await this.getUrlByMarketType(undefined, true, method, params);
+        await this.authenticate(url);
+        const topics = ['position'];
+        return await this.unWatchTopics(url, 'positions', symbols, [messageHash], [subHash], topics, params);
+    }
+    /**
+     * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
@@ -1675,6 +1709,7 @@ class bybit extends bybit$1 {
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
+            'side': this.safeStringLower(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -1728,10 +1763,9 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const method = 'watchOrders';
         const messageHash = 'unsubscribe:orders';
-        let subHash = 'orders';
+        const subHash = 'orders';
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new errors.NotSupported(this.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
@@ -1867,13 +1901,12 @@ class bybit extends bybit$1 {
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            let parsed = undefined;
-            if (isSpot) {
-                parsed = this.parseWsSpotOrder(rawOrders[i]);
-            }
-            else {
-                parsed = this.parseOrder(rawOrders[i]);
-            }
+            const parsed = this.parseOrder(rawOrders[i]);
+            // if (isSpot) {
+            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
+            // } else {
+            //     parsed = this.parseOrder (rawOrders[i]);
+            // }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);
@@ -1885,142 +1918,6 @@ class bybit extends bybit$1 {
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
-    }
-    parseWsSpotOrder(order, market = undefined) {
-        //
-        //    {
-        //        "e": "executionReport",
-        //        "E": "1653297251061", // timestamp
-        //        "s": "LTCUSDT", // symbol
-        //        "c": "1653297250740", // user id
-        //        "S": "SELL", // side
-        //        "o": "MARKET_OF_BASE", // order type
-        //        "f": "GTC", // time in force
-        //        "q": "0.16233", // quantity
-        //        "p": "0", // price
-        //        "X": "NEW", // status
-        //        "i": "1162336018974750208", // order id
-        //        "M": "0",
-        //        "l": "0", // last filled
-        //        "z": "0", // total filled
-        //        "L": "0", // last traded price
-        //        "n": "0", // trading fee
-        //        "N": '', // fee asset
-        //        "u": true,
-        //        "w": true,
-        //        "m": false, // is limit_maker
-        //        "O": "1653297251042", // order creation
-        //        "Z": "0", // total filled
-        //        "A": "0", // account id
-        //        "C": false, // is close
-        //        "v": "0", // leverage
-        //        "d": "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        const id = this.safeString2(order, 'i', 'orderId');
-        const marketId = this.safeString2(order, 's', 'symbol');
-        const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const timestamp = this.safeInteger2(order, 'O', 'createdTime');
-        let price = this.safeString2(order, 'p', 'price');
-        if (price === '0') {
-            price = undefined; // market orders
-        }
-        const filled = this.safeString2(order, 'z', 'cumExecQty');
-        const status = this.parseOrderStatus(this.safeString2(order, 'X', 'orderStatus'));
-        const side = this.safeStringLower2(order, 'S', 'side');
-        const lastTradeTimestamp = this.safeString2(order, 'E', 'updatedTime');
-        const timeInForce = this.safeString2(order, 'f', 'timeInForce');
-        let amount = undefined;
-        const cost = this.safeString2(order, 'Z', 'cumExecValue');
-        let type = this.safeStringLower2(order, 'o', 'orderType');
-        if ((type !== undefined) && (type.indexOf('market') >= 0)) {
-            type = 'market';
-        }
-        if (type === 'market' && side === 'buy') {
-            amount = filled;
-        }
-        else {
-            amount = this.safeString2(order, 'orderQty', 'qty');
-        }
-        let fee = undefined;
-        const feeCost = this.safeString2(order, 'n', 'cumExecFee');
-        if (feeCost !== undefined && feeCost !== '0') {
-            const feeCurrencyId = this.safeString(order, 'N');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const triggerPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        return this.safeOrder({
-            'info': order,
-            'id': id,
-            'clientOrderId': this.safeString2(order, 'c', 'orderLinkId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
-            'takeProfitPrice': this.safeString(order, 'takeProfit'),
-            'stopLossPrice': this.safeString(order, 'stopLoss'),
-            'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'amount': amount,
-            'cost': cost,
-            'average': this.safeString(order, 'avgPrice'),
-            'filled': filled,
-            'remaining': undefined,
-            'status': status,
-            'fee': fee,
-        }, market);
     }
     /**
      * @method
@@ -2617,7 +2514,8 @@ class bybit extends bybit$1 {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades');
+                    this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
             }
@@ -2626,4 +2524,4 @@ class bybit extends bybit$1 {
     }
 }
 
-module.exports = bybit;
+exports["default"] = bybit;

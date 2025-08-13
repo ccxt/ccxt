@@ -28,7 +28,8 @@ async def test_fetch_currencies(exchange, skipped_properties):
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         currencies_length = len(values)
         # ensure exchange returns enough length of currencies
-        assert currencies_length > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + str(currencies_length)
+        skip_amount = ('amountOfCurrencies' in skipped_properties)
+        assert skip_amount or currencies_length > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + str(currencies_length)
         # allow skipped exchanges
         skip_active = ('activeCurrenciesQuota' in skipped_properties)
         skip_major_currency_check = ('activeMajorCurrencies' in skipped_properties)

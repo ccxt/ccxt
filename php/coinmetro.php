@@ -384,6 +384,10 @@ class coinmetro extends Exchange {
                 $type = 'fiat';
             }
             $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
+            if ($code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                $precisionDigits = '4';
+            }
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
@@ -428,12 +432,15 @@ class coinmetro extends Exchange {
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetMarkets ($params);
+        $promises = array();
+        $promises[] = $this->publicGetMarkets ($params);
         if ($this->safe_value($this->options, 'currenciesByIdForParseMarket') === null) {
-            $this->fetch_currencies();
+            $promises[] = $this->fetch_currencies();
         }
+        $responses = $promises;
+        $response = $responses[0];
         //
         //     array(
         //         array(
@@ -449,7 +456,16 @@ class coinmetro extends Exchange {
         //         ...
         //     )
         //
-        return $this->parse_markets($response);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $this->parse_market($response[$i]);
+            // there are several broken (unavailable info) markets
+            if ($market['base'] === null || $market['quote'] === null) {
+                continue;
+            }
+            $result[] = $market;
+        }
+        return $result;
     }
 
     public function parse_market(array $market): array {

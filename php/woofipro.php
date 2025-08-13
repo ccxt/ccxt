@@ -628,13 +628,14 @@ class woofipro extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$token-info
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         $result = array();
-        $response = $this->v1PublicGetPublicToken ($params);
+        $tokenPromise = $this->v1PublicGetPublicToken ($params);
         //
         // {
         //     "success" => true,
@@ -657,26 +658,28 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'data', array());
-        $tokenRows = $this->safe_list($data, 'rows', array());
+        $chainPromise = $this->v1PublicGetPublicChainInfo ($params);
+        list($tokenResponse, $chainResponse) = array( $tokenPromise, $chainPromise );
+        $tokenData = $this->safe_dict($tokenResponse, 'data', array());
+        $tokenRows = $this->safe_list($tokenData, 'rows', array());
+        $chainData = $this->safe_dict($chainResponse, 'data', array());
+        $chainRows = $this->safe_list($chainData, 'rows', array());
+        $indexedChains = $this->index_by($chainRows, 'chain_id');
         for ($i = 0; $i < count($tokenRows); $i++) {
             $token = $tokenRows[$i];
             $currencyId = $this->safe_string($token, 'token');
             $networks = $this->safe_list($token, 'chain_details');
             $code = $this->safe_currency_code($currencyId);
-            $minPrecision = null;
             $resultingNetworks = array();
             for ($j = 0; $j < count($networks); $j++) {
-                $network = $networks[$j];
-                // TODO => transform chain id to human readable name
-                $networkId = $this->safe_string($network, 'chain_id');
-                $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
-                if ($precision !== null) {
-                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                }
-                $resultingNetworks[$networkId] = array(
+                $networkEntry = $networks[$j];
+                $networkId = $this->safe_string($networkEntry, 'chain_id');
+                $networkRow = $this->safe_dict($indexedChains, $networkId);
+                $networkName = $this->safe_string($networkRow, 'name');
+                $networkCode = $this->network_id_to_code($networkName, $code);
+                $resultingNetworks[$networkCode] = array(
                     'id' => $networkId,
-                    'network' => $networkId,
+                    'network' => $networkCode,
                     'limits' => array(
                         'withdraw' => array(
                             'min' => null,
@@ -690,16 +693,16 @@ class woofipro extends Exchange {
                     'active' => null,
                     'deposit' => null,
                     'withdraw' => null,
-                    'fee' => $this->safe_number($network, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($precision),
-                    'info' => $network,
+                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
+                    'info' => array( $networkEntry, $networkRow ),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $currencyId,
-                'name' => $currencyId,
+                'name' => null,
                 'code' => $code,
-                'precision' => $this->parse_number($minPrecision),
+                'precision' => null,
                 'active' => null,
                 'fee' => null,
                 'networks' => $resultingNetworks,
@@ -716,7 +719,7 @@ class woofipro extends Exchange {
                     ),
                 ),
                 'info' => $token,
-            );
+            ));
         }
         return $result;
     }
@@ -1045,6 +1048,104 @@ class woofipro extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //         "symbol" => "PERP_ETH_USDC",
+        //         "funding_rate" => 0.00046875,
+        //         "mark_price" => 2100,
+        //         "funding_fee" => 0.000016,
+        //         "payment_type" => "Pay",
+        //         "status" => "Accrued",
+        //         "created_time" => 1682235722003,
+        //         "updated_time" => 1682235722003
+        // }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_string($income, 'funding_fee');
+        $code = $this->safe_currency_code('USDC');
+        $timestamp = $this->safe_integer($income, 'updated_time');
+        $rate = $this->safe_number($income, 'funding_rate');
+        $paymentType = $this->safe_string($income, 'payment_type');
+        $amount = ($paymentType === 'Pay') ? Precise::string_neg($amount) : $amount;
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->parse_number($amount),
+            'rate' => $rate,
+        );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500);
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_t'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
+        $params = $this->omit($params, array( 'until' ));
+        if ($until !== null) {
+            $request['end_t'] = $until;
+        }
+        if ($limit !== null) {
+            $request['size'] = min ($limit, 500);
+        }
+        $response = $this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989,
+        //     "data" => {
+        //         "meta" => array(
+        //             "total" => 9,
+        //             "records_per_page" => 25,
+        //             "current_page" => 1
+        //         ),
+        //         "rows" => [array(
+        //                 "symbol" => "PERP_ETH_USDC",
+        //                 "funding_rate" => 0.00046875,
+        //                 "mark_price" => 2100,
+        //                 "funding_fee" => 0.000016,
+        //                 "payment_type" => "Pay",
+        //                 "status" => "Accrued",
+        //                 "created_time" => 1682235722003,
+        //                 "updated_time" => 1682235722003
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        return $this->parse_incomes($rows, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array ()): array {
@@ -1821,9 +1922,9 @@ class woofipro extends Exchange {
         // }
         //
         return array(
-            array(
+            $this->safe_order(array(
                 'info' => $response,
-            ),
+            )),
         );
     }
 
@@ -2444,7 +2545,7 @@ class woofipro extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2580,7 +2681,7 @@ class woofipro extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
          *

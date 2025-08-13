@@ -15,6 +15,7 @@ permissions:
 jobs:
   manual-job:
     runs-on: ubuntu-latest
+    environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
     steps:
@@ -36,7 +37,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.4.6'
           # cache: true
           ini-values: |
             zend.assertions=1
@@ -50,7 +51,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
@@ -85,7 +86,8 @@ jobs:
       - name: Set new Version
         run: |
           npm config set git-tag-version=false
-          NPM_VERSION=$(npm version patch)
+          NEW_VERSION=$(./build/smart-bump.sh)
+          NPM_VERSION=$(npm version "$NEW_VERSION")
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
@@ -140,15 +142,15 @@ jobs:
         run: npm run buildCSRelease
       - name: Deploy C#
         env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+          NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
         run: cd python && ./deploy.sh && cd ..;
       - uses: JS-DevTools/npm-publish@v3
         with:
-          token: ${{ secrets.NPM_TOKEN }}
+          token: ${{ secrets.NPM_PROD }}
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest

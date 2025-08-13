@@ -1492,7 +1492,7 @@ export default class defx extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method

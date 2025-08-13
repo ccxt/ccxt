@@ -1273,7 +1273,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         throw new ExchangeError ((string)add(add(this.id, " "), this.json(message))) ;
     }

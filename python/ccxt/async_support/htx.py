@@ -5017,7 +5017,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -6309,7 +6309,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6342,7 +6342,7 @@ class htx(Exchange, ImplicitAPI):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = await self.fetch_currencies()
-                self.currencies = self.deep_extend(self.currencies, currencies)
+                self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
                 targetNetwork = self.safe_value(currency['networks'], networkCode, {})
                 fee = self.safe_number(targetNetwork, 'fee')
                 if fee is None:
@@ -6577,12 +6577,16 @@ class htx(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50)
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
             'contract_code': market['id'],
         }
+        if limit is not None:
+            request['page_size'] = limit
+        else:
+            request['page_size'] = 50  # max
         response = None
         if market['inverse']:
             response = await self.contractPublicGetSwapApiV1SwapHistoricalFundingRate(self.extend(request, params))
@@ -7130,7 +7134,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -8849,6 +8853,7 @@ class htx(Exchange, ImplicitAPI):
             'contracts': self.safe_number(liquidation, 'volume'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'direction'),
             'baseValue': self.safe_number(liquidation, 'amount'),
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,

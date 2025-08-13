@@ -387,7 +387,11 @@ export default class coinmetro extends Exchange {
             } else if (typeRaw === 'fiat') {
                 type = 'fiat';
             }
-            const precisionDigits = this.safeString2 (currency, 'digits', 'notabeneDecimals');
+            let precisionDigits = this.safeString2 (currency, 'digits', 'notabeneDecimals');
+            if (code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                precisionDigits = '4';
+            }
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
@@ -434,10 +438,13 @@ export default class coinmetro extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.publicGetMarkets (params);
+        const promises = [];
+        promises.push (this.publicGetMarkets (params));
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
-            await this.fetchCurrencies ();
+            promises.push (this.fetchCurrencies ());
         }
+        const responses = await Promise.all (promises);
+        const response = responses[0];
         //
         //     [
         //         {
@@ -453,7 +460,16 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseMarkets (response);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = this.parseMarket (response[i]);
+            // there are several broken (unavailable info) markets
+            if (market['base'] === undefined || market['quote'] === undefined) {
+                continue;
+            }
+            result.push (market);
+        }
+        return result;
     }
 
     parseMarket (market: Dict): Market {

@@ -17,6 +17,27 @@
         ],
         "fetchDepositAddress": [
             {
+                "description": "commonCurrency test",
+                "method": "fetchDepositAddress",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=MPH",
+                "input": [
+                    "MORPHER"
+                ],
+                "output": null
+            },
+            {
+                "description": "usdt on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "TRC20",
                 "method": "fetchDepositAddress",
                 "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
@@ -38,6 +59,7 @@
                     "USDT",
                     5,
                     "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    null,
                     {
                         "network": "SOL"
                     }
@@ -887,6 +909,20 @@
         ],
         "fetchDeposits": [
             {
+                "description": "fetchDeposits with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposits?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.gateio.ws/api/v4/wallet/deposits",
@@ -894,6 +930,20 @@
             }
         ],
         "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals with since and until",
+                "method": "fetchWithdrawals",
+                "url": "https://api.gateio.ws/api/v4/wallet/withdrawals?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",

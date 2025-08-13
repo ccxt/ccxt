@@ -2744,7 +2744,7 @@ class bitfinex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -3706,12 +3706,15 @@ class bitfinex extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseValue = Precise::string_mul($contracts, $contractSize);
         $price = $this->safe_string($entry, 11);
+        $sideFlag = $this->safe_integer($entry, 8);
+        $side = ($sideFlag === 1) ? 'buy' : 'sell';
         return $this->safe_liquidation(array(
             'info' => $entry,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $this->parse_number($contractSize),
             'price' => $this->parse_number($price),
+            'side' => $side,
             'baseValue' => $this->parse_number($baseValue),
             'quoteValue' => $this->parse_number(Precise::string_mul($baseValue, $price)),
             'timestamp' => $timestamp,

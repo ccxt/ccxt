@@ -2215,11 +2215,21 @@ class wavesexchange(Exchange, ImplicitAPI):
         order1 = self.safe_value(data, 'order1')
         order2 = self.safe_value(data, 'order2')
         order = None
-        # order2 arrived after order1
+        # at first, detect if response is from `fetch_my_trades`
         if self.safe_string(order1, 'senderPublicKey') == self.apiKey:
             order = order1
-        else:
+        elif self.safe_string(order2, 'senderPublicKey') == self.apiKey:
             order = order2
+        else:
+            # response is from `fetch_trades`, so find only taker order
+            date1 = self.safe_string(order1, 'timestamp')
+            date2 = self.safe_string(order2, 'timestamp')
+            ts1 = self.parse8601(date1)
+            ts2 = self.parse8601(date2)
+            if ts1 > ts2:
+                order = order1
+            else:
+                order = order2
         symbol = None
         assetPair = self.safe_value(order, 'assetPair')
         if assetPair is not None:
@@ -2403,7 +2413,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

@@ -5247,7 +5247,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -5920,7 +5920,7 @@ export default class htx extends Exchange {
         return this.extend (this.parseOrder (response, market), {
             'id': id,
             'status': 'canceled',
-        });
+        }) as Order;
     }
 
     /**
@@ -6275,7 +6275,7 @@ export default class htx extends Exchange {
             //     }
             //
             const data = this.safeDict (response, 'data');
-            return this.parseCancelOrders (data);
+            return this.parseCancelOrders (data) as Order[];
         }
     }
 
@@ -6673,7 +6673,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -6696,7 +6696,7 @@ export default class htx extends Exchange {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
-                this.currencies = this.deepExtend (this.currencies, currencies);
+                this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
                 const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
                 fee = this.safeNumber (targetNetwork, 'fee');
                 if (fee === undefined) {
@@ -6945,13 +6945,18 @@ export default class htx extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50) as FundingRateHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'contract_code': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        } else {
+            request['page_size'] = 50; // max
+        }
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate (this.extend (request, params));
@@ -7559,7 +7564,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -9344,6 +9349,7 @@ export default class htx extends Exchange {
             'contracts': this.safeNumber (liquidation, 'volume'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'price'),
+            'side': this.safeStringLower (liquidation, 'direction'),
             'baseValue': this.safeNumber (liquidation, 'amount'),
             'quoteValue': this.safeNumber (liquidation, 'trade_turnover'),
             'timestamp': timestamp,

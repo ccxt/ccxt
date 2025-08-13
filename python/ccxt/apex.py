@@ -1485,7 +1485,7 @@ class apex(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'status'),
         }
 
-    def cancel_all_orders(self, symbol: Str = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders in a market
 
@@ -1503,7 +1503,7 @@ class apex(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         response = self.privatePostV3DeleteOpenOrders(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return data
+        return [self.parse_order(data, market)]
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1527,7 +1527,7 @@ class apex(Exchange, ImplicitAPI):
             request['id'] = id
             response = self.privatePostV3DeleteOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return data
+        return self.safe_order(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1735,7 +1735,7 @@ class apex(Exchange, ImplicitAPI):
             'rate': self.safe_number(income, 'rate'),
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

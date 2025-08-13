@@ -1432,6 +1432,8 @@ class ascendex extends Exchange {
         //         "timestamp" => 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac" => "FUTURES",
         //         "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1439,7 +1441,7 @@ class ascendex extends Exchange {
         //         "orderId" => "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum" => -1,
         //         "orderType" => "Limit",
-        //         "execInst" => "NULL_VAL",
+        //         "execInst" => "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side" => "Buy",
         //         "symbol" => "BTC-PERP",
         //         "price" => "30000",
@@ -1528,14 +1530,14 @@ class ascendex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '/');
-        $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
+        $timestamp = $this->safe_integer_n($order, array( 'timestamp', 'sendingTime', 'time' ));
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
         if ($timestamp === null) {
             $timestamp = $lastTradeTimestamp;
         }
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
-        $average = $this->safe_string($order, 'avgPx');
+        $average = $this->safe_string_2($order, 'avgPx', 'avgFilledPx');
         $filled = $this->safe_string_n($order, array( 'cumFilledQty', 'cumQty', 'fillQty' ));
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
@@ -1567,12 +1569,12 @@ class ascendex extends Exchange {
         }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         $reduceOnly = null;
-        $execInst = $this->safe_string($order, 'execInst');
-        if ($execInst === 'reduceOnly') {
+        $execInst = $this->safe_string_lower($order, 'execInst');
+        if ($execInst === 'reduceonly') {
             $reduceOnly = true;
         }
         $postOnly = null;
-        if ($execInst === 'Post') {
+        if ($execInst === 'post') {
             $postOnly = true;
         }
         return $this->safe_order(array(
@@ -2326,8 +2328,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
-        if (!$isArray) {
+        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_list($data, 'data', array());
         }
         return $this->parse_orders($data, $market, $since, $limit);
@@ -2520,9 +2521,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $this->safe_order(array(
+        return array( $this->safe_order(array(
             'info' => $response,
-        ));
+        )) );
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -3070,7 +3071,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
