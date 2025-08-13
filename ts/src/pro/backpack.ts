@@ -765,7 +765,7 @@ export default class backpack extends backpackRest {
     }
 
     handleDelta (orderbook, delta) {
-        const timestamp = this.safeTimestamp (delta, 'T');
+        const timestamp = this.parseToInt (this.safeInteger (delta, 'T') / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'u');
