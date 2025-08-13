@@ -227,6 +227,7 @@ export default class backpack extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
+
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -268,12 +269,16 @@ export default class backpack extends Exchange {
                     },
                     'fetchOrders': {
                         'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
                         'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
+                        'paginate': false,
                         'limit': 1000,
                     },
                 },
