@@ -86,7 +86,7 @@ jobs:
       - name: Set new Version
         run: |
           npm config set git-tag-version=false
-          NEW_VERSION=$(./utils/smart-bump.sh)
+          NEW_VERSION=$(./build/smart-bump.sh)
           NPM_VERSION=$(npm version "$NEW_VERSION")
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
