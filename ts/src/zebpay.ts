@@ -69,8 +69,8 @@ export default class zebpay extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'spot': 'https://sapi.zebpay.com',
-                    'swap': 'https://futuresbe.zebpay.com',
+                    'spot': 'https://www.zebstage.com',
+                    'swap': 'https://dev-futuresbe.zebstage.com',
                 },
                 'www': 'https://www.zebpay.com',
                 'doc': 'https://github.com/zebpay/zebpay-api-references',
