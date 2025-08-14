@@ -1336,7 +1336,7 @@ class kucoin(ccxt.async_support.kucoin):
             if client.url.find('connectId=private') >= 0:
                 type = 'private'
             self.options['urls'][type] = None
-        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
+        self.handle_errors(1, '', client.url, '', {}, data, message, {}, {})
         return False
 
     def handle_message(self, client: Client, message):

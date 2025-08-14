@@ -1763,6 +1763,7 @@
     },
     "tradeogre": {
         "skip": "flaky",
+        "skipWs": "down",
         "skipMethods": {
             "watchOrderBook": {
                 "timestamp": "not provided"

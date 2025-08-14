@@ -1796,6 +1796,7 @@ class bybit extends \ccxt\async\bybit {
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
+            'side' => $this->safe_string_lower($liquidation, 'side', 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,

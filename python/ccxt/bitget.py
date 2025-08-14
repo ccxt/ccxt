@@ -5553,6 +5553,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.planType]: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
         :param boolean [params.trailing]: set to True if you want to cancel a trailing order
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param str [params.clientOrderId]: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5568,12 +5569,29 @@ class bitget(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger', 'trailing'])
         if not (market['spot'] and trigger):
             request['symbol'] = market['id']
-        if not ((market['swap'] or market['future']) and trigger):
-            request['orderId'] = id
         uta = None
         uta, params = self.handle_option_and_params(params, 'cancelOrder', 'uta', False)
+        isPlanOrder = trigger or trailing
+        isContract = market['swap'] or market['future']
+        isContractTriggerEndpoint = isContract and isPlanOrder and not uta
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
+        if isContractTriggerEndpoint:
+            orderIdList = []
+            orderId: dict = {}
+            if clientOrderId is not None:
+                params = self.omit(params, 'clientOrderId')
+                orderId['clientOid'] = clientOrderId
+            else:
+                orderId['orderId'] = id
+            orderIdList.append(orderId)
+            request['orderIdList'] = orderIdList
+        else:
+            if clientOrderId is not None:
+                params = self.omit(params, 'clientOrderId')
+                request['clientOid'] = clientOrderId
+            else:
+                request['orderId'] = id
         if uta:
-            request['orderId'] = id
             if trigger:
                 response = self.privateUtaPostV3TradeCancelStrategyOrder(self.extend(request, params))
             else:
@@ -5582,13 +5600,6 @@ class bitget(Exchange, ImplicitAPI):
             productType = None
             productType, params = self.handle_product_type_and_params(market, params)
             request['productType'] = productType
-            if trigger or trailing:
-                orderIdList = []
-                orderId: dict = {
-                    'orderId': id,
-                }
-                orderIdList.append(orderId)
-                request['orderIdList'] = orderIdList
             if trailing:
                 planType = self.safe_string(params, 'planType', 'track_plan')
                 request['planType'] = planType
@@ -5662,7 +5673,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         order = None
-        if (market['swap'] or market['future']) and trigger and not uta:
+        if isContractTriggerEndpoint:
             orderInfo = self.safe_value(data, 'successList', [])
             order = orderInfo[0]
         else:
@@ -5935,6 +5946,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param str [params.clientOrderId]: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -5942,8 +5954,14 @@ class bitget(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'orderId': id,
+            # 'orderId': id,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOid')
+        if clientOrderId is not None:
+            params = self.omit(params, ['clientOrderId'])
+            request['clientOid'] = clientOrderId
+        else:
+            request['orderId'] = id
         response = None
         uta = None
         uta, params = self.handle_option_and_params(params, 'fetchOrder', 'uta', False)

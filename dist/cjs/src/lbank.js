@@ -974,7 +974,7 @@ class lbank extends lbank$1["default"] {
         if (market['swap']) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
+        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
     }
     parseTrade(trade, market = undefined) {
         //

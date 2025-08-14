@@ -1,6 +1,7 @@
 import path from 'path';
 import url from 'url';
 import TerserPlugin from "terser-webpack-plugin";
+import webpack from 'webpack';
 
 const cwd = url.fileURLToPath (import.meta.url);
 const outputDirectory = path.normalize (path.join (path.dirname (cwd), 'dist'))
@@ -45,5 +46,8 @@ export default {
   },
   performance: {
     hints: false,
-  }
+  },
+  plugins: [
+    new webpack.IgnorePlugin({ resourceRegExp: /^protobufjs\/minimal$/ }),
+  ],
 }

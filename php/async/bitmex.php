@@ -3108,6 +3108,7 @@ class bitmex extends Exchange {
             'contracts' => null,
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'side'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => null,

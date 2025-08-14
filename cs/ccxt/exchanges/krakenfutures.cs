@@ -159,6 +159,7 @@ public partial class krakenfutures : Exchange
                             { "executions", "private" },
                             { "triggers", "private" },
                             { "accountlogcsv", "private" },
+                            { "account-log", "private" },
                         } },
                     } },
                 } },

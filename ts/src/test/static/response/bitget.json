@@ -6181,6 +6181,169 @@
                     "fees": [],
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "cancel uta linear swap order using the clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "123abc",
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754804372555",
+                    "data": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1338311846888062976",
+                        "clientOid": "123abc"
+                    },
+                    "id": "1338311846888062976",
+                    "clientOrderId": "123abc",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "linear swap cancelOrder by clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc321"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754866672623",
+                    "data": {
+                        "orderId": "1338573177902235649",
+                        "clientOid": "abc321"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1338573177902235649",
+                        "clientOid": "abc321"
+                    },
+                    "id": "1338573177902235649",
+                    "clientOrderId": "abc321",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "trailing cancel order with clientOrderId",
+                "method": "cancelOrder",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "a1b2c3",
+                        "trailing": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1754872808218",
+                    "data": {
+                        "successList": [
+                            {
+                                "clientOid": "a1b2c3",
+                                "orderId": "1338599016943681536"
+                            }
+                        ],
+                        "failureList": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientOid": "a1b2c3",
+                        "orderId": "1338599016943681536"
+                    },
+                    "id": "1338599016943681536",
+                    "clientOrderId": "a1b2c3",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "cancelAllOrders": [

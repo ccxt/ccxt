@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.99';
+$version = '4.5.0';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.99';
+    const VERSION = '4.5.0';
 
     public $browser;
     public $marketsLoading = null;
@@ -318,6 +318,29 @@ class Exchange extends \ccxt\Exchange {
         Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
         });
+    }
+
+    function is_binary_message($data): bool {
+        if (!is_string($data)) {
+            return false;
+        }
+        $res = preg_match('~[^\x20-\x7E\t\r\n]~', $data) > 0;
+        return $res;
+    }
+
+    function decode_proto_msg($msg) {
+        if (!class_exists(\Google\Protobuf\Internal\Message::class)) {
+            throw new NotSupported(
+                $this->id . " requires Google Protobuf PHP runtime to decode message.\n" .
+                "Install it via Composer: composer require google/protobuf\n" .
+                "Alternatively, you can add it with: pecl install protobuf\n"
+            );
+        }
+        $wrapper = new \PushDataV3ApiWrapper();
+        $wrapper->mergeFromString($msg);
+        $str = $wrapper->serializeToJsonString();
+        $dict = json_decode($str, true);
+        return $dict;
     }
 
     // ########################################################################

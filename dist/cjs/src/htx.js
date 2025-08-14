@@ -9529,6 +9529,7 @@ class htx extends htx$1["default"] {
             'contracts': this.safeNumber(liquidation, 'volume'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'direction'),
             'baseValue': this.safeNumber(liquidation, 'amount'),
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,

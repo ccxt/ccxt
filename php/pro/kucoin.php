@@ -1490,7 +1490,7 @@ class kucoin extends \ccxt\async\kucoin {
             }
             $this->options['urls'][$type] = null;
         }
-        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
+        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), array());
         return false;
     }
 

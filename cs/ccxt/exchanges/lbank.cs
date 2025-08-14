@@ -977,7 +977,7 @@ public partial class lbank : Exchange
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 1, 0);
+        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks");
     }
 
     public override object parseTrade(object trade, object market = null)

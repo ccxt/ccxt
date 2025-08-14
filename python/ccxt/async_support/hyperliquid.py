@@ -1676,6 +1676,43 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
+        request = self.cancel_orders_request(ids, symbol, params)
+        response = await self.privatePostExchange(request)
+        #
+        #     {
+        #         "status":"ok",
+        #         "response":{
+        #             "type":"cancel",
+        #             "data":{
+        #                 "statuses":[
+        #                     "success"
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        innerResponse = self.safe_dict(response, 'response')
+        data = self.safe_dict(innerResponse, 'data')
+        statuses = self.safe_list(data, 'statuses')
+        orders = []
+        for i in range(0, len(statuses)):
+            status = statuses[i]
+            orders.append(self.safe_order({
+                'info': status,
+                'status': status,
+            }))
+        return orders
+
+    def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
+        """
+        build the request payload for cancelling multiple orders
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]:
+        :returns dict: the raw request object to be sent to the exchange
+        """
         market = self.market(symbol)
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
@@ -1716,31 +1753,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(request)
-        #
-        #     {
-        #         "status":"ok",
-        #         "response":{
-        #             "type":"cancel",
-        #             "data":{
-        #                 "statuses":[
-        #                     "success"
-        #                 ]
-        #             }
-        #         }
-        #     }
-        #
-        innerResponse = self.safe_dict(response, 'response')
-        data = self.safe_dict(innerResponse, 'data')
-        statuses = self.safe_list(data, 'statuses')
-        orders = []
-        for i in range(0, len(statuses)):
-            status = statuses[i]
-            orders.append(self.safe_order({
-                'info': status,
-                'status': status,
-            }))
-        return orders
+        return request
 
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
@@ -2469,6 +2482,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
+        if status is None:
+            return None
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2477,6 +2492,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         }
+        if status.endswith('Rejected'):
+            return 'rejected'
+        if status.endswith('Canceled'):
+            return 'canceled'
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
@@ -3661,8 +3680,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             responsePayload = self.safe_dict(response, 'response', {})
             data = self.safe_dict(responsePayload, 'data', {})
             statuses = self.safe_list(data, 'statuses', [])
-            firstStatus = self.safe_dict(statuses, 0)
-            message = self.safe_string(firstStatus, 'error')
+            for i in range(0, len(statuses)):
+                message = self.safe_string(statuses[i], 'error')
+                if message is not None:
+                    break
         feedback = self.id + ' ' + body
         nonEmptyMessage = ((message is not None) and (message != ''))
         if nonEmptyMessage:

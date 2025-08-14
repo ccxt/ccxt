@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.99'
+__version__ = '4.5.0'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,15 @@ __all__ = [
     'BaseExchange',
     'Exchange',
 ]
+
+# -----------------------------------------------------------------------------
+# --- PROTO BUF IMPORTS
+try:
+    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+    from google.protobuf.json_format import MessageToDict
+except ImportError:
+    PushDataV3ApiWrapper_pb2 = None
+    MessageToDict = None
 
 # -----------------------------------------------------------------------------
 
@@ -418,6 +427,7 @@ class Exchange(BaseExchange):
                 'verbose': self.verbose,
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
+                'decompressBinary': self.safe_bool(self.options, 'decompressBinary', True),
             }, ws_options)
             # we use aiohttp instead of fastClient now because of this
             # https://github.com/ccxt/ccxt/pull/25995
@@ -572,6 +582,31 @@ class Exchange(BaseExchange):
         if n == 0:
             return '0e-00'
         return format(n, 'g')
+
+    def decode_proto_msg(self, data):
+        if not MessageToDict:
+            raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
+        message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
+        message.ParseFromString(data)
+        dict_msg = MessageToDict(message)
+        # {
+        #    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+        #    "symbol":"BTCUSDT",
+        #    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+        #    "createTime":"1754735110559",
+        #    "publicSpotKline":{
+        #       "interval":"Min1",
+        #       "windowStart":"1754735100",
+        #       "openingPrice":"117792.45",
+        #       "closingPrice":"117805.32",
+        #       "highestPrice":"117814.63",
+        #       "lowestPrice":"117792.45",
+        #       "volume":"0.13425465",
+        #       "amount":"15815.77",
+        #       "windowEnd":"1754735160"
+        #    }
+        # }
+        return dict_msg
 
     # ########################################################################
     # ########################################################################

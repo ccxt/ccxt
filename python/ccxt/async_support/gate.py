@@ -7212,12 +7212,27 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
+        # --- derive side ---
+        # 1) options payload has explicit 'side': 'long' | 'short'
+        optPos = self.safe_string_lower(liquidation, 'side')
+        side: Str = None
+        if optPos == 'long':
+            side = 'buy'
+        elif optPos == 'short':
+            side = 'sell'
+        else:
+            if size is not None:  # 2) futures/perpetual(and fallback for options): infer from size
+                if Precise.string_gt(size, '0'):
+                    side = 'buy'
+                elif Precise.string_lt(size, '0'):
+                    side = 'sell'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
             'contractSize': self.parse_number(contractSizeString),
             'price': self.parse_number(priceString),
+            'side': side,
             'baseValue': self.parse_number(baseValueString),
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,

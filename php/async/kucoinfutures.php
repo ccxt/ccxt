@@ -2562,6 +2562,7 @@ class kucoinfutures extends kucoin {
              * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
