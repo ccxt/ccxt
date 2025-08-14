@@ -36,7 +36,6 @@ export default class arkm extends arkmRest {
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': true,
                 },
@@ -57,7 +56,7 @@ export default class arkm extends arkmRest {
                 },
             },
             'streaming': {
-                'keepAlive': 1800000, // 30 minutes
+                'keepAlive': 300000, // 5 minutes
             },
         });
     }
