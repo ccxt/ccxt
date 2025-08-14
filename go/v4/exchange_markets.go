@@ -12,7 +12,6 @@ var globalMutexes = NewMutexes()
 
 type UnifiedMarket struct {
 	Markets          *sync.Map
-	Markets_by_id    *sync.Map
 	Currencies       *sync.Map
 	Currencies_by_id *sync.Map
 }
@@ -49,7 +48,6 @@ func (u *UnifiedMarkets) GetOrCreateUnifiedMarket(marketName string) UnifiedMark
 	if !ok {
 		market = UnifiedMarket{
 			Markets:          &sync.Map{},
-			Markets_by_id:    &sync.Map{},
 			Currencies:       &sync.Map{},
 			Currencies_by_id: &sync.Map{},
 		}

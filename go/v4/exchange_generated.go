@@ -2214,16 +2214,14 @@ func  (this *Exchange) SafeMarketStructure(optionalArgs ...interface{}) interfac
 func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface{}) interface{}  {
 	unifiedMarket:= globalMarkets.GetOrCreateUnifiedMarket(this.Id)
 	this.Markets = unifiedMarket.Markets
-	this.Markets_by_id = unifiedMarket.Markets_by_id
+	// this.Markets_by_id = unifiedMarket.Markets_by_id
 	this.Currencies = unifiedMarket.Currencies
 	this.Currencies_by_id = unifiedMarket.Currencies_by_id
-
-	this.Markets_by_id.Clear()
 
 	currencies := GetArg(optionalArgs, 0, nil)
     _ = currencies
     var values interface{} = []interface{}{}
-    // this.Markets_by_id = this.CreateSafeDictionary()
+    this.Markets_by_id = this.CreateSafeDictionary()
     // handle marketId conflicts
     // we insert spot markets first
     var marketValues interface{} = this.SortBy(this.ToArray(markets), "spot", true, true)
@@ -2249,7 +2247,6 @@ func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface
         }
         AppendToArray(&values,market)
     }
-    this.Markets.Clear()
     // this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
     tempMarkets := this.MapToSafeMap(this.IndexBy(values, "symbol"))
     tempMarkets.Range(func(key interface{}, value interface{}) bool {
@@ -2262,7 +2259,6 @@ func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface
     this.Symbols = ObjectKeys(marketsSortedBySymbol)
     this.Ids = ObjectKeys(marketsSortedById)
     if IsTrue(!IsEqual(currencies, nil)) {
-	    this.Currencies.Clear()
         // currencies is always undefined when called in constructor but not when called from loadMarkets
         // this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
         tempCurrencies := this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
@@ -2320,7 +2316,6 @@ func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface
         }
         var sortedCurrencies interface{} = this.SortBy(resultingCurrencies, "code")
 
-        this.Currencies.Clear()
         // this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
         tempCurrencies := this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
         tempCurrencies.Range(func(key interface{}, value interface{}) bool {
@@ -2328,7 +2323,6 @@ func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface
 	        return true
         })
     }
-    this.Currencies_by_id.Clear()
     currenciesById := this.IndexBySafe(this.Currencies, "id")
     currenciesById.Range(func(key interface{}, value interface{}) bool {
         this.Currencies_by_id.Store(key, value)
