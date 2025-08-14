@@ -5198,7 +5198,7 @@ export default class mexc extends Exchange {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        market = this.safeMarket (this.safeString (position, 'symbol'), market, undefined, 'swap');
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
