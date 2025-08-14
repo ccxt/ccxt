@@ -213,13 +213,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		this.SetSandboxMode(true)
 	}
 
-	mutex, ok := globalMutexes.GetMutex(this.Id)
-	if ok {
-		this.MarketsMutex = mutex
-	} else {
-		globalMutexes.SetMutex(this.Id, this.MarketsMutex)
-	}
-
 	// fmt.Println(this.TransformedApi)
 }
 
