@@ -328,7 +328,7 @@ export default class arkm extends arkmRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = this.getMessageHash ('orderBook', symbol);
-        const timestamp = this.safeInteger (data, 'lastTime');
+        const timestamp = this.safeIntegerProduct (data, 'lastTime', 0.000001);
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook ({});
             ob['symbol'] = symbol;
@@ -339,10 +339,9 @@ export default class arkm extends arkmRest {
             const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
             storedOrderBook.reset (parsedOrderBook);
         } else if (type === 'update') {
-            const bidAsk = this.parseBidAsk (data, 'price', 'size');
             const side = this.safeString (data, 'side');
             const bookside = (side === 'buy') ? storedOrderBook['bids'] : storedOrderBook['asks'];
-            bookside.storeArray (bidAsk);
+            this.handleDelta (bookside, data);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
@@ -351,5 +350,7 @@ export default class arkm extends arkmRest {
     }
 
     handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 'price', 'size');
+        bookside.storeArray (bidAsk);
     }
 }
