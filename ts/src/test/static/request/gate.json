@@ -59,6 +59,7 @@
                     "USDT",
                     5,
                     "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    null,
                     {
                         "network": "SOL"
                     }

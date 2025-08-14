@@ -946,7 +946,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_order_book_for_symbols(?array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the orderbook $channel
@@ -1144,7 +1144,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_trades_for_symbols(?array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the trades channel
@@ -1796,6 +1796,7 @@ class bybit extends \ccxt\async\bybit {
             'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number_2($liquidation, 'price', 'p'),
+            'side' => $this->safe_string_lower($liquidation, 'side', 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2367,7 +2368,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //   {
         //       "success" => false,

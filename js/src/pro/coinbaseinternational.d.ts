@@ -1,5 +1,5 @@
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseinternational extends coinbaseinternationalRest {
     describe(): any;
@@ -138,6 +138,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleDeltas(orderbook: any, deltas: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleFundingRate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: any, message: any): void;
 }

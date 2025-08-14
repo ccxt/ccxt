@@ -1810,7 +1810,7 @@ class ellipx(Exchange, ImplicitAPI):
             'tierBased': True,  # fees can vary based on volume tiers
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         Make a withdrawal request
 

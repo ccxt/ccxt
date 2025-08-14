@@ -100,6 +100,7 @@ class bingx extends Exchange {
             'urls' => array(
                 'logo' => 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api' => array(
+                    'fund' => 'https://open-api.{hostname}/openApi',
                     'spot' => 'https://open-api.{hostname}/openApi',
                     'swap' => 'https://open-api.{hostname}/openApi',
                     'contract' => 'https://open-api.{hostname}/openApi',
@@ -136,6 +137,15 @@ class bingx extends Exchange {
                 'secret' => true,
             ),
             'api' => array(
+                'fund' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'account/balance' => 1,
+                            ),
+                        ),
+                    ),
+                ),
                 'spot' => array(
                     'v1' => array(
                         'public' => array(
@@ -550,8 +560,11 @@ class bingx extends Exchange {
                     'LTC' => 'LTC',
                 ),
                 'networks' => array(
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARB',
                     'MATIC' => 'POLYGON',
+                    'ZKSYNC' => 'ZKSYNCERA',
+                    'AVAXC' => 'AVAX-C',
+                    'HBAR' => 'HEDERA',
                 ),
             ),
             'features' => array(
@@ -2193,6 +2206,7 @@ class bingx extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch $standard contract balances
+         * @param {string} [$params->type] the type of balance to fetch (spot, swap, funding) default is `spot`
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -2222,6 +2236,21 @@ class bingx extends Exchange {
             //         )
             //     }
             //
+        } elseif (($marketType === 'funding') || ($marketType === 'fund')) {
+            $response = $this->fundV1PrivateGetAccountBalance ($marketTypeQuery);
+            // {
+            //     code => '0',
+            //     timestamp => '1754906016631',
+            //     data => {
+            //         assets => array(
+            //             {
+            //                 asset => 'USDT',
+            //                 free => '44.37692200000000237300',
+            //                 locked => '0.00000000000000000000'
+            //             }
+            //         )
+            //     }
+            // }
         } elseif ($marketType === 'spot') {
             $response = $this->spotV1PrivateGetAccountBalance ($marketTypeQuery);
             //
@@ -2373,7 +2402,7 @@ class bingx extends Exchange {
         $firstStandardOrInverse = $this->safe_dict($standardAndInverseBalances, 0);
         $isStandardOrInverse = $firstStandardOrInverse !== null;
         $spotData = $this->safe_dict($response, 'data', array());
-        $spotBalances = $this->safe_list($spotData, 'balances');
+        $spotBalances = $this->safe_list_2($spotData, 'balances', 'assets', array());
         $firstSpot = $this->safe_dict($spotBalances, 0);
         $isSpot = $firstSpot !== null;
         if ($isStandardOrInverse) {
@@ -5553,7 +5582,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -5818,7 +5847,7 @@ class bingx extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

@@ -1047,7 +1047,7 @@ public partial class oxfun : ccxt.oxfun
             object method = this.safeString(message, "event");
             object stringMsg = this.json(message);
             object code = this.safeInteger(message, "code");
-            this.handleErrors(code, null, client.url, method, null, stringMsg, message, null, null);
+            this.handleErrors(code, "", client.url, method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object order = this.parseOrder(data);

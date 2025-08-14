@@ -1473,7 +1473,7 @@ class kucoin extends \ccxt\async\kucoin {
         // https://docs.kucoin.com/#ping
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        "id" => "1",
@@ -1490,7 +1490,8 @@ class kucoin extends \ccxt\async\kucoin {
             }
             $this->options['urls'][$type] = null;
         }
-        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
+        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), array());
+        return false;
     }
 
     public function handle_message(Client $client, $message) {

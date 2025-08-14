@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class cryptocom
  * @augments Exchange
  */
-class cryptocom extends cryptocom$1 {
+class cryptocom extends cryptocom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptocom',
@@ -1147,7 +1149,7 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
         };
         if (limit) {
-            request['depth'] = limit;
+            request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
         //
@@ -3545,4 +3547,4 @@ class cryptocom extends cryptocom$1 {
     }
 }
 
-module.exports = cryptocom;
+exports["default"] = cryptocom;

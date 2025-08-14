@@ -657,8 +657,7 @@ public partial class gate : Exchange
                     { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
-                    { "POLYGON", "POL" },
-                    { "MATIC", "POL" },
+                    { "MATIC", "MATIC" },
                     { "OPTIMISM", "OPETH" },
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
@@ -8283,12 +8282,36 @@ public partial class gate : Exchange
         {
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        object optPos = this.safeStringLower(liquidation, "side");
+        object side = null;
+        if (isTrue(isEqual(optPos, "long")))
+        {
+            side = "buy";
+        } else if (isTrue(isEqual(optPos, "short")))
+        {
+            side = "sell";
+        } else
+        {
+            if (isTrue(!isEqual(size, null)))
+            {
+                if (isTrue(Precise.stringGt(size, "0")))
+                {
+                    side = "buy";
+                } else if (isTrue(Precise.stringLt(size, "0")))
+                {
+                    side = "sell";
+                }
+            }
+        }
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.parseNumber(contractsString) },
             { "contractSize", this.parseNumber(contractSizeString) },
             { "price", this.parseNumber(priceString) },
+            { "side", side },
             { "baseValue", this.parseNumber(baseValueString) },
             { "quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)) },
             { "timestamp", timestamp },

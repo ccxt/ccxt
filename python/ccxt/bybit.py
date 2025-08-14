@@ -5841,7 +5841,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(types, type, type)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -5856,7 +5856,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
+        accounts = self.is_unified_enabled()
+        isUta = accounts[1]
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
+        if isUta:
+            accountType = 'UTA'
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -6401,7 +6405,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 response = self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -7934,7 +7938,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
+        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 50}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

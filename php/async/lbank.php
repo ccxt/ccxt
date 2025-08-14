@@ -994,7 +994,7 @@ class lbank extends Exchange {
             if ($market['swap']) {
                 return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
             }
-            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 1, 0);
+            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
         }) ();
     }
 
@@ -2386,7 +2386,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

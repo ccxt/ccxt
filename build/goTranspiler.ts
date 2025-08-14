@@ -1938,7 +1938,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [/GetRootException\(ex\)/g, 'GetRootException(e)'],
             [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
             [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ])

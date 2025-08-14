@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var timex$1 = require('./abstract/timex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -10,7 +12,7 @@ var number = require('./base/functions/number.js');
  * @class timex
  * @augments Exchange
  */
-class timex extends timex$1 {
+class timex extends timex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'timex',
@@ -1754,4 +1756,4 @@ class timex extends timex$1 {
     }
 }
 
-module.exports = timex;
+exports["default"] = timex;

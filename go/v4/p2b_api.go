@@ -7,74 +7,74 @@
 
 package ccxt
 
-func (this *p2b) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *p2b) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *p2b) PublicGetMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarket", args...)
+func (this *p2b) PublicGetMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *p2b) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *p2b) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *p2b) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *p2b) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *p2b) PublicGetBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBook", args...)
+func (this *p2b) PublicGetBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBook", args...)
 }
 
-func (this *p2b) PublicGetHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistory", args...)
+func (this *p2b) PublicGetHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *p2b) PublicGetDepthResult (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDepthResult", args...)
+func (this *p2b) PublicGetDepthResult(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDepthResult", args...)
 }
 
-func (this *p2b) PublicGetMarketKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketKline", args...)
+func (this *p2b) PublicGetMarketKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketKline", args...)
 }
 
-func (this *p2b) PrivatePostAccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBalances", args...)
+func (this *p2b) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalances", args...)
 }
 
-func (this *p2b) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBalance", args...)
+func (this *p2b) PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *p2b) PrivatePostOrderNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderNew", args...)
+func (this *p2b) PrivatePostOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderNew", args...)
 }
 
-func (this *p2b) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *p2b) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *p2b) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *p2b) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *p2b) PrivatePostAccountMarketOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
+func (this *p2b) PrivatePostAccountMarketOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountMarketDealHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
+func (this *p2b) PrivatePostAccountMarketDealHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountOrder", args...)
+func (this *p2b) PrivatePostAccountOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountOrder", args...)
 }
 
-func (this *p2b) PrivatePostAccountOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
+func (this *p2b) PrivatePostAccountOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountExecutedHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
+func (this *p2b) PrivatePostAccountExecutedHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
 }

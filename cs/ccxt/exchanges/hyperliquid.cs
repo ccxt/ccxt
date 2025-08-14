@@ -1884,6 +1884,50 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object request = this.cancelOrdersRequest(ids, symbol, parameters);
+        object response = await this.privatePostExchange(request);
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        object innerResponse = this.safeDict(response, "response");
+        object data = this.safeDict(innerResponse, "data");
+        object statuses = this.safeList(data, "statuses");
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object status = getValue(statuses, i);
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", status },
+                { "status", status },
+            }));
+        }
+        return orders;
+    }
+
+    public virtual object cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#cancelOrdersRequest
+        * @description build the request payload for cancelling multiple orders
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified market symbol
+        * @param {object} [params]
+        * @returns {object} the raw request object to be sent to the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
@@ -1936,33 +1980,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(request);
-        //
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //             "type":"cancel",
-        //             "data":{
-        //                 "statuses":[
-        //                     "success"
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        object innerResponse = this.safeDict(response, "response");
-        object data = this.safeDict(innerResponse, "data");
-        object statuses = this.safeList(data, "statuses");
-        object orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
-        {
-            object status = getValue(statuses, i);
-            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
-                { "info", status },
-                { "status", status },
-            }));
-        }
-        return orders;
+        return request;
     }
 
     /**
@@ -2829,6 +2847,10 @@ public partial class hyperliquid : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
@@ -2837,6 +2859,14 @@ public partial class hyperliquid : Exchange
             { "rejected", "rejected" },
             { "marginCanceled", "canceled" },
         };
+        if (isTrue(((string)status).EndsWith(((string)"Rejected"))))
+        {
+            return "rejected";
+        }
+        if (isTrue(((string)status).EndsWith(((string)"Canceled"))))
+        {
+            return "canceled";
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -4137,6 +4167,32 @@ public partial class hyperliquid : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name hyperliquid#reserveRequestWeight
+     * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+     * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> reserveRequestWeight(object weight, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object action = new Dictionary<string, object>() {
+            { "type", "reserveRequestWeight" },
+            { "weight", weight },
+        };
+        object signature = this.signL1Action(action, nonce);
+        ((IDictionary<string,object>)request)["action"] = action;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
+    }
+
     public virtual object extractTypeFromDelta(object data = null)
     {
         data ??= new List<object>();
@@ -4221,8 +4277,14 @@ public partial class hyperliquid : Exchange
             object responsePayload = this.safeDict(response, "response", new Dictionary<string, object>() {});
             object data = this.safeDict(responsePayload, "data", new Dictionary<string, object>() {});
             object statuses = this.safeList(data, "statuses", new List<object>() {});
-            object firstStatus = this.safeDict(statuses, 0);
-            message = this.safeString(firstStatus, "error");
+            for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+            {
+                message = this.safeString(getValue(statuses, i), "error");
+                if (isTrue(!isEqual(message, null)))
+                {
+                    break;
+                }
+            }
         }
         object feedback = add(add(this.id, " "), body);
         object nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
