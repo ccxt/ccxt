@@ -336,14 +336,13 @@ export default class arkm extends arkmRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         if (type === 'snapshot') {
-            const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp);
+            const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
             storedOrderBook.reset (parsedOrderBook);
         } else if (type === 'update') {
-            // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            const asks = this.safeList (data, 'asks', []);
-            const bids = this.safeList (data, 'bids', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
+            const bidAsk = this.parseBidAsk (data, 'price', 'size');
+            const side = this.safeString (data, 'side');
+            const bookside = (side === 'buy') ? storedOrderBook['bids'] : storedOrderBook['asks'];
+            bookside.storeArray (bidAsk);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
@@ -352,10 +351,5 @@ export default class arkm extends arkmRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1);
-        // we store the string representations in the orderbook for checksum calculation
-        // this simplifies the code for generating checksums as we do not need to do any complex number transformations
-        bidAsk.push (delta);
-        bookside.storeArray (bidAsk);
     }
 }
