@@ -14,15 +14,15 @@ export default class arkm extends arkmRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchTrades': true,
-                // 'watchTradesForSymbols': false,
-                // 'watchOrderBook': true,
-                // 'watchOrderBookForSymbols': true,
-                // 'watchOHLCV': true,
-                // 'watchOHLCVForSymbols': true,
+                'watchTrades': true,
+                'watchTradesForSymbols': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': false,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': false,
                 // 'watchOrders': true,
                 // 'watchMyTrades': true,
-                // 'watchTicker': true,
+                'watchTicker': true,
                 // 'watchTickers': true,
                 // 'watchBalance': true,
             },
@@ -30,8 +30,8 @@ export default class arkm extends arkmRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://arkm.com/ws',
-                        'linear': 'wss://arkm.com/ws',
-                        'inverse': 'wss://arkm.com/ws',
+                        'swap': 'wss://arkm.com/ws',
+                        'future': 'wss://arkm.com/ws',
                     },
                 },
             },
@@ -75,6 +75,7 @@ export default class arkm extends arkmRest {
             'ticker': this.handleTicker,
             'candles': this.handleOHLCV,
             'l2_updates': this.handleOrderBook,
+            'trades': this.handleTrades,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -104,7 +105,20 @@ export default class arkm extends arkmRest {
         return hash;
     }
 
-    async watchSingle (messageHash: Str, request: Dict, subscriptionHash: Str): Promise<any> {
+    async subscribe (symbol: string, unifiedChannel: string, rawChannel: string, params: Dict): Promise<any> {
+        const market = this.market (symbol);
+        const messageHash = this.getMessageHash (unifiedChannel, market['symbol']);
+        const subscriptionHash = messageHash;
+        const request: Dict = {
+            'args': {
+                'channel': rawChannel,
+                'params': this.extend ({
+                    'symbol': market['id'],
+                }, params),
+            },
+            'confirmationId': this.uuid (),
+            'method': 'subscribe',
+        };
         return await this.watch (this.urls['api']['ws']['spot'], messageHash, request, subscriptionHash);
     }
 
@@ -119,21 +133,7 @@ export default class arkm extends arkmRest {
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = this.getMessageHash ('ticker', market['symbol']);
-        const subscriptionHash = messageHash;
-        const request: Dict = {
-            'args': {
-                'channel': 'ticker',
-                'params': {
-                    'snapshot': false,
-                    'symbol': market['id'],
-                },
-            },
-            'confirmationId': this.uuid (),
-            'method': 'subscribe',
-        };
-        return await this.watchSingle (messageHash, this.extend (request, params), subscriptionHash);
+        return await this.subscribe (symbol, 'ticker', 'ticker', params);
     }
 
     handleTicker (client: Client, message) {
@@ -197,23 +197,10 @@ export default class arkm extends arkmRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const rawTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const messageHash = this.getMessageHash ('ohlcv', market['symbol'], timeframe);
-        const subscriptionHash = messageHash;
-        const request: Dict = {
-            'args': {
-                'channel': 'candles',
-                'params': {
-                    'duration': rawTimeframe,
-                    'symbol': market['id'],
-                },
-            },
-            'confirmationId': this.uuid (),
-            'method': 'subscribe',
-        };
-        const result = await this.watchSingle (messageHash, this.extend (request, params), subscriptionHash);
+        const result = await this.subscribe (market['symbol'], 'ohlcv', 'candles', this.extend ({ 'duration': rawTimeframe }, params));
         const ohlcv = result;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = ohlcv.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -240,17 +227,16 @@ export default class arkm extends arkmRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
-        const parsed = this.parseWsOHLCV (data, market);
         const duration = this.safeInteger (data, 'duration');
         const timeframe = this.findTimeframeByDuration (duration);
         const messageHash = this.getMessageHash ('ohlcv', symbol, timeframe);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const parsed = this.parseWsOHLCV (data, market);
         stored.append (parsed);
         client.resolve (stored, messageHash);
         return message;
@@ -265,6 +251,7 @@ export default class arkm extends arkmRest {
      * @method
      * @name arkm#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://arkm.com/docs#stream/l2_updates
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -272,22 +259,8 @@ export default class arkm extends arkmRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = this.getMessageHash ('orderBook', market['symbol']);
-        const subscriptionHash = messageHash;
-        const request: Dict = {
-            'args': {
-                'channel': 'l2_updates',
-                'params': {
-                    'snapshot': true,
-                    'symbol': market['id'],
-                },
-            },
-            'confirmationId': this.uuid (),
-            'method': 'subscribe',
-        };
-        const orderBook = await this.watchSingle (messageHash, this.extend (request, params), subscriptionHash);
-        return orderBook;
+        const orderBook = await this.subscribe (symbol, 'orderBook', 'l2_updates', this.extend ({ 'snapshot': true }, params));
+        return orderBook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
@@ -352,5 +325,59 @@ export default class arkm extends arkmRest {
     handleDelta (bookside, delta) {
         const bidAsk = this.parseBidAsk (delta, 'price', 'size');
         bookside.storeArray (bidAsk);
+    }
+
+    /**
+     * @method
+     * @name arkm#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://arkm.com/docs#stream/trades
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const trades = await this.subscribe (market['symbol'], 'trade', 'trades', params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        // {
+        //     channel: 'trades',
+        //     type: 'update',
+        //     data: {
+        //         symbol: 'BTC_USDT',
+        //         revisionId: 2643896903,
+        //         size: '0.00261',
+        //         price: '118273.2',
+        //         takerSide: 'buy',
+        //         time: 1755200320146389
+        //     }
+        // }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const parsed = this.parseWsTrade (message);
+        const stored = this.trades[symbol];
+        stored.append (parsed);
+        client.resolve (stored, this.getMessageHash ('trade', symbol));
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        // same as REST api
+        return this.parseTrade (trade, market);
     }
 }
