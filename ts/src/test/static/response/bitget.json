@@ -7713,6 +7713,39 @@
                     "interval": "8h"
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode to isolated for a linear swap symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1755163406561",
+                    "data": {
+                        "symbol": "BTCUSDT",
+                        "marginCoin": "USDT",
+                        "longLeverage": "10",
+                        "shortLeverage": "10",
+                        "marginMode": "isolated"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "marginCoin": "USDT",
+                        "longLeverage": "10",
+                        "shortLeverage": "10",
+                        "marginMode": "isolated"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "isolated"
+                }
+            }
         ]
     }
 }

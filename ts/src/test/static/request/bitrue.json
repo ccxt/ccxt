@@ -357,6 +357,18 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for a symbol",
+                "method": "setLeverage",
+                "url": "https://fapi.bitrue.com/fapi/v2/level_edit",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"recvWindow\":5000,\"contractName\":\"E-BTC-USDT\",\"leverage\":20}"
+            }
         ]
     }
 }

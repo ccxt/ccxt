@@ -3187,6 +3187,7 @@ export default class ascendex extends Exchange {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         const response = await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+        // {"code":0}
         return this.parseMarginMode (response, market);
     }
 

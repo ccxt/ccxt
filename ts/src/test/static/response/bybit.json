@@ -4728,6 +4728,34 @@
                     "shortLeverage": null
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode to isolated for a symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "Request accepted",
+                    "result": {
+                        "reasons": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "Request accepted",
+                        "result": {
+                            "reasons": []
+                        }
+                    },
+                    "symbol": null,
+                    "marginMode": null
+                }
+            }
         ]
     }
 }

@@ -709,6 +709,16 @@
                     "BTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"BTC-PERP\",\"marginType\":\"crossed\"}"
+            },
+            {
+                "description": "set the margin mode to isolated for a symbol",
+                "method": "setMarginMode",
+                "url": "https://ascendex.com/6/api/pro/v2/futures/margin-type",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"marginType\":\"isolated\"}"
             }
         ],
         "fetchLeverageTiers": [

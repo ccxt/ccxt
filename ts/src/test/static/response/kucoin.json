@@ -2518,6 +2518,33 @@
                   }
                 ]
             }
+        ],
+        "setLeverage":[
+            {
+                "description": "set the leverage for marginMode cross",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": null
+                    },
+                    "symbol": null,
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            }
         ]
     }
 }
