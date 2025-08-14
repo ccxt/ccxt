@@ -43,7 +43,12 @@ class probit(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
                 'createMarketOrderWithCost': False,
@@ -53,9 +58,14 @@ class probit(Exchange, ImplicitAPI):
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -66,21 +76,40 @@ class probit(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -91,6 +120,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -100,11 +130,16 @@ class probit(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
@@ -483,32 +518,23 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data', [])
+        currencies = self.safe_list(response, 'data', [])
         result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
-            displayName = self.safe_value(currency, 'display_name')
+            displayName = self.safe_dict(currency, 'display_name')
             name = self.safe_string(displayName, 'en-us')
-            platforms = self.safe_value(currency, 'platform', [])
+            platforms = self.safe_list(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
-            platform = None
             networkList: dict = {}
             for j in range(0, len(platformsByPriority)):
                 network = platformsByPriority[j]
                 idInner = self.safe_string(network, 'id')
                 networkCode = self.network_id_to_code(idInner)
-                currentDepositSuspended = self.safe_value(network, 'deposit_suspended')
-                currentWithdrawalSuspended = self.safe_value(network, 'withdrawal_suspended')
-                currentDeposit = not currentDepositSuspended
-                currentWithdraw = not currentWithdrawalSuspended
-                currentActive = currentDeposit and currentWithdraw
-                if currentActive:
-                    platform = network
-                precision = self.parse_precision(self.safe_string(network, 'precision'))
-                withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
-                networkFee = self.safe_value(withdrawFee, 0, {})
+                withdrawFee = self.safe_list(network, 'withdrawal_fee', [])
+                networkFee = self.safe_dict(withdrawFee, 0, {})
                 for k in range(0, len(withdrawFee)):
                     withdrawPlatform = withdrawFee[k]
                     feeCurrencyId = self.safe_string(withdrawPlatform, 'currency_id')
@@ -518,11 +544,11 @@ class probit(Exchange, ImplicitAPI):
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
-                    'active': currentActive,
-                    'deposit': currentDeposit,
-                    'withdraw': currentWithdraw,
+                    'active': None,
+                    'deposit': not self.safe_bool(network, 'deposit_suspended'),
+                    'withdraw': not self.safe_bool(network, 'withdrawal_suspended'),
                     'fee': self.safe_number(networkFee, 'amount'),
-                    'precision': self.parse_number(precision),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(network, 'min_withdrawal_amount'),
@@ -535,53 +561,33 @@ class probit(Exchange, ImplicitAPI):
                     },
                     'info': network,
                 }
-            if platform is None:
-                platform = self.safe_value(platformsByPriority, 0, {})
-            depositSuspended = self.safe_value(platform, 'deposit_suspended')
-            withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
-            deposit = not depositSuspended
-            withdraw = not withdrawalSuspended
-            active = deposit and withdraw
-            withdrawalFees = self.safe_value(platform, 'withdrawal_fee', {})
-            fees = []
-            # sometimes the withdrawal fee is an empty object
-            # [{'amount': '0.015', 'priority': 1, 'currency_id': 'ETH'}, {}]
-            for j in range(0, len(withdrawalFees)):
-                withdrawalFeeInner = withdrawalFees[j]
-                amount = self.safe_number(withdrawalFeeInner, 'amount')
-                priority = self.safe_integer(withdrawalFeeInner, 'priority')
-                if (amount is not None) and (priority is not None):
-                    fees.append(withdrawalFeeInner)
-            withdrawalFeesByPriority = self.sort_by(fees, 'priority')
-            withdrawalFee = self.safe_value(withdrawalFeesByPriority, 0, {})
-            fee = self.safe_number(withdrawalFee, 'amount')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'type': 'crypto',
-                'fee': fee,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_number(platform, 'min_deposit_amount'),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(platform, 'min_withdrawal_amount'),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': networkList,
-            }
+            })
         return result
 
     def parse_balance(self, response) -> Balances:
@@ -1428,7 +1434,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://docs-en.probit.com/reference/withdrawal

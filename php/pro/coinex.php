@@ -1346,7 +1346,7 @@ class coinex extends \ccxt\async\coinex {
         $method = $this->safe_string($message, 'method');
         $error = $this->safe_string($message, 'message');
         if ($error !== null) {
-            $this->handle_errors(null, null, $client->url, $method, null, $this->json($error), $message, null, null);
+            $this->handle_errors(1, '', $client->url, $method, array(), $this->json($error), $message, array(), array());
         }
         $handlers = array(
             'state.update' => array($this, 'handle_ticker'),

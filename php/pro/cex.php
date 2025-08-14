@@ -1507,7 +1507,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "e" => "get-balance",
@@ -1529,6 +1529,7 @@ class cex extends \ccxt\async\cex {
             $future = $this->safe_value($client['futures'], $messageHash);
             if ($future !== null) {
                 $client->reject ($error, $messageHash);
+                return true;
             } else {
                 throw $error;
             }

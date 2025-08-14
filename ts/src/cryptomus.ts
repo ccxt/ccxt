@@ -32,11 +32,15 @@ export default class cryptomus extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
@@ -46,6 +50,8 @@ export default class cryptomus extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopLossOrder': false,
@@ -57,6 +63,12 @@ export default class cryptomus extends Exchange {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -65,27 +77,48 @@ export default class cryptomus extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -96,7 +129,9 @@ export default class cryptomus extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': true,
@@ -106,11 +141,16 @@ export default class cryptomus extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -368,112 +408,45 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const coins = this.safeList (response, 'result');
+        const groupedById = this.groupBy (coins, 'currency_code');
+        const keys = Object.keys (groupedById);
         const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const currencyId = this.safeString (currency, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
-            const allowWithdraw = this.safeBool (currency, 'can_withdraw');
-            const allowDeposit = this.safeBool (currency, 'can_deposit');
-            const isActive = allowWithdraw && allowDeposit;
-            const networkId = this.safeString (currency, 'network_code');
-            const networksById = this.safeDict (this.options, 'networksById');
-            const networkName = this.safeString (networksById, networkId, networkId);
-            const minWithdraw = this.safeNumber (currency, 'min_withdraw');
-            const maxWithdraw = this.safeNumber (currency, 'max_withdraw');
-            const minDeposit = this.safeNumber (currency, 'min_deposit');
-            const maxDeposit = this.safeNumber (currency, 'max_deposit');
-            const network = {
-                'id': networkId,
-                'network': networkName,
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': maxDeposit,
-                    },
-                },
-                'active': isActive,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
-                'fee': undefined,
-                'precision': undefined,
-                'info': currency,
-            };
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const code = this.safeCurrencyCode (id);
             const networks = {};
-            networks[networkName] = network;
-            if (!(code in result)) {
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': isActive,
-                    'deposit': allowDeposit,
-                    'withdraw': allowWithdraw,
-                    'fee': undefined,
+            const networkEntries = groupedById[id];
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString (networkEntry, 'network_code');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': this.safeNumber (networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber (networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': minDeposit,
-                            'max': maxDeposit,
+                            'min': this.safeNumber (networkEntry, 'min_deposit'),
+                            'max': this.safeNumber (networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': networks,
-                    'info': currency,
+                    'active': undefined,
+                    'deposit': this.safeBool (networkEntry, 'can_withdraw'),
+                    'withdraw': this.safeBool (networkEntry, 'can_deposit'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
                 };
-            } else {
-                const parsed = result[code];
-                const parsedNetworks = this.safeDict (parsed, 'networks');
-                parsed['networks'] = this.extend (parsedNetworks, networks);
-                if (isActive) {
-                    parsed['active'] = true;
-                    parsed['deposit'] = true;
-                    parsed['withdraw'] = true;
-                } else {
-                    if (allowWithdraw) {
-                        parsed['withdraw'] = true;
-                    }
-                    if (allowDeposit) {
-                        parsed['deposit'] = true;
-                    }
-                }
-                const parsedLimits = this.safeDict (parsed, 'limits');
-                const withdrawLimits = {
-                    'min': undefined,
-                    'max': undefined,
-                };
-                const parsedWithdrawLimits = this.safeDict (parsedLimits, 'withdraw', withdrawLimits);
-                const depositLimits = {
-                    'min': undefined,
-                    'max': undefined,
-                };
-                const parsedDepositLimits = this.safeDict (parsedLimits, 'deposit', depositLimits);
-                if (minWithdraw) {
-                    withdrawLimits['min'] = parsedWithdrawLimits['min'] ? Math.min (parsedWithdrawLimits['min'], minWithdraw) : minWithdraw;
-                }
-                if (maxWithdraw) {
-                    withdrawLimits['max'] = parsedWithdrawLimits['max'] ? Math.max (parsedWithdrawLimits['max'], maxWithdraw) : maxWithdraw;
-                }
-                if (minDeposit) {
-                    depositLimits['min'] = parsedDepositLimits['min'] ? Math.min (parsedDepositLimits['min'], minDeposit) : minDeposit;
-                }
-                if (maxDeposit) {
-                    depositLimits['max'] = parsedDepositLimits['max'] ? Math.max (parsedDepositLimits['max'], maxDeposit) : maxDeposit;
-                }
-                const limits = {
-                    'withdraw': withdrawLimits,
-                    'deposit': depositLimits,
-                };
-                parsed['limits'] = limits;
             }
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            });
         }
         return result;
     }
@@ -511,7 +484,7 @@ export default class cryptomus extends Exchange {
         //
         //     {
         //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829771",
+        //         "last_price": "158.04829772",
         //         "base_volume": "0.35185785",
         //         "quote_volume": "55.523761128544"
         //     }
@@ -798,7 +771,7 @@ export default class cryptomus extends Exchange {
         //         "success": true
         //     }
         //
-        return response;
+        return this.safeOrder ({ 'info': response });
     }
 
     /**

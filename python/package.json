@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.78",
+  "version": "4.4.100",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -10,9 +10,6 @@
       "require": "./dist/ccxt.cjs"
     }
   },
-  "bin": {
-    "ccxt": "examples/js/cli.js"
-  },
   "engines": {
     "node": ">=15.0.0"
   },
@@ -21,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ccxt/ccxt.git"
+    "url": "git+https://github.com/ccxt/ccxt.git"
   },
   "readme": "README.md",
   "scripts": {
@@ -34,7 +31,7 @@
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
-    "buildGO": "cd go && go build ./v4 && cd ..",
+    "buildGO": "go build -C go ./v4",
     "transpileGO": "tsx build/goTranspiler.ts",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
@@ -65,10 +62,10 @@
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
-    "cli.js": "node ./examples/js/cli.js",
+    "cli.ts": "tsx ./cli/ts/cli.ts",
+    "cli.js": "node ./cli/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
-    "cli.ts": "tsx examples/ts/cli.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run ./go/cli/main.go",
     "export-exchanges": "node build/export-exchanges",
@@ -133,7 +130,7 @@
     "ti-py": "python3 python/ccxt/test/tests_init.py",
     "ti-php": "php php/test/tests_init.php",
     "ti-cs": "dotnet run --project cs/tests/tests.csproj",
-    "ti-go": "cd go/ && go run ./tests/main.go",
+    "ti-go": "go run -C go ./tests/main.go",
     "request-ts": "npm run ti-ts  -- --requestTests",
     "request-js": "npm run ti-js  -- --requestTests",
     "request-py-async": "npm run ti-py  -- --requestTests",
@@ -143,7 +140,7 @@
     "request-php-sync": "npm run ti-php -- --requestTests --sync",
     "request-php": "npm run request-php-sync && npm run request-php-async",
     "request-cs": "npm run ti-cs  -- --requestTests",
-    "request-go": "cd go/ && npm run ti-go -- --requestTests && cd ../",
+    "request-go": "npm run ti-go -- --requestTests",
     "request-tests//withoutGo": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs",
     "request-tests": "npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go",
     "response-ts": "npm run ti-ts  -- --responseTests",
@@ -152,7 +149,7 @@
     "response-py-async": "npm run ti-py  -- --responseTests",
     "response-py": "npm run response-py-sync && npm run response-py-async",
     "response-cs": "npm run ti-cs  -- --responseTests",
-    "response-go": "cd go/ && npm run ti-go  -- --responseTests && cd ../",
+    "response-go": "npm run ti-go  -- --responseTests",
     "response-php-async": "npm run ti-php -- --responseTests",
     "response-php-sync": "npm run ti-php -- --responseTests --sync",
     "response-php": "npm run response-php-sync && npm run response-php-async",
@@ -171,7 +168,7 @@
     "test-base-rest-py": "npm run ti-py  -- --baseTests",
     "test-base-rest-php": "npm run ti-php -- --baseTests",
     "test-base-rest-cs": "npm run ti-cs  -- --baseTests",
-    "test-base-rest-go": "cd go/ && npm run ti-go  -- --baseTests && cd ../",
+    "test-base-rest-go": "npm run ti-go  -- --baseTests && cd ../",
     "test-base-ws-ts": "npm run ti-ts  -- --baseTests --ws",
     "test-base-ws-js": "npm run ti-js  -- --baseTests --ws",
     "test-base-ws-py": "npm run ti-py  -- --baseTests --ws",
@@ -185,7 +182,7 @@
     "test-freshness": "tsx ./utils/test-freshness.ts",
     "benchmark": "tsx examples/ts/benchmark.ts",
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
-    "test-types-go": "cd go && go run ./tests/types/types.go"
+    "test-types-go": "go run -C go ./tests/types/types.go"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
@@ -199,17 +196,17 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.66",
-    "docsify": "^4.11.4",
+    "ast-transpiler": "^0.0.70",
+    "docsify": "^4.13.1",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "eslint-plugin-jsdoc": "^46.9.0",
-    "esmify": "^2.1.1",
     "https-proxy-agent": "^5.0.1",
     "jsdoc-to-markdown": "^8.0.0",
     "ololog": "^1.1.175",
     "piscina": "^3.2.0",
+    "protobufjs": "^7.5.3",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",

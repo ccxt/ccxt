@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var htx$1 = require('./abstract/htx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class htx
  * @augments Exchange
  */
-class htx extends htx$1 {
+class htx extends htx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'htx',
@@ -944,6 +946,7 @@ class htx extends htx$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -2207,7 +2210,7 @@ class htx extends htx$1 {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray(ticker['bid'])) {
                 bid = this.safeString(ticker['bid'], 0);
                 bidVolume = this.safeString(ticker['bid'], 1);
             }
@@ -2217,7 +2220,7 @@ class htx extends htx$1 {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray(ticker['ask'])) {
                 ask = this.safeString(ticker['ask'], 0);
                 askVolume = this.safeString(ticker['ask'], 1);
             }
@@ -3432,9 +3435,8 @@ class htx extends htx$1 {
         //            }
         //        ]
         //    }
-        //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
@@ -3442,19 +3444,11 @@ class htx extends htx$1 {
             const entry = data[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue(entry, 'chains', []);
-            const networks = {};
-            const instStatus = this.safeString(entry, 'instStatus');
             const assetType = this.safeString(entry, 'assetType');
             const type = assetType === '1' ? 'crypto' : 'fiat';
-            const currencyActive = instStatus === 'normal';
-            let minPrecision = undefined;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
+            this.options['networkChainIdsByNames'][code] = {};
+            const chains = this.safeList(entry, 'chains', []);
+            const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -3462,49 +3456,34 @@ class htx extends htx$1 {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
-                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
-                minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
-                const depositStatus = this.safeString(chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
-                }
-                const fee = this.safeNumber(chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(chainEntry, 'minDepositAmt'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': this.parseNumber(precision),
+                    'active': undefined,
+                    'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeString(entry, 'instStatus') === 'normal',
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'name': undefined,
                 'type': type,
@@ -3514,17 +3493,17 @@ class htx extends htx$1 {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'precision': this.parseNumber(minPrecision),
+                'precision': undefined,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -4563,6 +4542,8 @@ class htx extends htx$1 {
         const request = {};
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params, 'linear');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
@@ -4591,18 +4572,18 @@ class htx extends htx$1 {
             response = await this.spotPrivateGetV1OrderOpenOrders(this.extend(request, params));
         }
         else {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
+            if (symbol !== undefined) {
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                request['contract_code'] = market['id'];
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            request['contract_code'] = market['id'];
             const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
-            if (market['linear']) {
+            if (subType === 'linear') {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -4635,8 +4616,8 @@ class htx extends htx$1 {
                     }
                 }
             }
-            else if (market['inverse']) {
-                if (market['swap']) {
+            else if (subType === 'inverse') {
+                if (marketType === 'swap') {
                     if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, params));
                     }
@@ -4650,8 +4631,8 @@ class htx extends htx$1 {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders(this.extend(request, params));
                     }
                 }
-                else if (market['future']) {
-                    request['symbol'] = market['settleId'];
+                else if (marketType === 'future') {
+                    request['symbol'] = this.safeString(market, 'settleId', 'usdt');
                     if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, params));
                     }
@@ -6877,7 +6858,7 @@ class htx extends htx$1 {
             let fee = this.safeNumber(params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies();
-                this.currencies = this.deepExtend(this.currencies, currencies);
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 const targetNetwork = this.safeValue(currency['networks'], networkCode, {});
                 fee = this.safeNumber(targetNetwork, 'fee');
                 if (fee === undefined) {
@@ -7128,13 +7109,19 @@ class htx extends htx$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50);
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'current_page', 'page_index', 1, 50);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'contract_code': market['id'],
         };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        else {
+            request['page_size'] = 50; // max
+        }
         let response = undefined;
         if (market['inverse']) {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, params));
@@ -7497,7 +7484,7 @@ class htx extends htx$1 {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest);
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
@@ -7579,7 +7566,7 @@ class htx extends htx$1 {
                     const sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
+                let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
@@ -9542,6 +9529,7 @@ class htx extends htx$1 {
             'contracts': this.safeNumber(liquidation, 'volume'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'direction'),
             'baseValue': this.safeNumber(liquidation, 'amount'),
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
@@ -9678,4 +9666,4 @@ class htx extends htx$1 {
     }
 }
 
-module.exports = htx;
+exports["default"] = htx;

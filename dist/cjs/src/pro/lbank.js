@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var lbank$1 = require('../lbank.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class lbank extends lbank$1 {
+class lbank extends lbank$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -893,4 +895,4 @@ class lbank extends lbank$1 {
     }
 }
 
-module.exports = lbank;
+exports["default"] = lbank;

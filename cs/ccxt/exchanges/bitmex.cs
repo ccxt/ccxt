@@ -78,6 +78,7 @@ public partial class bitmex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "index", true },
                 { "reduceMargin", null },
                 { "sandbox", true },
                 { "setLeverage", true },
@@ -397,8 +398,8 @@ public partial class bitmex : Exchange
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -777,6 +778,13 @@ public partial class bitmex : Exchange
         object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         object initMargin = this.safeString(market, "initMargin", "1");
         object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        // subtype should be undefined for spot markets
+        if (isTrue(spot))
+        {
+            isInverse = null;
+            isQuanto = null;
+            linear = null;
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -826,7 +834,7 @@ public partial class bitmex : Exchange
                     { "max", ((bool) isTrue(positionIsQuote)) ? maxOrderQty : null },
                 } },
             } },
-            { "created", this.parse8601(this.safeString(market, "listing")) },
+            { "created", null },
             { "info", market },
         };
     }
@@ -2095,7 +2103,7 @@ public partial class bitmex : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -2130,7 +2138,7 @@ public partial class bitmex : Exchange
         if (isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingAmountOrder)))
         {
             object triggerDirection = this.safeString(parameters, "triggerDirection");
-            object triggerAbove = (isEqual(triggerDirection, "above"));
+            object triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
             if (isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "market")))))
             {
                 this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
@@ -2199,7 +2207,7 @@ public partial class bitmex : Exchange
         if (isTrue(isTrailingAmountOrder))
         {
             object triggerDirection = this.safeString(parameters, "triggerDirection");
-            object triggerAbove = (isEqual(triggerDirection, "above"));
+            object triggerAbove = (isTrue((isEqual(triggerDirection, "ascending"))) || isTrue((isEqual(triggerDirection, "above"))));
             if (isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "market")))))
             {
                 this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
@@ -3250,6 +3258,7 @@ public partial class bitmex : Exchange
             { "contracts", null },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "price") },
+            { "side", this.safeStringLower(liquidation, "side") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", null },

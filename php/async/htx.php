@@ -952,6 +952,7 @@ class htx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'include_OS_certificates' => false, // temporarily leave this, remove in future
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
@@ -2222,7 +2223,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2231,7 +2232,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -3438,9 +3439,8 @@ class htx extends Exchange {
             //            }
             //        )
             //    }
-            //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
             $this->options['networkChainIdsByNames'] = array();
             $this->options['networkNamesByChainIds'] = array();
@@ -3448,19 +3448,11 @@ class htx extends Exchange {
                 $entry = $data[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $this->options['networkChainIdsByNames'][$code] = array();
-                $chains = $this->safe_value($entry, 'chains', array());
-                $networks = array();
-                $instStatus = $this->safe_string($entry, 'instStatus');
                 $assetType = $this->safe_string($entry, 'assetType');
                 $type = $assetType === '1' ? 'crypto' : 'fiat';
-                $currencyActive = $instStatus === 'normal';
-                $minPrecision = null;
-                $minDeposit = null;
-                $minWithdraw = null;
-                $maxWithdraw = null;
-                $deposit = false;
-                $withdraw = false;
+                $this->options['networkChainIdsByNames'][$code] = array();
+                $chains = $this->safe_list($entry, 'chains', array());
+                $networks = array();
                 for ($j = 0; $j < count($chains); $j++) {
                     $chainEntry = $chains[$j];
                     $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
@@ -3468,49 +3460,34 @@ class htx extends Exchange {
                     $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                     $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
                     $networkCode = $this->network_id_to_code($uniqueChainId);
-                    $minDeposit = $this->safe_number($chainEntry, 'minDepositAmt');
-                    $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
-                    $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
-                    $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
-                    $depositStatus = $this->safe_string($chainEntry, 'depositStatus');
-                    $withdrawEnabled = ($withdrawStatus === 'allowed');
-                    $depositEnabled = ($depositStatus === 'allowed');
-                    $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
-                    $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
-                    $active = $withdrawEnabled && $depositEnabled;
-                    $precision = $this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'));
-                    if ($precision !== null) {
-                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                    }
-                    $fee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
                     $networks[$networkCode] = array(
                         'info' => $chainEntry,
                         'id' => $uniqueChainId,
                         'network' => $networkCode,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => $minDeposit,
+                                'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => $minWithdraw,
-                                'max' => $maxWithdraw,
+                                'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
+                                'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
                             ),
                         ),
-                        'active' => $active,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
-                        'fee' => $fee,
-                        'precision' => $this->parse_number($precision),
+                        'active' => null,
+                        'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
+                        'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
+                        'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'code' => $code,
                     'id' => $currencyId,
-                    'active' => $currencyActive,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => $this->safe_string($entry, 'instStatus') === 'normal',
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
                     'name' => null,
                     'type' => $type,
@@ -3520,17 +3497,17 @@ class htx extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
+                            'min' => null,
+                            'max' => null,
                         ),
                         'deposit' => array(
                             'min' => null,
                             'max' => null,
                         ),
                     ),
-                    'precision' => $this->parse_number($minPrecision),
+                    'precision' => null,
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -4561,6 +4538,8 @@ class htx extends Exchange {
             $request = array();
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params, 'linear');
             $response = null;
             if ($marketType === 'spot') {
                 if ($symbol !== null) {
@@ -4588,18 +4567,18 @@ class htx extends Exchange {
                 $params = $this->omit($params, 'account-id');
                 $response = Async\await($this->spotPrivateGetV1OrderOpenOrders ($this->extend($request, $params)));
             } else {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                if ($symbol !== null) {
+                    // throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                    $request['contract_code'] = $market['id'];
                 }
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
                 }
-                $request['contract_code'] = $market['id'];
                 $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
                 $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
-                if ($market['linear']) {
+                if ($subType === 'linear') {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
@@ -4624,8 +4603,8 @@ class htx extends Exchange {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossOpenorders ($this->extend($request, $params)));
                         }
                     }
-                } elseif ($market['inverse']) {
-                    if ($market['swap']) {
+                } elseif ($subType === 'inverse') {
+                    if ($marketType === 'swap') {
                         if ($trigger) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params)));
                         } elseif ($stopLossTakeProfit) {
@@ -4635,8 +4614,8 @@ class htx extends Exchange {
                         } else {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapOpenorders ($this->extend($request, $params)));
                         }
-                    } elseif ($market['future']) {
-                        $request['symbol'] = $market['settleId'];
+                    } elseif ($marketType === 'future') {
+                        $request['symbol'] = $this->safe_string($market, 'settleId', 'usdt');
                         if ($trigger) {
                             $response = Async\await($this->contractPrivatePostApiV1ContractTriggerOpenorders ($this->extend($request, $params)));
                         } elseif ($stopLossTakeProfit) {
@@ -5320,7 +5299,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -6762,7 +6741,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              *
@@ -6798,7 +6777,7 @@ class htx extends Exchange {
                 $fee = $this->safe_number($params, 'fee');
                 if ($fee === null) {
                     $currencies = Async\await($this->fetch_currencies());
-                    $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                    $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
                     $targetNetwork = $this->safe_value($currency['networks'], $networkCode, array());
                     $fee = $this->safe_number($targetNetwork, 'fee');
                     if ($fee === null) {
@@ -7053,13 +7032,18 @@ class htx extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page_index', 'current_page', 1, 50));
+                return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50));
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
                 'contract_code' => $market['id'],
             );
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            } else {
+                $request['page_size'] = 50; // max
+            }
             $response = null;
             if ($market['inverse']) {
                 $response = Async\await($this->contractPublicGetSwapApiV1SwapHistoricalFundingRate ($this->extend($request, $params)));
@@ -7429,7 +7413,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest);
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7506,7 +7490,7 @@ class htx extends Exchange {
                     $sortedQuery = $this->keysort($query);
                     $request = $this->extend($request, $sortedQuery);
                 }
-                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7663,7 +7647,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -9489,6 +9473,7 @@ class htx extends Exchange {
             'contracts' => $this->safe_number($liquidation, 'volume'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'direction'),
             'baseValue' => $this->safe_number($liquidation, 'amount'),
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var poloniex$1 = require('../poloniex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -8,7 +10,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class poloniex extends poloniex$1 {
+class poloniex extends poloniex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -249,7 +251,9 @@ class poloniex extends poloniex$1 {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        return await this.tradeRequest('createOrder', this.extend(request, params));
+        const orders = await this.tradeRequest('createOrder', this.extend(request, params));
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method
@@ -268,7 +272,9 @@ class poloniex extends poloniex$1 {
             const clientOrderIds = this.safeValue(params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat(clientOrderIds, [clientOrderId]);
         }
-        return await this.cancelOrdersWs([id], symbol, params);
+        const orders = await this.cancelOrdersWs([id], symbol, params);
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method
@@ -1310,4 +1316,4 @@ class poloniex extends poloniex$1 {
     }
 }
 
-module.exports = poloniex;
+exports["default"] = poloniex;

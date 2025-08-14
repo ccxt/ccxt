@@ -29,36 +29,48 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.01,
+            "price": 0.000001
         },
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
             "leverage": {
                 "min": null,
                 "max": null
+            },
+            "amount": {
+                "min": 5,
+                "max": 10000000
+            },
+            "price": {
+                "min": 0.00005,
+                "max": 4
             },
             "cost": {
                 "min": null,
                 "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
-            "currency_pair": "BTC_USDT",
-            "last_price": "58923.00801",
-            "base_volume": "0.97396450974529",
-            "quote_volume": "56741.460942465"
+            "id": "01HSBPVS17CT2GN2FV34K3AMP9",
+            "symbol": "BTC_USDT",
+            "baseCurrency": "BTC",
+            "quoteCurrency": "USDT",
+            "baseMinSize": "0.00005000",
+            "quoteMinSize": "5.00000000",
+            "baseMaxSize": "4.00000000",
+            "quoteMaxSize": "10000000.00000000",
+            "basePrec": "6",
+            "quotePrec": "2",
+            "baseCurrencyFullName": "Bitcoin",
+            "quoteCurrencyFullName": "Tether USD"
         },
-        "percentage": true,
         "tierBased": null,
+        "percentage": true,
         "feeSide": "get"
     },
     "LTC/USDT": {
@@ -91,36 +103,48 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.01,
+            "price": 0.00001
         },
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
             "leverage": {
                 "min": null,
                 "max": null
+            },
+            "amount": {
+                "min": 5,
+                "max": 100000000
+            },
+            "price": {
+                "min": 0.05462,
+                "max": 200
             },
             "cost": {
                 "min": null,
                 "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
-            "currency_pair": "LTC_USDT",
-            "last_price": "62.96697",
-            "base_volume": "730.08513464661",
-            "quote_volume": "45751.839676496"
+            "id": "01HSBPVS17CT2GN2FV34K3AMPE",
+            "symbol": "LTC_USDT",
+            "baseCurrency": "LTC",
+            "quoteCurrency": "USDT",
+            "baseMinSize": "0.05462000",
+            "quoteMinSize": "5.00000000",
+            "baseMaxSize": "200.00000000",
+            "quoteMaxSize": "100000000.00000000",
+            "basePrec": "5",
+            "quotePrec": "2",
+            "baseCurrencyFullName": "Litecoin",
+            "quoteCurrencyFullName": "Tether USD"
         },
-        "percentage": true,
         "tierBased": null,
+        "percentage": true,
         "feeSide": "get"
     },
     "SOL/USDT": {
@@ -153,36 +177,48 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.0001,
+            "price": 0.0001
         },
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
             "leverage": {
                 "min": null,
                 "max": null
+            },
+            "amount": {
+                "min": 5,
+                "max": 10000000
+            },
+            "price": {
+                "min": 0.0311,
+                "max": 500
             },
             "cost": {
                 "min": null,
                 "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
-            "currency_pair": "SOL_USDT",
-            "last_price": "132.18768",
-            "base_volume": "42.066018773887",
-            "quote_volume": "5475.1451301104"
+            "id": "01HSBPVS17CT2GN2FV34K3AMPC",
+            "symbol": "SOL_USDT",
+            "baseCurrency": "SOL",
+            "quoteCurrency": "USDT",
+            "baseMinSize": "0.03110000",
+            "quoteMinSize": "5.00000000",
+            "baseMaxSize": "500.00000000",
+            "quoteMaxSize": "10000000.00000000",
+            "basePrec": "4",
+            "quotePrec": "4",
+            "baseCurrencyFullName": "Solana",
+            "quoteCurrencyFullName": "Tether USD"
         },
-        "percentage": true,
         "tierBased": null,
+        "percentage": true,
         "feeSide": "get"
     },
     "TRX/USDT": {
@@ -215,36 +251,48 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.000001,
+            "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
             "leverage": {
                 "min": null,
                 "max": null
+            },
+            "amount": {
+                "min": 5,
+                "max": 10000000
+            },
+            "price": {
+                "min": 19.12,
+                "max": 100000
             },
             "cost": {
                 "min": null,
                 "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
-            "currency_pair": "TRX_USDT",
-            "last_price": "0.1495503",
-            "base_volume": "123972.91751609",
-            "quote_volume": "18255.458309581"
+            "id": "01HSBPVS17CT2GN2FV34K3AMPY",
+            "symbol": "TRX_USDT",
+            "baseCurrency": "TRX",
+            "quoteCurrency": "USDT",
+            "baseMinSize": "19.12000000",
+            "quoteMinSize": "5.00000000",
+            "baseMaxSize": "100000.00000000",
+            "quoteMaxSize": "10000000.00000000",
+            "basePrec": "2",
+            "quotePrec": "6",
+            "baseCurrencyFullName": "Tron",
+            "quoteCurrencyFullName": "Tether USD"
         },
-        "percentage": true,
         "tierBased": null,
+        "percentage": true,
         "feeSide": "get"
     },
     "ETH/USDT": {
@@ -277,36 +325,48 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.01,
+            "price": 0.00001
         },
         "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
             "leverage": {
                 "min": null,
                 "max": null
+            },
+            "amount": {
+                "min": 5,
+                "max": 100000000
+            },
+            "price": {
+                "min": 0.00209,
+                "max": 100
             },
             "cost": {
                 "min": null,
                 "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": null,
         "info": {
-            "currency_pair": "ETH_USDT",
-            "last_price": "2371.20642",
-            "base_volume": "21.972163816894",
-            "quote_volume": "49877.168089977"
+            "id": "01HSBPVS17CT2GN2FV34K3AMPW",
+            "symbol": "ETH_USDT",
+            "baseCurrency": "ETH",
+            "quoteCurrency": "USDT",
+            "baseMinSize": "0.00209000",
+            "quoteMinSize": "5.00000000",
+            "baseMaxSize": "100.00000000",
+            "quoteMaxSize": "100000000.00000000",
+            "basePrec": "5",
+            "quotePrec": "2",
+            "baseCurrencyFullName": "Ethereum",
+            "quoteCurrencyFullName": "Tether USD"
         },
-        "percentage": true,
         "tierBased": null,
+        "percentage": true,
         "feeSide": "get"
     }
 }

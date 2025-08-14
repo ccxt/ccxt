@@ -29,7 +29,12 @@ export default class probit extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
@@ -39,9 +44,14 @@ export default class probit extends Exchange {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -52,21 +62,40 @@ export default class probit extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -77,6 +106,7 @@ export default class probit extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -86,11 +116,16 @@ export default class probit extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
@@ -472,33 +507,23 @@ export default class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data', []);
+        const currencies = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const displayName = this.safeValue (currency, 'display_name');
+            const displayName = this.safeDict (currency, 'display_name');
             const name = this.safeString (displayName, 'en-us');
-            const platforms = this.safeValue (currency, 'platform', []);
+            const platforms = this.safeList (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
-            let platform = undefined;
             const networkList: Dict = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const idInner = this.safeString (network, 'id');
                 const networkCode = this.networkIdToCode (idInner);
-                const currentDepositSuspended = this.safeValue (network, 'deposit_suspended');
-                const currentWithdrawalSuspended = this.safeValue (network, 'withdrawal_suspended');
-                const currentDeposit = !currentDepositSuspended;
-                const currentWithdraw = !currentWithdrawalSuspended;
-                const currentActive = currentDeposit && currentWithdraw;
-                if (currentActive) {
-                    platform = network;
-                }
-                const precision = this.parsePrecision (this.safeString (network, 'precision'));
-                const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                let networkFee = this.safeValue (withdrawFee, 0, {});
+                const withdrawFee = this.safeList (network, 'withdrawal_fee', []);
+                let networkFee = this.safeDict (withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
                     const feeCurrencyId = this.safeString (withdrawPlatform, 'currency_id');
@@ -510,11 +535,11 @@ export default class probit extends Exchange {
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
-                    'active': currentActive,
-                    'deposit': currentDeposit,
-                    'withdraw': currentWithdraw,
+                    'active': undefined,
+                    'deposit': !this.safeBool (network, 'deposit_suspended'),
+                    'withdraw': !this.safeBool (network, 'withdrawal_suspended'),
                     'fee': this.safeNumber (networkFee, 'amount'),
-                    'precision': this.parseNumber (precision),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (network, 'min_withdrawal_amount'),
@@ -528,56 +553,33 @@ export default class probit extends Exchange {
                     'info': network,
                 };
             }
-            if (platform === undefined) {
-                platform = this.safeValue (platformsByPriority, 0, {});
-            }
-            const depositSuspended = this.safeValue (platform, 'deposit_suspended');
-            const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
-            const deposit = !depositSuspended;
-            const withdraw = !withdrawalSuspended;
-            const active = deposit && withdraw;
-            const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
-            const fees = [];
-            // sometimes the withdrawal fee is an empty object
-            // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
-            for (let j = 0; j < withdrawalFees.length; j++) {
-                const withdrawalFeeInner = withdrawalFees[j];
-                const amount = this.safeNumber (withdrawalFeeInner, 'amount');
-                const priority = this.safeInteger (withdrawalFeeInner, 'priority');
-                if ((amount !== undefined) && (priority !== undefined)) {
-                    fees.push (withdrawalFeeInner);
-                }
-            }
-            const withdrawalFeesByPriority = this.sortBy (fees, 'priority');
-            const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
-            const fee = this.safeNumber (withdrawalFee, 'amount');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'type': 'crypto',
-                'fee': fee,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (platform, 'precision'))),
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber (platform, 'min_deposit_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (platform, 'min_withdrawal_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': networkList,
-            };
+            });
         }
         return result;
     }
@@ -1499,7 +1501,7 @@ export default class probit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and

@@ -628,7 +628,8 @@ public partial class woofipro : Exchange
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -636,7 +637,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object response = await this.v1PublicGetPublicToken(parameters);
+        object tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
         //     "success": true,
@@ -659,29 +660,32 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object tokenRows = this.safeList(data, "rows", new List<object>() {});
+        object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
+        var tokenResponsechainResponseVariable = await promiseAll(new List<object>() {tokenPromise, chainPromise});
+        var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
+        var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
+        object tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
+        object tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
+        object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
+        object chainRows = this.safeList(chainData, "rows", new List<object>() {});
+        object indexedChains = this.indexBy(chainRows, "chain_id");
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
             object currencyId = this.safeString(token, "token");
             object networks = this.safeList(token, "chain_details");
             object code = this.safeCurrencyCode(currencyId);
-            object minPrecision = null;
             object resultingNetworks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
             {
-                object network = getValue(networks, j);
-                // TODO: transform chain id to human readable name
-                object networkId = this.safeString(network, "chain_id");
-                object precision = this.parsePrecision(this.safeString(network, "decimals"));
-                if (isTrue(!isEqual(precision, null)))
-                {
-                    minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
-                }
-                ((IDictionary<string,object>)resultingNetworks)[(string)networkId] = new Dictionary<string, object>() {
+                object networkEntry = getValue(networks, j);
+                object networkId = this.safeString(networkEntry, "chain_id");
+                object networkRow = this.safeDict(indexedChains, networkId);
+                object networkName = this.safeString(networkRow, "name");
+                object networkCode = this.networkIdToCode(networkName, code);
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkId },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", null },
@@ -695,16 +699,16 @@ public partial class woofipro : Exchange
                     { "active", null },
                     { "deposit", null },
                     { "withdraw", null },
-                    { "fee", this.safeNumber(network, "withdrawal_fee") },
-                    { "precision", this.parseNumber(precision) },
-                    { "info", network },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                    { "info", new List<object>() {networkEntry, networkRow} },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
-                { "name", currencyId },
+                { "name", null },
                 { "code", code },
-                { "precision", this.parseNumber(minPrecision) },
+                { "precision", null },
                 { "active", null },
                 { "fee", null },
                 { "networks", resultingNetworks },
@@ -721,7 +725,7 @@ public partial class woofipro : Exchange
                     } },
                 } },
                 { "info", token },
-            };
+            });
         }
         return result;
     }
@@ -1076,6 +1080,114 @@ public partial class woofipro : Exchange
         }
         object sorted = this.sortBy(rates, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        // {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
+        // }
+        //
+        object marketId = this.safeString(income, "symbol");
+        object symbol = this.safeSymbol(marketId, market);
+        object amount = this.safeString(income, "funding_fee");
+        object code = this.safeCurrencyCode("USDC");
+        object timestamp = this.safeInteger(income, "updated_time");
+        object rate = this.safeNumber(income, "funding_rate");
+        object paymentType = this.safeString(income, "payment_type");
+        amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", symbol },
+            { "code", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", null },
+            { "amount", this.parseNumber(amount) },
+            { "rate", rate },
+        };
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500);
+        }
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_t"] = until;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = mathMin(limit, 500);
+        }
+        object response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        return this.parseIncomes(rows, market, since, limit);
     }
 
     /**
@@ -1897,9 +2009,9 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        return new List<object>() {new Dictionary<string, object>() {
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
-}};
+})};
     }
 
     /**

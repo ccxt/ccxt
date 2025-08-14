@@ -246,6 +246,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
@@ -538,7 +539,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'code': code,
                 'precision': None,
             })
-        self.currencies = self.deep_extend(currencies, self.currencies)
+        self.currencies = self.map_to_safe_map(self.deep_extend(currencies, self.currencies))
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -2606,7 +2607,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

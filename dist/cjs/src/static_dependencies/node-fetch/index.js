@@ -241,7 +241,7 @@ async function fetch(url, options_) {
             // 4. no content response (204)
             // 5. content not modified response (304)
             if (!request$1.compress || request$1.method === 'HEAD' || codings === null || response_.statusCode === 204 || response_.statusCode === 304) {
-                response$1 = new response(body$1, responseOptions);
+                response$1 = new response["default"](body$1, responseOptions);
                 resolve(response$1);
                 return;
             }
@@ -261,7 +261,7 @@ async function fetch(url, options_) {
                         reject(error);
                     }
                 });
-                response$1 = new response(body$1, responseOptions);
+                response$1 = new response["default"](body$1, responseOptions);
                 resolve(response$1);
                 return;
             }
@@ -290,14 +290,14 @@ async function fetch(url, options_) {
                             }
                         });
                     }
-                    response$1 = new response(body$1, responseOptions);
+                    response$1 = new response["default"](body$1, responseOptions);
                     resolve(response$1);
                 });
                 raw.once('end', () => {
                     // Some old IIS servers return zero-length OK deflate responses, so
                     // 'data' is never emitted. See https://github.com/node-fetch/node-fetch/pull/903
                     if (!response$1) {
-                        response$1 = new response(body$1, responseOptions);
+                        response$1 = new response["default"](body$1, responseOptions);
                         resolve(response$1);
                     }
                 });
@@ -310,12 +310,12 @@ async function fetch(url, options_) {
                         reject(error);
                     }
                 });
-                response$1 = new response(body$1, responseOptions);
+                response$1 = new response["default"](body$1, responseOptions);
                 resolve(response$1);
                 return;
             }
             // Otherwise, use response as-is
-            response$1 = new response(body$1, responseOptions);
+            response$1 = new response["default"](body$1, responseOptions);
             resolve(response$1);
         });
         // eslint-disable-next-line promise/prefer-await-to-then
@@ -357,7 +357,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
     });
 }
 
-exports.Response = response;
+exports.Response = response["default"];
 exports.Headers = headers["default"];
 exports.Request = request["default"];
 exports.FetchError = fetchError.FetchError;

@@ -21,7 +21,12 @@ public partial class probit : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", true },
                 { "createMarketOrderWithCost", false },
@@ -31,9 +36,14 @@ public partial class probit : Exchange
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -44,21 +54,40 @@ public partial class probit : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
@@ -69,6 +98,7 @@ public partial class probit : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -78,11 +108,16 @@ public partial class probit : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "signIn", true },
@@ -465,36 +500,25 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object currencies = this.safeValue(response, "data", new List<object>() {});
+        object currencies = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "id");
             object code = this.safeCurrencyCode(id);
-            object displayName = this.safeValue(currency, "display_name");
+            object displayName = this.safeDict(currency, "display_name");
             object name = this.safeString(displayName, "en-us");
-            object platforms = this.safeValue(currency, "platform", new List<object>() {});
+            object platforms = this.safeList(currency, "platform", new List<object>() {});
             object platformsByPriority = this.sortBy(platforms, "priority");
-            object platform = null;
             object networkList = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(platformsByPriority)); postFixIncrement(ref j))
             {
                 object network = getValue(platformsByPriority, j);
                 object idInner = this.safeString(network, "id");
                 object networkCode = this.networkIdToCode(idInner);
-                object currentDepositSuspended = this.safeValue(network, "deposit_suspended");
-                object currentWithdrawalSuspended = this.safeValue(network, "withdrawal_suspended");
-                object currentDeposit = !isTrue(currentDepositSuspended);
-                object currentWithdraw = !isTrue(currentWithdrawalSuspended);
-                object currentActive = isTrue(currentDeposit) && isTrue(currentWithdraw);
-                if (isTrue(currentActive))
-                {
-                    platform = network;
-                }
-                object precision = this.parsePrecision(this.safeString(network, "precision"));
-                object withdrawFee = this.safeValue(network, "withdrawal_fee", new List<object>() {});
-                object networkFee = this.safeValue(withdrawFee, 0, new Dictionary<string, object>() {});
+                object withdrawFee = this.safeList(network, "withdrawal_fee", new List<object>() {});
+                object networkFee = this.safeDict(withdrawFee, 0, new Dictionary<string, object>() {});
                 for (object k = 0; isLessThan(k, getArrayLength(withdrawFee)); postFixIncrement(ref k))
                 {
                     object withdrawPlatform = getValue(withdrawFee, k);
@@ -508,11 +532,11 @@ public partial class probit : Exchange
                 ((IDictionary<string,object>)networkList)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", idInner },
                     { "network", networkCode },
-                    { "active", currentActive },
-                    { "deposit", currentDeposit },
-                    { "withdraw", currentWithdraw },
+                    { "active", null },
+                    { "deposit", !isTrue(this.safeBool(network, "deposit_suspended")) },
+                    { "withdraw", !isTrue(this.safeBool(network, "withdrawal_suspended")) },
                     { "fee", this.safeNumber(networkFee, "amount") },
-                    { "precision", this.parseNumber(precision) },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(network, "precision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(network, "min_withdrawal_amount") },
@@ -526,59 +550,33 @@ public partial class probit : Exchange
                     { "info", network },
                 };
             }
-            if (isTrue(isEqual(platform, null)))
-            {
-                platform = this.safeValue(platformsByPriority, 0, new Dictionary<string, object>() {});
-            }
-            object depositSuspended = this.safeValue(platform, "deposit_suspended");
-            object withdrawalSuspended = this.safeValue(platform, "withdrawal_suspended");
-            object deposit = !isTrue(depositSuspended);
-            object withdraw = !isTrue(withdrawalSuspended);
-            object active = isTrue(deposit) && isTrue(withdraw);
-            object withdrawalFees = this.safeValue(platform, "withdrawal_fee", new Dictionary<string, object>() {});
-            object fees = new List<object>() {};
-            // sometimes the withdrawal fee is an empty object
-            // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
-            for (object j = 0; isLessThan(j, getArrayLength(withdrawalFees)); postFixIncrement(ref j))
-            {
-                object withdrawalFeeInner = getValue(withdrawalFees, j);
-                object amount = this.safeNumber(withdrawalFeeInner, "amount");
-                object priority = this.safeInteger(withdrawalFeeInner, "priority");
-                if (isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(priority, null)))))
-                {
-                    ((IList<object>)fees).Add(withdrawalFeeInner);
-                }
-            }
-            object withdrawalFeesByPriority = this.sortBy(fees, "priority");
-            object withdrawalFee = this.safeValue(withdrawalFeesByPriority, 0, new Dictionary<string, object>() {});
-            object fee = this.safeNumber(withdrawalFee, "amount");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", name },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "type", "crypto" },
-                { "fee", fee },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(platform, "precision"))) },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(platform, "min_deposit_amount") },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(platform, "min_withdrawal_amount") },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
                 { "networks", networkList },
-            };
+            });
         }
         return result;
     }

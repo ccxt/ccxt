@@ -21,31 +21,73 @@ public partial class coinbaseexchange : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -57,6 +99,8 @@ public partial class coinbaseexchange : Exchange
                 { "fetchPositionsForSymbol", false },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
+                { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -64,7 +108,16 @@ public partial class coinbaseexchange : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
+                { "setLeverage", false },
+                { "setMargin", false },
+                { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -218,6 +271,42 @@ public partial class coinbaseexchange : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "bitcoin" },
+                    { "ETH", "ethereum" },
+                    { "SOL", "solana" },
+                    { "ARBONE", "arbitrum" },
+                    { "AVAXC", "avacchain" },
+                    { "MATIC", "polygon" },
+                    { "BASE", "base" },
+                    { "SUI", "sui" },
+                    { "OP", "optimism" },
+                    { "NEAR", "near" },
+                    { "APT", "aptos" },
+                    { "KAVA", "kava" },
+                    { "BLAST", "blast" },
+                    { "XLM", "stellar" },
+                    { "SEI", "sei" },
+                    { "ADA", "cardano" },
+                    { "CORE", "coredao" },
+                    { "ALGO", "algorand" },
+                    { "OSMO", "osmosis" },
+                    { "CELO", "celo" },
+                    { "HBAR", "hedera" },
+                    { "ZKSYNC", "zksync" },
+                    { "STX", "stacks" },
+                    { "XTZ", "tezos" },
+                    { "EGLD", "elrond" },
+                    { "LTC", "litecoin" },
+                    { "ATOM", "cosmos" },
+                    { "FIL", "filecoin" },
+                    { "DOT", "polkadot" },
+                    { "DOGE", "dogecoin" },
+                    { "XRP", "ripple" },
+                    { "DASH", "dash" },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "Insufficient funds", typeof(InsufficientFunds) },
@@ -256,30 +345,45 @@ public partial class coinbaseexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetCurrencies(parameters);
         //
-        //     [
-        //         {
-        //             "id": "XTZ",
-        //             "name": "Tezos",
-        //             "min_size": "0.000001",
-        //             "status": "online",
-        //             "message": '',
-        //             "max_precision": "0.000001",
-        //             "convertible_to": [],
-        //             "details": {
-        //                 "type": "crypto",
-        //                 "symbol": "Τ",
-        //                 "network_confirmations": 60,
-        //                 "sort_order": 53,
-        //                 "crypto_address_link": "https://tzstats.com/{{address}}",
-        //                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
-        //                 "push_payment_methods": [ "crypto" ],
-        //                 "group_types": [],
-        //                 "display_name": '',
-        //                 "processing_time_seconds": 0,
-        //                 "min_withdrawal_amount": 1
-        //             }
-        //         }
-        //     ]
+        //   {
+        //     "id": "USDT",
+        //     "name": "Tether",
+        //     "min_size": "0.000001",
+        //     "status": "online",
+        //     "message": "",
+        //     "max_precision": "0.000001",
+        //     "convertible_to": [],
+        //     "details": {
+        //       "type": "crypto",
+        //       "symbol": null,
+        //       "network_confirmations": 14,
+        //       "sort_order": 0,
+        //       "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //       "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //       "push_payment_methods": [],
+        //       "group_types": [],
+        //       "display_name": null,
+        //       "processing_time_seconds": null,
+        //       "min_withdrawal_amount": 0.000001,
+        //       "max_withdrawal_amount": 20000000
+        //     },
+        //     "default_network": "ethereum",
+        //     "supported_networks": [
+        //       {
+        //         "id": "ethereum",
+        //         "name": "Ethereum",
+        //         "status": "online",
+        //         "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //         "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //         "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //         "min_withdrawal_amount": 0.000001,
+        //         "max_withdrawal_amount": 20000000,
+        //         "network_confirmations": 14,
+        //         "processing_time_seconds": null
+        //       }
+        //     ],
+        //     "display_name": "USDT"
+        //   }
         //
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -288,16 +392,40 @@ public partial class coinbaseexchange : Exchange
             object id = this.safeString(currency, "id");
             object name = this.safeString(currency, "name");
             object code = this.safeCurrencyCode(id);
-            object details = this.safeValue(currency, "details", new Dictionary<string, object>() {});
-            object status = this.safeString(currency, "status");
-            object active = (isEqual(status, "online"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object details = this.safeDict(currency, "details", new Dictionary<string, object>() {});
+            object networks = new Dictionary<string, object>() {};
+            object supportedNetworks = this.safeList(currency, "supported_networks", new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
+            {
+                object network = getValue(supportedNetworks, j);
+                object networkId = this.safeString(network, "id");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "name", this.safeString(network, "name") },
+                    { "network", networkCode },
+                    { "active", isEqual(this.safeString(network, "status"), "online") },
+                    { "withdraw", null },
+                    { "deposit", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "min_withdrawal_amount") },
+                            { "max", this.safeNumber(network, "max_withdrawal_amount") },
+                        } },
+                    } },
+                    { "contract", this.safeString(network, "contract_address") },
+                    { "info", network },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "type", this.safeString(details, "type") },
                 { "name", name },
-                { "active", active },
+                { "active", isEqual(this.safeString(currency, "status"), "online") },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
@@ -309,11 +437,11 @@ public partial class coinbaseexchange : Exchange
                     } },
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(details, "min_withdrawal_amount") },
-                        { "max", null },
+                        { "max", this.safeNumber(details, "max_withdrawal_amount") },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -1442,7 +1570,10 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1465,7 +1596,10 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        return await this.privateDeleteOrders(this.extend(request, parameters));
+        object response = await this.privateDeleteOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchPaymentMethods(object parameters = null)

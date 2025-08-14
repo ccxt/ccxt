@@ -5,7 +5,7 @@ export type Int = number | undefined;
 export type int = number;
 export type MarketType = 'future' | 'margin' | 'option' | 'spot' | 'swap' | 'delivery' | 'index';
 export type Num = number | undefined;
-export type OrderSide = 'buy' | 'sell' | string;
+export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
@@ -44,7 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 
-export type Fee = FeeInterface | undefined
+export type Fee = FeeInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: boolean;
@@ -432,6 +432,7 @@ export interface Liquidation {
     info: any;
     price: number;
     quoteValue?: number;
+    side?: OrderSide;
     symbol: string;
     timestamp?: number;
 }
@@ -474,6 +475,7 @@ export interface Greeks {
     bidImpliedVolatility: number;
     bidPrice: number;
     bidSize: number;
+    charm?: number;
     datetime?: Str;
     delta: number;
     gamma: number;
@@ -486,7 +488,9 @@ export interface Greeks {
     theta: number;
     timestamp?: number;
     underlyingPrice: number;
+    vanna?: number;
     vega: number;
+    volga?: number;
 }
 
 export interface Conversion {

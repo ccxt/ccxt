@@ -460,11 +460,10 @@ class vertex extends Exchange {
                 if (($tickerId !== null) && (mb_strpos($tickerId, 'PERP') > 0)) {
                     continue;
                 }
-                $id = $this->safe_string($data, 'product_id');
                 $name = $this->safe_string($data, 'symbol');
                 $code = $this->safe_currency_code($name);
-                $result[$code] = array(
-                    'id' => $id,
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $this->safe_string($data, 'product_id'),
                     'name' => $name,
                     'code' => $code,
                     'precision' => null,
@@ -484,7 +483,7 @@ class vertex extends Exchange {
                             'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2501,24 +2500,25 @@ class vertex extends Exchange {
                 // }
                 //
             }
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * cancels an open order
+             * cancels an open $order
              *
              * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
              * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
              *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $id $order $id
+             * @param {string} $symbol unified $symbol of the market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
-            return Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            $order = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            return $this->safe_order(array( 'info' => $order ));
         }) ();
     }
 
@@ -3082,7 +3082,7 @@ class vertex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

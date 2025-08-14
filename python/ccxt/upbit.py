@@ -969,7 +969,7 @@ class upbit(Exchange, ImplicitAPI):
         #         },
         #         "bid_account": {
         #             "currency": "KRW",
-        #             "balance": "0.34202414",
+        #             "balance": "0.34202415",
         #             "locked": "4999.99999922",
         #             "avg_buy_price": "0",
         #             "avg_buy_price_modified": True,
@@ -2121,7 +2121,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://docs.upbit.com/kr/reference/디지털자산-출금하기

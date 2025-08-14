@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position, int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -902,50 +902,30 @@ export default class xt extends Exchange {
             const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const minPrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision')));
             const networkEntry = this.safeValue (chainsDataIndexed, currencyId, {});
             const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
             const networks = {};
-            let minWithdrawString = undefined;
-            let minWithdrawFeeString = undefined;
-            let active = false;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
-                const network = this.networkIdToCode (networkId);
-                const depositEnabled = this.safeValue (rawNetwork, 'depositEnabled');
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const withdrawEnabled = this.safeValue (rawNetwork, 'withdrawEnabled');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                const networkActive = depositEnabled && withdrawEnabled;
-                active = (networkActive) ? networkActive : active;
-                const withdrawFeeString = this.safeString (rawNetwork, 'withdrawFeeAmount');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString (rawNetwork, 'withdrawMinAmount');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
-                }
-                networks[network] = {
+                const networkCode = this.networkIdToCode (networkId, code);
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'name': undefined,
-                    'active': networkActive,
-                    'fee': this.parseNumber (withdrawFeeString),
-                    'precision': minPrecision,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'fee': this.safeNumber (rawNetwork, 'withdrawFeeAmount'),
+                    'precision': undefined,
+                    'deposit': this.safeBool (rawNetwork, 'depositEnabled'),
+                    'withdraw': this.safeBool (rawNetwork, 'withdrawEnabled'),
                     'limits': {
                         'amount': {
                             'min': undefined,
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber (minNetworkWithdrawString),
+                            'min': this.safeNumber (rawNetwork, 'withdrawMinAmount'),
                             'max': undefined,
                         },
                         'deposit': {
@@ -962,16 +942,16 @@ export default class xt extends Exchange {
             } else {
                 type = 'other';
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
                 'name': this.safeString (entry, 'fullName'),
-                'active': active,
-                'fee': this.parseNumber (minWithdrawFeeString),
-                'precision': minPrecision,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
+                'deposit': this.safeString (entry, 'depositStatus') === '1',
+                'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
                 'networks': networks,
                 'type': type,
                 'limits': {
@@ -980,7 +960,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber (minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -988,7 +968,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -2944,24 +2924,30 @@ export default class xt extends Exchange {
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         let type = undefined;
         let subType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        const trigger = this.safeValue (params, 'stop');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
-            } else if (subType !== undefined) {
-                request['state'] = 'NEW';
+            } else if (type === 'swap') {
+                request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
             }
         } else if (status === 'closed') {
             if (trigger || stopLossTakeProfit) {
@@ -2987,7 +2973,7 @@ export default class xt extends Exchange {
             }
         }
         if (trigger) {
-            params = this.omit (params, 'stop');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
             } else {
@@ -3016,6 +3002,7 @@ export default class xt extends Exchange {
                     request['startTime'] = since;
                 }
                 if (limit !== undefined) {
+                    request = this.omit (request, 'size');
                     request['limit'] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
@@ -3201,9 +3188,13 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
-        const data = this.safeValue (response, 'result', {});
-        const orders = isSpotOpenOrders ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
+        let orders = [];
+        const resultDict = this.safeDict (response, 'result');
+        if (resultDict !== undefined) {
+            orders = this.safeList (resultDict, 'items', []);
+        } else {
+            orders = this.safeList (response, 'result');
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3954,7 +3945,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4087,7 +4078,7 @@ export default class xt extends Exchange {
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

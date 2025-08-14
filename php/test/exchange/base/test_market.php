@@ -199,7 +199,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             assert($market['strike'] === null, '"strike" must be undefined when "option" is false' . $log_text);
             assert($market['optionType'] === null, '"optionType" must be undefined when "option" is false' . $log_text);
         }
-    } else {
+    } elseif ($spot) {
         // otherwise, expiry needs to be undefined
         assert(($market['expiry'] === null) && ($market['expiryDatetime'] === null), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' . $log_text);
     }

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var errors = require('./base/errors.js');
  * @class apex
  * @augments Exchange
  */
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'apex',
@@ -490,11 +492,6 @@ class apex extends apex$1 {
             const code = this.safeCurrencyCode(currencyId);
             const name = this.safeString(currency, 'displayName');
             const networks = {};
-            let minPrecision = undefined;
-            let minWithdrawFeeString = undefined;
-            let minWithdrawString = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const tokens = this.safeList(chain, 'tokens', []);
@@ -504,31 +501,22 @@ class apex extends apex$1 {
                     if (tokenName === currencyId) {
                         const networkId = this.safeString(chain, 'chainId');
                         const networkCode = this.networkIdToCode(networkId);
-                        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-                        minPrecision = (minPrecision === undefined) ? precision : Math.min(minPrecision, precision);
-                        const depositAllowed = !this.safeBool(chain, 'stopDeposit');
-                        deposit = (depositAllowed) ? depositAllowed : deposit;
-                        const withdrawAllowed = this.safeBool(token, 'withdrawEnable');
-                        withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString(token, 'minFee');
-                        minWithdrawString = this.safeString(token, 'minWithdraw');
-                        const minNetworkDepositString = this.safeString(chain, 'depositMin');
                         networks[networkCode] = {
                             'info': chain,
                             'id': networkId,
                             'network': networkCode,
-                            'active': depositAllowed && withdrawAllowed,
-                            'deposit': depositAllowed,
-                            'withdraw': withdrawAllowed,
-                            'fee': this.parseNumber(minWithdrawFeeString),
-                            'precision': precision,
+                            'active': undefined,
+                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'withdraw': this.safeBool(token, 'withdrawEnable'),
+                            'fee': this.safeNumber(token, 'minFee'),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
                             'limits': {
                                 'withdraw': {
-                                    'min': this.parseNumber(minWithdrawString),
+                                    'min': this.safeNumber(token, 'minWithdraw'),
                                     'max': undefined,
                                 },
                                 'deposit': {
-                                    'min': this.parseNumber(minNetworkDepositString),
+                                    'min': this.safeNumber(chain, 'minDeposit'),
                                     'max': undefined,
                                 },
                             },
@@ -536,24 +524,28 @@ class apex extends apex$1 {
                     }
                 }
             }
-            result[code] = {
+            const networkKeys = Object.keys(networks);
+            const networksLength = networkKeys.length;
+            const emptyChains = networksLength === 0; // non-functional coins
+            const valueForEmpty = emptyChains ? false : undefined;
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
                 'type': 'crypto',
                 'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': minPrecision,
+                'active': undefined,
+                'deposit': valueForEmpty,
+                'withdraw': valueForEmpty,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -562,7 +554,7 @@ class apex extends apex$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -824,7 +816,7 @@ class apex extends apex$1 {
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
-        // {
+        //  {
         //     "start": 1647511440000,
         //     "symbol": "BTC-USD",
         //     "interval": "1",
@@ -834,7 +826,7 @@ class apex extends apex$1 {
         //     "close": "40000",
         //     "volume": "1.002",
         //     "turnover": "3"
-        // } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return [
             this.safeIntegerN(ohlcv, ['start', 't']),
@@ -1091,9 +1083,10 @@ class apex extends apex$1 {
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingTimestamp');
+            const marketId = this.safeString(entry, 'symbol');
             rates.push({
                 'info': entry,
-                'symbol': this.safeString(entry, 'symbol'),
+                'symbol': this.safeSymbol(marketId, market),
                 'fundingRate': this.safeNumber(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1546,7 +1539,7 @@ class apex extends apex$1 {
         }
         const response = await this.privatePostV3DeleteOpenOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return [this.parseOrder(data, market)];
     }
     /**
      * @method
@@ -1572,7 +1565,7 @@ class apex extends apex$1 {
             response = await this.privatePostV3DeleteOrder(this.extend(request, params));
         }
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return this.safeOrder(data);
     }
     /**
      * @method
@@ -1946,4 +1939,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;

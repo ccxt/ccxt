@@ -1,11 +1,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -432,13 +431,13 @@ export default class tradeogre extends Exchange {
             'vwap': undefined,
             'open': this.safeString (ticker, 'initialprice'),
             'close': this.safeString (ticker, 'price'),
-            'last': undefined,
+            'last': this.safeString (ticker, 'price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }

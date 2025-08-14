@@ -495,11 +495,6 @@ public partial class apex : Exchange
             object code = this.safeCurrencyCode(currencyId);
             object name = this.safeString(currency, "displayName");
             object networks = new Dictionary<string, object>() {};
-            object minPrecision = null;
-            object minWithdrawFeeString = null;
-            object minWithdrawString = null;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
@@ -512,31 +507,22 @@ public partial class apex : Exchange
                     {
                         object networkId = this.safeString(chain, "chainId");
                         object networkCode = this.networkIdToCode(networkId);
-                        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-                        minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : mathMin(minPrecision, precision);
-                        object depositAllowed = !isTrue(this.safeBool(chain, "stopDeposit"));
-                        deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-                        object withdrawAllowed = this.safeBool(token, "withdrawEnable");
-                        withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
-                        minWithdrawFeeString = this.safeString(token, "minFee");
-                        minWithdrawString = this.safeString(token, "minWithdraw");
-                        object minNetworkDepositString = this.safeString(chain, "depositMin");
                         ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                             { "info", chain },
                             { "id", networkId },
                             { "network", networkCode },
-                            { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                            { "deposit", depositAllowed },
-                            { "withdraw", withdrawAllowed },
-                            { "fee", this.parseNumber(minWithdrawFeeString) },
-                            { "precision", precision },
+                            { "active", null },
+                            { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
+                            { "withdraw", this.safeBool(token, "withdrawEnable") },
+                            { "fee", this.safeNumber(token, "minFee") },
+                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
                             { "limits", new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minWithdrawString) },
+                                    { "min", this.safeNumber(token, "minWithdraw") },
                                     { "max", null },
                                 } },
                                 { "deposit", new Dictionary<string, object>() {
-                                    { "min", this.parseNumber(minNetworkDepositString) },
+                                    { "min", this.safeNumber(chain, "minDeposit") },
                                     { "max", null },
                                 } },
                             } },
@@ -544,24 +530,28 @@ public partial class apex : Exchange
                     }
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+            object networksLength = getArrayLength(networkKeys);
+            object emptyChains = isEqual(networksLength, 0); // non-functional coins
+            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
                 { "type", "crypto" },
                 { "name", name },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
+                { "active", null },
+                { "deposit", valueForEmpty },
+                { "withdraw", valueForEmpty },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -570,7 +560,7 @@ public partial class apex : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -856,7 +846,7 @@ public partial class apex : Exchange
     public override object parseOHLCV(object ohlcv, object market = null)
     {
         //
-        // {
+        //  {
         //     "start": 1647511440000,
         //     "symbol": "BTC-USD",
         //     "interval": "1",
@@ -866,7 +856,7 @@ public partial class apex : Exchange
         //     "close": "40000",
         //     "volume": "1.002",
         //     "turnover": "3"
-        // } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
+        //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
         return new List<object> {this.safeIntegerN(ohlcv, new List<object>() {"start", "t"}), this.safeNumberN(ohlcv, new List<object>() {"open", "o"}), this.safeNumberN(ohlcv, new List<object>() {"high", "h"}), this.safeNumberN(ohlcv, new List<object>() {"low", "l"}), this.safeNumberN(ohlcv, new List<object>() {"close", "c"}), this.safeNumberN(ohlcv, new List<object>() {"volume", "v"})};
     }
@@ -1140,9 +1130,10 @@ public partial class apex : Exchange
         {
             object entry = getValue(resultList, i);
             object timestamp = this.safeInteger(entry, "fundingTimestamp");
+            object marketId = this.safeString(entry, "symbol");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", this.safeString(entry, "symbol") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "fundingRate", this.safeNumber(entry, "rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -1646,7 +1637,7 @@ public partial class apex : Exchange
         }
         object response = await this.privatePostV3DeleteOpenOrders(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return new List<object> {this.parseOrder(data, market)};
     }
 
     /**
@@ -1676,7 +1667,7 @@ public partial class apex : Exchange
             response = await this.privatePostV3DeleteOrder(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return this.safeOrder(data);
     }
 
     /**

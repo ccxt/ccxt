@@ -984,7 +984,7 @@ class upbit extends Exchange {
         //         ),
         //         "bid_account" => array(
         //             "currency" => "KRW",
-        //             "balance" => "0.34202414",
+        //             "balance" => "0.34202415",
         //             "locked" => "4999.99999922",
         //             "avg_buy_price" => "0",
         //             "avg_buy_price_modified" => true,
@@ -2216,7 +2216,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기

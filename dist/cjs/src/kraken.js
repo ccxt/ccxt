@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kraken$1 = require('./abstract/kraken.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +16,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class kraken extends kraken$1 {
+class kraken extends kraken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kraken',
@@ -551,10 +553,13 @@ class kraken extends kraken$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        const promises = [];
+        promises.push(this.publicGetAssetPairs(params));
         if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference();
+            promises.push(this.loadTimeDifference());
         }
-        const response = await this.publicGetAssetPairs(params);
+        const responses = await Promise.all(promises);
+        const assetsResponse = responses[0];
         //
         //     {
         //         "error": [],
@@ -602,9 +607,10 @@ class kraken extends kraken$1 {
         //         }
         //     }
         //
-        const markets = this.safeValue(response, 'result', {});
+        const markets = this.safeDict(assetsResponse, 'result', {});
+        const cachedCurrencies = this.safeDict(this.options, 'cachedCurrencies', {});
         const keys = Object.keys(markets);
-        let result = [];
+        const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = markets[id];
@@ -612,41 +618,49 @@ class kraken extends kraken$1 {
             const quoteId = this.safeString(market, 'quote');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const darkpool = id.indexOf('.d') >= 0;
-            const altname = this.safeString(market, 'altname');
-            const makerFees = this.safeValue(market, 'fees_maker', []);
-            const firstMakerFee = this.safeValue(makerFees, 0, []);
+            const makerFees = this.safeList(market, 'fees_maker', []);
+            const firstMakerFee = this.safeList(makerFees, 0, []);
             const firstMakerFeeRate = this.safeString(firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
                 maker = this.parseNumber(Precise["default"].stringDiv(firstMakerFeeRate, '100'));
             }
-            const takerFees = this.safeValue(market, 'fees', []);
-            const firstTakerFee = this.safeValue(takerFees, 0, []);
+            const takerFees = this.safeList(market, 'fees', []);
+            const firstTakerFee = this.safeList(takerFees, 0, []);
             const firstTakerFeeRate = this.safeString(firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
                 taker = this.parseNumber(Precise["default"].stringDiv(firstTakerFeeRate, '100'));
             }
-            const leverageBuy = this.safeValue(market, 'leverage_buy', []);
+            const leverageBuy = this.safeList(market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
+            let precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, 'lot_decimals')));
+            const spot = true;
+            // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if ((base in cachedCurrencies)) {
+                const currency = cachedCurrencies[base];
+                const currencyPrecision = this.safeNumber(currency, 'precision');
+                // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (currencyPrecision > precisionAmount) {
+                    precisionAmount = currencyPrecision;
+                }
+            }
             const status = this.safeString(market, 'status');
             const isActive = status === 'online';
             result.push({
                 'id': id,
                 'wsId': this.safeString(market, 'wsname'),
-                'symbol': darkpool ? altname : (base + '/' + quote),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'darkpool': darkpool,
                 'altname': market['altname'],
                 'type': 'spot',
-                'spot': true,
+                'spot': spot,
                 'margin': (leverageBuyLength > 0),
                 'swap': false,
                 'future': false,
@@ -663,7 +677,7 @@ class kraken extends kraken$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'lot_decimals'))),
+                    'amount': precisionAmount,
                     'price': precisionPrice,
                 },
                 'limits': {
@@ -676,7 +690,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                     'price': {
-                        'min': precisionPrice,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -688,7 +702,6 @@ class kraken extends kraken$1 {
                 'info': market,
             });
         }
-        result = this.appendInactiveMarkets(result);
         this.options['marketsByAltname'] = this.indexBy(result, 'altname');
         return result;
     }
@@ -703,33 +716,6 @@ class kraken extends kraken$1 {
             }
         }
         return super.safeCurrency(currencyId, currency);
-    }
-    appendInactiveMarkets(result) {
-        // result should be an array to append to
-        const precision = {
-            'amount': this.parseNumber('1e-8'),
-            'price': this.parseNumber('1e-8'),
-        };
-        const costLimits = { 'min': undefined, 'max': undefined };
-        const priceLimits = { 'min': precision['price'], 'max': undefined };
-        const amountLimits = { 'min': precision['amount'], 'max': undefined };
-        const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
-        const defaults = {
-            'darkpool': false,
-            'info': undefined,
-            'maker': undefined,
-            'taker': undefined,
-            'active': false,
-            'precision': precision,
-            'limits': limits,
-        };
-        const markets = [
-        // { 'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR' },
-        ];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.extend(defaults, markets[i]));
-        }
-        return result;
     }
     /**
      * @method
@@ -855,24 +841,21 @@ class kraken extends kraken$1 {
                     code = this.safeCurrencyCode(id);
                 }
             }
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-            // assumes all currencies are active except those listed above
-            const active = this.safeString(currency, 'status') === 'enabled';
             const isFiat = code.indexOf('.HOLD') >= 0;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': this.safeString(currency, 'altname'),
-                'active': active,
+                'active': this.safeString(currency, 'status') === 'enabled',
                 'type': isFiat ? 'fiat' : 'crypto',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -881,7 +864,7 @@ class kraken extends kraken$1 {
                     },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }
@@ -980,9 +963,6 @@ class kraken extends kraken$1 {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['darkpool']) {
-            throw new errors.ExchangeError(this.id + ' fetchOrderBook() does not provide an order book for darkpool symbol ' + symbol);
-        }
         const request = {
             'pair': market['id'],
         };
@@ -1087,7 +1067,7 @@ class kraken extends kraken$1 {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.markets[symbol];
-                if (market['active'] && !market['darkpool']) {
+                if (market['active']) {
                     marketIds.push(market['id']);
                 }
             }
@@ -1117,10 +1097,6 @@ class kraken extends kraken$1 {
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
-        const darkpool = symbol.indexOf('.d') >= 0;
-        if (darkpool) {
-            throw new errors.ExchangeError(this.id + ' fetchTicker() does not provide a ticker for darkpool symbol ' + symbol);
-        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1406,7 +1382,20 @@ class kraken extends kraken$1 {
         //         "maker": false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         let timestamp = undefined;
+        let datetime = undefined;
         let side = undefined;
         let type = undefined;
         let price = undefined;
@@ -1457,6 +1446,15 @@ class kraken extends kraken$1 {
                 };
             }
         }
+        else {
+            symbol = this.safeString(trade, 'symbol');
+            datetime = this.safeString(trade, 'timestamp');
+            id = this.safeString(trade, 'trade_id');
+            side = this.safeString(trade, 'side');
+            type = this.safeString(trade, 'ord_type');
+            price = this.safeString(trade, 'price');
+            amount = this.safeString(trade, 'qty');
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -1466,12 +1464,18 @@ class kraken extends kraken$1 {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
+        if (datetime === undefined) {
+            datetime = this.iso8601(timestamp);
+        }
+        else {
+            timestamp = this.parse8601(datetime);
+        }
         return this.safeTrade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': datetime,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -1646,6 +1650,8 @@ class kraken extends kraken$1 {
             'volume': this.amountToPrecision(symbol, amount),
         };
         const orderRequest = this.orderRequest('createOrder', symbol, type, request, amount, price, params);
+        const flags = this.safeString(orderRequest[0], 'oflags', '');
+        const isUsingCost = flags.indexOf('viqc') > -1;
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1657,6 +1663,10 @@ class kraken extends kraken$1 {
         //     }
         //
         const result = this.safeDict(response, 'result');
+        result['usingCost'] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
     findMarketByAltnameOrId(id) {
@@ -1749,22 +1759,15 @@ class kraken extends kraken$1 {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error": [],
@@ -1832,6 +1835,8 @@ class kraken extends kraken$1 {
         //         "oflags": "fciq"
         //     }
         //
+        const isUsingCost = this.safeBool(order, 'usingCost', false);
+        order = this.omit(order, 'usingCost');
         const description = this.safeDict(order, 'descr', {});
         const orderDescriptionObj = this.safeDict(order, 'descr'); // can be null
         let orderDescription = undefined;
@@ -1846,11 +1851,17 @@ class kraken extends kraken$1 {
         let marketId = undefined;
         let price = undefined;
         let amount = undefined;
+        let cost = undefined;
         let triggerPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split(' ');
             side = this.safeString(parts, 0);
-            amount = this.safeString(parts, 1);
+            if (!isUsingCost) {
+                amount = this.safeString(parts, 1);
+            }
+            else {
+                cost = this.safeString(parts, 1);
+            }
             marketId = this.safeString(parts, 2);
             const part4 = this.safeString(parts, 4);
             const part5 = this.safeString(parts, 5);
@@ -1887,15 +1898,13 @@ class kraken extends kraken$1 {
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, 'price', price);
-        // when type = trailling stop returns price = '+50.0000%'
-        if ((price !== undefined) && price.endsWith('%')) {
+        // when type = trailing stop returns price = '+50.0000%'
+        if ((price !== undefined) && (price.endsWith('%') || Precise["default"].stringEquals(price, '0.00000') || Precise["default"].stringEquals(price, '0'))) {
             price = undefined; // this is not the price we want
         }
-        if ((price === undefined) || Precise["default"].stringEquals(price, '0')) {
+        if (price === undefined) {
             price = this.safeString(description, 'price2');
-        }
-        if ((price === undefined) || Precise["default"].stringEquals(price, '0')) {
-            price = this.safeString(order, 'price', price);
+            price = this.safeString2(order, 'limitprice', 'price', price);
         }
         const flags = this.safeString(order, 'oflags', '');
         let isPostOnly = flags.indexOf('post') > -1;
@@ -1917,7 +1926,7 @@ class kraken extends kraken$1 {
             }
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        let id = this.safeStringN(order, ['id', 'txid', 'amend_id']);
+        let id = this.safeStringN(order, ['id', 'txid', 'order_id', 'amend_id']);
         if ((id === undefined) || (id.startsWith('['))) {
             const txid = this.safeList(order, 'txid');
             id = this.safeString(txid, 0);
@@ -1985,7 +1994,7 @@ class kraken extends kraken$1 {
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,
@@ -3496,7 +3505,7 @@ class kraken extends kraken$1 {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
-                            this.throwExactlyMatchedException(this.exceptions['broad'], error, message);
+                            this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }
                         throw new errors.ExchangeError(message);
                     }
@@ -3507,4 +3516,4 @@ class kraken extends kraken$1 {
     }
 }
 
-module.exports = kraken;
+exports["default"] = kraken;

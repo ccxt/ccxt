@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -13,7 +15,7 @@ var Precise = require('./base/Precise.js');
  * @class bigone
  * @augments Exchange
  */
-class bigone extends bigone$1 {
+class bigone extends bigone$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bigone',
@@ -502,19 +504,15 @@ class bigone extends bigone$1 {
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            const type = this.safeBool(currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
             const chains = this.safeList(currency, 'binding_gateways', []);
-            let currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
+            const currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'gateway_name');
                 const networkCode = this.networkIdToCode(networkId);
                 const deposit = this.safeBool(chain, 'is_deposit_enabled');
                 const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
-                const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
@@ -525,7 +523,7 @@ class bigone extends bigone$1 {
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': undefined,
                     'fee': this.parseNumber(withdrawalFee),
                     'precision': this.parseNumber(precision),
                     'limits': {
@@ -540,20 +538,32 @@ class bigone extends bigone$1 {
                     },
                     'info': chain,
                 };
-                // fill global values
-                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise["default"].stringGt(currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
-            result[code] = {
+            const chainLength = chains.length;
+            let type = undefined;
+            if (this.safeBool(currency, 'is_fiat')) {
+                type = 'fiat';
+            }
+            else if (chainLength === 0) {
+                if (this.isLeveragedCurrency(id)) {
+                    type = 'leveraged';
+                }
+                else {
+                    type = 'other';
+                }
+            }
+            else {
+                type = 'crypto';
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': undefined,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber(currencyMaxPrecision),
                 'limits': {
@@ -567,7 +577,7 @@ class bigone extends bigone$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -2328,4 +2338,4 @@ class bigone extends bigone$1 {
     }
 }
 
-module.exports = bigone;
+exports["default"] = bigone;

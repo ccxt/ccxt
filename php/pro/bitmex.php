@@ -385,7 +385,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
-    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -1702,7 +1702,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         // generic $error format
         //

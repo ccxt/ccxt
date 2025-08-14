@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var upbit$1 = require('./abstract/upbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +16,7 @@ var rsa = require('./base/functions/rsa.js');
  * @class upbit
  * @augments Exchange
  */
-class upbit extends upbit$1 {
+class upbit extends upbit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'upbit',
@@ -980,7 +982,7 @@ class upbit extends upbit$1 {
         //         },
         //         "bid_account": {
         //             "currency": "KRW",
-        //             "balance": "0.34202414",
+        //             "balance": "0.34202415",
         //             "locked": "4999.99999922",
         //             "avg_buy_price": "0",
         //             "avg_buy_price_modified": true,
@@ -2336,4 +2338,4 @@ class upbit extends upbit$1 {
     }
 }
 
-module.exports = upbit;
+exports["default"] = upbit;

@@ -505,11 +505,6 @@ class apex extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $name = $this->safe_string($currency, 'displayName');
                 $networks = array();
-                $minPrecision = null;
-                $minWithdrawFeeString = null;
-                $minWithdrawString = null;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $tokens = $this->safe_list($chain, 'tokens', array());
@@ -519,31 +514,22 @@ class apex extends Exchange {
                         if ($tokenName === $currencyId) {
                             $networkId = $this->safe_string($chain, 'chainId');
                             $networkCode = $this->network_id_to_code($networkId);
-                            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-                            $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
-                            $depositAllowed = !$this->safe_bool($chain, 'stopDeposit');
-                            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                            $withdrawAllowed = $this->safe_bool($token, 'withdrawEnable');
-                            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                            $minWithdrawFeeString = $this->safe_string($token, 'minFee');
-                            $minWithdrawString = $this->safe_string($token, 'minWithdraw');
-                            $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
                             $networks[$networkCode] = array(
                                 'info' => $chain,
                                 'id' => $networkId,
                                 'network' => $networkCode,
-                                'active' => $depositAllowed && $withdrawAllowed,
-                                'deposit' => $depositAllowed,
-                                'withdraw' => $withdrawAllowed,
-                                'fee' => $this->parse_number($minWithdrawFeeString),
-                                'precision' => $precision,
+                                'active' => null,
+                                'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                                'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                                'fee' => $this->safe_number($token, 'minFee'),
+                                'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
                                 'limits' => array(
                                     'withdraw' => array(
-                                        'min' => $this->parse_number($minWithdrawString),
+                                        'min' => $this->safe_number($token, 'minWithdraw'),
                                         'max' => null,
                                     ),
                                     'deposit' => array(
-                                        'min' => $this->parse_number($minNetworkDepositString),
+                                        'min' => $this->safe_number($chain, 'minDeposit'),
                                         'max' => null,
                                     ),
                                 ),
@@ -551,24 +537,28 @@ class apex extends Exchange {
                         }
                     }
                 }
-                $result[$code] = array(
+                $networkKeys = is_array($networks) ? array_keys($networks) : array();
+                $networksLength = count($networkKeys);
+                $emptyChains = $networksLength === 0; // non-functional coins
+                $valueForEmpty = $emptyChains ? false : null;
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'code' => $code,
                     'id' => $currencyId,
                     'type' => 'crypto',
                     'name' => $name,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
+                    'active' => null,
+                    'deposit' => $valueForEmpty,
+                    'withdraw' => $valueForEmpty,
+                    'fee' => null,
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -577,7 +567,7 @@ class apex extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -856,7 +846,7 @@ class apex extends Exchange {
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
-        // {
+        //  {
         //     "start" => 1647511440000,
         //     "symbol" => "BTC-USD",
         //     "interval" => "1",
@@ -866,7 +856,7 @@ class apex extends Exchange {
         //     "close" => "40000",
         //     "volume" => "1.002",
         //     "turnover" => "3"
-        // } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
+        //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
             $this->safe_integer_n($ohlcv, array( 'start', 't' )),
@@ -1136,9 +1126,10 @@ class apex extends Exchange {
             for ($i = 0; $i < count($resultList); $i++) {
                 $entry = $resultList[$i];
                 $timestamp = $this->safe_integer($entry, 'fundingTimestamp');
+                $marketId = $this->safe_string($entry, 'symbol');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $this->safe_string($entry, 'symbol'),
+                    'symbol' => $this->safe_symbol($marketId, $market),
                     'fundingRate' => $this->safe_number($entry, 'rate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -1585,7 +1576,7 @@ class apex extends Exchange {
         );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -1605,7 +1596,7 @@ class apex extends Exchange {
             }
             $response = Async\await($this->privatePostV3DeleteOpenOrders ($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
-            return $data;
+            return array( $this->parse_order($data, $market) );
         }) ();
     }
 
@@ -1633,7 +1624,7 @@ class apex extends Exchange {
                 $response = Async\await($this->privatePostV3DeleteOrder ($this->extend($request, $params)));
             }
             $data = $this->safe_dict($response, 'data', array());
-            return $data;
+            return $this->safe_order($data);
         }) ();
     }
 
@@ -1876,7 +1867,7 @@ class apex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

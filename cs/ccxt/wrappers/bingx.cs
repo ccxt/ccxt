@@ -390,6 +390,12 @@ public partial class bingx
     /// boolean : whether to fetch standard contract balances
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : the type of balance to fetch (spot, swap, funding) default is `spot`
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -1105,7 +1111,7 @@ public partial class bingx
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1125,7 +1131,7 @@ public partial class bingx
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1142,13 +1148,19 @@ public partial class bingx
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of transfers structures to retrieve
+    /// int : the maximum number of transfers structures to retrieve (default 10, max 100)
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : whether to paginate the results (default false)
     /// </description>
     /// </item>
     /// </list>
@@ -1460,13 +1472,13 @@ public partial class bingx
     /// <item>
     /// <term>params.walletType</term>
     /// <description>
-    /// int : 1 fund account, 2 standard account, 3 perpetual account
+    /// int : 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

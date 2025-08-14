@@ -63,12 +63,12 @@ public partial class binance : ccxt.binance
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
-                        { "spot", "wss://testnet.binance.vision/ws" },
-                        { "margin", "wss://testnet.binance.vision/ws" },
+                        { "spot", "wss://stream.testnet.binance.vision/ws" },
+                        { "margin", "wss://stream.testnet.binance.vision/ws" },
                         { "future", "wss://fstream.binancefuture.com/ws" },
                         { "delivery", "wss://dstream.binancefuture.com/ws" },
                         { "ws-api", new Dictionary<string, object>() {
-                            { "spot", "wss://testnet.binance.vision/ws-api/v3" },
+                            { "spot", "wss://ws-api.testnet.binance.vision/ws-api/v3" },
                             { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
                             { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
@@ -437,6 +437,7 @@ public partial class binance : ccxt.binance
             { "contracts", this.safeNumber(liquidation, "l") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "ap") },
+            { "side", this.safeStringLower(liquidation, "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -798,7 +799,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchOrderBookWs
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#order-book
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#order-book
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -900,6 +901,7 @@ public partial class binance : ccxt.binance
             (orderbook as IOrderBook).reset(snapshot);
             // unroll the accumulated deltas
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);
@@ -988,10 +990,8 @@ public partial class binance : ccxt.binance
         //         ]
         //     }
         //
-        object isTestnetSpot = isGreaterThan(getIndexOf(client.url, "testnet"), 0);
-        object isSpotMainNet = isGreaterThan(getIndexOf(client.url, "/stream.binance."), 0);
-        object isSpot = isTrue(isTestnetSpot) || isTrue(isSpotMainNet);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
+        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -1153,8 +1153,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
@@ -1226,8 +1226,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchTradesForSymbols
      * @description unsubscribes from the trades channel
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
@@ -1297,8 +1297,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchTrades
      * @description unsubscribes from the trades channel
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1317,8 +1317,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#aggregate-trades
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1510,7 +1510,7 @@ public partial class binance : ccxt.binance
     {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "wss://stream.binance.com"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
+        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1532,7 +1532,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1559,7 +1559,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
@@ -1639,7 +1639,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
@@ -1716,7 +1716,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1781,7 +1781,7 @@ public partial class binance : ccxt.binance
         // use a reverse lookup in a static map instead
         object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
-        object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
+        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
@@ -1850,7 +1850,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchOHLCVWs
      * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @param {string} symbol unified symbol of the market to query OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} since timestamp in ms of the earliest candle to fetch
@@ -2191,7 +2191,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#symbol-order-book-ticker
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -2523,7 +2523,7 @@ public partial class binance : ccxt.binance
 
     public virtual void handleTickersAndBidsAsks(WebSocketClient client, object message, object methodType)
     {
-        object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
+        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object isBidAsk = (isEqual(methodType, "bidasks"));
         object channelName = null;
@@ -2844,7 +2844,7 @@ public partial class binance : ccxt.binance
      * @name binance#fetchBalanceWs
      * @description fetch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-information-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -3269,7 +3269,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#createOrderWs
      * @description create a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#place-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
      * @param {string} symbol unified symbol of the market to create an order in
@@ -3430,7 +3430,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#editOrderWs
      * @description edit a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-and-replace-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-and-replace-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
      * @param {string} id order id
@@ -3598,7 +3598,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#cancelOrderWs
      * @description cancel multiple orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
@@ -3652,7 +3652,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#cancelAllOrdersWs
      * @description cancel all open orders in a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#cancel-open-orders-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-open-orders-trade
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3693,7 +3693,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchOrderWs
      * @description fetches information on an order made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#query-order-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
@@ -3749,7 +3749,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchOrdersWs
      * @description fetches information on multiple orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#order-lists
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} [since] the earliest time in ms to fetch orders for
      * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -3801,7 +3801,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchClosedOrdersWs
      * @description fetch closed orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#order-lists
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -3828,7 +3828,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchOpenOrdersWs
      * @description fetch all unfilled currently open orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/trading-requests#current-open-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
      * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
@@ -4467,7 +4467,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchMyTradesWs
      * @description fetch all trades made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/account-requests#account-trade-history-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-trade-history-user_data
      * @param {string} symbol unified market symbol
      * @param {int|undefined} [since] the earliest time in ms to fetch trades for
      * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
@@ -4530,7 +4530,7 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#fetchTradesWs
      * @description fetch all trades made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
@@ -4540,14 +4540,10 @@ public partial class binance : ccxt.binance
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<object> fetchTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new BadRequest ((string)add(this.id, " fetchTradesWs () requires a symbol argument")) ;
-        }
         object market = this.market(symbol);
         object type = this.getMarketType("fetchTradesWs", market, parameters);
         if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
@@ -4853,7 +4849,7 @@ public partial class binance : ccxt.binance
         object msg = this.safeString(error, "msg");
         try
         {
-            this.handleErrors(code, msg, client.url, null, null, this.json(error), error, null, null);
+            this.handleErrors(code, msg, client.url, "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;

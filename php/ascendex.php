@@ -463,6 +463,7 @@ class ascendex extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'XBT' => 'XBT', // this is not BTC ! just another token
                 'BOND' => 'BONDED',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
@@ -485,113 +486,83 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $assetsPromise = $this->v1PublicGetAssets ($params);
+        $response = $this->v2PublicGetAssets ($params);
         //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             array(
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             ),
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "assetCode" => "USDT",
+        //                "assetName" => "Tether",
+        //                "precisionScale" => 9,
+        //                "nativeScale" => 4,
+        //                "blockChain" => array(
+        //                    array(
+        //                        "chainName" => "Solana",
+        //                        "withdrawFee" => "2.0",
+        //                        "allowDeposit" => true,
+        //                        "allowWithdraw" => true,
+        //                        "minDepositAmt" => "0.01",
+        //                        "minWithdrawal" => "4.0",
+        //                        "numConfirmations" => 1
+        //                    ),
+        //                    ...
+        //                )
+        //            ),
         //         )
-        //     }
+        //    }
         //
-        $marginPromise = $this->v1PublicGetMarginAssets ($params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "displayName" => "BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         )
-        //     }
-        //
-        $cashPromise = $this->v1PublicGetCashAssets ($params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "displayName" => "LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""  // hideFromWalletTx
-        //             }
-        //         )
-        //     }
-        //
-        list($assets, $margin, $cash) = array( $assetsPromise, $marginPromise, $cashPromise );
-        $assetsData = $this->safe_list($assets, 'data', array());
-        $marginData = $this->safe_list($margin, 'data', array());
-        $cashData = $this->safe_list($cash, 'data', array());
-        $assetsById = $this->index_by($assetsData, 'assetCode');
-        $marginById = $this->index_by($marginData, 'assetCode');
-        $cashById = $this->index_by($cashData, 'assetCode');
-        $dataById = $this->deep_extend($assetsById, $marginById, $cashById);
-        $ids = is_array($dataById) ? array_keys($dataById) : array();
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $this->safe_string($ids, $i);
-            $currency = $dataById[$id];
+        for ($i = 0; $i < count($data); $i++) {
+            $currency = $data[$i];
+            $id = $this->safe_string($currency, 'assetCode');
             $code = $this->safe_currency_code($id);
-            $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
-            $precision = $this->parse_number($this->parse_precision($scale));
-            $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
-            $status = $this->safe_string($currency, 'status');
-            $statusCode = $this->safe_string($currency, 'statusCode');
-            $active = ($status === 'Normal');
-            $depositEnabled = null;
-            $withdrawEnabled = null;
-            if ($status === 'Delisted' || $statusCode === 'hideFromWalletTx') {
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-            } elseif ($status === 'Normal') {
-                $depositEnabled = true;
-                $withdrawEnabled = true;
-            } elseif ($status === 'NoTransaction' || $statusCode === 'NoTransaction') {
-                $depositEnabled = true;
-                $withdrawEnabled = false;
-            } elseif ($status === 'NoDeposit') {
-                $depositEnabled = false;
-                $withdrawEnabled = true;
+            $chains = $this->safe_list($currency, 'blockChain', array());
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'nativeScale')));
+            $networks = array();
+            for ($j = 0; $j < count($chains); $j++) {
+                $networkEtnry = $chains[$j];
+                $networkId = $this->safe_string($networkEtnry, 'chainName');
+                $networkCode = $this->network_code_to_id($networkId);
+                $networks[$networkCode] = array(
+                    'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
+                    'active' => null,
+                    'withdraw' => $this->safe_bool($networkEtnry, 'allowWithdraw'),
+                    'deposit' => $this->safe_bool($networkEtnry, 'allowDeposit'),
+                    'precision' => $precision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEtnry, 'minWithdrawal'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($networkEtnry, 'minDepositAmt'),
+                            'max' => null,
+                        ),
+                    ),
+                );
             }
-            $marginInside = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
-            $result[$code] = array(
+            // todo type => if (chainsLength === 0 && (str_ends_with(assetName, ' Staking') || mb_strpos(assetName, ' Reward ') !== false || mb_strpos(assetName, 'Slot Auction') !== false || mb_strpos(assetName, ' Freeze Asset') !== false))
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'type' => null,
-                'margin' => $marginInside,
+                'margin' => null,
                 'name' => $this->safe_string($currency, 'assetName'),
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => $fee,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $precision,
+                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -599,8 +570,8 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => array(),
-            );
+                'networks' => $networks,
+            ));
         }
         return $result;
     }
@@ -609,8 +580,15 @@ class ascendex extends Exchange {
         /**
          * retrieves data on all markets for ascendex
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
+        $spotPromise = $this->fetch_spot_markets($params);
+        $contractPromise = $this->fetch_contract_markets($params);
+        list($spotMarkets, $contractMarkets) = array( $spotPromise, $contractPromise );
+        return $this->array_concat($spotMarkets, $contractMarkets);
+    }
+
+    public function fetch_spot_markets($params = array ()): array {
         $productsPromise = $this->v1PublicGetProducts ($params);
         //
         //     {
@@ -662,7 +640,95 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $perpetualsPromise = $this->v2PublicGetFuturesContract ($params);
+        list($products, $cash) = array( $productsPromise, $cashPromise );
+        $productsData = $this->safe_list($products, 'data', array());
+        $productsById = $this->index_by($productsData, 'symbol');
+        $cashData = $this->safe_list($cash, 'data', array());
+        $cashAndPerpetualsById = $this->index_by($cashData, 'symbol');
+        $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
+        $ids = is_array($dataById) ? array_keys($dataById) : array();
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            if (mb_strpos($id, '-PERP') !== false) {
+                continue; // skip perpetuals, endpoint returns them
+            }
+            $market = $dataById[$id];
+            $status = $this->safe_string($market, 'status');
+            $domain = $this->safe_string($market, 'domain');
+            $active = false;
+            if ((($status === 'Normal') || ($status === 'InternalTrading')) && ($domain !== 'LeveragedETF')) {
+                $active = true;
+            }
+            $minQty = $this->safe_number($market, 'minQty');
+            $maxQty = $this->safe_number($market, 'maxQty');
+            $minPrice = $this->safe_number($market, 'tickSize');
+            $maxPrice = null;
+            $underlying = $this->safe_string_2($market, 'underlying', 'symbol');
+            $parts = explode('/', $underlying);
+            $baseId = $this->safe_string($parts, 0);
+            $quoteId = $this->safe_string($parts, 1);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $fee = $this->safe_number($market, 'commissionReserveRate');
+            $marginTradable = $this->safe_bool($market, 'marginTradable', false);
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $base . '/' . $quote,
+                'base' => $base,
+                'baseId' => $baseId,
+                'quote' => $quote,
+                'quoteId' => $quoteId,
+                'settle' => null,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => $marginTradable,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $active,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $fee,
+                'maker' => $fee,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $minQty,
+                        'max' => $maxQty,
+                    ),
+                    'price' => array(
+                        'min' => $minPrice,
+                        'max' => $maxPrice,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minNotional'),
+                        'max' => $this->safe_number($market, 'maxNotional'),
+                    ),
+                ),
+                'created' => $this->safe_integer($market, 'tradingStartTime'),
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_contract_markets($params = array ()): array {
+        $contracts = $this->v2PublicGetFuturesContract ($params);
         //
         //    {
         //        "code" => 0,
@@ -675,9 +741,9 @@ class ascendex extends Exchange {
         //                "underlying" => "BTC/USDT",
         //                "tradingStartTime" => 1579701600000,
         //                "priceFilter" => array(
-        //                    "minPrice" => "1",
+        //                    "minPrice" => "0.1",
         //                    "maxPrice" => "1000000",
-        //                    "tickSize" => "1"
+        //                    "tickSize" => "0.1"
         //                ),
         //                "lotSizeFilter" => array(
         //                    "minQty" => "0.0001",
@@ -700,52 +766,25 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
-        list($products, $cash, $perpetuals) = array( $productsPromise, $cashPromise, $perpetualsPromise );
-        $productsData = $this->safe_list($products, 'data', array());
-        $productsById = $this->index_by($productsData, 'symbol');
-        $cashData = $this->safe_list($cash, 'data', array());
-        $perpetualsData = $this->safe_list($perpetuals, 'data', array());
-        $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
-        $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
-        $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
-        $ids = is_array($dataById) ? array_keys($dataById) : array();
+        $data = $this->safe_list($contracts, 'data', array());
         $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $market = $dataById[$id];
-            $settleId = $this->safe_string($market, 'settlementAsset');
-            $settle = $this->safe_currency_code($settleId);
-            $status = $this->safe_string($market, 'status');
-            $domain = $this->safe_string($market, 'domain');
-            $active = false;
-            if ((($status === 'Normal') || ($status === 'InternalTrading')) && ($domain !== 'LeveragedETF')) {
-                $active = true;
-            }
-            $spot = $settle === null;
-            $swap = !$spot;
-            $linear = $swap ? true : null;
-            $minQty = $this->safe_number($market, 'minQty');
-            $maxQty = $this->safe_number($market, 'maxQty');
-            $minPrice = $this->safe_number($market, 'tickSize');
-            $maxPrice = null;
-            $underlying = $this->safe_string_2($market, 'underlying', 'symbol');
+        for ($i = 0; $i < count($data); $i++) {
+            $market = $data[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $underlying = $this->safe_string($market, 'underlying');
             $parts = explode('/', $underlying);
             $baseId = $this->safe_string($parts, 0);
-            $quoteId = $this->safe_string($parts, 1);
             $base = $this->safe_currency_code($baseId);
+            $quoteId = $this->safe_string($parts, 1);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            if ($swap) {
-                $lotSizeFilter = $this->safe_dict($market, 'lotSizeFilter');
-                $minQty = $this->safe_number($lotSizeFilter, 'minQty');
-                $maxQty = $this->safe_number($lotSizeFilter, 'maxQty');
-                $priceFilter = $this->safe_dict($market, 'priceFilter');
-                $minPrice = $this->safe_number($priceFilter, 'minPrice');
-                $maxPrice = $this->safe_number($priceFilter, 'maxPrice');
-                $symbol = $base . '/' . $quote . ':' . $settle;
-            }
+            $settleId = $this->safe_string($market, 'settlementAsset');
+            $settle = $this->safe_currency_code($settleId);
+            $linear = $settle === $quote;
+            $inverse = $settle === $base;
+            $symbol = $base . '/' . $quote . ':' . $settle;
+            $priceFilter = $this->safe_dict($market, 'priceFilter');
+            $lotSizeFilter = $this->safe_dict($market, 'lotSizeFilter');
             $fee = $this->safe_number($market, 'commissionReserveRate');
-            $marginTradable = $this->safe_bool($market, 'marginTradable', false);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -755,26 +794,26 @@ class ascendex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
-                'type' => $swap ? 'swap' : 'spot',
-                'spot' => $spot,
-                'margin' => $spot ? $marginTradable : null,
-                'swap' => $swap,
+                'type' => 'swap',
+                'spot' => false,
+                'margin' => null,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
-                'active' => $active,
-                'contract' => $swap,
+                'active' => $this->safe_string($market, 'status') === 'Normal',
+                'contract' => true,
                 'linear' => $linear,
-                'inverse' => $swap ? !$linear : null,
+                'inverse' => $inverse,
                 'taker' => $fee,
                 'maker' => $fee,
-                'contractSize' => $swap ? $this->parse_number('1') : null,
+                'contractSize' => $this->parse_number('1'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
-                    'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($lotSizeFilter, 'lotSize'),
+                    'price' => $this->safe_number($priceFilter, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -782,12 +821,12 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $minQty,
-                        'max' => $maxQty,
+                        'min' => $this->safe_number($lotSizeFilter, 'minQty'),
+                        'max' => $this->safe_number($lotSizeFilter, 'maxQty'),
                     ),
                     'price' => array(
-                        'min' => $minPrice,
-                        'max' => $maxPrice,
+                        'min' => $this->safe_number($priceFilter, 'minPrice'),
+                        'max' => $this->safe_number($priceFilter, 'maxPrice'),
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minNotional'),
@@ -1393,6 +1432,8 @@ class ascendex extends Exchange {
         //         "timestamp" => 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac" => "FUTURES",
         //         "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1400,7 +1441,7 @@ class ascendex extends Exchange {
         //         "orderId" => "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum" => -1,
         //         "orderType" => "Limit",
-        //         "execInst" => "NULL_VAL",
+        //         "execInst" => "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side" => "Buy",
         //         "symbol" => "BTC-PERP",
         //         "price" => "30000",
@@ -1489,14 +1530,14 @@ class ascendex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '/');
-        $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
+        $timestamp = $this->safe_integer_n($order, array( 'timestamp', 'sendingTime', 'time' ));
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
         if ($timestamp === null) {
             $timestamp = $lastTradeTimestamp;
         }
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
-        $average = $this->safe_string($order, 'avgPx');
+        $average = $this->safe_string_2($order, 'avgPx', 'avgFilledPx');
         $filled = $this->safe_string_n($order, array( 'cumFilledQty', 'cumQty', 'fillQty' ));
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
@@ -1528,12 +1569,12 @@ class ascendex extends Exchange {
         }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         $reduceOnly = null;
-        $execInst = $this->safe_string($order, 'execInst');
-        if ($execInst === 'reduceOnly') {
+        $execInst = $this->safe_string_lower($order, 'execInst');
+        if ($execInst === 'reduceonly') {
             $reduceOnly = true;
         }
         $postOnly = null;
-        if ($execInst === 'Post') {
+        if ($execInst === 'post') {
             $postOnly = true;
         }
         return $this->safe_order(array(
@@ -2287,8 +2328,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
-        if (!$isArray) {
+        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_list($data, 'data', array());
         }
         return $this->parse_orders($data, $market, $since, $limit);
@@ -2481,9 +2521,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $this->safe_order(array(
+        return array( $this->safe_order(array(
             'info' => $response,
-        ));
+        )) );
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -3031,7 +3071,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

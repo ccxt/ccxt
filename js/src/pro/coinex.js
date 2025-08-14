@@ -1308,7 +1308,7 @@ export default class coinex extends coinexRest {
         const method = this.safeString(message, 'method');
         const error = this.safeString(message, 'message');
         if (error !== undefined) {
-            this.handleErrors(undefined, undefined, client.url, method, undefined, this.json(error), message, undefined, undefined);
+            this.handleErrors(1, '', client.url, method, {}, this.json(error), message, {}, {});
         }
         const handlers = {
             'state.update': this.handleTicker,

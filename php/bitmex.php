@@ -86,6 +86,7 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'index' => true,
                 'reduceMargin' => null,
                 'sandbox' => true,
                 'setLeverage' => true,
@@ -413,8 +414,8 @@ class bitmex extends Exchange {
         //            // "mediumPrecision" => "8",
         //            // "shorterPrecision" => "4",
         //            // "symbol" => "₿",
-        //            // "weight" => "1",
         //            // "tickLog" => "0",
+        //            // "weight" => "1",
         //            "enabled" => true,
         //            "isMarginCurrency" => true,
         //            "minDepositAmount" => "10000",
@@ -763,6 +764,12 @@ class bitmex extends Exchange {
         $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
         $initMargin = $this->safe_string($market, 'initMargin', '1');
         $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+        // subtype should be null for $spot markets
+        if ($spot) {
+            $isInverse = null;
+            $isQuanto = null;
+            $linear = null;
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -812,7 +819,7 @@ class bitmex extends Exchange {
                     'max' => $positionIsQuote ? $maxOrderQty : null,
                 ),
             ),
-            'created' => $this->parse8601($this->safe_string($market, 'listing')),
+            'created' => null, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info' => $market,
         );
     }
@@ -1995,7 +2002,7 @@ class bitmex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
-         * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
+         * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'ascending' or 'descending'
          * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
@@ -2024,7 +2031,7 @@ class bitmex extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         if ($isTriggerOrder || $isTrailingAmountOrder) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $triggerAbove = ($triggerDirection === 'above');
+            $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
             if (($type === 'limit') || ($type === 'market')) {
                 $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
             }
@@ -2078,7 +2085,7 @@ class bitmex extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         if ($isTrailingAmountOrder) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $triggerAbove = ($triggerDirection === 'above');
+            $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
             if (($type === 'limit') || ($type === 'market')) {
                 $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
             }
@@ -2556,7 +2563,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2749,7 +2756,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3029,6 +3036,7 @@ class bitmex extends Exchange {
             'contracts' => null,
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'side'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => null,

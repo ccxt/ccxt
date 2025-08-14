@@ -38,6 +38,17 @@ public partial class bybit : ccxt.bybit
                 { "watchTrades", true },
                 { "watchPositions", true },
                 { "watchTradesForSymbols", true },
+                { "unWatchTicker", true },
+                { "unWatchTickers", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOHLCVForSymbols", true },
+                { "unWatchOrderBook", true },
+                { "unWatchOrderBookForSymbols", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchMyTrades", true },
+                { "unWatchOrders", true },
+                { "unWatchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -1412,8 +1423,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         if (isTrue(!isEqual(symbol, null)))
         {
-            symbol = this.symbol(symbol);
-            subHash = add(subHash, add(":", symbol));
+            throw new NotSupported ((string)add(this.id, " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")) ;
         }
         object url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
@@ -1720,6 +1730,32 @@ public partial class bybit : ccxt.bybit
 
     /**
      * @method
+     * @name bybit#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object method = "watchPositions";
+        object messageHash = "unsubscribe:positions";
+        object subHash = "positions";
+        if (!isTrue(this.isEmpty(symbols)))
+        {
+            throw new NotSupported ((string)add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
+        }
+        object url = await this.getUrlByMarketType(null, true, method, parameters);
+        await this.authenticate(url);
+        object topics = new List<object>() {"position"};
+        return await this.unWatchTopics(url, "positions", symbols, new List<object>() {messageHash}, new List<object>() {subHash}, topics, parameters);
+    }
+
+    /**
+     * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
@@ -1852,6 +1888,7 @@ public partial class bybit : ccxt.bybit
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
+            { "side", this.safeStringLower(liquidation, "side", "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -1907,7 +1944,7 @@ public partial class bybit : ccxt.bybit
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1916,8 +1953,7 @@ public partial class bybit : ccxt.bybit
         object subHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
-            symbol = this.symbol(symbol);
-            subHash = add(subHash, add(":", symbol));
+            throw new NotSupported ((string)add(this.id, " unWatchOrders() does not support a symbol parameter, you must unwatch all orders")) ;
         }
         object url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
@@ -2060,14 +2096,12 @@ public partial class bybit : ccxt.bybit
         object symbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
-            object parsed = null;
-            if (isTrue(isSpot))
-            {
-                parsed = this.parseWsSpotOrder(getValue(rawOrders, i));
-            } else
-            {
-                parsed = this.parseOrder(getValue(rawOrders, i));
-            }
+            object parsed = this.parseOrder(getValue(rawOrders, i));
+            // if (isSpot) {
+            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
+            // } else {
+            //     parsed = this.parseOrder (rawOrders[i]);
+            // }
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)symbol] = true;
             callDynamically(orders, "append", new object[] {parsed});
@@ -2080,148 +2114,6 @@ public partial class bybit : ccxt.bybit
         }
         object messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
-    }
-
-    public virtual object parseWsSpotOrder(object order, object market = null)
-    {
-        //
-        //    {
-        //        "e": "executionReport",
-        //        "E": "1653297251061", // timestamp
-        //        "s": "LTCUSDT", // symbol
-        //        "c": "1653297250740", // user id
-        //        "S": "SELL", // side
-        //        "o": "MARKET_OF_BASE", // order type
-        //        "f": "GTC", // time in force
-        //        "q": "0.16233", // quantity
-        //        "p": "0", // price
-        //        "X": "NEW", // status
-        //        "i": "1162336018974750208", // order id
-        //        "M": "0",
-        //        "l": "0", // last filled
-        //        "z": "0", // total filled
-        //        "L": "0", // last traded price
-        //        "n": "0", // trading fee
-        //        "N": '', // fee asset
-        //        "u": true,
-        //        "w": true,
-        //        "m": false, // is limit_maker
-        //        "O": "1653297251042", // order creation
-        //        "Z": "0", // total filled
-        //        "A": "0", // account id
-        //        "C": false, // is close
-        //        "v": "0", // leverage
-        //        "d": "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        object id = this.safeString2(order, "i", "orderId");
-        object marketId = this.safeString2(order, "s", "symbol");
-        object symbol = this.safeSymbol(marketId, market, null, "spot");
-        object timestamp = this.safeInteger2(order, "O", "createdTime");
-        object price = this.safeString2(order, "p", "price");
-        if (isTrue(isEqual(price, "0")))
-        {
-            price = null; // market orders
-        }
-        object filled = this.safeString2(order, "z", "cumExecQty");
-        object status = this.parseOrderStatus(this.safeString2(order, "X", "orderStatus"));
-        object side = this.safeStringLower2(order, "S", "side");
-        object lastTradeTimestamp = this.safeString2(order, "E", "updatedTime");
-        object timeInForce = this.safeString2(order, "f", "timeInForce");
-        object amount = null;
-        object cost = this.safeString2(order, "Z", "cumExecValue");
-        object type = this.safeStringLower2(order, "o", "orderType");
-        if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))))
-        {
-            type = "market";
-        }
-        if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
-        {
-            amount = filled;
-        } else
-        {
-            amount = this.safeString2(order, "orderQty", "qty");
-        }
-        object fee = null;
-        object feeCost = this.safeString2(order, "n", "cumExecFee");
-        if (isTrue(isTrue(!isEqual(feeCost, null)) && isTrue(!isEqual(feeCost, "0"))))
-        {
-            object feeCurrencyId = this.safeString(order, "N");
-            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = new Dictionary<string, object>() {
-                { "cost", feeCost },
-                { "currency", feeCurrencyCode },
-            };
-        }
-        object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", order },
-            { "id", id },
-            { "clientOrderId", this.safeString2(order, "c", "orderLinkId") },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", symbol },
-            { "type", type },
-            { "timeInForce", timeInForce },
-            { "postOnly", null },
-            { "side", side },
-            { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
-            { "takeProfitPrice", this.safeString(order, "takeProfit") },
-            { "stopLossPrice", this.safeString(order, "stopLoss") },
-            { "reduceOnly", this.safeValue(order, "reduceOnly") },
-            { "amount", amount },
-            { "cost", cost },
-            { "average", this.safeString(order, "avgPrice") },
-            { "filled", filled },
-            { "remaining", null },
-            { "status", status },
-            { "fee", fee },
-        }, market);
     }
 
     /**
@@ -2889,7 +2781,8 @@ public partial class bybit : ccxt.bybit
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+                    object usePrefix = isTrue((isEqual(subHash, "orders"))) || isTrue((isEqual(subHash, "myTrades")));
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
             }

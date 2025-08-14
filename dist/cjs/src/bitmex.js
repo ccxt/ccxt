@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmex$1 = require('./abstract/bitmex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class bitmex
  * @augments Exchange
  */
-class bitmex extends bitmex$1 {
+class bitmex extends bitmex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
@@ -90,6 +92,7 @@ class bitmex extends bitmex$1 {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'index': true,
                 'reduceMargin': undefined,
                 'sandbox': true,
                 'setLeverage': true,
@@ -416,8 +419,8 @@ class bitmex extends bitmex$1 {
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -730,9 +733,9 @@ class bitmex extends bitmex$1 {
         const quote = this.safeCurrencyCode(quoteId);
         const contract = swap || future;
         let contractSize = undefined;
-        const isInverse = this.safeValue(market, 'isInverse'); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let isInverse = this.safeValue(market, 'isInverse'); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        let isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        let linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString(market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry = undefined;
@@ -767,6 +770,12 @@ class bitmex extends bitmex$1 {
         const maxOrderQty = this.safeNumber(market, 'maxOrderQty');
         const initMargin = this.safeString(market, 'initMargin', '1');
         const maxLeverage = this.parseNumber(Precise["default"].stringDiv('1', initMargin));
+        // subtype should be undefined for spot markets
+        if (spot) {
+            isInverse = undefined;
+            isQuanto = undefined;
+            linear = undefined;
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -816,7 +825,7 @@ class bitmex extends bitmex$1 {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': this.parse8601(this.safeString(market, 'listing')),
+            'created': undefined,
             'info': market,
         };
     }
@@ -1980,7 +1989,7 @@ class bitmex extends bitmex$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -2010,7 +2019,7 @@ class bitmex extends bitmex$1 {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
@@ -2067,7 +2076,7 @@ class bitmex extends bitmex$1 {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
@@ -3007,6 +3016,7 @@ class bitmex extends bitmex$1 {
             'contracts': undefined,
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,
@@ -3076,4 +3086,4 @@ class bitmex extends bitmex$1 {
     }
 }
 
-module.exports = bitmex;
+exports["default"] = bitmex;

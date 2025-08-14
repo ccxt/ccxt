@@ -759,6 +759,7 @@ class bitfinex extends Exchange {
                 'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
                 'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745,
                 'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+                'pub:info:tx:status', // maps withdrawal/deposit statuses, coins => 1 = enabled, 0 = maintenance
             );
             $config = implode(',', $labels);
             $request = array(
@@ -841,42 +842,85 @@ class bitfinex extends Exchange {
             //             ["ABS",[0,131.3]],
             //             ["ADA",[0,0.3]],
             //         ],
+            //         // deposit/withdrawal data
+            //         [
+            //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+            //           ...
+            //         ]
             //     ]
             //
             $indexed = array(
-                'sym' => $this->index_by($this->safe_value($response, 1, array()), 0),
-                'label' => $this->index_by($this->safe_value($response, 2, array()), 0),
-                'unit' => $this->index_by($this->safe_value($response, 3, array()), 0),
-                'undl' => $this->index_by($this->safe_value($response, 4, array()), 0),
-                'pool' => $this->index_by($this->safe_value($response, 5, array()), 0),
-                'explorer' => $this->index_by($this->safe_value($response, 6, array()), 0),
-                'fees' => $this->index_by($this->safe_value($response, 7, array()), 0),
+                'sym' => $this->index_by($this->safe_list($response, 1, array()), 0),
+                'label' => $this->index_by($this->safe_list($response, 2, array()), 0),
+                'unit' => $this->index_by($this->safe_list($response, 3, array()), 0),
+                'undl' => $this->index_by($this->safe_list($response, 4, array()), 0),
+                'pool' => $this->index_by($this->safe_list($response, 5, array()), 0),
+                'explorer' => $this->index_by($this->safe_list($response, 6, array()), 0),
+                'fees' => $this->index_by($this->safe_list($response, 7, array()), 0),
+                'networks' => $this->safe_list($response, 8, array()),
+                'statuses' => $this->index_by($this->safe_list($response, 9, array()), 0),
             );
-            $ids = $this->safe_value($response, 0, array());
+            $indexedNetworks = array();
+            for ($i = 0; $i < count($indexed['networks']); $i++) {
+                $networkObj = $indexed['networks'][$i];
+                $networkId = $this->safe_string($networkObj, 0);
+                $valuesList = $this->safe_list($networkObj, 1);
+                $networkName = $this->safe_string($valuesList, 0);
+                // for GOlang transpiler, do with "safe" method
+                $networksList = $this->safe_list($indexedNetworks, $networkName, array());
+                $networksList[] = $networkId;
+                $indexedNetworks[$networkName] = $networksList;
+            }
+            $ids = $this->safe_list($response, 0, array());
             $result = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
-                if (mb_strpos($id, 'F0') !== false) {
+                if (str_ends_with($id, 'F0')) {
                     // we get a lot of F0 currencies, skip those
                     continue;
                 }
                 $code = $this->safe_currency_code($id);
-                $label = $this->safe_value($indexed['label'], $id, array());
+                $label = $this->safe_list($indexed['label'], $id, array());
                 $name = $this->safe_string($label, 1);
-                $pool = $this->safe_value($indexed['pool'], $id, array());
+                $pool = $this->safe_list($indexed['pool'], $id, array());
                 $rawType = $this->safe_string($pool, 1);
                 $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
                 $type = null;
                 if ($isCryptoCoin) {
                     $type = 'crypto';
                 }
-                $feeValues = $this->safe_value($indexed['fees'], $id, array());
-                $fees = $this->safe_value($feeValues, 1, array());
+                $feeValues = $this->safe_list($indexed['fees'], $id, array());
+                $fees = $this->safe_list($feeValues, 1, array());
                 $fee = $this->safe_number($fees, 1);
-                $undl = $this->safe_value($indexed['undl'], $id, array());
+                $undl = $this->safe_list($indexed['undl'], $id, array());
                 $precision = '8'; // default $precision, todo => fix "magic constants"
                 $fid = 'f' . $id;
-                $result[$code] = array(
+                $dwStatuses = $this->safe_list($indexed['statuses'], $id, array());
+                $depositEnabled = $this->safe_integer($dwStatuses, 1) === 1;
+                $withdrawEnabled = $this->safe_integer($dwStatuses, 2) === 1;
+                $networks = array();
+                $netwokIds = $this->safe_list($indexedNetworks, $id, array());
+                for ($j = 0; $j < count($netwokIds); $j++) {
+                    $networkId = $netwokIds[$j];
+                    $network = $this->network_id_to_code($networkId);
+                    $networks[$network] = array(
+                        'info' => $networkId,
+                        'id' => strtolower($networkId),
+                        'network' => $networkId,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $fid,
                     'uppercaseId' => $id,
                     'code' => $code,
@@ -884,8 +928,8 @@ class bitfinex extends Exchange {
                     'type' => $type,
                     'name' => $name,
                     'active' => true,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'fee' => $fee,
                     'precision' => intval($precision),
                     'limits' => array(
@@ -898,40 +942,8 @@ class bitfinex extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
-                );
-                $networks = array();
-                $currencyNetworks = $this->safe_value($response, 8, array());
-                $cleanId = str_replace('F0', '', $id);
-                for ($j = 0; $j < count($currencyNetworks); $j++) {
-                    $pair = $currencyNetworks[$j];
-                    $networkId = $this->safe_string($pair, 0);
-                    $currencyId = $this->safe_string($this->safe_value($pair, 1, array()), 0);
-                    if ($currencyId === $cleanId) {
-                        $network = $this->network_id_to_code($networkId);
-                        $networks[$network] = array(
-                            'info' => $networkId,
-                            'id' => strtolower($networkId),
-                            'network' => $networkId,
-                            'active' => null,
-                            'deposit' => null,
-                            'withdraw' => null,
-                            'fee' => null,
-                            'precision' => null,
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => null,
-                                    'max' => null,
-                                ),
-                            ),
-                        );
-                    }
-                }
-                $keysNetworks = is_array($networks) ? array_keys($networks) : array();
-                $networksLength = count($keysNetworks);
-                if ($networksLength > 0) {
-                    $result[$code]['networks'] = $networks;
-                }
+                    'networks' => $networks,
+                ));
             }
             return $result;
         }) ();
@@ -1189,9 +1201,8 @@ class bitfinex extends Exchange {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result' => array(
-        //            SYMBOL,
+        //    array(
+        //            SYMBOL, // this index is not present in singular-$ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1202,15 +1213,13 @@ class bitfinex extends Exchange {
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        )
-        //    }
+        //    )
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result' => array(
-        //            SYMBOL,
+        //    array(
+        //            SYMBOL, // this index is not present in singular-$ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1227,48 +1236,86 @@ class bitfinex extends Exchange {
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        )
-        //    }
+        //     )
         //
-        $result = $this->safe_list($ticker, 'result');
+        $length = count($ticker);
+        $isFetchTicker = ($length === 10) || ($length === 16);
+        $symbol = null;
+        $minusIndex = 0;
+        $isFundingCurrency = false;
+        if ($isFetchTicker) {
+            $minusIndex = 1;
+            $isFundingCurrency = ($length === 16);
+        } else {
+            $marketId = $this->safe_string($ticker, 0);
+            $market = $this->safe_market($marketId, $market);
+            $isFundingCurrency = ($length === 17);
+        }
         $symbol = $this->safe_symbol(null, $market);
-        $length = count($result);
-        $last = $this->safe_string($result, $length - 4);
-        $percentage = $this->safe_string($result, $length - 5);
+        $last = null;
+        $bid = null;
+        $ask = null;
+        $change = null;
+        $percentage = null;
+        $volume = null;
+        $high = null;
+        $low = null;
+        if ($isFundingCurrency) {
+            // per api docs, they are different array type
+            $last = $this->safe_string($ticker, 10 - $minusIndex);
+            $bid = $this->safe_string($ticker, 2 - $minusIndex);
+            $ask = $this->safe_string($ticker, 5 - $minusIndex);
+            $change = $this->safe_string($ticker, 8 - $minusIndex);
+            $percentage = $this->safe_string($ticker, 9 - $minusIndex);
+            $volume = $this->safe_string($ticker, 11 - $minusIndex);
+            $high = $this->safe_string($ticker, 12 - $minusIndex);
+            $low = $this->safe_string($ticker, 13 - $minusIndex);
+        } else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            $last = $this->safe_string($ticker, 7 - $minusIndex);
+            $bid = $this->safe_string($ticker, 1 - $minusIndex);
+            $ask = $this->safe_string($ticker, 3 - $minusIndex);
+            $change = $this->safe_string($ticker, 5 - $minusIndex);
+            $percentage = $this->safe_string($ticker, 6 - $minusIndex);
+            $percentage = Precise::string_mul($percentage, '100');
+            $volume = $this->safe_string($ticker, 8 - $minusIndex);
+            $high = $this->safe_string($ticker, 9 - $minusIndex);
+            $low = $this->safe_string($ticker, 10 - $minusIndex);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_string($result, $length - 2),
-            'low' => $this->safe_string($result, $length - 1),
-            'bid' => $this->safe_string($result, $length - 10),
-            'bidVolume' => $this->safe_string($result, $length - 9),
-            'ask' => $this->safe_string($result, $length - 8),
-            'askVolume' => $this->safe_string($result, $length - 7),
+            'high' => $high,
+            'low' => $low,
+            'bid' => $bid,
+            'bidVolume' => null,
+            'ask' => $ask,
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($result, $length - 6),
-            'percentage' => Precise::string_mul($percentage, '100'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_string($result, $length - 3),
+            'baseVolume' => $volume,
             'quoteVolume' => null,
-            'info' => $result,
+            'info' => $ticker,
         ), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              *
              * @see https://docs.bitfinex.com/reference/rest-public-$tickers
              *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1319,15 +1366,7 @@ class bitfinex extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $tickers[$i];
-                $marketId = $this->safe_string($ticker, 0);
-                $market = $this->safe_market($marketId);
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker(array( 'result' => $ticker ), $market);
-            }
-            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+            return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
 
@@ -1348,8 +1387,7 @@ class bitfinex extends Exchange {
                 'symbol' => $market['id'],
             );
             $ticker = Async\await($this->publicGetTickerSymbol ($this->extend($request, $params)));
-            $result = array( 'result' => $ticker );
-            return $this->parse_ticker($result, $market);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
@@ -2766,7 +2804,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3746,12 +3784,15 @@ class bitfinex extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseValue = Precise::string_mul($contracts, $contractSize);
         $price = $this->safe_string($entry, 11);
+        $sideFlag = $this->safe_integer($entry, 8);
+        $side = ($sideFlag === 1) ? 'buy' : 'sell';
         return $this->safe_liquidation(array(
             'info' => $entry,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $this->parse_number($contractSize),
             'price' => $this->parse_number($price),
+            'side' => $side,
             'baseValue' => $this->parse_number($baseValue),
             'quoteValue' => $this->parse_number(Precise::string_mul($baseValue, $price)),
             'timestamp' => $timestamp,

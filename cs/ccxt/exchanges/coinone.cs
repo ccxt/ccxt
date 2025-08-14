@@ -22,18 +22,28 @@ public partial class coinone : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createMarketOrder", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -42,20 +52,38 @@ public partial class coinone : Exchange
                 { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
@@ -66,11 +94,17 @@ public partial class coinone : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
+                { "fetchVolatilityHistory", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "ws", true },
@@ -225,18 +259,16 @@ public partial class coinone : Exchange
         {
             object entry = getValue(currencies, i);
             object id = this.safeString(entry, "symbol");
-            object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
-            object withdrawStatus = this.safeString(entry, "withdraw_status", "");
-            object depositStatus = this.safeString(entry, "deposit_status", "");
-            object isWithdrawEnabled = isEqual(withdrawStatus, "normal");
-            object isDepositEnabled = isEqual(depositStatus, "normal");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isWithdrawEnabled = isEqual(this.safeString(entry, "withdraw_status", ""), "normal");
+            object isDepositEnabled = isEqual(this.safeString(entry, "deposit_status", ""), "normal");
+            object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", entry },
-                { "name", name },
-                { "active", isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled) },
+                { "name", this.safeString(entry, "name") },
+                { "active", null },
                 { "deposit", isDepositEnabled },
                 { "withdraw", isWithdrawEnabled },
                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
@@ -252,8 +284,8 @@ public partial class coinone : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-            };
+                { "type", type },
+            });
         }
         return result;
     }

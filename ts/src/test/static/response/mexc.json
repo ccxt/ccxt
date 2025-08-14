@@ -515,7 +515,7 @@
                 ],
                 "parsedResponse": [
                     {
-                        "id": "1710327661000-BTCUSDT-buy-0.000112-73238.7-taker",
+                        "id": "1710327661000-buy-0.000112-73238.7-taker",
                         "order": null,
                         "timestamp": 1710327661000,
                         "datetime": "2024-03-13T11:01:01.000Z",
