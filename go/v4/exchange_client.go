@@ -133,12 +133,7 @@ func (this *Client) Close() error {
 		this.IsConnected = false
 		
 		// Signal disconnection
-		select {
-		case <-this.Disconnected.(*Future).result:
-			// Already closed
-		default:
-			close(this.Disconnected.(*Future).result)
-		}
+		this.Disconnected.(*Future).Resolve(true)
 		
 		return err
 	}
@@ -348,7 +343,7 @@ func (this *Client) SetPingInterval() {
 				select {
 				case <-ticker.C:
 					this.OnPingInterval()
-				case <-this.Disconnected.(*Future).result: // Exit when client is disconnected
+				case <-this.Disconnected.(*Future).Await(): // Exit when client is disconnected
 					return
 				}
 			}
@@ -414,12 +409,7 @@ func (this *Client) OnOpen() {
 	this.ConnectionEstablished = Milliseconds()
 	this.IsConnected = true
 	// Signal connected channel
-	select {
-	case <-this.Connected.(*Future).result:
-		// Already closed
-	default:
-		close(this.Connected.(*Future).result)
-	}
+	this.Connected.(*Future).Resolve(true)
 	this.ClearConnectionTimeout()
 	this.SetPingInterval()
 	if this.OnConnectedCallback != nil {
@@ -502,10 +492,10 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 		err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 		if err != nil {
 			future.Reject(err)
-			ch <- future.err
+			ch <- err
 		} else {
 			future.Resolve(true)
-			ch <- future.result
+			ch <- true
 		}
 		this.ConnectionMu.Unlock()
 	}()

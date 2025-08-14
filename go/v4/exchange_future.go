@@ -2,7 +2,6 @@ package ccxt
 
 import (
 	"sync"
-	"time"
 )
 
 // Future is a one-shot promise
@@ -31,12 +30,13 @@ func ToGetsLimit(v interface{}) GetsLimit {
 
 
 type Future struct {
-    result chan interface{}
-    err    chan interface{}
-    resolved bool
-    resolvedValue interface{}
-    resolvedError interface{}
-    mu sync.Mutex
+	result        chan interface{}
+	err           chan interface{}
+	resolved      bool
+	resolvedValue interface{}
+	resolvedError interface{}
+	mu            sync.Mutex
+	once          sync.Once
 }
 
 // Create new Future
@@ -49,110 +49,120 @@ func NewFuture() *Future {
 
 // Resolve asynchronously with a value
 func (f *Future) Resolve(args ...interface{}) {
-    var value interface{}
-    if (len(args) == 0) {
-        value = nil
-    } else {
-        value = args[0]
-    }
-    
-    f.mu.Lock()
-    if f.resolved {
-        // Already resolved, ignore
-        f.mu.Unlock()
-        return
-    }
-    f.mu.Unlock()
-    
-    go func() {
-        time.Sleep(0)
-        f.result <- value
-    }()
+	var value interface{}
+	if len(args) == 0 {
+		value = nil
+	} else {
+		value = args[0]
+	}
+	f.once.Do(func() {
+		f.mu.Lock()
+		f.resolved = true
+		f.resolvedValue = value
+		f.resolvedError = nil
+		f.mu.Unlock()
+
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					// Channel is closed, but that's okay since we're using sync.Once
+					// and the future is already marked as resolved
+				}
+			}()
+			select {
+			case f.result <- value:
+			default:
+			}
+		}()
+	})
 }
 
 // Reject asynchronously with an error
 func (f *Future) Reject(reason interface{}) {
-    f.mu.Lock()
-    if f.resolved {
-        // Already resolved, ignore
-        f.mu.Unlock()
-        return
-    }
-    f.mu.Unlock()
-    
-    go func() {
-        time.Sleep(0)
-        f.err <- reason.(error)
-    }()
+	f.once.Do(func() {
+		f.mu.Lock()
+		f.resolved = true
+		f.resolvedValue = nil
+		f.resolvedError = reason
+		f.mu.Unlock()
+
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					// Channel is closed, but that's okay since we're using sync.Once
+					// and the future is already marked as resolved
+				}
+			}()
+			select {
+			case f.err <- reason:
+			default:
+			}
+		}()
+	})
 }
 
 // Await blocks until either result or error is received
 // Returns the resolved value (which could be an error)
 func (f *Future) Await() <-chan interface{} {
-    ch := make(chan interface{})
-    go func() {
-        defer close(ch)
-        f.mu.Lock()
-        if f.resolved {
-            // Already resolved, return cached value immediately
-            defer f.mu.Unlock()
-            if f.resolvedError != nil {
-                ch <- f.resolvedError
-            }
-            ch <- f.resolvedValue
-        }
-        f.mu.Unlock()
-        
-        // Not resolved yet, wait for it
-        select {
-        case res := <-f.result:
-            f.mu.Lock()
-            f.resolved = true
-            f.resolvedValue = res
-            f.resolvedError = nil
-            f.mu.Unlock()
-            ch <- res
-        case err := <-f.err:
-            f.mu.Lock()
-            f.resolved = true
-            f.resolvedValue = nil
-            f.resolvedError = err
-            f.mu.Unlock()
-            ch <- err
-        }
-    }()
-    return ch
+	ch := make(chan interface{}, 1)
+	
+	go func() {
+		defer close(ch)
+		
+		f.mu.Lock()
+		if f.resolved {
+			// Already resolved, return cached value immediately
+			if f.resolvedError != nil {
+				ch <- f.resolvedError
+			} else {
+				ch <- f.resolvedValue
+			}
+			f.mu.Unlock()
+			return
+		}
+		f.mu.Unlock()
+
+		// Not resolved yet, wait for it
+		select {
+		case res := <-f.result:
+			ch <- res
+		case err := <-f.err:
+			ch <- err
+		}
+	}()
+	
+	return ch
 }
 
 // Wrap an existing channel that returns (interface{}, error) into Future
 func WrapFuture(ch <-chan struct {
-    val interface{}
-    err error
+	val interface{}
+	err error
 }) *Future {
-    f := NewFuture()
-    go func() {
-        v := <-ch
-        if v.err != nil {
-            f.Reject(v.err)
-        } else {
-            f.Resolve(v.val)
-        }
-    }()
-    return f
+	f := NewFuture()
+	go func() {
+		v := <-ch
+		if v.err != nil {
+			f.Reject(v.err)
+		} else {
+			f.Resolve(v.val)
+		}
+	}()
+	return f
 }
 
 // Race multiple Futures: returns the first resolved or rejected value/error
 func FutureRace(futures []*Future) *Future {
-    result := NewFuture()
-    for _, f := range futures {
-        go func(fut *Future) {
-            futureResponse := <-fut.Await()
-            if err, isError := futureResponse.(error); isError {
-                result.Reject(err)
-            } else {
-                result.Resolve(futureResponse)
-            }
-        }(f)
-    }
-    return result
+	result := NewFuture()
+	for _, f := range futures {
+		go func(fut *Future) {
+			futureResponse := <-fut.Await()
+			if err, isError := futureResponse.(error); isError {
+				result.Reject(err)
+			} else {
+				result.Resolve(futureResponse)
+			}
+		}(f)
+	}
+	return result
 }

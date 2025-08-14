@@ -1422,7 +1422,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 		// Use read lock when checking for existing futures
 		if fut, ok := client.Futures[messageHash]; ok {
 			client.FuturesMu.RUnlock()
-			return fut.(*Future).result
+			return fut.(*Future).Await()
 		}
 		client.FuturesMu.RUnlock()
 	}
@@ -1447,7 +1447,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	if err != nil {
 		delete(client.Subscriptions, subscribeHash.(string))
 		future.Reject(err)
-		return future.result
+		return future.Await()
 	}
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
@@ -1455,7 +1455,12 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	if (clientSubscription == nil) {
 		go func() {
 			select {
-				case <-connected.result:
+				case result := <-connected.Await():
+					if err, ok := result.(error); ok {
+						delete(client.Subscriptions, subscribeHash.(string))
+						future.Reject(err)
+						return
+					}
 					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
 					cost := SafeValue(options, "cost", 1)
 					if message != nil {
@@ -1476,14 +1481,10 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 							// ? delete(client.Subscriptions, subscribeHash.(string))
 						}
 					}
-				case err := <-connected.err:
-					delete(client.Subscriptions, subscribeHash.(string))
-					future.Reject(err)
-					return
 			}
 		}()
 	}
-	return future.result;
+	return future.Await();
 }
 
 // ------------------- WS helper wrappers (parity with TS) ------------------
@@ -1750,7 +1751,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 		for _, h := range missingSubscriptions {
 			delete(client.Subscriptions, h)
 		}
-		return future.err
+		return future.Await()
 	}
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
@@ -1758,7 +1759,14 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
 		go func() {
 			select {
-				case <-connected.result:
+				case result := <-connected.Await():
+					if err, ok := result.(error); ok {
+						for _, subscribeHash := range missingSubscriptions {
+							delete(client.Subscriptions, subscribeHash)
+						}
+						future.Reject(err)
+						return
+					}
 					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
 					cost := SafeValue(options, "cost", 1)
 					if message != nil {
@@ -1780,16 +1788,10 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 							future.Reject(err)
 						}
 					}
-				case err := <-connected.err:
-					for _, subscribeHash := range missingSubscriptions {
-						delete(client.Subscriptions, subscribeHash)
-					}
-					future.Reject(err)
-					return
 			}
 		}()
 	}
-	return future.result;
+	return future.Await();
 }
 
 func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
@@ -1857,8 +1859,8 @@ func (this *Exchange) Close() []error {
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
 	for _, c := range clients {
-		if future := c.Close(); future != nil && future.err != nil {
-			if errVal, ok := (<-future.err).(error); ok {
+		if future := c.Close(); future != nil {
+			if errVal, ok := (<-future.Await()).(error); ok {
 				errs = append(errs, errVal)
 			}
 		}
