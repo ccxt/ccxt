@@ -370,7 +370,7 @@ export default class arkm extends arkmRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
         }
-        const parsed = this.parseWsTrade (message);
+        const parsed = this.parseWsTrade (data);
         const stored = this.trades[symbol];
         stored.append (parsed);
         client.resolve (stored, this.getMessageHash ('trade', symbol));
