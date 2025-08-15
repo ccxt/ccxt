@@ -68,6 +68,7 @@ export default class arkm extends arkmRest {
         // if (!this.handleErrorMessage (client, message)) {
         //     return;
         // }
+        //
         const methods: Dict = {
             'ticker': this.handleTicker,
             'candles': this.handleOHLCV,
@@ -76,6 +77,7 @@ export default class arkm extends arkmRest {
             'balances': this.handleBalance,
             'positions': this.handlePositions,
             'order_statuses': this.handleOrder,
+            'trigger_orders': this.handleOrder,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -652,8 +654,11 @@ export default class arkm extends arkmRest {
         const requestArg = {
             'snapshot': false,
         };
-        const messageHash = 'order::' + market['symbol'];
-        const orders = await this.subscribe (messageHash, 'order_statuses', this.extend (requestArg, params));
+        let isTriggerOrder = false;
+        [ isTriggerOrder, params ] = this.handleOptionAndParams (params, 'watchOrders', 'trigger', false);
+        const rawChannel = isTriggerOrder ? 'trigger_orders' : 'order_statuses';
+        const messageHash = 'order::' + market['symbol'] + '::' + rawChannel;
+        const orders = await this.subscribe (messageHash, rawChannel, this.extend (requestArg, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -697,6 +702,7 @@ export default class arkm extends arkmRest {
         //         },
         //     }
         //
+        const channel = this.safeDict (message, 'channel', );
         const data = this.safeDict (message, 'data');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -706,7 +712,7 @@ export default class arkm extends arkmRest {
         const order = this.parseWsOrder (data);
         orders.append (order);
         client.resolve (orders, 'orders');
-        client.resolve (orders, 'order::' + order['symbol']);
+        client.resolve (orders, 'order::' + order['symbol'] + '::' + channel);
     }
 
     parseWsOrder (order, market = undefined): Order {
