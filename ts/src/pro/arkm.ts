@@ -72,6 +72,7 @@ export default class arkm extends arkmRest {
             'candles': this.handleOHLCV,
             'l2_updates': this.handleOrderBook,
             'trades': this.handleTrades,
+            'balances': this.handleBalance,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -445,32 +446,79 @@ export default class arkm extends arkmRest {
 
     handleBalance (client: Client, message, subscription) {
         //
-        const updateType = this.safeValue (message, 1);
-        let data = undefined;
-        if (updateType === 'ws') {
-            data = this.safeValue (message, 2);
+        // snapshot:
+        //
+        //     {
+        //         channel: 'balances',
+        //         type: 'snapshot',
+        //         data: [
+        //           {
+        //             subaccountId: 0,
+        //             symbol: 'USDT',
+        //             balance: '7.035335375',
+        //             free: '7.035335375',
+        //             priceUSDT: '1',
+        //             balanceUSDT: '7.035335375',
+        //             freeUSDT: '7.035335375',
+        //             lastUpdateReason: 'withdrawalFee',
+        //             lastUpdateTime: '1753905990432678',
+        //             lastUpdateId: 250483404,
+        //             lastUpdateAmount: '-2'
+        //           },
+        //           {
+        //             subaccountId: 0,
+        //             symbol: 'SOL',
+        //             balance: '0.03',
+        //             free: '0.03',
+        //             priceUSDT: '197.37823276',
+        //             balanceUSDT: '5.921346982',
+        //             freeUSDT: '5.921346982',
+        //             lastUpdateReason: 'orderFill',
+        //             lastUpdateTime: '1753777760560164',
+        //             lastUpdateId: 248588190,
+        //             lastUpdateAmount: '0.03'
+        //           }
+        //         ]
+        //     }
+        //
+        // update:
+        //
+        //     {
+        //         channel: 'balances',
+        //         type: 'update',
+        //         data: {
+        //             subaccountId: 0,
+        //             symbol: 'USDT',
+        //             balance: '7.028357615',
+        //             free: '7.028357615',
+        //             priceUSDT: '1',
+        //             balanceUSDT: '7.028357615',
+        //             freeUSDT: '7.028357615',
+        //             lastUpdateReason: 'tradingFee',
+        //             lastUpdateTime: '1755240882544056',
+        //             lastUpdateId: 2697860787,
+        //             lastUpdateAmount: '-0.00697776'
+        //         }
+        //     }
+        //
+        const type = this.safeString (message, 'type');
+        let parsed = {};
+        if (type === 'snapshot') {
+            // response same as REST api
+            const data = this.safeList (message, 'data');
+            parsed = this.parseBalance (data);
+            parsed['info'] = message;
+            this.balance = parsed;
         } else {
-            data = [ this.safeValue (message, 2) ];
-        }
-        const updatedTypes: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const rawBalance = data[i];
-            const currencyId = this.safeString (rawBalance, 1);
+            const data = this.safeDict (message, 'data');
+            const balancesArray = [ data ];
+            parsed = this.parseBalance (balancesArray);
+            const currencyId = this.safeString (data, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.parseWsBalance (rawBalance);
-            const balanceType = this.safeString (rawBalance, 0);
-            const oldBalance = this.safeValue (this.balance, balanceType, {});
-            oldBalance[code] = balance;
-            oldBalance['info'] = message;
-            this.balance[balanceType] = this.safeBalance (oldBalance);
-            updatedTypes[balanceType] = true;
+            this.balance[code] = parsed[code];
         }
-        const updatesKeys = Object.keys (updatedTypes);
-        for (let i = 0; i < updatesKeys.length; i++) {
-            const type = updatesKeys[i];
-            const messageHash = 'balance:' + type;
-            client.resolve (this.balance[type], messageHash);
-        }
+        const messageHash = 'balances';
+        client.resolve (this.safeBalance (this.balance), messageHash);
     }
 
     parseWsBalance (balance) {
