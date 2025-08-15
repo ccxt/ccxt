@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import arkmRest from '../arkm.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
@@ -28,16 +29,12 @@ export default class arkm extends arkmRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'spot': 'wss://arkm.com/ws',
-                        'swap': 'wss://arkm.com/ws',
-                        'future': 'wss://arkm.com/ws',
-                    },
+                    'ws': 'wss://arkm.com/ws',
                 },
             },
             'options': {
                 'ws': {
-                    'gunzip': true,
+                    // 'gunzip': true,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
@@ -104,21 +101,17 @@ export default class arkm extends arkmRest {
         return hash;
     }
 
-    async subscribe (symbol: string, unifiedChannel: string, rawChannel: string, params: Dict): Promise<any> {
-        const market = this.market (symbol);
-        const messageHash = this.getMessageHash (unifiedChannel, market['symbol']);
+    async subscribe (messageHash: string, rawChannel: string, params: Dict): Promise<any> {
         const subscriptionHash = messageHash;
         const request: Dict = {
             'args': {
                 'channel': rawChannel,
-                'params': this.extend ({
-                    'symbol': market['id'],
-                }, params),
+                'params': params,
             },
             'confirmationId': this.uuid (),
             'method': 'subscribe',
         };
-        return await this.watch (this.urls['api']['ws']['spot'], messageHash, request, subscriptionHash);
+        return await this.watch (this.urls['api']['ws'], messageHash, request, subscriptionHash);
     }
 
     /**
@@ -132,7 +125,12 @@ export default class arkm extends arkmRest {
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        return await this.subscribe (symbol, 'ticker', 'ticker', params);
+        const market = this.market (symbol);
+        const requestArg = {
+            'symbol': market['id'],
+        };
+        const messageHash = this.getMessageHash ('ticker', market['symbol']);
+        return await this.subscribe (messageHash, 'ticker', this.extend (params, requestArg));
     }
 
     handleTicker (client: Client, message) {
@@ -196,7 +194,12 @@ export default class arkm extends arkmRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const rawTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const result = await this.subscribe (market['symbol'], 'ohlcv', 'candles', this.extend ({ 'duration': rawTimeframe }, params));
+        const requestArg = {
+            'symbol': market['id'],
+            'duration': rawTimeframe,
+        };
+        const messageHash = this.getMessageHash ('ohlcv', market['symbol'], rawTimeframe);
+        const result = await this.subscribe (messageHash, 'candles', this.extend (requestArg, params));
         const ohlcv = result;
         if (this.newUpdates) {
             limit = ohlcv.getLimit (market['symbol'], limit);
@@ -258,7 +261,13 @@ export default class arkm extends arkmRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        const orderBook = await this.subscribe (symbol, 'orderBook', 'l2_updates', this.extend ({ 'snapshot': true }, params));
+        const market = this.market (symbol);
+        const requestArg = {
+            'symbol': market['id'],
+            'snapshot': true,
+        };
+        const messageHash = this.getMessageHash ('orderBook', market['symbol']);
+        const orderBook = await this.subscribe (messageHash, 'l2_updates', this.extend (requestArg, params));
         return orderBook.limit ();
     }
 
@@ -340,7 +349,11 @@ export default class arkm extends arkmRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const trades = await this.subscribe (market['symbol'], 'trade', 'trades', params);
+        const requestArg = {
+            'symbol': market['id'],
+        };
+        const messageHash = this.getMessageHash ('trade', market['symbol']);
+        const trades = await this.subscribe (messageHash, 'trades', this.extend (requestArg, params));
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
@@ -379,4 +392,107 @@ export default class arkm extends arkmRest {
         // same as REST api
         return this.parseTrade (trade, market);
     }
+
+    /**
+     * @method
+     * @name bitfinex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://arkm.com/docs#stream/balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.authenticate ();
+        await this.loadMarkets ();
+        const requestArg = {
+            'snapshot': true,
+        };
+        const messageHash = 'balances';
+        const result = await this.subscribe (messageHash, 'balances', this.extend (requestArg, params));
+        return result;
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
+        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const authenticated = this.safeString (wsOptions, 'token');
+        if (authenticated === undefined) {
+            const method = 'GET';
+            const bodyStr = '';
+            const path = 'ws';
+            const payload = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path + bodyStr;
+            const decodedSecret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (this.encode (payload), decodedSecret, sha256, 'base64');
+            const defaultOptions: Dict = {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Arkham-Api-Key': this.apiKey,
+                            'Arkham-Expires': expires,
+                            'Arkham-Signature': signature,
+                        },
+                    },
+                },
+            };
+            this.extendExchangeOptions (defaultOptions);
+            this.client (this.urls['api']['ws']);
+        }
+    }
+
+    handleBalance (client: Client, message, subscription) {
+        //
+        const updateType = this.safeValue (message, 1);
+        let data = undefined;
+        if (updateType === 'ws') {
+            data = this.safeValue (message, 2);
+        } else {
+            data = [ this.safeValue (message, 2) ];
+        }
+        const updatedTypes: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const rawBalance = data[i];
+            const currencyId = this.safeString (rawBalance, 1);
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.parseWsBalance (rawBalance);
+            const balanceType = this.safeString (rawBalance, 0);
+            const oldBalance = this.safeValue (this.balance, balanceType, {});
+            oldBalance[code] = balance;
+            oldBalance['info'] = message;
+            this.balance[balanceType] = this.safeBalance (oldBalance);
+            updatedTypes[balanceType] = true;
+        }
+        const updatesKeys = Object.keys (updatedTypes);
+        for (let i = 0; i < updatesKeys.length; i++) {
+            const type = updatesKeys[i];
+            const messageHash = 'balance:' + type;
+            client.resolve (this.balance[type], messageHash);
+        }
+    }
+
+    parseWsBalance (balance) {
+        //
+        //     [
+        //         "exchange",
+        //         "LTC",
+        //         0.05479727, // balance
+        //         0,
+        //         null, // available null if not calculated yet
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
+        //         null,
+        //     ]
+        //
+        const totalBalance = this.safeString (balance, 2);
+        const availableBalance = this.safeString (balance, 4);
+        const account = this.account ();
+        if (availableBalance !== undefined) {
+            account['free'] = availableBalance;
+        }
+        account['total'] = totalBalance;
+        return account;
+    }
+
 }
