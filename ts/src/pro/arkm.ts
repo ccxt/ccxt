@@ -3,10 +3,8 @@
 
 import arkmRest from '../arkm.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -699,10 +697,10 @@ export default class arkm extends arkmRest {
         //             lastMarginBonusFee: "0",
         //             lastQuoteFee: "0",
         //             lastArkmFee: "0",
-        //         },
+        //         }
         //     }
         //
-        const channel = this.safeDict (message, 'channel', );
+        const channel = this.safeString (message, 'channel');
         const data = this.safeDict (message, 'data');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
