@@ -2118,7 +2118,7 @@ export default class arkm extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'pnl'),
             'realizedPnl': undefined,
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': base,
             'contractSize': undefined,
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,

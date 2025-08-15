@@ -4,7 +4,8 @@
 import arkmRest from '../arkm.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -73,6 +74,7 @@ export default class arkm extends arkmRest {
             'l2_updates': this.handleOrderBook,
             'trades': this.handleTrades,
             'balances': this.handleBalance,
+            'positions': this.handlePositions,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
@@ -394,26 +396,6 @@ export default class arkm extends arkmRest {
         return this.parseTrade (trade, market);
     }
 
-    /**
-     * @method
-     * @name bitfinex#watchBalance
-     * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://arkm.com/docs#stream/balances
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-     */
-    async watchBalance (params = {}): Promise<Balances> {
-        await this.authenticate ();
-        await this.loadMarkets ();
-        const requestArg = {
-            'snapshot': true,
-        };
-        const messageHash = 'balances';
-        const result = await this.subscribe (messageHash, 'balances', this.extend (requestArg, params));
-        return result;
-    }
-
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const expires = (this.milliseconds () + this.safeInteger (this.options, 'requestExpiration', 5000)) * 1000; // need macroseconds
@@ -442,6 +424,26 @@ export default class arkm extends arkmRest {
             this.extendExchangeOptions (defaultOptions);
             this.client (this.urls['api']['ws']);
         }
+    }
+
+    /**
+     * @method
+     * @name bitfinex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://arkm.com/docs#stream/balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.authenticate ();
+        await this.loadMarkets ();
+        const requestArg = {
+            'snapshot': true,
+        };
+        const messageHash = 'balances';
+        const result = await this.subscribe (messageHash, 'balances', this.extend (requestArg, params));
+        return result;
     }
 
     handleBalance (client: Client, message, subscription) {
@@ -506,13 +508,13 @@ export default class arkm extends arkmRest {
         if (type === 'snapshot') {
             // response same as REST api
             const data = this.safeList (message, 'data');
-            parsed = this.parseBalance (data);
+            parsed = this.parseWsBalance (data);
             parsed['info'] = message;
             this.balance = parsed;
         } else {
             const data = this.safeDict (message, 'data');
             const balancesArray = [ data ];
-            parsed = this.parseBalance (balancesArray);
+            parsed = this.parseWsBalance (balancesArray);
             const currencyId = this.safeString (data, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             this.balance[code] = parsed[code];
@@ -522,25 +524,125 @@ export default class arkm extends arkmRest {
     }
 
     parseWsBalance (balance) {
-        //
-        //     [
-        //         "exchange",
-        //         "LTC",
-        //         0.05479727, // balance
-        //         0,
-        //         null, // available null if not calculated yet
-        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
-        //         null,
-        //     ]
-        //
-        const totalBalance = this.safeString (balance, 2);
-        const availableBalance = this.safeString (balance, 4);
-        const account = this.account ();
-        if (availableBalance !== undefined) {
-            account['free'] = availableBalance;
-        }
-        account['total'] = totalBalance;
-        return account;
+        // same as REST api
+        return this.parseBalance (balance);
     }
 
+    /**
+     * @method
+     * @name arkm#watchPositions
+     * @see https://arkm.com/docs#stream/positions
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.authenticate ();
+        await this.loadMarkets ();
+        let messageHash = 'positions';
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash += '::' + symbols.join (',');
+        }
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const requestArg = {
+            'snapshot': true,
+        };
+        const newPositions = await this.subscribe (messageHash, 'positions', this.extend (requestArg, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        // snapshot:
+        //
+        //     {
+        //         channel: 'positions',
+        //         type: 'snapshot',
+        //         data: [
+        //           {
+        //             subaccountId: 0,
+        //             symbol: 'SOL_USDT_PERP',
+        //             base: '0.059',
+        //             quote: '-11.50618',
+        //             openBuySize: '0',
+        //             openSellSize: '0',
+        //             openBuyNotional: '0',
+        //             openSellNotional: '0',
+        //             lastUpdateReason: 'orderFill',
+        //             lastUpdateTime: '1755251065621402',
+        //             lastUpdateId: 2709589783,
+        //             lastUpdateBaseDelta: '0.059',
+        //             lastUpdateQuoteDelta: '-11.50618',
+        //             breakEvenPrice: '195.02',
+        //             markPrice: '195',
+        //             value: '11.505',
+        //             pnl: '-0.00118',
+        //             initialMargin: '1.1505',
+        //             maintenanceMargin: '0.6903',
+        //             averageEntryPrice: '195.02'
+        //           }
+        //         ]
+        //     }
+        //
+        const newPositions = [];
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        const type = this.safeString (message, 'type');
+        if (type === 'snapshot') {
+            const data = this.safeList (message, 'data', []);
+            for (let i = 0; i < data.length; i++) {
+                const position = this.parseWsPosition (data[i]);
+                if (this.safeInteger (position, 'entryPrice') !== 0) {
+                    newPositions.push (position);
+                    const symbol = this.safeString (position, 'symbol');
+                    this.positions[symbol] = position;
+                }
+            }
+        } else {
+            const data = this.safeDict (message, 'data');
+            const position = this.parseWsPosition (data);
+            const symbol = this.safeString (position, 'symbol');
+            this.positions[symbol] = position;
+            newPositions.push (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        const length = newPositions.length;
+        if (length > 0) {
+            client.resolve (newPositions, 'positions');
+        }
+    }
+
+    parseWsPositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
+        symbols = this.marketSymbols (symbols);
+        positions = this.toArray (positions);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.extend (this.parseWsPosition (positions[i], undefined), params);
+            result.push (position);
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    parseWsPosition (position, market = undefined) {
+        // same as REST api
+        return this.parsePosition (position, market);
+    }
 }
