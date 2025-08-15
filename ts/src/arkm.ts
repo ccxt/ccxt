@@ -1433,7 +1433,7 @@ export default class arkm extends Exchange {
             'price': this.safeNumber (order, 'price'),
             'triggerPrice': undefined,
             'cost': this.safeNumber (order, 'executedNotional'),
-            'average': this.safeNumber (order, 'avgPrice'),
+            'average': this.safeNumberOmitZero (order, 'avgPrice'),
             'amount': this.safeNumber (order, 'size'),
             'filled': this.safeNumber (order, ''),
             'remaining': undefined,

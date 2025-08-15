@@ -22,11 +22,11 @@ export default class arkm extends arkmRest {
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
-                // 'watchOrders': true,
+                'watchOrders': true,
                 // 'watchMyTrades': true,
                 'watchTicker': true,
                 // 'watchTickers': true,
-                // 'watchBalance': true,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -75,33 +75,21 @@ export default class arkm extends arkmRest {
             'trades': this.handleTrades,
             'balances': this.handleBalance,
             'positions': this.handlePositions,
+            'order_statuses': this.handleOrder,
             // 'confirmations': this.handleTicker,
         };
         const channel = this.safeString (message, 'channel');
         if (channel === 'confirmations') {
             return;
         }
-        const type = this.safeString (message, 'type');
-        if (type !== 'update' && type !== 'snapshot') {
-            debugger;
-        }
+        // const type = this.safeString (message, 'type');
+        // if (type !== 'update' && type !== 'snapshot') {
+        //     debugger;
+        // }
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {
             method.call (this, client, message);
         }
-    }
-
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
-        let hash = unifiedChannel;
-        if (symbol !== undefined) {
-            hash += '::' + symbol;
-        } else {
-            hash += 's'; // tickers, orderbooks, ohlcvs ...
-        }
-        if (extra !== undefined) {
-            hash += '::' + extra;
-        }
-        return hash;
     }
 
     async subscribe (messageHash: string, rawChannel: string, params: Dict): Promise<any> {
@@ -132,7 +120,7 @@ export default class arkm extends arkmRest {
         const requestArg = {
             'symbol': market['id'],
         };
-        const messageHash = this.getMessageHash ('ticker', market['symbol']);
+        const messageHash = 'ticker::' + market['symbol'];
         return await this.subscribe (messageHash, 'ticker', this.extend (params, requestArg));
     }
 
@@ -170,7 +158,7 @@ export default class arkm extends arkmRest {
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
-        client.resolve (ticker, this.getMessageHash ('ticker', symbol));
+        client.resolve (ticker, 'ticker::' + symbol);
         // if (this.safeString (message, 'dataType') === 'all@ticker') {
         //     client.resolve (ticker, this.getMessageHash ('ticker'));
         // }
@@ -201,7 +189,7 @@ export default class arkm extends arkmRest {
             'symbol': market['id'],
             'duration': rawTimeframe,
         };
-        const messageHash = this.getMessageHash ('ohlcv', market['symbol'], rawTimeframe);
+        const messageHash = 'ohlcv::' + market['symbol'] + '::' + rawTimeframe;
         const result = await this.subscribe (messageHash, 'candles', this.extend (requestArg, params));
         const ohlcv = result;
         if (this.newUpdates) {
@@ -234,7 +222,7 @@ export default class arkm extends arkmRest {
         const symbol = market['symbol'];
         const duration = this.safeInteger (data, 'duration');
         const timeframe = this.findTimeframeByDuration (duration);
-        const messageHash = this.getMessageHash ('ohlcv', symbol, timeframe);
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
@@ -269,7 +257,7 @@ export default class arkm extends arkmRest {
             'symbol': market['id'],
             'snapshot': true,
         };
-        const messageHash = this.getMessageHash ('orderBook', market['symbol']);
+        const messageHash = 'orderBook::' + market['symbol'];
         const orderBook = await this.subscribe (messageHash, 'l2_updates', this.extend (requestArg, params));
         return orderBook.limit ();
     }
@@ -311,7 +299,7 @@ export default class arkm extends arkmRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = this.getMessageHash ('orderBook', symbol);
+        const messageHash = 'orderBook::' + symbol;
         const timestamp = this.safeIntegerProduct (data, 'lastTime', 0.000001);
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook ({});
@@ -355,7 +343,7 @@ export default class arkm extends arkmRest {
         const requestArg = {
             'symbol': market['id'],
         };
-        const messageHash = this.getMessageHash ('trade', market['symbol']);
+        const messageHash = 'trade::' + market['symbol'];
         const trades = await this.subscribe (messageHash, 'trades', this.extend (requestArg, params));
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
@@ -388,7 +376,7 @@ export default class arkm extends arkmRest {
         const parsed = this.parseWsTrade (data);
         const stored = this.trades[symbol];
         stored.append (parsed);
-        client.resolve (stored, this.getMessageHash ('trade', symbol));
+        client.resolve (stored, 'trade::' + symbol);
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -549,7 +537,7 @@ export default class arkm extends arkmRest {
         }
         this.positions = new ArrayCacheBySymbolBySide ();
         const requestArg = {
-            'snapshot': true,
+            'snapshot': false, // no need for initial snapshot, it's done in REST api
         };
         const newPositions = await this.subscribe (messageHash, 'positions', this.extend (requestArg, params));
         if (this.newUpdates) {
@@ -644,5 +632,85 @@ export default class arkm extends arkmRest {
     parseWsPosition (position, market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
+    }
+
+    /**
+     * @method
+     * @name arkm#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://arkm.com/docs#stream/order_statuses
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.authenticate ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const requestArg = {
+            'snapshot': false,
+        };
+        const messageHash = 'order::' + market['symbol'];
+        const orders = await this.subscribe (messageHash, 'order_statuses', this.extend (requestArg, params));
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         channel: "order_statuses",
+        //         type: "update",
+        //         data: {
+        //             orderId: 4200775347657,
+        //             userId: 2959880,
+        //             subaccountId: 0,
+        //             symbol: "ARKM_USDT_PERP",
+        //             time: "1755253639782186",
+        //             side: "buy",
+        //             type: "limitGtc",
+        //             size: "10",
+        //             price: "0.5",
+        //             postOnly: false,
+        //             reduceOnly: false,
+        //             executedSize: "0",
+        //             status: "cancelled",
+        //             avgPrice: "0",
+        //             executedNotional: "0",
+        //             creditFeePaid: "0",
+        //             marginBonusFeePaid: "0",
+        //             quoteFeePaid: "0",
+        //             arkmFeePaid: "0",
+        //             revisionId: 2752963990,
+        //             lastTime: "1755272026403545",
+        //             clientOrderId: "",
+        //             lastSize: "0",
+        //             lastPrice: "0",
+        //             lastCreditFee: "0",
+        //             lastMarginBonusFee: "0",
+        //             lastQuoteFee: "0",
+        //             lastArkmFee: "0",
+        //         },
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const order = this.parseWsOrder (data);
+        orders.append (order);
+        client.resolve (orders, 'orders');
+        client.resolve (orders, 'order::' + order['symbol']);
+    }
+
+    parseWsOrder (order, market = undefined): Order {
+        // same as REST api
+        return this.parseOrder (order, market);
     }
 }
