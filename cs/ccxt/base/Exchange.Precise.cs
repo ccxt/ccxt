@@ -49,7 +49,7 @@ namespace ccxt
 
         public Precise div(Precise other, object precision2 = null)
         {
-            precision2 = precision2 ?? 18;
+            precision2 = precision2 ?? 26;
             var precision = Convert.ToInt32(precision2);
             var distance = precision - Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
             BigInteger numerator = 0;
@@ -259,8 +259,10 @@ namespace ccxt
             return (new Precise(string1.ToString()).mul(new Precise(string2.ToString()))).ToString();
         }
 
-        static public string stringDiv(object string1, object string2, object precision = null)
+        static public string stringDiv(object string1, object string2, object precision2 = null)
         {
+            precision2 = precision2 ?? 26;
+            var precision = Convert.ToInt32(precision2);
             if (string1 == null || string2 == null)
                 return null;
 
