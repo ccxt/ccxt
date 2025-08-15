@@ -138,30 +138,30 @@ type Exchange struct {
 	WsProxy  string
 	Ws_proxy string
 
-	HttpProxyAgentModule    interface{}   // or interface{} if you don't have a type yet
-    HttpsProxyAgentModule   interface{}
-    SocksProxyAgentModule   interface{}
-    SocksProxyAgentModuleChecked bool
-    ProxyDictionaries      map[string]interface{}
-    ProxiesModulesLoading  chan struct{} // or something to represent a Promise/future
+	HttpProxyAgentModule         interface{} // or interface{} if you don't have a type yet
+	HttpsProxyAgentModule        interface{}
+	SocksProxyAgentModule        interface{}
+	SocksProxyAgentModuleChecked bool
+	ProxyDictionaries            map[string]interface{}
+	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
 
 	SubstituteCommonCurrencyCodes bool
 
 	Twofa interface{}
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs     				interface{} // map[string]map[string]*ArrayCacheByTimestamp
-	Trades     				interface{} // map[string]*ArrayCache
-	Tickers    				*sync.Map
-	Orders     				interface{}  // *ArrayCache  // cache object, not a map
-	MyTrades   				interface{}  // *ArrayCache  // cache object, not a map
-	Orderbooks 				*sync.Map
-	Liquidations 			*sync.Map
-	FundingRates 			interface{}
-	Bidsasks 				interface{}
-	TriggerOrders 			interface{} // *ArrayCache
-	Transactions 			*sync.Map
-	MyLiquidations			*sync.Map
+	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp
+	Trades         interface{} // map[string]*ArrayCache
+	Tickers        *sync.Map
+	Orders         interface{} // *ArrayCache  // cache object, not a map
+	MyTrades       interface{} // *ArrayCache  // cache object, not a map
+	Orderbooks     *sync.Map
+	Liquidations   *sync.Map
+	FundingRates   interface{}
+	Bidsasks       interface{}
+	TriggerOrders  interface{} // *ArrayCache
+	Transactions   *sync.Map
+	MyLiquidations *sync.Map
 
 	PaddingMode int
 
@@ -174,14 +174,13 @@ type Exchange struct {
 	IsSandboxModeEnabled bool
 
 	// ws
-	WsClients		map[string]interface{}	 // one websocket client per URL
-	WsClientsMu 	sync.Mutex
-	Balance    		interface{}
-	Positions 		interface{}
-	Clients 		map[string]interface{}
-    newUpdates 		bool
-    streaming 		map[string]interface{}
-
+	WsClients   map[string]interface{} // one websocket client per URL
+	WsClientsMu sync.Mutex
+	Balance     interface{}
+	Positions   interface{}
+	Clients     map[string]interface{}
+	newUpdates  bool
+	streaming   map[string]interface{}
 }
 
 const (
@@ -222,7 +221,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// warmup itf cache
 
 	this.initializeProperties(extendedProperties)
-	
+
 	limit := 10000
 	// Initialize WebSocket data structures with thread-safe sync.Map
 	this.Trades = make(map[string]*ArrayCache)
@@ -692,43 +691,43 @@ type IArrayCache interface {
 }
 
 func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
-    // If the incoming object implements IArrayCache convert it first.
-    if cache, ok := array.(IArrayCache); ok {
-        return this.ArraySlice(cache.ToArray(), first, second...)
-    }
+	// If the incoming object implements IArrayCache convert it first.
+	if cache, ok := array.(IArrayCache); ok {
+		return this.ArraySlice(cache.ToArray(), first, second...)
+	}
 
-    firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
-    parsedArray := reflect.ValueOf(array)
+	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
+	parsedArray := reflect.ValueOf(array)
 
-    if parsedArray.Kind() != reflect.Slice {
-        return nil
-    }
+	if parsedArray.Kind() != reflect.Slice {
+		return nil
+	}
 
-    length := parsedArray.Len()
-    isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*IArrayCache)(nil)).Elem())
+	length := parsedArray.Len()
+	isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*IArrayCache)(nil)).Elem())
 
-    if len(second) == 0 {
-        if firstInt < 0 {
-            index := length + firstInt
-            if index < 0 {
-                index = 0
-            }
-            if isArrayCache {
-                return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[index:]
-            }
-            return this.sliceToInterface(parsedArray.Slice(index, length))
-        }
-        if isArrayCache {
-            return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:]
-        }
-        return this.sliceToInterface(parsedArray.Slice(firstInt, length))
-    }
+	if len(second) == 0 {
+		if firstInt < 0 {
+			index := length + firstInt
+			if index < 0 {
+				index = 0
+			}
+			if isArrayCache {
+				return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[index:]
+			}
+			return this.sliceToInterface(parsedArray.Slice(index, length))
+		}
+		if isArrayCache {
+			return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:]
+		}
+		return this.sliceToInterface(parsedArray.Slice(firstInt, length))
+	}
 
-    secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
-    if isArrayCache {
-        return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:secondInt]
-    }
-    return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
+	secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
+	if isArrayCache {
+		return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:secondInt]
+	}
+	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
 
 func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
@@ -1375,6 +1374,7 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 	}()
 	return ch
 }
+
 // returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
 //
 // Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally
@@ -1431,7 +1431,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	client.SubscriptionsMu.Lock()
 	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
-	if (clientSubscription == nil) {
+	if clientSubscription == nil {
 		if subscription != nil {
 			client.Subscriptions[subscribeHash.(string)] = subscription.(chan interface{})
 		} else {
@@ -1452,46 +1452,46 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
 	// (connection established successfully)
-	if (clientSubscription == nil) {
+	if clientSubscription == nil {
 		go func() {
 			select {
-				case result := <-connected.Await():
-					if err, ok := result.(error); ok {
-						delete(client.Subscriptions, subscribeHash.(string))
-						future.Reject(err)
-						return
-					}
-					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-					cost := SafeValue(options, "cost", 1)
-					if message != nil {
-						if this.EnableRateLimit && client.Throttle != nil {
-							// add cost here |
-							//               |
-							//               V
-							if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-								if err := throttleFunc(cost); err != nil {
-									client.OnError(err)
-									return
-								}
+			case result := <-connected.Await():
+				if err, ok := result.(error); ok {
+					delete(client.Subscriptions, subscribeHash.(string))
+					future.Reject(err)
+					return
+				}
+				options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+				cost := SafeValue(options, "cost", 1)
+				if message != nil {
+					if this.EnableRateLimit && client.Throttle != nil {
+						// add cost here |
+						//               |
+						//               V
+						if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+							if err := throttleFunc(cost); err != nil {
+								client.OnError(err)
+								return
 							}
 						}
-						sendFutureChannel := <-client.Send(message)
-						if err, ok := sendFutureChannel.(error); ok {
-							client.OnError(err)
-							// ? delete(client.Subscriptions, subscribeHash.(string))
-						}
 					}
+					sendFutureChannel := <-client.Send(message)
+					if err, ok := sendFutureChannel.(error); ok {
+						client.OnError(err)
+						// ? delete(client.Subscriptions, subscribeHash.(string))
+					}
+				}
 			}
 		}()
 	}
-	return future.Await();
+	return future.Await()
 }
 
 // ------------------- WS helper wrappers (parity with TS) ------------------
 
 // OrderBook returns a new mutable order-book using our Go implementation.
 func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
-    snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
 	depth := GetArg(optionalArgs, 1, math.MaxInt32)
 	orderBook := NewWsOrderBook(snapshot, depth)
 	return orderBook
@@ -1547,13 +1547,13 @@ func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface
 		if err != nil {
 			return nil, BadRequest(this.Id + " invalid SOCKS proxy URL: " + err.Error())
 		}
-		
+
 		// Create SOCKS5 dialer
 		dialer, err := proxy.SOCKS5("tcp", proxyURL.Host, nil, proxy.Direct)
 		if err != nil {
 			return nil, BadRequest(this.Id + " failed to create SOCKS5 dialer: " + err.Error())
 		}
-		
+
 		transport = &http.Transport{
 			Dial: dialer.Dial,
 		}
@@ -1564,18 +1564,18 @@ func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface
 
 func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
 	// if isNode { // TODO: implement this
-		if len(url) >= 5 && url[:5] == "ws://" {
-			if this.HttpProxy == nil {
-				return nil, NotSupported(this.Id + " to use proxy with non-ssl ws:// urls, at first run `await exchange.loadHttpProxyAgent()` method")
-			}
-			return this.HttpProxy, nil
+	if len(url) >= 5 && url[:5] == "ws://" {
+		if this.HttpProxy == nil {
+			return nil, NotSupported(this.Id + " to use proxy with non-ssl ws:// urls, at first run `await exchange.loadHttpProxyAgent()` method")
 		}
+		return this.HttpProxy, nil
+	}
 	// }
 	return nil, nil // no agent needed
 }
 
 func (this *Exchange) Ping(client *WSClient) interface{} {
-    return nil
+	return nil
 }
 
 func (this *Exchange) HandleMessage(client interface{}, message interface{}) {
@@ -1615,9 +1615,9 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		return client.(*WSClient)
 	}
 	// TODO: add options to NewWSClient
-	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{});
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
 	// proxy agents
-	proxies := this.CheckWsProxySettings();
+	proxies := this.CheckWsProxySettings()
 	var httpProxy, httpsProxy, socksProxy string
 	if proxySlice, ok := proxies.([]interface{}); ok {
 		httpProxy, _ = proxySlice[0].(string)
@@ -1625,11 +1625,11 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		socksProxy, _ = proxySlice[2].(string)
 	}
 
-	chosenAgent, err := this.SetProxyAgents(httpProxy, httpsProxy, socksProxy);
+	chosenAgent, err := this.SetProxyAgents(httpProxy, httpsProxy, socksProxy)
 	if err != nil {
 		return nil //, err
 	}
-	httpProxyAgent, err := this.GetHttpAgentIfNeeded(url.(string));
+	httpProxyAgent, err := this.GetHttpAgentIfNeeded(url.(string))
 	if err != nil {
 		return nil //, err
 	}
@@ -1642,9 +1642,9 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	options := DeepExtend(
 		this.streaming,
 		map[string]interface{}{
-			"Log": this.Log,
-			"Ling": this.Ping,
-			"Verbose": this.Verbose,
+			"Log":      this.Log,
+			"Ling":     this.Ping,
+			"Verbose":  this.Verbose,
 			"Throttle": NewThrottler(this.TokenBucket),
 			"Options": map[string]interface{}{
 				"Agent": finalAgent,
@@ -1653,7 +1653,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		wsOptions,
 	)
 	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
-	
+
 	this.Clients[url.(string)] = client
 	return client
 }
@@ -1661,7 +1661,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	url, _ := args[0].(string)
 	var messageHashes []string
-	
+
 	// Handle both []string and []interface{} for messageHashes
 	if hashes, ok := args[1].([]string); ok {
 		messageHashes = hashes
@@ -1726,7 +1726,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 		} else if hashes, ok := subscribeHashes.([]interface{}); ok {
 			subscribeHashesList = hashes
 		}
-		
+
 		for _, subscribeHash := range subscribeHashesList {
 			if hashStr, ok := subscribeHash.(string); ok {
 				if _, exists := client.Subscriptions[hashStr]; !exists {
@@ -1759,43 +1759,43 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
 		go func() {
 			select {
-				case result := <-connected.Await():
-					if err, ok := result.(error); ok {
+			case result := <-connected.Await():
+				if err, ok := result.(error); ok {
+					for _, subscribeHash := range missingSubscriptions {
+						delete(client.Subscriptions, subscribeHash)
+					}
+					future.Reject(err)
+					return
+				}
+				options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+				cost := SafeValue(options, "cost", 1)
+				if message != nil {
+					if this.EnableRateLimit && client.Throttle != nil {
+						// add cost here |
+						//               |
+						//               V
+						if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+							if err := throttleFunc(cost); err != nil {
+								client.OnError(err)
+							}
+						}
+					}
+					sendFutureChannel := <-client.Send(message)
+					if err, ok := sendFutureChannel.(error); ok {
 						for _, subscribeHash := range missingSubscriptions {
 							delete(client.Subscriptions, subscribeHash)
 						}
 						future.Reject(err)
-						return
 					}
-					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-					cost := SafeValue(options, "cost", 1)
-					if message != nil {
-						if this.EnableRateLimit && client.Throttle != nil {
-							// add cost here |
-							//               |
-							//               V
-							if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-								if err := throttleFunc(cost); err != nil {
-									client.OnError(err)
-								}
-							}
-						}
-						sendFutureChannel := <-client.Send(message)
-						if err, ok := sendFutureChannel.(error); ok {
-							for _, subscribeHash := range missingSubscriptions {
-								delete(client.Subscriptions, subscribeHash)
-							}
-							future.Reject(err)
-						}
-					}
+				}
 			}
 		}()
 	}
-	return future.Await();
+	return future.Await()
 }
 
 func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
-    future := NewFuture()
+	future := NewFuture()
 
 	go func() {
 		response := CallDynamically(method, args...)
@@ -1805,12 +1805,11 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan inte
 			future.Resolve(response)
 		}
 	}()
-    return future.Await()
+	return future.Await()
 }
 
-
 func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
-	time.AfterFunc(time.Duration(timeout.(int)) * time.Millisecond, func() {
+	time.AfterFunc(time.Duration(timeout.(int))*time.Millisecond, func() {
 		this.Spawn(method, args...)
 	})
 }
@@ -1840,7 +1839,7 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 		client.(*WSClient).Reject(ExchangeError(errorMsg), messageHash)
 		delete(this.Clients, client.(*WSClient).Url)
 	} else {
-		client.(*WSClient).Reject(ExchangeError(this.Id + " loadOrderBook() orderbook is not initiated"), messageHash)
+		client.(*WSClient).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits
@@ -1854,7 +1853,9 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 func (this *Exchange) Close() []error {
 	this.WsClientsMu.Lock()
 	clients := make([]*WSClient, 0, len(this.WsClients))
-	for _, c := range this.WsClients { clients = append(clients, c.(*WSClient)) }
+	for _, c := range this.WsClients {
+		clients = append(clients, c.(*WSClient))
+	}
 	this.WsClients = make(map[string]interface{})
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
@@ -1867,19 +1868,20 @@ func (this *Exchange) Close() []error {
 	}
 	return errs
 }
+
 // ---------------- Connection lifecycle helpers ----------------
 
 func CallDynamically(fn interface{}, args ...interface{}) interface{} {
-    v := reflect.ValueOf(fn)
-    in := make([]reflect.Value, len(args))
-    for i, a := range args {
-        in[i] = reflect.ValueOf(a)
-    }
-    out := v.Call(in)
-    if len(out) > 0 {
-        return out[0].Interface()
-    }
-    return nil
+	v := reflect.ValueOf(fn)
+	in := make([]reflect.Value, len(args))
+	for i, a := range args {
+		in[i] = reflect.ValueOf(a)
+	}
+	out := v.Call(in)
+	if len(out) > 0 {
+		return out[0].Interface()
+	}
+	return nil
 }
 
 func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
@@ -1890,4 +1892,15 @@ func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
 	// 	}
 	// }
 	return Crc32(str.(string), signed2)
+}
+
+func (this *Exchange) IsBinaryMessage(message interface{}) bool {
+	if _, ok := message.([]byte); ok {
+		return true
+	}
+	return false
+}
+
+func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
+	return nil //tmp add protobuf
 }
