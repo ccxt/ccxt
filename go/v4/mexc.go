@@ -5700,7 +5700,7 @@ func (this *mexc) ParsePosition(position interface{}, optionalArgs ...interface{
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	market = this.SafeMarket(this.SafeString(position, "symbol"), market)
+	market = this.SafeMarket(this.SafeString(position, "symbol"), market, nil, "swap")
 	var symbol interface{} = GetValue(market, "symbol")
 	var contracts interface{} = this.SafeString(position, "holdVol")
 	var entryPrice interface{} = this.SafeNumber(position, "openAvgPrice")
