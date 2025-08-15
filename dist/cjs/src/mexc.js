@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class mexc
  * @augments Exchange
  */
-class mexc extends mexc$1 {
+class mexc extends mexc$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -434,6 +436,7 @@ class mexc extends mexc$1 {
                         },
                     },
                 },
+                'useCcxtTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -472,6 +475,12 @@ class mexc extends mexc$1 {
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -501,6 +510,7 @@ class mexc extends mexc$1 {
                     // 'DNX': 'Dynex(DNX)',
                     // 'DOGE': 'Dogecoin(DOGE)',
                     // 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -1714,8 +1724,8 @@ class mexc extends mexc$1 {
                 }
             }
         }
-        if (id === undefined) {
-            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
+        if (id === undefined && this.safeBool(this.options, 'useCcxtTradeId', true)) {
+            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade({
             'id': id,
@@ -1732,29 +1742,6 @@ class mexc extends mexc$1 {
             'fee': fee,
             'info': trade,
         }, market);
-    }
-    syntheticTradeId(market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        let id = '';
-        if (timestamp !== undefined) {
-            id = this.numberToString(timestamp) + '-' + this.safeString(market, 'id', '_');
-            if (side !== undefined) {
-                id += '-' + side;
-            }
-            if (amount !== undefined) {
-                id += '-' + this.numberToString(amount);
-            }
-            if (price !== undefined) {
-                id += '-' + this.numberToString(price);
-            }
-            if (takerOrMaker !== undefined) {
-                id += '-' + takerOrMaker;
-            }
-            if (orderType !== undefined) {
-                id += '-' + orderType;
-            }
-        }
-        return id;
     }
     /**
      * @method
@@ -6111,4 +6098,4 @@ class mexc extends mexc$1 {
     }
 }
 
-module.exports = mexc;
+exports["default"] = mexc;

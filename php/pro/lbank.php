@@ -20,7 +20,7 @@ class lbank extends \ccxt\async\lbank {
                 'fetchOrderBookWs' => true,
                 'fetchTickerWs' => true,
                 'fetchTradesWs' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
@@ -702,6 +702,63 @@ class lbank extends \ccxt\async\lbank {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $key = Async\await($this->authenticate($params));
+            $url = $this->urls['api']['ws'];
+            $messageHash = 'balance';
+            $message = array(
+                'action' => 'subscribe',
+                'subscribe' => 'assetUpdate',
+                'subscribeKey' => $key,
+            );
+            $request = $this->deep_extend($message, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+        }) ();
+    }
+
+    public function handle_balance(Client $client, $message) {
+        //
+        //     {
+        //         "data" => array(
+        //             "asset" => "114548.31881315",
+        //             "assetCode" => "usdt",
+        //             "free" => "97430.6739041",
+        //             "freeze" => "17117.64490905",
+        //             "time" => 1627300043270,
+        //             "type" => "ORDER_CREATE"
+        //         ),
+        //         "SERVER" => "V2",
+        //         "type" => "assetUpdate",
+        //         "TS" => "2021-07-26T19:48:03.548"
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $timestamp = $this->parse8601($this->safe_string($message, 'TS'));
+        $datetime = $this->iso8601($timestamp);
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $datetime;
+        $currencyId = $this->safe_string($data, 'assetCode');
+        $code = $this->safe_currency_code($currencyId);
+        $account = $this->account();
+        $account['free'] = $this->safe_string($data, 'free');
+        $account['used'] = $this->safe_string($data, 'freeze');
+        $account['total'] = $this->safe_string($data, 'asset');
+        $this->balance[$code] = $account;
+        $this->balance = $this->safe_balance($this->balance);
+        $client->resolve ($this->balance, 'balance');
+    }
+
     public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
@@ -888,6 +945,7 @@ class lbank extends \ccxt\async\lbank {
             'trade' => array($this, 'handle_trades'),
             'tick' => array($this, 'handle_ticker'),
             'orderUpdate' => array($this, 'handle_orders'),
+            'assetUpdate' => array($this, 'handle_balance'),
         );
         $handler = $this->safe_value($handlers, $type);
         if ($handler !== null) {

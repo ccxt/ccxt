@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ndax$1 = require('../ndax.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class ndax extends ndax$1 {
+class ndax extends ndax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -541,4 +543,4 @@ class ndax extends ndax$1 {
     }
 }
 
-module.exports = ndax;
+exports["default"] = ndax;

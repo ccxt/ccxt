@@ -795,7 +795,7 @@ export default class kucoin extends Exchange {
                     'TLOS': 'tlos',
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -915,6 +915,7 @@ export default class kucoin extends Exchange {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',

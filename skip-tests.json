@@ -1130,6 +1130,29 @@
             }
         }
     },
+    "hibachi": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "only have USDT"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency"
+            },
+            "fetchLedger": {
+                "before": "not provided",
+                "after": "not provided",
+                "fee": "not provided for transaction"
+            },
+            "fetchDeposits": {
+                "fee": "not provided for deposit",
+                "updated": "not provided"
+            },
+            "fetchWithdrawals": {
+                "fee": "not provided for withdrawal",
+                "updated":"not provided"
+            }
+        }
+    },
     "hitbtc": {
         "skipMethods": {
             "loadMarkets": {
@@ -1665,7 +1688,8 @@
                 "bid": "equal to ask https://github.com/ccxt/ccxt/actions/runs/15595034293/job/43923530003?pr=26177#step:9:504"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "todo",
+                "average": "sometimes zero"
             }
 	    }
     },
@@ -1739,6 +1763,7 @@
     },
     "tradeogre": {
         "skip": "flaky",
+        "skipWs": "down",
         "skipMethods": {
             "watchOrderBook": {
                 "timestamp": "not provided"

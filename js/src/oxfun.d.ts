@@ -300,7 +300,7 @@ export default class oxfun extends Exchange {
      * @param {string} [params.code] 2FA code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name oxfun#fetchPositions

@@ -442,6 +442,7 @@ class mexc extends Exchange {
                         ),
                     ),
                 ),
+                'useCcxtTradeId' => true,
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1m',
@@ -480,6 +481,12 @@ class mexc extends Exchange {
                     'ZKSYNC' => 'ZKSYNCERA',
                     'TRC20' => 'TRX',
                     'TON' => 'TONCOIN',
+                    'ARBITRUM' => 'ARB',
+                    'STX' => 'STACKS',
+                    'LUNC' => 'LUNA',
+                    'STARK' => 'STARKNET',
+                    'APT' => 'APTOS',
+                    'PEAQ' => 'PEAQEVM',
                     'AVAXC' => 'AVAX_CCHAIN',
                     'ERC20' => 'ETH',
                     'ACA' => 'ACALA',
@@ -509,6 +516,7 @@ class mexc extends Exchange {
                     // 'DNX' => 'Dynex(DNX)',
                     // 'DOGE' => 'Dogecoin(DOGE)',
                     // 'DOT' => 'Polkadot(DOT)',
+                    'DOT' => 'DOTASSETHUB',
                     // 'DYM' => 'Dymension(DYM)',
                     'ETHF' => 'ETF',
                     'HRC20' => 'HECO',
@@ -1739,8 +1747,8 @@ class mexc extends Exchange {
                 }
             }
         }
-        if ($id === null) {
-            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amountString, $priceString, $type, $takerOrMaker);
+        if ($id === null && $this->safe_bool($this->options, 'useCcxtTradeId', true)) {
+            $id = $this->create_ccxt_trade_id($timestamp, $side, $amountString, $priceString, $takerOrMaker);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1757,30 +1765,6 @@ class mexc extends Exchange {
             'fee' => $fee,
             'info' => $trade,
         ), $market);
-    }
-
-    public function synthetic_trade_id($market = null, $timestamp = null, $side = null, $amount = null, $price = null, $orderType = null, $takerOrMaker = null) {
-        // TODO => can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        $id = '';
-        if ($timestamp !== null) {
-            $id = $this->number_to_string($timestamp) . '-' . $this->safe_string($market, 'id', '_');
-            if ($side !== null) {
-                $id .= '-' . $side;
-            }
-            if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
-            }
-            if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
-            }
-            if ($takerOrMaker !== null) {
-                $id .= '-' . $takerOrMaker;
-            }
-            if ($orderType !== null) {
-                $id .= '-' . $orderType;
-            }
-        }
-        return $id;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -4345,7 +4329,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -5633,7 +5617,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

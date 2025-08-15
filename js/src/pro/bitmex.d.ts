@@ -1,5 +1,5 @@
 import bitmexRest from '../bitmex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmex extends bitmexRest {
     describe(): any;
@@ -47,7 +47,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     /**
      * @method
@@ -165,6 +165,6 @@ export default class bitmex extends bitmexRest {
     handleOrderBook(client: Client, message: any): void;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

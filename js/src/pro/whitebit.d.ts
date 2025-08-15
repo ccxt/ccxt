@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -111,7 +111,7 @@ export default class whitebit extends whitebitRest {
     watchPrivate(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any, id: any): void;
     handlePong(client: Client, message: any): any;

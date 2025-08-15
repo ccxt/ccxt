@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.96'
+__version__ = '4.5.0'
 
 # -----------------------------------------------------------------------------
 
@@ -1862,6 +1862,8 @@ class Exchange(object):
         signature = auth_data.signature
         return signature
 
+    def is_binary_message(self, message):
+        return isinstance(message, bytes) or isinstance(message, bytearray)
 
     # ########################################################################
     # ########################################################################
@@ -2133,6 +2135,17 @@ class Exchange(object):
                 'watchLiquidations': None,
                 'watchLiquidationsForSymbols': None,
                 'watchMyLiquidations': None,
+                'unWatchOrders': None,
+                'unWatchTrades': None,
+                'unWatchTradesForSymbols': None,
+                'unWatchOHLCVForSymbols': None,
+                'unWatchOrderBookForSymbols': None,
+                'unWatchPositions': None,
+                'unWatchOrderBook': None,
+                'unWatchTickers': None,
+                'unWatchMyTrades': None,
+                'unWatchTicker': None,
+                'unWatchOHLCV': None,
                 'watchMyLiquidationsForSymbols': None,
                 'withdraw': None,
                 'ws': None,
@@ -2619,6 +2632,9 @@ class Exchange(object):
     def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
 
+    def un_watch_positions(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
@@ -2760,13 +2776,13 @@ class Exchange(object):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     def fetch_leverage(self, symbol: str, params={}):
@@ -2815,7 +2831,7 @@ class Exchange(object):
     def fetch_deposit_addresses_by_network(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchDepositAddressesByNetwork() is not supported yet')
 
-    def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
+    def fetch_open_interest_history(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -3677,6 +3693,21 @@ class Exchange(object):
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def create_ccxt_trade_id(self, timestamp=None, side=None, amount=None, price=None, takerOrMaker=None):
+        # self approach is being used by multiple exchanges(mexc, woo, coinsbit, dydx, ...)
+        id = None
+        if timestamp is not None:
+            id = self.number_to_string(timestamp)
+            if side is not None:
+                id += '-' + side
+            if amount is not None:
+                id += '-' + self.number_to_string(amount)
+            if price is not None:
+                id += '-' + self.number_to_string(price)
+            if takerOrMaker is not None:
+                id += '-' + takerOrMaker
+        return id
 
     def parsed_fee_and_fees(self, container: Any):
         fee = self.safe_dict(container, 'fee')
@@ -5044,7 +5075,7 @@ class Exchange(object):
     def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
 
-    def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -5066,7 +5097,7 @@ class Exchange(object):
             return self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
 
-    def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}):
+    def create_trailing_amount_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
         :param str symbol: unified symbol of the market to create an order in
@@ -5088,7 +5119,7 @@ class Exchange(object):
             return self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrderWs() is not supported yet')
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -5110,7 +5141,7 @@ class Exchange(object):
             return self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
 
-    def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}):
+    def create_trailing_percent_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -6164,7 +6195,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchFundingInterval() is not supported yet')
 
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_mark_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -6432,7 +6463,7 @@ class Exchange(object):
         calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        until = self.safe_integer_n(params, ['until', 'untill', 'till'])  # do not omit it from params here
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
@@ -6994,6 +7025,14 @@ class Exchange(object):
                 self.myTrades = None
             elif topic == 'orders' and (self.orders is not None):
                 self.orders = None
+            elif topic == 'positions' and (self.positions is not None):
+                self.positions = None
+                clients = list(self.clients.values())
+                for i in range(0, len(clients)):
+                    client = clients[i]
+                    futures = self.safe_dict(client, 'futures')
+                    if (futures is not None) and ('fetchPositionsSnapshot' in futures):
+                        del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):

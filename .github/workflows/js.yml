@@ -48,6 +48,9 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: Debug Node version smart bump tmp remove
+      run: |
+        echo "Test smart version: $(./build/smart-bump.sh)"
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Debug files changes

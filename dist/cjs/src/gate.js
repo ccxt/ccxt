@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class gate
  * @augments Exchange
  */
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -667,9 +669,7 @@ class gate extends gate$1 {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
-                    'OP': 'OPETH',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',
                     'AVAXC': 'AVAX_C',
@@ -7659,12 +7659,33 @@ class gate extends gate$1 {
         if (quoteValueString === undefined) {
             quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        const optPos = this.safeStringLower(liquidation, 'side');
+        let side = undefined;
+        if (optPos === 'long') {
+            side = 'buy';
+        }
+        else if (optPos === 'short') {
+            side = 'sell';
+        }
+        else {
+            if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
+                if (Precise["default"].stringGt(size, '0')) {
+                    side = 'buy';
+                }
+                else if (Precise["default"].stringLt(size, '0')) {
+                    side = 'sell';
+                }
+            }
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
             'contractSize': this.parseNumber(contractSizeString),
             'price': this.parseNumber(priceString),
+            'side': side,
             'baseValue': this.parseNumber(baseValueString),
             'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
             'timestamp': timestamp,
@@ -8238,4 +8259,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

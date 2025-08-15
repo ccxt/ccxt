@@ -797,7 +797,7 @@
                                     }
                                 }
                             },
-                            "ARB": {
+                            "ARBITRUM": {
                                 "info": {
                                     "name": "USDT",
                                     "network": "ARBITRUM",
@@ -815,7 +815,7 @@
                                     "needTagOrMemo": "false"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARB",
+                                "network": "ARBITRUM",
                                 "fee": 0.5,
                                 "active": true,
                                 "deposit": true,
@@ -2022,6 +2022,57 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1754906233308",
+                    "data": {
+                        "assets": [
+                            {
+                                "asset": "USDT",
+                                "free": "44.37692200000000237300",
+                                "locked": "0.00000000000000000000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "timestamp": "1754906233308",
+                        "data": {
+                            "assets": [
+                                {
+                                    "asset": "USDT",
+                                    "free": "44.37692200000000237300",
+                                    "locked": "0.00000000000000000000"
+                                }
+                            ]
+                        }
+                    },
+                    "USDT": {
+                        "free": 44.376922,
+                        "used": 0,
+                        "total": 44.376922
+                    },
+                    "free": {
+                        "USDT": 44.376922
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 44.376922
+                    }
+                }
+            },
+            {
                 "description": "spot fetchBalance",
                 "method": "fetchBalance",
                 "input": [],
@@ -2638,7 +2689,7 @@
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
-                  "ARB": {
+                  "ARBITRUM": {
                     "info": {
                       "coinId": "1367",
                       "coin": "USDT",
@@ -2647,7 +2698,7 @@
                       "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
                     },
                     "currency": "USDT",
-                    "network": "ARB",
+                    "network": "ARBITRUM",
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
@@ -2677,7 +2728,7 @@
                     "address": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI",
                     "tag": null
                   },
-                  "AVAX-C": {
+                  "AVAXC": {
                     "info": {
                       "coinId": "2050",
                       "coin": "USDT",
@@ -2686,7 +2737,7 @@
                       "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
                     },
                     "currency": "USDT",
-                    "network": "AVAX-C",
+                    "network": "AVAXC",
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   }

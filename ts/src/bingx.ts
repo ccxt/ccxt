@@ -105,6 +105,7 @@ export default class bingx extends Exchange {
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -141,6 +142,15 @@ export default class bingx extends Exchange {
                 'secret': true,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
@@ -555,8 +565,11 @@ export default class bingx extends Exchange {
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
@@ -2197,6 +2210,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract balances
+     * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -2227,6 +2241,21 @@ export default class bingx extends Exchange {
             //         ]
             //     }
             //
+        } else if ((marketType === 'funding') || (marketType === 'fund')) {
+            response = await this.fundV1PrivateGetAccountBalance (marketTypeQuery);
+            // {
+            //     code: '0',
+            //     timestamp: '1754906016631',
+            //     data: {
+            //         assets: [
+            //             {
+            //                 asset: 'USDT',
+            //                 free: '44.37692200000000237300',
+            //                 locked: '0.00000000000000000000'
+            //             }
+            //         ]
+            //     }
+            // }
         } else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance (marketTypeQuery);
             //
@@ -2378,7 +2407,7 @@ export default class bingx extends Exchange {
         const firstStandardOrInverse = this.safeDict (standardAndInverseBalances, 0);
         const isStandardOrInverse = firstStandardOrInverse !== undefined;
         const spotData = this.safeDict (response, 'data', {});
-        const spotBalances = this.safeList (spotData, 'balances');
+        const spotBalances = this.safeList2 (spotData, 'balances', 'assets', []);
         const firstSpot = this.safeDict (spotBalances, 0);
         const isSpot = firstSpot !== undefined;
         if (isStandardOrInverse) {
@@ -5578,7 +5607,7 @@ export default class bingx extends Exchange {
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5844,7 +5873,7 @@ export default class bingx extends Exchange {
      * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

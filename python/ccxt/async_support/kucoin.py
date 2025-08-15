@@ -812,7 +812,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -932,6 +932,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -3386,7 +3387,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4801,7 +4802,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

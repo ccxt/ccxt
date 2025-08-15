@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cairo = require('./cairo.js');
 
 // ----------------------------------------------------------------------------
@@ -109,4 +111,4 @@ function extractTupleMemberTypes(type) {
     return extractCairo0Tuple(type);
 }
 
-module.exports = extractTupleMemberTypes;
+exports["default"] = extractTupleMemberTypes;

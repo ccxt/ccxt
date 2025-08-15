@@ -449,6 +449,7 @@ class mexc(Exchange, ImplicitAPI):
                         },
                     },
                 },
+                'useCcxtTradeId': True,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -487,6 +488,12 @@ class mexc(Exchange, ImplicitAPI):
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -516,6 +523,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'DNX': 'Dynex(DNX)',
                     # 'DOGE': 'Dogecoin(DOGE)',
                     # 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     # 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -1695,8 +1703,8 @@ class mexc(Exchange, ImplicitAPI):
                         'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
-        if id is None:
-            id = self.synthetic_trade_id(market, timestamp, side, amountString, priceString, type, takerOrMaker)
+        if id is None and self.safe_bool(self.options, 'useCcxtTradeId', True):
+            id = self.create_ccxt_trade_id(timestamp, side, amountString, priceString, takerOrMaker)
         return self.safe_trade({
             'id': id,
             'order': orderId,
@@ -1712,23 +1720,6 @@ class mexc(Exchange, ImplicitAPI):
             'fee': fee,
             'info': trade,
         }, market)
-
-    def synthetic_trade_id(self, market=None, timestamp=None, side=None, amount=None, price=None, orderType=None, takerOrMaker=None):
-        # TODO: can be unified method? self approach is being used by multiple exchanges(mexc, woo-coinsbit, dydx, ...)
-        id = ''
-        if timestamp is not None:
-            id = self.number_to_string(timestamp) + '-' + self.safe_string(market, 'id', '_')
-            if side is not None:
-                id += '-' + side
-            if amount is not None:
-                id += '-' + self.number_to_string(amount)
-            if price is not None:
-                id += '-' + self.number_to_string(price)
-            if takerOrMaker is not None:
-                id += '-' + takerOrMaker
-            if orderType is not None:
-                id += '-' + orderType
-        return id
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -4072,7 +4063,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -5258,7 +5249,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

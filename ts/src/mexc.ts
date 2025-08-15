@@ -436,6 +436,7 @@ export default class mexc extends Exchange {
                         },
                     },
                 },
+                'useCcxtTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -474,6 +475,12 @@ export default class mexc extends Exchange {
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -503,6 +510,7 @@ export default class mexc extends Exchange {
                     // 'DNX': 'Dynex(DNX)',
                     // 'DOGE': 'Dogecoin(DOGE)',
                     // 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -1717,8 +1725,8 @@ export default class mexc extends Exchange {
                 }
             }
         }
-        if (id === undefined) {
-            id = this.syntheticTradeId (market, timestamp, side, amountString, priceString, type, takerOrMaker);
+        if (id === undefined && this.safeBool (this.options, 'useCcxtTradeId', true)) {
+            id = this.createCcxtTradeId (timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade ({
             'id': id,
@@ -1735,30 +1743,6 @@ export default class mexc extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
-    }
-
-    syntheticTradeId (market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
-        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        let id = '';
-        if (timestamp !== undefined) {
-            id = this.numberToString (timestamp) + '-' + this.safeString (market, 'id', '_');
-            if (side !== undefined) {
-                id += '-' + side;
-            }
-            if (amount !== undefined) {
-                id += '-' + this.numberToString (amount);
-            }
-            if (price !== undefined) {
-                id += '-' + this.numberToString (price);
-            }
-            if (takerOrMaker !== undefined) {
-                id += '-' + takerOrMaker;
-            }
-            if (orderType !== undefined) {
-                id += '-' + orderType;
-            }
-        }
-        return id;
     }
 
     /**
@@ -4275,7 +4259,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
@@ -5533,7 +5517,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);

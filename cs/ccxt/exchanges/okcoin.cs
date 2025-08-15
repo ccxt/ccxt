@@ -2677,7 +2677,7 @@ public partial class okcoin : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(getArrayLength(tag), 0)))))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(((string)tag).Length, 0)))))
         {
             address = add(add(address, ":"), tag);
         }

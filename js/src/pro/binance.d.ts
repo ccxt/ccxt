@@ -175,7 +175,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     /**
@@ -774,7 +774,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTradesWs(client: Client, message: any): void;
     /**
      * @method

@@ -332,6 +332,8 @@ export default class Exchange {
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
+    isBinaryMessage(msg: any): boolean;
+    decodeProtoMsg(data: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -457,6 +459,7 @@ export default class Exchange {
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -497,9 +500,9 @@ export default class Exchange {
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<{}>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<{}>;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<{}>;
@@ -581,6 +584,7 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
+    createCcxtTradeId(timestamp?: any, side?: any, amount?: any, price?: any, takerOrMaker?: any): any;
     parsedFeeAndFees(container: any): Dictionary<any>[];
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
@@ -728,10 +732,10 @@ export default class Exchange {
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     fetchPositionMode(symbol?: Str, params?: {}): Promise<{}>;
-    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
-    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
-    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
-    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: any, trailingTriggerPrice?: any, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -864,7 +868,7 @@ export default class Exchange {
     parseOpenInterestsHistory(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
-    fetchMarkOHLCV(symbol: any, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchMarkOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchPremiumIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleTimeInForce(params?: {}): string;

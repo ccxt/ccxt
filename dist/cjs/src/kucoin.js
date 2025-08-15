@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kucoin$1 = require('./abstract/kucoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class kucoin
  * @augments Exchange
  */
-class kucoin extends kucoin$1 {
+class kucoin extends kucoin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoin',
@@ -792,7 +794,7 @@ class kucoin extends kucoin$1 {
                     'TLOS': 'tlos',
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -912,6 +914,7 @@ class kucoin extends kucoin$1 {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -5148,4 +5151,4 @@ class kucoin extends kucoin$1 {
     }
 }
 
-module.exports = kucoin;
+exports["default"] = kucoin;

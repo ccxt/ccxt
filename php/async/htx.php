@@ -5299,7 +5299,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -6741,7 +6741,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              *
@@ -7647,7 +7647,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -9473,6 +9473,7 @@ class htx extends Exchange {
             'contracts' => $this->safe_number($liquidation, 'volume'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'direction'),
             'baseValue' => $this->safe_number($liquidation, 'amount'),
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,

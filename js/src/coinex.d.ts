@@ -407,7 +407,7 @@ export default class coinex extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name coinex#fetchLeverageTiers
@@ -495,12 +495,12 @@ export default class coinex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} [tag] memo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: Str): string;
     /**
      * @method
@@ -641,6 +641,16 @@ export default class coinex extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name coinex#fetchDepositWithdrawFees
+     * @description fetch the fees for deposits and withdrawals
+     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     /**
      * @method

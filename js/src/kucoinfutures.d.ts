@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position, int } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -351,6 +351,7 @@ export default class kucoinfutures extends kucoin {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -515,6 +516,6 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
 }

@@ -234,6 +234,7 @@ export default class krakenfutures extends Exchange {
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
