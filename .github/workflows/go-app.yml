@@ -40,13 +40,14 @@ jobs:
         run: npm run emitAPI -- --go
       - name: Transpile To Go
         if: env.important_modified == 'true'
-        run: tsx build/goTranspiler.ts
+        run: tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws
       - name: Transpile to Go (specific)
         if: env.important_modified == 'false'
         run: |
           cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
           for exchange in $cleaned_rest_files; do
             tsx build/goTranspiler.ts -- $exchange
+            tsx build/goTranspiler.ts --ws -- $exchange
           done
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
