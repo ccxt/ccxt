@@ -32,23 +32,9 @@ export default class arkm extends arkmRest {
                 },
             },
             'options': {
-                'ws': {
-                    // 'gunzip': true,
-                },
-                'watchBalance': {
-                    'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
-                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
-                },
                 'watchOrderBook': {
                     'depth': 100, // 5, 10, 20, 50, 100
                     'interval': 500, // 100, 200, 500, 1000
-                },
-                'watchOrderBookForSymbols': {
-                    'depth': 100, // 5, 10, 20, 50, 100
-                    'interval': 500, // 100, 200, 500, 1000
-                },
-                'watchTrades': {
-                    'ignoreDuplicates': true,
                 },
             },
             'streaming': {
