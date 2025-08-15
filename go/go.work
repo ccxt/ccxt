@@ -5,5 +5,5 @@ use (
 	./tests
 	./tests/base
 	./v4
-	./v4/ws
+	./v4/pro
 )

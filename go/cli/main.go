@@ -12,8 +12,7 @@ import (
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
-	ccxtWs "github.com/ccxt/ccxt/go/v4/ws"
-	ccxtws "github.com/ccxt/ccxt/go/v4/ws"
+	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 var Red = "\033[31m"
@@ -480,8 +479,8 @@ func main() {
 	cmdSettings := InitOptions(flags)
 	var instance ccxt.ICoreExchange
 	suc := true
-	if slices.Contains(ccxtws.Exchanges, exchangeName) {
-		instance, suc = ccxtWs.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 	} else {
 		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 	}
