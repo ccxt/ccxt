@@ -21,9 +21,9 @@ export default class arkm extends arkmRest {
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': true,
-                // 'watchMyTrades': true,
+                'watchMyTrades': false,
                 'watchTicker': true,
-                // 'watchTickers': true,
+                'watchTickers': false,
                 'watchBalance': true,
             },
             'urls': {
