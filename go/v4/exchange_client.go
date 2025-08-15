@@ -38,41 +38,41 @@ type ClientInterface interface {
 // Subscriptions are identified by an arbitrary hash string
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
-	Futures       map[string]interface{}
-	FuturesMu     sync.RWMutex 										// protects Futures map
-	Url string
+	Futures   map[string]interface{}
+	FuturesMu sync.RWMutex // protects Futures map
+	Url       string
 
-	Connection *websocket.Conn
-	ConnectionMu   sync.Mutex 												// protects conn writes
+	Connection   *websocket.Conn
+	ConnectionMu sync.Mutex // protects conn writes
 
-	Subscriptions  map[string]interface{}  // map[string]chan interface{}
+	Subscriptions   map[string]interface{} // map[string]chan interface{}
 	SubscriptionsMu sync.RWMutex
-	ReadLoopClosed chan struct{}
+	ReadLoopClosed  chan struct{}
 
-	Error error 													// last error, nil if connection considered healthy
+	Error error // last error, nil if connection considered healthy
 
-	Connected             interface{}	// *Future             		// signal channel for connection established
-    Disconnected          interface{}   // *Future              	// future for disconnection
-    Rejections            map[string]interface{} 					// map for rejection info
-    KeepAlive             interface{}                  				// number in milliseconds or seconds
-    ConnectionTimeout     interface{}            					// e.g. *time.Timer or context.CancelFunc
-    Verbose               bool                   					// default false
-    ConnectionTimer       interface{}            					// e.g. *time.Timer or custom timer
-    LastPong              interface{}            					// time or timestamp type recommended
-    MaxPingPongMisses     interface{}            					// int or counter type
-    PingInterval          interface{}            					// time.Duration recommended
-    ConnectionEstablished interface{}            					// signal or state variable
-    Gunzip                interface{}            					// gzip decompressor (e.g. io.Reader)
-    Inflate               interface{}            					// zlib inflater or similar
-    URL                   string                 					// URL string
-    IsConnected           interface{}            					// bool or state variable
-    OnConnectedCallback   func(client interface{}, message interface{}) // callback function signature - adjust as needed
-    OnMessageCallback     func(client interface{}, message interface{}) // example callback with message
-    OnErrorCallback       func(client interface{}, err interface{})   	// error callback
-    OnCloseCallback       func(client interface{}, err interface{})   	// connection closed callback
-    Ping                  interface{}            					// e.g. timer or pong/ping state
-    Throttle              interface{}            					// throttling mechanism (rate limiter, etc.)
-    // Owner interface{} 											// pointer to the exchange that created the client
+	Connected             interface{}                                   // *Future             		// signal channel for connection established
+	Disconnected          interface{}                                   // *Future              	// future for disconnection
+	Rejections            map[string]interface{}                        // map for rejection info
+	KeepAlive             interface{}                                   // number in milliseconds or seconds
+	ConnectionTimeout     interface{}                                   // e.g. *time.Timer or context.CancelFunc
+	Verbose               bool                                          // default false
+	ConnectionTimer       interface{}                                   // e.g. *time.Timer or custom timer
+	LastPong              interface{}                                   // time or timestamp type recommended
+	MaxPingPongMisses     interface{}                                   // int or counter type
+	PingInterval          interface{}                                   // time.Duration recommended
+	ConnectionEstablished interface{}                                   // signal or state variable
+	Gunzip                interface{}                                   // gzip decompressor (e.g. io.Reader)
+	Inflate               interface{}                                   // zlib inflater or similar
+	URL                   string                                        // URL string
+	IsConnected           interface{}                                   // bool or state variable
+	OnConnectedCallback   func(client interface{}, message interface{}) // callback function signature - adjust as needed
+	OnMessageCallback     func(client interface{}, message interface{}) // example callback with message
+	OnErrorCallback       func(client interface{}, err interface{})     // error callback
+	OnCloseCallback       func(client interface{}, err interface{})     // connection closed callback
+	Ping                  interface{}                                   // e.g. timer or pong/ping state
+	Throttle              interface{}                                   // throttling mechanism (rate limiter, etc.)
+	// Owner interface{} 											// pointer to the exchange that created the client
 }
 
 func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
@@ -80,7 +80,7 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
-	
+
 	// Send to Future channel for ongoing updates (non-blocking)
 	if fut, exists := this.Futures[hash]; exists {
 		fut.(*Future).Resolve(data)
@@ -90,13 +90,13 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 }
 
 func (this *Client) Future(messageHash interface{}) <-chan interface{} {
-    future := this.NewFuture(messageHash)
+	future := this.NewFuture(messageHash)
 	return future.Await()
 }
 
 func (this *Client) NewFuture(messageHash interface{}) *Future {
-    hash, _ := messageHash.(string)
-    if _, ok := this.Futures[hash]; !ok {
+	hash, _ := messageHash.(string)
+	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
@@ -104,7 +104,7 @@ func (this *Client) NewFuture(messageHash interface{}) *Future {
 		future.(*Future).Reject(err.(error))
 		delete(this.Rejections, hash)
 	}
-    return future.(*Future)
+	return future.(*Future)
 }
 
 // Reject rejects specific future or all
@@ -131,10 +131,10 @@ func (this *Client) Close() error {
 		err := this.Connection.Close()
 		this.Connection = nil
 		this.IsConnected = false
-		
+
 		// Signal disconnection
 		this.Disconnected.(*Future).Resolve(true)
-		
+
 		return err
 	}
 	return nil
@@ -145,32 +145,32 @@ func (this *Client) Close() error {
 func NewClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *Client {
 	// Set up defaults exactly like TypeScript constructor
 	defaults := map[string]interface{}{
-		"Url":                     url,
-		"OnMessageCallback":       onMessageCallback,
-		"OnErrorCallback":         onErrorCallback,
-		"OnCloseCallback":         onCloseCallback,
-		"OnConnectedCallback":     onConnectedCallback,
-		"Verbose":                 false,
-		"Protocols":               nil,
-		"Options":                 nil,
-		"Futures":                 make(map[string]interface{}),
-		"Subscriptions":           make(map[string]interface{}),  // map[string]chan interface{}
-		"Rejections":              make(map[string]interface{}),
-		"Connected":               nil,
-		"Error":                   nil,
-		"ConnectionStarted":       nil,
-		"ConnectionEstablished":   nil,
-		"IsConnected":             false,
-		"ConnectionTimer":         nil,
-		"ConnectionTimeout":       10000,
-		"PingInterval":            nil,
-		"Ping":                    nil,
-		"KeepAlive":               30000,
-		"MaxPingPongMisses":       2.0,
-		"Connection":              nil,
-		"StartedConnecting":       false,
-		"Gunzip":                  false,
-		"Inflate":                 false,
+		"Url":                   url,
+		"OnMessageCallback":     onMessageCallback,
+		"OnErrorCallback":       onErrorCallback,
+		"OnCloseCallback":       onCloseCallback,
+		"OnConnectedCallback":   onConnectedCallback,
+		"Verbose":               false,
+		"Protocols":             nil,
+		"Options":               nil,
+		"Futures":               make(map[string]interface{}),
+		"Subscriptions":         make(map[string]interface{}), // map[string]chan interface{}
+		"Rejections":            make(map[string]interface{}),
+		"Connected":             nil,
+		"Error":                 nil,
+		"ConnectionStarted":     nil,
+		"ConnectionEstablished": nil,
+		"IsConnected":           false,
+		"ConnectionTimer":       nil,
+		"ConnectionTimeout":     10000,
+		"PingInterval":          nil,
+		"Ping":                  nil,
+		"KeepAlive":             30000,
+		"MaxPingPongMisses":     2.0,
+		"Connection":            nil,
+		"StartedConnecting":     false,
+		"Gunzip":                false,
+		"Inflate":               false,
 	}
 
 	// Apply config overrides if provided
@@ -183,22 +183,22 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 
 	// Create the client with all properties from TypeScript constructor
 	c := &Client{
-		Url:                   url,
-		Futures:               finalConfig["Futures"].(map[string]interface{}),
-		Subscriptions:         finalConfig["Subscriptions"].(map[string]interface{}),  // map[string]chan interface{}
-		Rejections:            finalConfig["Rejections"].(map[string]interface{}),
-		Verbose:               finalConfig["Verbose"].(bool),
-		KeepAlive:             int64(finalConfig["KeepAlive"].(int)),
-		MaxPingPongMisses:     finalConfig["MaxPingPongMisses"],
-		IsConnected:           finalConfig["IsConnected"],
-		OnConnectedCallback:   onConnectedCallback,
-		OnMessageCallback:     onMessageCallback,
-		OnErrorCallback:       onErrorCallback,
-		OnCloseCallback:       onCloseCallback,
-		ConnectionTimeout:     finalConfig["ConnectionTimeout"],
-		ConnectionTimer:       finalConfig["ConnectionTimer"],
-		PingInterval:          finalConfig["PingInterval"],
-		Ping:                  finalConfig["Ping"],
+		Url:                 url,
+		Futures:             finalConfig["Futures"].(map[string]interface{}),
+		Subscriptions:       finalConfig["Subscriptions"].(map[string]interface{}), // map[string]chan interface{}
+		Rejections:          finalConfig["Rejections"].(map[string]interface{}),
+		Verbose:             finalConfig["Verbose"].(bool),
+		KeepAlive:           int64(finalConfig["KeepAlive"].(int)),
+		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
+		IsConnected:         finalConfig["IsConnected"],
+		OnConnectedCallback: onConnectedCallback,
+		OnMessageCallback:   onMessageCallback,
+		OnErrorCallback:     onErrorCallback,
+		OnCloseCallback:     onCloseCallback,
+		ConnectionTimeout:   finalConfig["ConnectionTimeout"],
+		ConnectionTimer:     finalConfig["ConnectionTimer"],
+		PingInterval:        finalConfig["PingInterval"],
+		Ping:                finalConfig["Ping"],
 		Connection: func() *websocket.Conn {
 			if finalConfig["connection"] != nil {
 				if conn, ok := finalConfig["Connection"].(*websocket.Conn); ok {
@@ -227,7 +227,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 // 			this.OnCloseCallback()
 // 		}
 // 	}()
-	
+
 // 	for {
 // 		if this.Connection == nil {
 // 			return
@@ -236,12 +236,12 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 // 		if err != nil {
 // 			this.Err = err
 // 			this.IsConnected = false
-			
+
 // 			// Call onErrorCallback if provided
 // 			if this.OnErrorCallback != nil {
 // 				this.OnErrorCallback(err)
 // 			}
-			
+
 // 			_ = this.Close()
 // 			return
 // 		}
@@ -374,7 +374,7 @@ func (this *Client) OnPingInterval() {
 					maxPingPongMisses = misses
 				}
 			}
-			if (lastPong + this.KeepAlive.(int64) * int64(maxPingPongMisses)) < now {
+			if (lastPong + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
 				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
 				this.OnError(err)
 			} else {
@@ -464,7 +464,7 @@ func (this *Client) OnClose(event interface{}) {
 	if this.Disconnected != nil {
 		this.Disconnected.(*Future).Resolve(true)
 	}
-	this.OnCloseCallback(this, event)  // TODO: What to do with event? parameter is error
+	this.OnCloseCallback(this, event) // TODO: What to do with event? parameter is error
 }
 
 // this method is not used at this time
@@ -483,7 +483,7 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 		msgBytes, _ := json.Marshal(message)
 		msgStr = string(msgBytes)
 	}
-	
+
 	future := NewFuture()
 	ch := make(chan interface{})
 	go func() {
@@ -499,7 +499,7 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 		}
 		this.ConnectionMu.Unlock()
 	}()
-	
+
 	return ch
 }
 
@@ -532,7 +532,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
-			messageStr = string(bytes)
+			// messageStr = string(bytes) // don't convert blindly here, todo: read decompressBinary message
 		}
 	} else {
 		messageStr = fmt.Sprintf("%v", message)
@@ -544,7 +544,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// Replace large numbers with strings to prevent precision loss
 		re := regexp.MustCompile(`:(\d{15,}),`)
 		messageStr = re.ReplaceAllString(messageStr, `:"$1",`)
-		
+
 		parsedMessage = ParseJSON(messageStr)
 		if parsedMessage == nil {
 			if this.Verbose {
@@ -565,7 +565,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 func (this *Client) IsJsonEncodedObject(str string) bool {
 	str = strings.TrimSpace(str)
 	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
-		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
+		(strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
 }
 
 func (this *Client) GetError() error {
@@ -585,5 +585,5 @@ func (this *Client) GetSubscriptions() map[string]interface{} {
 }
 
 type wsMessageHandler interface {
-    HandleMessage(client *Client, msg interface{})
+	HandleMessage(client *Client, msg interface{})
 }
