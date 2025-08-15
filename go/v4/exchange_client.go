@@ -532,7 +532,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
 		} else {
-			// messageStr = string(bytes) // don't convert blindly here, todo: read decompressBinary message
+			messageStr = string(bytes) // TODO: don't convert blindly here, todo: read decompressBinary message
 		}
 	} else {
 		messageStr = fmt.Sprintf("%v", message)
