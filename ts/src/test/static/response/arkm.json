@@ -521,7 +521,7 @@
                         "unrealizedPnl": -0.03248,
                         "realizedPnl": null,
                         "percentage": null,
-                        "contracts": null,
+                        "contracts": 0.058,
                         "contractSize": 1,
                         "markPrice": 174.9,
                         "lastPrice": null,

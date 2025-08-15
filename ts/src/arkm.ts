@@ -2103,6 +2103,7 @@ export default class arkm extends Exchange {
         //        }
         //
         const base = this.safeString (position, 'base');
+        const baseAbs = Precise.stringAbs (base);
         const isLong = Precise.stringGe (base, '0');
         const side = isLong ? 'long' : 'short';
         const marketId = this.safeString (position, 'symbol');
@@ -2118,7 +2119,7 @@ export default class arkm extends Exchange {
             'unrealizedPnl': this.safeNumber (position, 'pnl'),
             'realizedPnl': undefined,
             'percentage': undefined,
-            'contracts': base,
+            'contracts': this.parseNumber (baseAbs),
             'contractSize': undefined,
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
