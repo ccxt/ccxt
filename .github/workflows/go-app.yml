@@ -52,6 +52,8 @@ jobs:
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
         run: go build -C go ./v4
+      - name: Build Ws
+        run: go build -C go ./v4/ws
       - name: Build tests
         run: go -C go build ./tests/main.go
       - name: Format go files
