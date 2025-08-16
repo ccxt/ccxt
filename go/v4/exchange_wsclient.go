@@ -26,23 +26,23 @@ import (
 type WSClient struct {
 	*Client
 
-	ConnectionStarted    int64
-    Protocols            interface{}
-    Options              interface{}
-    StartedConnecting    bool
+	ConnectionStarted int64
+	Protocols         interface{}
+	Options           interface{}
+	StartedConnecting bool
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
 func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *WSClient {
 	// Call NewClient to do exactly the same initialization
 	client := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
-	
+
 	// Wrap the Client in a WSClient
 	wsClient := &WSClient{
 		Client: client,
 	}
 	wsClient.StartedConnecting = false
-	
+
 	return wsClient
 }
 
@@ -100,7 +100,7 @@ func (this *WSClient) handleMessages() {
 		if this.Connection == nil {
 			return
 		}
-		
+
 		messageType, data, err := this.Connection.ReadMessage()
 		if err != nil {
 			this.OnError(err)
@@ -130,7 +130,7 @@ func (this *WSClient) Connect(backoffDelay ...int) (*Future, error) {
 		if len(backoffDelay) > 0 {
 			delay = backoffDelay[0]
 		}
-		
+
 		if delay > 0 {
 			go func() {
 				time.Sleep(time.Duration(delay) * time.Millisecond)
