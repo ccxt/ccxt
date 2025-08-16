@@ -1,0 +1,53 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 1e-9,
+        "name": "BTC",
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "precision": 1e-9,
+        "name": "USD",
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "0x457049371f5b5dc2bda857bb804ca6e93c5a3cae1636d0cd17bb6b6070d19458::usdc::USDC",
+        "code": "USDC",
+        "precision": 1e-9,
+        "name": "USDC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "SUI": {
+                "id": "4c78adac",
+                "network": "SUI",
+                "name": "Sui",
+                "active": true,
+                "deposit": true,
+                "withdraw": true
+            }
+        }
+    }
+}
