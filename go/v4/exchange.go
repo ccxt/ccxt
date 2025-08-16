@@ -1649,6 +1649,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 			"Options": map[string]interface{}{
 				"Agent": finalAgent,
 			},
+			"DecompressBinary": this.SafeBool(this.Options, "decompressBinary", true),
 		},
 		wsOptions,
 	)

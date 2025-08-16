@@ -51,12 +51,13 @@ type Client struct {
 
 	Error error // last error, nil if connection considered healthy
 
-	Connected             interface{}                                   // *Future             		// signal channel for connection established
-	Disconnected          interface{}                                   // *Future              	// future for disconnection
-	Rejections            map[string]interface{}                        // map for rejection info
-	KeepAlive             interface{}                                   // number in milliseconds or seconds
-	ConnectionTimeout     interface{}                                   // e.g. *time.Timer or context.CancelFunc
-	Verbose               bool                                          // default false
+	Connected             interface{}            // *Future             		// signal channel for connection established
+	Disconnected          interface{}            // *Future              	// future for disconnection
+	Rejections            map[string]interface{} // map for rejection info
+	KeepAlive             interface{}            // number in milliseconds or seconds
+	ConnectionTimeout     interface{}            // e.g. *time.Timer or context.CancelFunc
+	Verbose               bool                   // default false
+	DecompressBinary      bool
 	ConnectionTimer       interface{}                                   // e.g. *time.Timer or custom timer
 	LastPong              interface{}                                   // time or timestamp type recommended
 	MaxPingPongMisses     interface{}                                   // int or counter type
@@ -171,6 +172,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"StartedConnecting":     false,
 		"Gunzip":                false,
 		"Inflate":               false,
+		"DecompressBinary":      true,
 	}
 
 	// Apply config overrides if provided
@@ -214,6 +216,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
+		DecompressBinary:      finalConfig["DecompressBinary"].(bool),
 	}
 
 	return c
