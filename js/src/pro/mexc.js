@@ -1422,7 +1422,7 @@ export default class mexc extends mexcRest {
         }
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
-            'clientOrderId': this.safeString(order, 'clientOrderId'),
+            'clientOrderId': this.safeString(order, 'clientId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
