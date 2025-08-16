@@ -55,6 +55,11 @@ interface Exchange {
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params?: {}): Promise<implicitReturnType>;
     indexerGetFillsParentSubaccount (params?: {}): Promise<implicitReturnType>;
     indexerGetHistoricalPnlParentSubaccount (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetBlock (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetBroadcastTxAsync (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetBroadcastTxSync (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetTx (params?: {}): Promise<implicitReturnType>;
+    nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

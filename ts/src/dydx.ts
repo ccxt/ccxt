@@ -1153,7 +1153,7 @@ export default class dydx extends Exchange {
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
@@ -1167,7 +1167,8 @@ export default class dydx extends Exchange {
         const algoType = this.safeString (params, 'algoType');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
-        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const timeInForceSeconds = this.safeInteger (params, 'timeInForceSeconds', 60);
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
@@ -1177,7 +1178,7 @@ export default class dydx extends Exchange {
         let conditionalType = 0;
         let orderFlag = undefined;
         let timeInForceNumber = undefined;
-        if (type === 'market') {
+        if (orderType === 'MARKET') {
             // short-term
             orderFlag = 0;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
@@ -1189,7 +1190,7 @@ export default class dydx extends Exchange {
                     timeInForceNumber = 1;
                 }
             }
-        } else if (type === 'limit') {
+        } else if (orderType === 'LIMIT') {
             if (timeInForce !== undefined) {
                 if (timeInForce === 'GTT') {
                     // long-term
@@ -1209,6 +1210,8 @@ export default class dydx extends Exchange {
                         throw new Error('unexpected code path: timeInForce');
                     }
                 }
+            } else {
+                throw new Error('timeInForce should be specified');
             }
         } else if (isConditional) {
             // conditional
@@ -1233,7 +1236,7 @@ export default class dydx extends Exchange {
                 throw new Error('goodTillBlockTime is required');
             }
         }
-        const sideNumber = (orderSide === 'buy') ? 1 : 2;
+        const sideNumber = (orderSide === 'BUY') ? 1 : 2;
         // TODO: quantums / subticks / conditionalOrderTriggerSubticks
         // if (!isConditional) {
         //     if (postOnly) {
@@ -1303,8 +1306,8 @@ export default class dydx extends Exchange {
                         'owner': 'dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art',
                         'number': 0
                     },
-                    'clientId': 2804375012,
-                    'orderFlags': 64,
+                    'clientId': 1893853565,
+                    'orderFlags': orderFlag,
                     'clobPairId': '1'
                 },
                 'side': sideNumber,
@@ -1318,7 +1321,7 @@ export default class dydx extends Exchange {
                     'high': 9,
                     'unsigned': false
                 },
-                'goodTilBlockTime': 1754556429,
+                'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
                 'clientMetadata': clientMetadata,
@@ -1334,6 +1337,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
         }
+        console.log(this.json (signingPayload))
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
         return this.extend (request, params);
     }
