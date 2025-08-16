@@ -5147,7 +5147,7 @@ public partial class mexc : Exchange
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, "symbol"), market);
+        market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
         object symbol = getValue(market, "symbol");
         object contracts = this.safeString(position, "holdVol");
         object entryPrice = this.safeNumber(position, "openAvgPrice");

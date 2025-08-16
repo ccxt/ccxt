@@ -1961,7 +1961,9 @@ func (this *hibachi) Sign(path interface{}, optionalArgs ...interface{}) interfa
 	_ = body
 	var endpoint interface{} = Add("/", this.ImplodeParams(path, params))
 	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
-	headers = map[string]interface{}{}
+	headers = map[string]interface{}{
+		"Hibachi-Client": "HibachiCCXT/unversioned",
+	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var request interface{} = this.Omit(params, this.ExtractParams(path))
 		var query interface{} = this.Urlencode(request)

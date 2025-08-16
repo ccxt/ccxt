@@ -5304,7 +5304,7 @@ class mexc extends Exchange {
         //        positionShowStatus => 'CLOSED'
         //    }
         //
-        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
