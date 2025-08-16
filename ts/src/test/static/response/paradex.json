@@ -1278,6 +1278,63 @@
                     }
                 }
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set the margin mode for a symbol",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "account": "0x3642626213deca806fe4a01f99662270af71c178ac39f79128c5cea27886d4",
+                    "market": "BTC-USD-PERP",
+                    "leverage": "1",
+                    "margin_type": "CROSS"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x3642626213deca806fe4a01f99662270af71c178ac39f79128c5cea27886d4",
+                        "market": "BTC-USD-PERP",
+                        "leverage": "1",
+                        "margin_type": "CROSS"
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage for an isolated symbol",
+                "method": "setLeverage",
+                "input": [
+                    10,
+                    "BTC/USD:USDC",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "account": "0x3642626213deca806fe4a01f99662270af71c178ac39f79128c5cea27886d4",
+                    "market": "BTC-USD-PERP",
+                    "leverage": "10",
+                    "margin_type": "ISOLATED"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x3642626213deca806fe4a01f99662270af71c178ac39f79128c5cea27886d4",
+                        "market": "BTC-USD-PERP",
+                        "leverage": "10",
+                        "margin_type": "ISOLATED"
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "marginMode": "isolated",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
         ]
     }
 }

@@ -1094,6 +1094,66 @@
           "stopLossPrice": null
         }
       }
+    ],
+    "setLeverage": [
+      {
+        "description": "setLeverage with positionSide parameter",
+        "method": "setLeverage",
+        "input": [
+          10,
+          "BTC/USDT:USDT",
+          {
+            "positionSide": "LONG"
+          }
+        ],
+        "httpResponse": {
+          "returnCode": "0",
+          "msgInfo": "success",
+          "error": null,
+          "result": null
+        },
+        "parsedResponse": {
+          "info": {
+            "returnCode": "0",
+            "msgInfo": "success",
+            "error": null,
+            "result": null
+          },
+          "symbol": "BTC/USDT:USDT",
+          "marginMode": null,
+          "longLeverage": null,
+          "shortLeverage": null
+        }
+      }
+    ],
+    "setMarginMode": [
+      {
+        "description": "set the margin mode to isolated with a positionSide parameter set to LONG",
+        "method": "setMarginMode",
+        "input": [
+          "isolated",
+          "BTC/USDT:USDT",
+          {
+            "positionSide": "LONG"
+          }
+        ],
+        "httpResponse": {
+          "returnCode": "0",
+          "msgInfo": "success",
+          "error": null,
+          "result": null
+        },
+        "parsedResponse": {
+          "info": {
+            "returnCode": "0",
+            "msgInfo": "success",
+            "error": null,
+            "result": null
+          },
+          "symbol": "BTC/USDT:USDT",
+          "marginMode": null
+        }
+      }
     ]
   }
 }

@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, Leverage } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 /**
@@ -4701,12 +4701,9 @@ export default class bitmart extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross'
-     * @returns {object} response from the exchange
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
         this.checkRequiredArgument ('setLeverage', marginMode, 'marginMode', [ 'isolated', 'cross' ]);
@@ -4720,7 +4717,34 @@ export default class bitmart extends Exchange {
             'leverage': leverage.toString (),
             'open_type': marginMode,
         };
-        return await this.privatePostContractPrivateSubmitLeverage (this.extend (request, params));
+        const response = await this.privatePostContractPrivateSubmitLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "leverage": "10",
+        //             "open_type": "cross",
+        //             "max_value": "200"
+        //         },
+        //         "trace": "d258849d-1170-4df7-abd1-c6d6a81699e9"
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const longAndShortLeverage = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeString (leverage, 'open_type'),
+            'longLeverage': longAndShortLeverage,
+            'shortLeverage': longAndShortLeverage,
+        } as Leverage;
     }
 
     /**
