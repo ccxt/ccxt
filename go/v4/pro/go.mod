@@ -1,4 +1,4 @@
-module github.com/ccxt/ccxt/go/v4/ws
+module github.com/ccxt/ccxt/go/v4/pro
 
 go 1.24.4
 

@@ -1,4 +1,4 @@
-package ccxtws
+package ccxtpro
 
 var Version string = "4.5.0"
 

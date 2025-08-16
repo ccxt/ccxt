@@ -758,7 +758,7 @@ async function exportEverything () {
             replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${i}"`).join(', ')} }`,
         },
         {
-            file: './go/v4/ws/exchange_metadata.go',
+            file: './go/v4/pro/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
             replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },

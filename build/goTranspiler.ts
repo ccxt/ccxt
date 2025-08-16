@@ -58,7 +58,7 @@ const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4/';
-const EXCHANGES_WS_FOLDER = './go/v4/ws/';
+const EXCHANGES_WS_FOLDER = './go/v4/pro/';
 const BASE_TESTS_FOLDER = './go/tests/base/';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
@@ -726,7 +726,7 @@ class NewTranspiler {
     }
 
     getGoImports(file: any, ws = false) {
-        const namespace = ws ? 'package ccxtws' : 'package ccxt';
+        const namespace = ws ? 'package ccxtpro' : 'package ccxt';
         const values = [
             // "using ccxt;",
             namespace,
@@ -1272,7 +1272,7 @@ class NewTranspiler {
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        const namespace = `package ${ws ? 'ccxtws' : 'ccxt'}`;
+        const namespace = `package ${ws ? 'ccxtpro' : 'ccxt'}`;
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         const coreName = capitalize(exchange) + 'Core';
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
@@ -1514,7 +1514,7 @@ ${constStatements.join('\n')}
 
 
     createDynamicInstanceFile(ws = false){
-        const dynamicInstanceFile = `./go/v4${ws ? '/ws' : ''}/exchange_dynamic.go`;
+        const dynamicInstanceFile = `./go/v4${ws ? '/pro' : ''}/exchange_dynamic.go`;
         const exchanges = ws ? exchangeIdsWs : ['Exchange'].concat(exchangeIds);
         
         const caseStatements = exchanges.map(exchange => {
@@ -1535,7 +1535,7 @@ ${caseStatements.join('\n')}
 }
 `
         const file = [
-            `package ccxt${ws ? 'ws' : ''}`,
+            `package ccxt${ws ? 'pro' : ''}`,
             ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             this.createGeneratedHeader().join('\n'),
             '',
@@ -1745,11 +1745,11 @@ type IExchange interface {
 
     safeOptionsStructFile(ws: boolean = false) {
         const EXCHANGE_OPTIONS_FILE = ws 
-            ? './go/v4/ws/exchange_wrapper_structs.go' 
+            ? './go/v4/pro/exchange_wrapper_structs.go' 
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
-            ws ? 'package ccxtws' : 'package ccxt',
+            ws ? 'package ccxtpro' : 'package ccxt',
             this.createGeneratedHeader().join('\n'),
             ''
         ];
@@ -2275,7 +2275,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
-            go: GENERATED_TESTS_FOLDER + 'Ws/',
+            go: GENERATED_TESTS_FOLDER + 'Pro/',
         };
 
         const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
