@@ -4960,7 +4960,7 @@ class mexc(Exchange, ImplicitAPI):
         #        positionShowStatus: 'CLOSED'
         #    }
         #
-        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        market = self.safe_market(self.safe_string(position, 'symbol'), market, None, 'swap')
         symbol = market['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')

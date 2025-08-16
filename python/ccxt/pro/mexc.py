@@ -1368,7 +1368,7 @@ class mexc(ccxt.async_support.mexc):
             }
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
-            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'clientOrderId': self.safe_string(order, 'clientId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

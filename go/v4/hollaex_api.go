@@ -7,118 +7,118 @@
 
 package ccxt
 
-func (this *hollaex) PublicGetHealth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHealth", args...)
+func (this *hollaex) PublicGetHealth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHealth", args...)
 }
 
-func (this *hollaex) PublicGetConstants (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetConstants", args...)
+func (this *hollaex) PublicGetConstants(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetConstants", args...)
 }
 
-func (this *hollaex) PublicGetKit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetKit", args...)
+func (this *hollaex) PublicGetKit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetKit", args...)
 }
 
-func (this *hollaex) PublicGetTiers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTiers", args...)
+func (this *hollaex) PublicGetTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTiers", args...)
 }
 
-func (this *hollaex) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *hollaex) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *hollaex) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *hollaex) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *hollaex) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *hollaex) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *hollaex) PublicGetOrderbooks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbooks", args...)
+func (this *hollaex) PublicGetOrderbooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbooks", args...)
 }
 
-func (this *hollaex) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *hollaex) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *hollaex) PublicGetChart (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetChart", args...)
+func (this *hollaex) PublicGetChart(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetChart", args...)
 }
 
-func (this *hollaex) PublicGetCharts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCharts", args...)
+func (this *hollaex) PublicGetCharts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCharts", args...)
 }
 
-func (this *hollaex) PublicGetMinicharts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMinicharts", args...)
+func (this *hollaex) PublicGetMinicharts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMinicharts", args...)
 }
 
-func (this *hollaex) PublicGetOraclePrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOraclePrices", args...)
+func (this *hollaex) PublicGetOraclePrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOraclePrices", args...)
 }
 
-func (this *hollaex) PublicGetQuickTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetQuickTrade", args...)
+func (this *hollaex) PublicGetQuickTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuickTrade", args...)
 }
 
-func (this *hollaex) PublicGetUdfConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUdfConfig", args...)
+func (this *hollaex) PublicGetUdfConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfConfig", args...)
 }
 
-func (this *hollaex) PublicGetUdfHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUdfHistory", args...)
+func (this *hollaex) PublicGetUdfHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfHistory", args...)
 }
 
-func (this *hollaex) PublicGetUdfSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUdfSymbols", args...)
+func (this *hollaex) PublicGetUdfSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUdfSymbols", args...)
 }
 
-func (this *hollaex) PrivateGetUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUser", args...)
+func (this *hollaex) PrivateGetUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *hollaex) PrivateGetUserBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserBalance", args...)
+func (this *hollaex) PrivateGetUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserBalance", args...)
 }
 
-func (this *hollaex) PrivateGetUserDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserDeposits", args...)
+func (this *hollaex) PrivateGetUserDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserDeposits", args...)
 }
 
-func (this *hollaex) PrivateGetUserWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWithdrawals", args...)
+func (this *hollaex) PrivateGetUserWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
 }
 
-func (this *hollaex) PrivateGetUserWithdrawalFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
+func (this *hollaex) PrivateGetUserWithdrawalFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
 }
 
-func (this *hollaex) PrivateGetUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserTrades", args...)
+func (this *hollaex) PrivateGetUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserTrades", args...)
 }
 
-func (this *hollaex) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *hollaex) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *hollaex) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *hollaex) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *hollaex) PrivatePostUserWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserWithdrawal", args...)
+func (this *hollaex) PrivatePostUserWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
 }
 
-func (this *hollaex) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *hollaex) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *hollaex) PrivateDeleteOrderAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrderAll", args...)
+func (this *hollaex) PrivateDeleteOrderAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
-func (this *hollaex) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *hollaex) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
