@@ -1233,11 +1233,6 @@ export default class backpack extends Exchange {
         //         "tradeId": 9748827
         //     }
         //
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        const timestamp2 = this.parse8601 (this.safeString (trade, 'timestamp'));
-        if (timestamp2 !== undefined) {
-            timestamp = timestamp2;
-        }
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
@@ -1247,6 +1242,12 @@ export default class backpack extends Exchange {
         const side = this.parseOrderSide (this.safeString (trade, 'side'));
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (feeAmount !== undefined) {
+            // if fetchMyTrades
+            const datetime = this.safeString (trade, 'timestamp');
+            timestamp = this.parse8601 (datetime);
+        }
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
             fee = {
