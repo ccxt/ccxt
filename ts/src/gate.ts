@@ -1252,7 +1252,7 @@ export default class gate extends Exchange {
             }
         }
         const results = await Promise.all (rawPromises);
-        return this.multiArrayConcat (results);
+        return this.arraysConcat (results);
     }
 
     async fetchSpotMarkets (params = {}) {
