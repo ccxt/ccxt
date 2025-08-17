@@ -16,19 +16,23 @@ export default class backpack extends backpackRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTrades': true,
-                'watchTradesForSymbols': true,
+                'watchBidsAsks': true,
+                'watchMyTrades': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchPositions': true,
-                'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchBidsAsks': true,
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': false,
+                'unwatchBidsAsks': true,
+                'unwatchOHLCV': true,
+                'unwatchTicker': true,
+                'unwatchTickers': true,
                 'createOrderWs': false,
                 'editOrderWs': false,
                 'cancelOrderWs': false,
@@ -62,6 +66,10 @@ export default class backpack extends backpackRest {
             'params': topics,
         };
         const message = this.deepExtend (request, params);
+        if (unwatch) {
+            this.handleUnsubscriptions (url, messageHashes, message);
+            return undefined;
+        }
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
@@ -82,7 +90,51 @@ export default class backpack extends backpackRest {
             'signature': [ this.apiKey, signature, ts, recvWindow ],
         };
         const message = this.deepExtend (request, params);
+        if (unwatch) {
+            this.handleUnsubscriptions (url, messageHashes, message);
+            return undefined;
+        }
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    handleUnsubscriptions (url: string, messageHashes: string[], message: Dict) {
+        const client = this.client (url);
+        this.watchMultiple (url, messageHashes, message, messageHashes);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const subMessageHash = messageHash.replace ('unsubscribe:', '');
+            this.cleanUnsubscription (client, subMessageHash, messageHash);
+            if (messageHash.indexOf ('ticker') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:ticker:', '');
+                if (symbol in this.tickers) {
+                    delete this.tickers[symbol];
+                }
+            } else if (messageHash.indexOf ('bidask') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:bidask:', '');
+                if (symbol in this.bidsasks) {
+                    delete this.bidsasks[symbol];
+                }
+            } else if (messageHash.indexOf ('candles') >= 0) {
+                const splitHashes = messageHash.split (':');
+                const symbol = this.safeString (splitHashes, 2);
+                const timeframe = this.safeString (splitHashes, 3);
+                if (symbol in this.ohlcvs) {
+                    if (timeframe in this.ohlcvs[symbol]) {
+                        delete this.ohlcvs[symbol][timeframe];
+                    }
+                }
+            } else if (messageHash.indexOf ('orderbook') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:orderbook:', '');
+                if (symbol in this.orderbooks) {
+                    delete this.orderbooks[symbol];
+                }
+            } else if (messageHash.indexOf ('trades') >= 0) {
+                const symbol = messageHash.replace ('unsubscribe:trades:', '');
+                if (symbol in this.trades) {
+                    delete this.trades[symbol];
+                }
+            }
+        }
     }
 
     /**
@@ -158,7 +210,7 @@ export default class backpack extends backpackRest {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
             topics.push ('ticker.' + marketId);
-            messageHashes.push ('ticker:' + symbol);
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -259,6 +311,28 @@ export default class backpack extends backpackRest {
         }
         await this.watchPublic (topics, messageHashes, params);
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('bookTicker.' + marketId);
+            messageHashes.push ('unwatch:bidask:' + symbol);
+        }
+        return await this.watchPublic (topics, messageHashes, params, true);
     }
 
     handleBidAsk (client: Client, message) {
@@ -379,7 +453,7 @@ export default class backpack extends backpackRest {
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
             topics.push ('kline.' + interval + '.' + market['id']);
-            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
+            messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, params);
         if (this.newUpdates) {
@@ -413,7 +487,7 @@ export default class backpack extends backpackRest {
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
             topics.push ('kline.' + interval + '.' + market['id']);
-            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
+            messageHashes.push ('unwatch:candles:' + market['symbol'] + ':' + interval);
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -456,7 +530,7 @@ export default class backpack extends backpackRest {
         const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseWsOHLCV (data);
         ohlcv.append (parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
@@ -853,7 +927,7 @@ export default class backpack extends backpackRest {
         let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
-            messageHash = 'orders:' + symbol;
+            messageHash = 'unwatch:orders:' + symbol;
         }
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
@@ -1051,12 +1125,12 @@ export default class backpack extends backpackRest {
             const topics = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                messageHashes.push ('positions' + ':' + symbol);
+                messageHashes.push ('unwatch:positions' + ':' + symbol);
                 topics.push ('account.positionUpdate.' + this.marketId (symbol));
             }
             positions = await this.watchPrivate (topics, messageHashes, params, true);
         } else {
-            const messageHashes = [ 'positions' ];
+            const messageHashes = [ 'unwatch:positions' ];
             const topics = [ 'account.positionUpdate' ];
             positions = await this.watchPrivate (topics, messageHashes, params, true);
         }
