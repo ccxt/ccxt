@@ -125,10 +125,12 @@ export default class cryptocom extends cryptocomRest {
         if (limit === undefined) {
             limit = 50; // max
         }
-        if (this.handleOption ('watchOrderBook', 'autoAdjustLimit', false)) {
-            limit = this.findNearestCeiling ([ 10, 50 ], limit);
-        } else {
-            throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 10 or 50");
+        if (!this.inArray (limit, [ 10, 50 ])) {
+            if (this.handleOption ('watchOrderBook', 'autoAdjustLimit', false)) {
+                limit = this.findNearestCeiling ([ 10, 50 ], limit);
+            } else {
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 10 or 50");
+            }
         }
         const topicParams = this.safeValue (params, 'params');
         if (topicParams === undefined) {
