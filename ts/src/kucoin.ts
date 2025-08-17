@@ -654,6 +654,7 @@ export default class kucoin extends Exchange {
                 },
                 'fetchOrderBook': {
                     'spotLevel': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
+                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2138,6 +2139,7 @@ export default class kucoin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @param {object} [params.spotLevel] if users want to manually choose specific endpoint: "level2", "level2_20" or "level2_100" (default is "level2_100")
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -2150,9 +2152,13 @@ export default class kucoin extends Exchange {
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
-        } else {
-            limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
-        }
+        } else if (!this.inArray (limit, [ 20, 100 ])) {
+            if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
+                limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
+            } else {
+                throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100");
+            }
+        } 
         // we prioritize the `spotLevel` param precedence over the `limit` parameter
         if ((spotLevel === undefined && limit === 20) || spotLevel === 'level2_20') {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
