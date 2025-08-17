@@ -653,7 +653,7 @@ export default class kucoin extends Exchange {
                     'fetchTickersFees': true,
                 },
                 'fetchOrderBook': {
-                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2151,8 +2151,8 @@ export default class kucoin extends Exchange {
             limit = 100;
         }
         if (!this.inArray (limit, [ 20, 100 ])) {
-            if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
-                limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
+            if (this.handleOption ('fetchOrderBook', 'adjustLimit', true)) {
+                limit = this.findNearestCeiling ([ 20, 100, limit ], limit);
             } else {
                 if (limit > 100 && !authed) {
                     throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100 for public endpoint, for more limit you need authenticated request with API keys");

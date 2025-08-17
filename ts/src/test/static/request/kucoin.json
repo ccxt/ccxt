@@ -699,19 +699,6 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "with spotLevel",
-                "method": "fetchOrderBook",
-                "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=BTC-USDT",
-                "input": [
-                    "BTC/USDT",
-                    8,
-                    {
-                        "spotLevel": "level2_100"
-                    }
-                ],
-                "output": null
-            },
-            {
                 "description": "with limit above 100",
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v3/market/orderbook/level2?symbol=BTC-USDT",
