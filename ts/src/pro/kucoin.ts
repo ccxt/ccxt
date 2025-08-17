@@ -699,7 +699,7 @@ export default class kucoin extends kucoinRest {
                 if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
                     limit = this.findNearestCeiling ([ 1, 5, 50, limit ], limit);
                 } else {
-                    throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined (for realtime channel) or one fro: 1, 5, 50");
+                    throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined (for realtime channel) or one of: 1, 5, 50");
                 }
             }
         }
