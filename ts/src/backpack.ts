@@ -1530,6 +1530,7 @@ export default class backpack extends Exchange {
         //             "triggerAt": null
         //         }
         //     ]
+        //
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'transactionHash');
