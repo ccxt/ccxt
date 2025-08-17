@@ -2140,15 +2140,12 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
-     * @param {object} [params.spotLevel] if users want to manually choose specific endpoint: "level2", "level2_20" or "level2_100" (default is "level2_100")
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = { 'symbol': market['id'] };
-        let spotLevel = undefined;
-        [ spotLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'spotLevel');
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
@@ -2158,16 +2155,16 @@ export default class kucoin extends Exchange {
             } else {
                 throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100");
             }
-        } 
+        }
         // we prioritize the `spotLevel` param precedence over the `limit` parameter
-        if ((spotLevel === undefined && limit === 20) || spotLevel === 'level2_20') {
+        if (limit === 20) {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
-        } else if ((spotLevel === undefined && limit === 100) || spotLevel === 'level2_100') {
+        } else if (limit === 100) {
             response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
             // full orderbook, auth required for this endpoint
             if (!this.checkRequiredCredentials (false)) {
-                throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook requires an authentication');
+                throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook (more than 100 limit) requires an authentication');
             }
             response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
