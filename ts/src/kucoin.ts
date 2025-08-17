@@ -2143,16 +2143,20 @@ export default class kucoin extends Exchange {
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
+        const authed = this.checkRequiredCredentials (false);
         const market = this.market (symbol);
         const request: Dict = { 'symbol': market['id'] };
         let response = undefined;
         if (limit === undefined) {
             limit = 100;
-        } else if (!this.inArray (limit, [ 20, 100 ])) {
+        }
+        if (!this.inArray (limit, [ 20, 100 ])) {
             if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
                 limit = this.findNearestCeiling ([ 20, 100, 1000000000 ], limit);
             } else {
-                throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100");
+                if (limit > 100 && !authed) {
+                    throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100 for public endpoint, for more limit you need authenticated request with API keys");
+                }
             }
         }
         if (limit === 20) {
@@ -2161,7 +2165,7 @@ export default class kucoin extends Exchange {
             response = await this.publicGetMarketOrderbookLevel2100 (this.extend (request, params));
         } else {
             // full orderbook, auth required for this endpoint
-            if (!this.checkRequiredCredentials (false)) {
+            if (!authed) {
                 throw new AuthenticationError (this.id + ' fetchOrderBook(): full orderbook (more than 100 limit) requires an authentication');
             }
             response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
