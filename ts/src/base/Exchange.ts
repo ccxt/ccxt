@@ -2202,6 +2202,14 @@ export default class Exchange {
         return -1;
     }
 
+    arraysConcat (arraysOfArrays: any[]) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            result = this.arrayConcat (result, arraysOfArrays[i]);
+        }
+        return result;
+    }
+
     findTimeframe (timeframe, timeframes = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
