@@ -42,6 +42,7 @@ export default class kucoin extends kucoinRest {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
                     'method': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
+                    'autoAdjustLimit': false, // to automatically ceil the limit number to the nearest supported value
                 },
                 'watchMyTrades': {
                     'method': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
@@ -636,6 +637,7 @@ export default class kucoin extends kucoinRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @param {string} [params.autoAdjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -692,8 +694,14 @@ export default class kucoin extends kucoinRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        if (limit === undefined) {
-            limit = this.findNearestCeiling ([ 5, 50, 1000000000 ], limit);
+        if (limit !== undefined) {
+            if ((limit !== 50) && (limit !== 5)) {
+                if (this.handleOption ('watchOrderBook', 'autoAdjustLimit', false)) {
+                    limit = this.findNearestCeiling ([ 5, 50, 1000000000 ], limit);
+                } else {
+                    throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100");
+                }
+            }
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
