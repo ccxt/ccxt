@@ -50,7 +50,7 @@ export default class cryptocom extends cryptocomRest {
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'autoAdjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
                     'checksum': true,
                 },
             },
@@ -83,7 +83,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @param {string} [params.autoAdjustLimit] true/false, to automatically ceil the passed limit number to the nearest supported value
+     * @param {string} [params.adjustLimit] true/false, to automatically ceil the passed limit number to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -126,7 +126,7 @@ export default class cryptocom extends cryptocomRest {
             limit = 50; // max
         }
         if (!this.inArray (limit, [ 10, 50 ])) {
-            if (this.handleOption ('watchOrderBook', 'autoAdjustLimit', false)) {
+            if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
                 limit = this.findNearestCeiling ([ 10, 50 ], limit);
             } else {
                 throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 10 or 50");
