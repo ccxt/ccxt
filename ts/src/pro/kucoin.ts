@@ -695,11 +695,11 @@ export default class kucoin extends kucoinRest {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         if (limit !== undefined) {
-            if ((limit !== 50) && (limit !== 5)) {
+            if (!this.inArray (limit, [ 1, 5, 50 ])) {
                 if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
-                    limit = this.findNearestCeiling ([ 5, 50, 1000000000 ], limit);
+                    limit = this.findNearestCeiling ([ 1, 5, 50, limit ], limit);
                 } else {
-                    throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100");
+                    throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined (for realtime channel) or one fro: 1, 5, 50");
                 }
             }
         }
