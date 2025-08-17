@@ -138,7 +138,8 @@ import {
     , ArgumentsRequired
     , RateLimitExceeded
     , BadRequest
-    , UnsubscribeError
+    , UnsubscribeError,
+    ExchangeClosedByUser
 } from "./errors.js"
 
 import { Precise } from './Precise.js'
@@ -1460,8 +1461,14 @@ export default class Exchange {
     }
 
     async close () {
+        // test by running ts/src/pro/test/base/test.close.ts
         const clients = Object.values (this.clients || {});
         const closedClients = [];
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i] as WsClient;
+            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
+            closedClients.push(client.close ());
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
