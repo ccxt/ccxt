@@ -679,6 +679,7 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#watchOrderBookForSymbols
+     * @see https://www.kucoin.com/docs-new/3470067w0
      * @see https://www.kucoin.com/docs-new/3470068w0
      * @see https://www.kucoin.com/docs-new/3470069w0
      * @see https://www.kucoin.com/docs-new/3470070w0
