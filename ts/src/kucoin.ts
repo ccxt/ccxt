@@ -653,7 +653,6 @@ export default class kucoin extends Exchange {
                     'fetchTickersFees': true,
                 },
                 'fetchOrderBook': {
-                    'spotLevel': undefined, // string "level2", "level2_20" or "level2_100" (by default, "level2_100"is used)
                     'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
                 },
                 'withdraw': {
@@ -2156,7 +2155,6 @@ export default class kucoin extends Exchange {
                 throw new ExchangeError (this.id + " fetchOrderBook 'limit' argument must be undefined, 20 or 100");
             }
         }
-        // we prioritize the `spotLevel` param precedence over the `limit` parameter
         if (limit === 20) {
             response = await this.publicGetMarketOrderbookLevel220 (this.extend (request, params));
         } else if (limit === 100) {
