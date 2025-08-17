@@ -1841,6 +1841,13 @@ class Exchange {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
     }
+    arraysConcat(arraysOfArrays) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            result = this.arrayConcat(result, arraysOfArrays[i]);
+        }
+        return result;
+    }
     findTimeframe(timeframe, timeframes = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
