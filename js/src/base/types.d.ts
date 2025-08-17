@@ -5,7 +5,7 @@ export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;
 export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
-export declare type OrderSide = 'buy' | 'sell' | string;
+export declare type OrderSide = 'buy' | 'sell' | string | undefined;
 export declare type OrderType = 'limit' | 'market' | string;
 export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
@@ -409,6 +409,7 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    side?: OrderSide;
 }
 export interface OrderRequest {
     symbol: string;

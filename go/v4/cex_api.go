@@ -7,114 +7,114 @@
 
 package ccxt
 
-func (this *cex) PublicPostGetServerTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetServerTime", args...)
+func (this *cex) PublicPostGetServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetServerTime", args...)
 }
 
-func (this *cex) PublicPostGetPairsInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetPairsInfo", args...)
+func (this *cex) PublicPostGetPairsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetPairsInfo", args...)
 }
 
-func (this *cex) PublicPostGetCurrenciesInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
+func (this *cex) PublicPostGetCurrenciesInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
 }
 
-func (this *cex) PublicPostGetProcessingInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
+func (this *cex) PublicPostGetProcessingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
 }
 
-func (this *cex) PublicPostGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetTicker", args...)
+func (this *cex) PublicPostGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
-func (this *cex) PublicPostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetTradeHistory", args...)
+func (this *cex) PublicPostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
 }
 
-func (this *cex) PublicPostGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetOrderBook", args...)
+func (this *cex) PublicPostGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetOrderBook", args...)
 }
 
-func (this *cex) PublicPostGetCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostGetCandles", args...)
+func (this *cex) PublicPostGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetCandles", args...)
 }
 
-func (this *cex) PrivatePostGetMyCurrentFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
+func (this *cex) PrivatePostGetMyCurrentFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
 }
 
-func (this *cex) PrivatePostGetFeeStrategy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
+func (this *cex) PrivatePostGetFeeStrategy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
 }
 
-func (this *cex) PrivatePostGetMyVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyVolume", args...)
+func (this *cex) PrivatePostGetMyVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyVolume", args...)
 }
 
-func (this *cex) PrivatePostDoCreateAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoCreateAccount", args...)
+func (this *cex) PrivatePostDoCreateAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCreateAccount", args...)
 }
 
-func (this *cex) PrivatePostGetMyAccountStatusV3 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
+func (this *cex) PrivatePostGetMyAccountStatusV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
 }
 
-func (this *cex) PrivatePostGetMyWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
+func (this *cex) PrivatePostGetMyWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
 }
 
-func (this *cex) PrivatePostGetMyOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyOrders", args...)
+func (this *cex) PrivatePostGetMyOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyOrders", args...)
 }
 
-func (this *cex) PrivatePostDoMyNewOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
+func (this *cex) PrivatePostDoMyNewOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
 }
 
-func (this *cex) PrivatePostDoCancelMyOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
+func (this *cex) PrivatePostDoCancelMyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
 }
 
-func (this *cex) PrivatePostDoCancelAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
+func (this *cex) PrivatePostDoCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
 }
 
-func (this *cex) PrivatePostGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetOrderBook", args...)
+func (this *cex) PrivatePostGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrderBook", args...)
 }
 
-func (this *cex) PrivatePostGetCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetCandles", args...)
+func (this *cex) PrivatePostGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetCandles", args...)
 }
 
-func (this *cex) PrivatePostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetTradeHistory", args...)
+func (this *cex) PrivatePostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
 }
 
-func (this *cex) PrivatePostGetMyTransactionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
+func (this *cex) PrivatePostGetMyTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
 }
 
-func (this *cex) PrivatePostGetMyFundingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
+func (this *cex) PrivatePostGetMyFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
 }
 
-func (this *cex) PrivatePostDoMyInternalTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
+func (this *cex) PrivatePostDoMyInternalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
 }
 
-func (this *cex) PrivatePostGetProcessingInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
+func (this *cex) PrivatePostGetProcessingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
 }
 
-func (this *cex) PrivatePostGetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetDepositAddress", args...)
+func (this *cex) PrivatePostGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
-func (this *cex) PrivatePostDoDepositFundsFromWallet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
+func (this *cex) PrivatePostDoDepositFundsFromWallet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
 }
 
-func (this *cex) PrivatePostDoWithdrawalFundsToWallet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
+func (this *cex) PrivatePostDoWithdrawalFundsToWallet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
 }

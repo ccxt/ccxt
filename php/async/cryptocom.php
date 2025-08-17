@@ -1170,7 +1170,7 @@ class cryptocom extends Exchange {
                 'instrument_name' => $market['id'],
             );
             if ($limit) {
-                $request['depth'] = $limit;
+                $request['depth'] = min ($limit, 50); // max 50
             }
             $response = Async\await($this->v1PublicGetPublicGetBook ($this->extend($request, $params)));
             //
@@ -1997,7 +1997,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

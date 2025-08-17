@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitvavo$1 = require('../bitvavo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitvavo extends bitvavo$1 {
+class bitvavo extends bitvavo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1345,7 +1347,7 @@ class bitvavo extends bitvavo$1 {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
         }
         catch (e) {
             rejected = true;
@@ -1447,4 +1449,4 @@ class bitvavo extends bitvavo$1 {
     }
 }
 
-module.exports = bitvavo;
+exports["default"] = bitvavo;

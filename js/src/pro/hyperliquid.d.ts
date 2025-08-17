@@ -57,6 +57,32 @@ export default class hyperliquid extends hyperliquidRest {
     editOrderWs(id: string, symbol: string, type: string, side: string, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
+     * @name hyperliquid#cancelOrdersWs
+     * @description cancel multiple orders using WebSocket post request
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+     * @param {string[]} ids list of order ids to cancel
+     * @param {string} symbol unified symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderId] list of client order ids to cancel instead of order ids
+     * @param {string} [params.vaultAddress] the vault address for order cancellation
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any[]>;
+    /**
+     * @method
+     * @name hyperliquid#cancelOrderWs
+     * @description cancel a single order using WebSocket post request
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+     * @param {string} id order id to cancel
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id to cancel instead of order id
+     * @param {string} [params.vaultAddress] the vault address for order cancellation
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
      * @name hyperliquid#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions

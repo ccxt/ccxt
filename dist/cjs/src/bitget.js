@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitget$1 = require('./abstract/bitget.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitget
  * @augments Exchange
  */
-class bitget extends bitget$1 {
+class bitget extends bitget$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitget',
@@ -5858,6 +5860,7 @@ class bitget extends bitget$1 {
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -5876,13 +5879,35 @@ class bitget extends bitget$1 {
         if (!(market['spot'] && trigger)) {
             request['symbol'] = market['id'];
         }
-        if (!((market['swap'] || market['future']) && trigger)) {
-            request['orderId'] = id;
-        }
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'cancelOrder', 'uta', false);
+        const isPlanOrder = trigger || trailing;
+        const isContract = market['swap'] || market['future'];
+        const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOid');
+        if (isContractTriggerEndpoint) {
+            const orderIdList = [];
+            const orderId = {};
+            if (clientOrderId !== undefined) {
+                params = this.omit(params, 'clientOrderId');
+                orderId['clientOid'] = clientOrderId;
+            }
+            else {
+                orderId['orderId'] = id;
+            }
+            orderIdList.push(orderId);
+            request['orderIdList'] = orderIdList;
+        }
+        else {
+            if (clientOrderId !== undefined) {
+                params = this.omit(params, 'clientOrderId');
+                request['clientOid'] = clientOrderId;
+            }
+            else {
+                request['orderId'] = id;
+            }
+        }
         if (uta) {
-            request['orderId'] = id;
             if (trigger) {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder(this.extend(request, params));
             }
@@ -5894,14 +5919,6 @@ class bitget extends bitget$1 {
             let productType = undefined;
             [productType, params] = this.handleProductTypeAndParams(market, params);
             request['productType'] = productType;
-            if (trigger || trailing) {
-                const orderIdList = [];
-                const orderId = {
-                    'orderId': id,
-                };
-                orderIdList.push(orderId);
-                request['orderIdList'] = orderIdList;
-            }
             if (trailing) {
                 const planType = this.safeString(params, 'planType', 'track_plan');
                 request['planType'] = planType;
@@ -5987,7 +6004,7 @@ class bitget extends bitget$1 {
         //
         const data = this.safeValue(response, 'data', {});
         let order = undefined;
-        if ((market['swap'] || market['future']) && trigger && !uta) {
+        if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue(data, 'successList', []);
             order = orderInfo[0];
         }
@@ -6294,6 +6311,7 @@ class bitget extends bitget$1 {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -6303,8 +6321,16 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'orderId': id,
+        // 'orderId': id,
         };
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOid');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, ['clientOrderId']);
+            request['clientOid'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
         let response = undefined;
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'fetchOrder', 'uta', false);
@@ -11005,4 +11031,4 @@ class bitget extends bitget$1 {
     }
 }
 
-module.exports = bitget;
+exports["default"] = bitget;

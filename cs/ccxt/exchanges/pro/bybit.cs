@@ -1888,6 +1888,7 @@ public partial class bybit : ccxt.bybit
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
+            { "side", this.safeStringLower(liquidation, "side", "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },

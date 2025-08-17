@@ -417,6 +417,7 @@ export default class binance extends binanceRest {
             'contracts': this.safeNumber(liquidation, 'l'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'ap'),
+            'side': this.safeStringLower(liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -4270,7 +4271,7 @@ export default class binance extends binanceRest {
         const code = this.safeInteger(error, 'code');
         const msg = this.safeString(error, 'msg');
         try {
-            this.handleErrors(code, msg, client.url, undefined, undefined, this.json(error), error, undefined, undefined);
+            this.handleErrors(code, msg, client.url, '', {}, this.json(error), error, {}, {});
         }
         catch (e) {
             rejected = true;

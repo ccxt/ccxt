@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bingx$1 = require('./abstract/bingx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var number = require('./base/functions/number.js');
  * @class bingx
  * @augments Exchange
  */
-class bingx extends bingx$1 {
+class bingx extends bingx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bingx',
@@ -103,6 +105,7 @@ class bingx extends bingx$1 {
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -139,6 +142,15 @@ class bingx extends bingx$1 {
                 'secret': true,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
@@ -553,8 +565,11 @@ class bingx extends bingx$1 {
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
@@ -2187,6 +2202,7 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract balances
+     * @param {string} [params.type] the type of balance to fetch (spot, swap, funding) default is `spot`
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -2217,6 +2233,22 @@ class bingx extends bingx$1 {
             //         ]
             //     }
             //
+        }
+        else if ((marketType === 'funding') || (marketType === 'fund')) {
+            response = await this.fundV1PrivateGetAccountBalance(marketTypeQuery);
+            // {
+            //     code: '0',
+            //     timestamp: '1754906016631',
+            //     data: {
+            //         assets: [
+            //             {
+            //                 asset: 'USDT',
+            //                 free: '44.37692200000000237300',
+            //                 locked: '0.00000000000000000000'
+            //             }
+            //         ]
+            //     }
+            // }
         }
         else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
@@ -2370,7 +2402,7 @@ class bingx extends bingx$1 {
         const firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
         const isStandardOrInverse = firstStandardOrInverse !== undefined;
         const spotData = this.safeDict(response, 'data', {});
-        const spotBalances = this.safeList(spotData, 'balances');
+        const spotBalances = this.safeList2(spotData, 'balances', 'assets', []);
         const firstSpot = this.safeDict(spotBalances, 0);
         const isSpot = firstSpot !== undefined;
         if (isStandardOrInverse) {
@@ -6671,4 +6703,4 @@ class bingx extends bingx$1 {
     }
 }
 
-module.exports = bingx;
+exports["default"] = bingx;

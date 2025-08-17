@@ -55,6 +55,7 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
+	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
 	Symbol         *string
@@ -98,6 +99,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 	return MarketInterface{
 		Info:           m,
+		Id:             SafeStringTyped(m, "id"),
 		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
 		Symbol:         SafeStringTyped(m, "symbol"),
@@ -1087,6 +1089,7 @@ type Liquidation struct {
 	BaseValue  *float64
 	Timestamp  *int64
 	Datetime   *string
+	Side       *string
 	Info       map[string]interface{}
 }
 
@@ -1097,6 +1100,7 @@ func NewLiquidation(data interface{}) Liquidation {
 		BaseValue:  SafeFloatTyped(data, "baseValue"),
 		Timestamp:  SafeInt64Typed(data, "timestamp"),
 		Datetime:   SafeStringTyped(data, "datetime"),
+		Side:       SafeStringTyped(data, "side"),
 		Info:       GetInfo(data),
 	}
 }

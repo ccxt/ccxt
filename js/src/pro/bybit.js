@@ -1710,6 +1710,7 @@ export default class bybit extends bybitRest {
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
+            'side': this.safeStringLower(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

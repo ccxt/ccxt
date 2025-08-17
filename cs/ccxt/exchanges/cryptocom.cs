@@ -1172,7 +1172,7 @@ public partial class cryptocom : Exchange
         };
         if (isTrue(limit))
         {
-            ((IDictionary<string,object>)request)["depth"] = limit;
+            ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // max 50
         }
         object response = await this.v1PublicGetPublicGetBook(this.extend(request, parameters));
         //

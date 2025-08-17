@@ -68,7 +68,7 @@ class coinex extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => true,
-                'fetchDepositWithdrawFees' => false,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingInterval' => true,
                 'fetchFundingIntervals' => false,
@@ -4276,7 +4276,7 @@ class coinex extends Exchange {
         //
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          *
          * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
@@ -4778,7 +4778,7 @@ class coinex extends Exchange {
         return $this->parse_funding_rates($data, $symbols);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4787,7 +4787,7 @@ class coinex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
+         * @param {string} [$tag] memo
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified network $code
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
@@ -5616,6 +5616,70 @@ class coinex extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_deposit_withdraw_fee($data, $currency);
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch the fees for deposits and withdrawals
+         *
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+         *
+         * @param $codes
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         */
+        $this->load_markets();
+        $response = $this->v2PublicGetAssetsAllDepositWithdrawConfig ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             {
+        //                 "asset" => array(
+        //                     "ccy" => "CET",
+        //                     "deposit_enabled" => true,
+        //                     "withdraw_enabled" => true,
+        //                     "inter_transfer_enabled" => true,
+        //                     "is_st" => false
+        //                 ),
+        //                 "chains" => array(
+        //                     array(
+        //                         "chain" => "CSC",
+        //                         "min_deposit_amount" => "0.8",
+        //                         "min_withdraw_amount" => "8",
+        //                         "deposit_enabled" => true,
+        //                         "withdraw_enabled" => true,
+        //                         "deposit_delay_minutes" => 0,
+        //                         "safe_confirmations" => 10,
+        //                         "irreversible_confirmations" => 20,
+        //                         "deflation_rate" => "0",
+        //                         "withdrawal_fee" => "0.026",
+        //                         "withdrawal_precision" => 8,
+        //                         "memo" => "",
+        //                         "is_memo_required_for_deposit" => false,
+        //                         "explorer_asset_url" => ""
+        //                     ),
+        //                 )
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $item = $data[$i];
+            $asset = $this->safe_dict($item, 'asset', array());
+            $currencyId = $this->safe_string($asset, 'ccy');
+            if ($currencyId === null) {
+                continue;
+            }
+            $code = $this->safe_currency_code($currencyId);
+            if ($codes === null || $this->in_array($code, $codes)) {
+                $result[$code] = $this->parse_deposit_withdraw_fee($item);
+            }
+        }
+        return $result;
     }
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {

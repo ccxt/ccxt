@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okx$1 = require('../okx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class okx extends okx$1 {
+class okx extends okx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -908,6 +910,7 @@ class okx extends okx$1 {
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
+            'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2065,7 +2068,7 @@ class okx extends okx$1 {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -2472,4 +2475,4 @@ class okx extends okx$1 {
     }
 }
 
-module.exports = okx;
+exports["default"] = okx;

@@ -1357,7 +1357,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1377,7 +1377,8 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             }
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }
-        this.handleErrors(null, null, client.url, null, null, data, message, null, null);
+        this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+        return true;
     }
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, object message)

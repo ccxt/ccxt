@@ -804,6 +804,19 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetching order with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?clientOid=myid1",
+                "input": [
+                    "",
+                    "LTC/USDT",
+                    {
+                        "clientOid": "myid1"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot fetch order",
                 "method": "fetchOrder",
                 "url": "https://api.bitget.com/api/v2/spot/trade/orderInfo?orderId=1112193234476896261",
@@ -1405,7 +1418,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
             },
             {
                 "description": "uta spot cancelOrder",
@@ -1446,6 +1459,47 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1330984742276198400\"}"
+            },
+            {
+                "description": "cancel uta linear swap order using the clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "123abc",
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"123abc\"}"
+            },
+            {
+                "description": "cancel linear swap order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc321"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"clientOid\":\"abc321\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "trailing cancel order using clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/cancel-plan-order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "a1b2c3",
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"clientOid\":\"a1b2c3\"}],\"planType\":\"track_plan\"}"
             }
         ],
         "cancelOrders": [

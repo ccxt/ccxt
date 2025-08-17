@@ -87,7 +87,7 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': True,
-                'fetchDepositWithdrawFees': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingInterval': True,
                 'fetchFundingIntervals': False,
@@ -4126,7 +4126,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
 
         https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage
@@ -4602,7 +4602,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4611,7 +4611,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
+        :param str [tag]: memo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
@@ -5393,6 +5393,66 @@ class coinex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_withdraw_fee(data, currency)
+
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+        """
+        fetch the fees for deposits and withdrawals
+
+        https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+
+ @param codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.v2PublicGetAssetsAllDepositWithdrawConfig(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "asset": {
+        #                     "ccy": "CET",
+        #                     "deposit_enabled": True,
+        #                     "withdraw_enabled": True,
+        #                     "inter_transfer_enabled": True,
+        #                     "is_st": False
+        #                 },
+        #                 "chains": [
+        #                     {
+        #                         "chain": "CSC",
+        #                         "min_deposit_amount": "0.8",
+        #                         "min_withdraw_amount": "8",
+        #                         "deposit_enabled": True,
+        #                         "withdraw_enabled": True,
+        #                         "deposit_delay_minutes": 0,
+        #                         "safe_confirmations": 10,
+        #                         "irreversible_confirmations": 20,
+        #                         "deflation_rate": "0",
+        #                         "withdrawal_fee": "0.026",
+        #                         "withdrawal_precision": 8,
+        #                         "memo": "",
+        #                         "is_memo_required_for_deposit": False,
+        #                         "explorer_asset_url": ""
+        #                     },
+        #                 ]
+        #             }
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result: dict = {}
+        for i in range(0, len(data)):
+            item = data[i]
+            asset = self.safe_dict(item, 'asset', {})
+            currencyId = self.safe_string(asset, 'ccy')
+            if currencyId is None:
+                continue
+            code = self.safe_currency_code(currencyId)
+            if codes is None or self.in_array(code, codes):
+                result[code] = self.parse_deposit_withdraw_fee(item)
+        return result
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #

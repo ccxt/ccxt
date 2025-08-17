@@ -69,6 +69,7 @@ export default class kraken extends krakenRest {
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for this subscription type': BadRequest,

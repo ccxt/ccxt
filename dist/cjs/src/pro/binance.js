@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance$1 = require('../binance.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -11,7 +13,7 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class binance extends binance$1 {
+class binance extends binance$1["default"] {
     describe() {
         const superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());
@@ -414,6 +416,7 @@ class binance extends binance$1 {
             'contracts': this.safeNumber(liquidation, 'l'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'ap'),
+            'side': this.safeStringLower(liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -4264,7 +4267,7 @@ class binance extends binance$1 {
         const code = this.safeInteger(error, 'code');
         const msg = this.safeString(error, 'msg');
         try {
-            this.handleErrors(code, msg, client.url, undefined, undefined, this.json(error), error, undefined, undefined);
+            this.handleErrors(code, msg, client.url, '', {}, this.json(error), error, {}, {});
         }
         catch (e) {
             rejected = true;
@@ -4365,4 +4368,4 @@ class binance extends binance$1 {
     }
 }
 
-module.exports = binance;
+exports["default"] = binance;
