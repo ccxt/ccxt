@@ -69,6 +69,7 @@ class kraken extends kraken$1["default"] {
                     'broad': {
                         'Already subscribed': errors.BadRequest,
                         'Currency pair not in ISO 4217-A3 format': errors.BadSymbol,
+                        'Currency pair not supported': errors.BadSymbol,
                         'Malformed request': errors.BadRequest,
                         'Pair field must be an array': errors.BadRequest,
                         'Pair field unsupported for this subscription type': errors.BadRequest,

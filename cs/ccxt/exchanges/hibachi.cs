@@ -1707,7 +1707,9 @@ public partial class hibachi : Exchange
         parameters ??= new Dictionary<string, object>();
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
-        headers = new Dictionary<string, object>() {};
+        headers = new Dictionary<string, object>() {
+            { "Hibachi-Client", "HibachiCCXT/unversioned" },
+        };
         if (isTrue(isEqual(method, "GET")))
         {
             object request = this.omit(parameters, this.extractParams(path));

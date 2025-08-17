@@ -1561,7 +1561,7 @@ class hibachi(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
-        headers = {}
+        headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
         if method == 'GET':
             request = self.omit(params, self.extract_params(path))
             query = self.urlencode(request)
