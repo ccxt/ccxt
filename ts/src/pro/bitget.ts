@@ -108,7 +108,7 @@ export default class bitget extends bitgetRest {
     }
 
     getInstType (market, uta: boolean = false, params = {}) {
-        if ((uta === undefined) || (uta === false)) {
+        if ((uta === undefined) || !uta) {
             [ uta, params ] = this.handleOptionAndParams (params, 'getInstType', 'uta', false);
         }
         let instType = undefined;
