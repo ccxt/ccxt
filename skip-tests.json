@@ -288,7 +288,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided"
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
