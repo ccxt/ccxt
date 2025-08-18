@@ -132,6 +132,18 @@ func NewMarketInterface(data interface{}) MarketInterface {
 	}
 }
 
+func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
+	data := data2.(map[string]interface{})
+	result := make(map[string]MarketInterface)
+	for key, value := range data {
+		result[key] = NewMarketInterface(value)
+	}
+	return result
+}
+
 // Precision struct
 type Precision struct {
 	Amount *float64

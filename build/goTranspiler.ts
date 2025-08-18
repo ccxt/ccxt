@@ -1090,7 +1090,15 @@ class NewTranspiler {
                 `   return &ExchangeTyped{`,
                 `       Exchange: exchangePointer,`,
                 `   }`,
-                '}'
+                '}',
+                '',
+                'func (this *ExchangeTyped) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {',
+                '	res := this.Exchange.LoadMarkets(params...)',
+                '	if IsError(res) {',
+                '		return nil, CreateReturnError(res)',
+                '	}',
+                '	return NewMarketsMap(res), nil',
+                '}',
             ].join('\n');
 
         } else {
