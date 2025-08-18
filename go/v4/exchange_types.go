@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -50,6 +51,20 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 		return &resBool
 	}
 	return nil
+}
+
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }
 
 // MarketInterface struct
@@ -135,6 +150,10 @@ func NewMarketInterface(data interface{}) MarketInterface {
 func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
 	if data2 == nil {
 		data2 = make(map[string]interface{})
+	}
+	// data := ConvertToMap(data2)
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
 	}
 	data := data2.(map[string]interface{})
 	result := make(map[string]MarketInterface)
