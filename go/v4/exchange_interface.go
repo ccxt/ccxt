@@ -40,7 +40,7 @@ type IBaseExchange interface {
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	SetSandboxMode(enable interface{})
-	LoadMarkets(params ...interface{}) map[string]MarketInterface
+	LoadMarkets(params ...interface{}) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
