@@ -1620,6 +1620,9 @@ type Currencies struct {
 }
 
 func NewCurrencies(data2 interface{}) Currencies {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
 	data := data2.(map[string]interface{})
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)
