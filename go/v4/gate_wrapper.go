@@ -61,8 +61,15 @@ func (this *Gate) FetchSpotMarkets(params ...interface{}) ([]map[string]interfac
 	}
 	return res.([]map[string]interface{}), nil
 }
-func (this *Gate) FetchContractMarkets(params ...interface{}) ([]map[string]interface{}, error) {
-	res := <-this.Core.FetchContractMarkets(params...)
+func (this *Gate) FetchSwapMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchSwapMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res.([]map[string]interface{}), nil
+}
+func (this *Gate) FetchFutureMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
