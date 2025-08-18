@@ -729,6 +729,9 @@ public partial class gate : Exchange
                     { "option", "options" },
                     { "options", "options" },
                 } },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap", "future", "option"} },
+                } },
                 { "swap", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt", "btc"} },
@@ -1156,20 +1159,33 @@ public partial class gate : Exchange
         {
             await this.loadUnifiedStatus();
         }
+        object rawPromises = new List<object>() {};
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
-        if (!isTrue(sandboxMode))
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        object types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
-            // gate doesn't have a sandbox for spot markets
-            object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+            object marketType = getValue(types, i);
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                if (!isTrue(sandboxMode))
+                {
+                    // gate doesn't have a sandbox for spot markets
+                    ((IList<object>)rawPromises).Add(this.fetchSpotMarkets(parameters));
+                }
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchSwapMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "future")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchFutureMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "option")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchOptionMarkets(parameters));
+            }
         }
-        object promises = await promiseAll(rawPromises);
-        object spotMarkets = this.safeValue(promises, 0, new List<object>() {});
-        object contractMarkets = this.safeValue(promises, 1, new List<object>() {});
-        object optionMarkets = this.safeValue(promises, 2, new List<object>() {});
-        object markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        object results = await promiseAll(rawPromises);
+        return this.arraysConcat(results);
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
@@ -1293,12 +1309,11 @@ public partial class gate : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (object c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
@@ -1312,6 +1327,14 @@ public partial class gate : Exchange
                 ((IList<object>)result).Add(parsedMarket);
             }
         }
+        return result;
+    }
+
+    public async virtual Task<object> fetchFutureMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object result = new List<object>() {};
+        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (object c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(futureSettlementCurrencies, c);
