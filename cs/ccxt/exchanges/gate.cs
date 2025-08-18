@@ -2671,7 +2671,14 @@ public partial class gate : Exchange
         var query = ((IList<object>) requestqueryVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 10, max 100
+            if (isTrue(getValue(market, "spot")))
+            {
+                limit = mathMin(limit, 1000);
+            } else
+            {
+                limit = mathMin(limit, 300);
+            }
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         ((IDictionary<string,object>)request)["with_id"] = true;
         object response = null;

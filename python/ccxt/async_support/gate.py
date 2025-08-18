@@ -2543,7 +2543,11 @@ class gate(Exchange, ImplicitAPI):
         #
         request, query = self.prepare_request(market, market['type'], params)
         if limit is not None:
-            request['limit'] = limit  # default 10, max 100
+            if market['spot']:
+                limit = min(limit, 1000)
+            else:
+                limit = min(limit, 300)
+            request['limit'] = limit
         request['with_id'] = True
         response = None
         if market['spot'] or market['margin']:

@@ -16,7 +16,7 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties interfac
 		PanicOnError(currencies)
 		// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
 		var numInactiveCurrencies interface{} = 0
-		var maxInactiveCurrenciesPercentage interface{} = 60 // no more than X% currencies should be inactive
+		var maxInactiveCurrenciesPercentage interface{} = exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50) // no more than X% currencies should be inactive
 		var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
 		// todo: remove undefined check
 		if IsTrue(!IsEqual(currencies, nil)) {

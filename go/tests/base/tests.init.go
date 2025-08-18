@@ -24,4 +24,5 @@ func BaseTestsInit() {
 	TestHandleMethods()
 	TestRemoveRepeatedElementsFromArray()
 	TestParsePrecision()
+	TestArraysConcat()
 }

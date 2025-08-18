@@ -1464,7 +1464,7 @@ class mexc extends \ccxt\async\mexc {
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
-            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'clientOrderId' => $this->safe_string($order, 'clientId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

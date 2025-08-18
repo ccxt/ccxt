@@ -674,6 +674,7 @@ class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
+                    'Ethereum(ERC20)' => 'ERC20',
                     // TODO => uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -5304,7 +5305,7 @@ class mexc extends Exchange {
         //        positionShowStatus => 'CLOSED'
         //    }
         //
-        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
