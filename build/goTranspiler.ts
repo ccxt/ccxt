@@ -1094,7 +1094,7 @@ class NewTranspiler {
                 '}',
                 '',
                 'func (this *ExchangeTyped) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {',
-                '	res := this.Exchange.LoadMarkets(params...)',
+                '	res := <-this.Exchange.LoadMarkets(params...)',
                 '	if IsError(res) {',
                 '		return nil, CreateReturnError(res)',
                 '	}',
