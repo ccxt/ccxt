@@ -940,6 +940,9 @@ func (this *Krakenfutures) FetchLeverage(symbol string, options ...FetchLeverage
 
 // missing typed methods from base
 // nolint
+func (this *Krakenfutures) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Krakenfutures) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

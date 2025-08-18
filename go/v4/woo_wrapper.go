@@ -1755,6 +1755,9 @@ func (this *Woo) FetchConvertCurrencies(params ...interface{}) (Currencies, erro
 
 // missing typed methods from base
 // nolint
+func (this *Woo) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Woo) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

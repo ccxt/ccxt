@@ -714,6 +714,9 @@ func (this *Timex) FetchDepositAddress(code string, options ...FetchDepositAddre
 
 // missing typed methods from base
 // nolint
+func (this *Timex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Timex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

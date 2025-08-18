@@ -800,6 +800,9 @@ func (this *Novadax) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 
 // missing typed methods from base
 // nolint
+func (this *Novadax) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Novadax) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

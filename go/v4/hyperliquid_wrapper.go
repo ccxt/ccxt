@@ -1423,6 +1423,9 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 
 // missing typed methods from base
 // nolint
+func (this *Hyperliquid) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Hyperliquid) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

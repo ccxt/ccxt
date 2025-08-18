@@ -951,6 +951,9 @@ func (this *Bittrade) Withdraw(code string, amount float64, address string, opti
 
 // missing typed methods from base
 // nolint
+func (this *Bittrade) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bittrade) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
