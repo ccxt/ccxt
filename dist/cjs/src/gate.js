@@ -2598,7 +2598,13 @@ class gate extends gate$1["default"] {
         //
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            if (market['spot']) {
+                limit = Math.min(limit, 1000);
+            }
+            else {
+                limit = Math.min(limit, 300);
+            }
+            request['limit'] = limit;
         }
         request['with_id'] = true;
         let response = undefined;

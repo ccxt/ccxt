@@ -2317,10 +2317,12 @@ export default class coinbase extends Exchange {
         if (('bids' in ticker)) {
             const bids = this.safeList(ticker, 'bids', []);
             const asks = this.safeList(ticker, 'asks', []);
-            bid = this.safeNumber(bids[0], 'price');
-            bidVolume = this.safeNumber(bids[0], 'size');
-            ask = this.safeNumber(asks[0], 'price');
-            askVolume = this.safeNumber(asks[0], 'size');
+            const firstBid = this.safeDict(bids, 0, {});
+            const firstAsk = this.safeDict(asks, 0, {});
+            bid = this.safeNumber(firstBid, 'price');
+            bidVolume = this.safeNumber(firstBid, 'size');
+            ask = this.safeNumber(firstAsk, 'price');
+            askVolume = this.safeNumber(firstAsk, 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
