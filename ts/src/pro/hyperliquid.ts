@@ -951,7 +951,10 @@ export default class hyperliquid extends hyperliquidRest {
             return true;
         }
         const data = this.safeDict (message, 'data', {});
-        const id = this.safeString (message, 'id');
+        let id = this.safeString (message, 'id');
+        if (id === undefined) {
+            id = this.safeString (data, 'id');
+        }
         const response = this.safeDict (data, 'response', {});
         const payload = this.safeDict (response, 'payload', {});
         const status = this.safeString (payload, 'status');
