@@ -50,6 +50,7 @@ export default class toobit extends Exchange {
                 'common': {
                     'get': {
                         'v1/time': 1,
+                        'v1/ping': 1,
                     },
                 },
                 'spot': {
@@ -79,6 +80,25 @@ export default class toobit extends Exchange {
                 'defaultType': 'spot',
             },
         });
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}) {
+        const response = await this.commonGetV1Ping (params);
+        return {
+            'status': 'ok',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     /**
