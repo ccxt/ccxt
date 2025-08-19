@@ -3336,6 +3336,24 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            // auto-set type & subtype
+            const knownTypes = [ 'spot', 'swap', 'future', 'option', 'index' ];
+            for (let j = 0; j < knownTypes.length; j++) {
+                const type = knownTypes[j];
+                if (market[type]) {
+                    market['type'] = type;
+                }
+            }
+            // autoset booleans (if undefined)
+            for (let j = 0; j < knownTypes.length; j++) {
+                const type = knownTypes[j];
+                market[type] = false; // set each of them to false
+                if (market[type] === undefined && this.safeString (market, 'type') === type) {
+                    // only set the target 'type' to true
+                    market[type] = true;
+                }
+            }
+            // subType
             if (market['linear']) {
                 market['subType'] = 'linear';
             } else if (market['inverse']) {
