@@ -11,7 +11,7 @@ const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, index
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -29,6 +29,14 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+let protobufMexc = undefined;
+(async () => {
+    try {
+        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+    }
+    catch { }
+})();
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -534,6 +542,37 @@ export default class Exchange {
         }
         return undefined;
     }
+    isBinaryMessage(msg) {
+        return msg instanceof Uint8Array;
+    }
+    decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof Uint8Array) {
+            const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
+        }
+        return data;
+    }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // load node-http(s) modules only on first call
         if (isNode) {
@@ -905,7 +944,8 @@ export default class Exchange {
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
-                }
+                },
+                'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }
@@ -1104,8 +1144,14 @@ export default class Exchange {
         }
     }
     async close() {
+        // test by running ts/src/pro/test/base/test.close.ts
         const clients = Object.values(this.clients || {});
         const closedClients = [];
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            client.error = new ExchangeClosedByUser(this.id + ' closedByUser');
+            closedClients.push(client.close());
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             delete this.clients[client.url];
@@ -1784,6 +1830,13 @@ export default class Exchange {
     getCacheIndex(orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
+    }
+    arraysConcat(arraysOfArrays) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            result = this.arrayConcat(result, arraysOfArrays[i]);
+        }
+        return result;
     }
     findTimeframe(timeframe, timeframes = undefined) {
         if (timeframes === undefined) {

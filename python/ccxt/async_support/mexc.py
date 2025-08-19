@@ -488,6 +488,12 @@ class mexc(Exchange, ImplicitAPI):
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -517,6 +523,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'DNX': 'Dynex(DNX)',
                     # 'DOGE': 'Dogecoin(DOGE)',
                     # 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     # 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -674,6 +681,7 @@ class mexc(Exchange, ImplicitAPI):
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
+                    'Ethereum(ERC20)': 'ERC20',
                     # TODO: uncomment below after deciding unified name
                     # 'PEPE COIN BSC':
                     # 'SMART BLOCKCHAIN':
@@ -4056,7 +4064,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4954,7 +4962,7 @@ class mexc(Exchange, ImplicitAPI):
         #        positionShowStatus: 'CLOSED'
         #    }
         #
-        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        market = self.safe_market(self.safe_string(position, 'symbol'), market, None, 'swap')
         symbol = market['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
@@ -5242,7 +5250,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

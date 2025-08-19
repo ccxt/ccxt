@@ -1052,7 +1052,8 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
+            missingMethodsWrappers = `func (this *${this.capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`
+            missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
@@ -1090,7 +1091,15 @@ class NewTranspiler {
                 `   return &ExchangeTyped{`,
                 `       Exchange: exchangePointer,`,
                 `   }`,
-                '}'
+                '}',
+                '',
+                'func (this *ExchangeTyped) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {',
+                '	res := <-this.Exchange.LoadMarkets(params...)',
+                '	if IsError(res) {',
+                '		return nil, CreateReturnError(res)',
+                '	}',
+                '	return NewMarketsMap(res), nil',
+                '}',
             ].join('\n');
 
         } else {
@@ -1938,7 +1947,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [/GetRootException\(ex\)/g, 'GetRootException(e)'],
             [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
             [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ])

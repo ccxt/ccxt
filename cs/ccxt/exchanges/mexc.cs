@@ -462,6 +462,12 @@ public partial class mexc : Exchange
                     { "ZKSYNC", "ZKSYNCERA" },
                     { "TRC20", "TRX" },
                     { "TON", "TONCOIN" },
+                    { "ARBITRUM", "ARB" },
+                    { "STX", "STACKS" },
+                    { "LUNC", "LUNA" },
+                    { "STARK", "STARKNET" },
+                    { "APT", "APTOS" },
+                    { "PEAQ", "PEAQEVM" },
                     { "AVAXC", "AVAX_CCHAIN" },
                     { "ERC20", "ETH" },
                     { "ACA", "ACALA" },
@@ -470,6 +476,7 @@ public partial class mexc : Exchange
                     { "ASTR", "ASTAR" },
                     { "BTM", "BTM2" },
                     { "CRC20", "CRONOS" },
+                    { "DOT", "DOTASSETHUB" },
                     { "ETHF", "ETF" },
                     { "HRC20", "HECO" },
                     { "OASIS", "ROSE" },
@@ -480,6 +487,7 @@ public partial class mexc : Exchange
                     { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
                     { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
                     { "BNB Smart Chain(BEP20)", "BSC" },
+                    { "Ethereum(ERC20)", "ERC20" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -5140,7 +5148,7 @@ public partial class mexc : Exchange
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, "symbol"), market);
+        market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
         object symbol = getValue(market, "symbol");
         object contracts = this.safeString(position, "holdVol");
         object entryPrice = this.safeNumber(position, "openAvgPrice");

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
@@ -8,7 +10,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gemini extends gemini$1 {
+class gemini extends gemini$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -928,4 +930,4 @@ class gemini extends gemini$1 {
     }
 }
 
-module.exports = gemini;
+exports["default"] = gemini;

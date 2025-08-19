@@ -2416,6 +2416,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.code]: the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -3217,7 +3218,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'marginMode': marginMode,
         })
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

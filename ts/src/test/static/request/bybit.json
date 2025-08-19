@@ -1548,8 +1548,26 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw usdt on tron",
+                "description": "withdraw usdt on uta",
                 "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                  "USDT",
+                  10,
+                  "TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"10\",\"address\":\"TFC#SYyBLBnF1JWPAhTbGBEoXHtDX6rYT6\",\"timestamp\":1754478062727,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw usdt on tron non uta",
+                "method": "withdraw",
+                "options": {
+                    "enableUnifiedAccount": false
+                },
                 "url": "https://api.bybit.com/v5/asset/withdraw/create",
                 "input": [
                   "USDT",

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var htx$1 = require('./abstract/htx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class htx
  * @augments Exchange
  */
-class htx extends htx$1 {
+class htx extends htx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'htx',
@@ -9527,6 +9529,7 @@ class htx extends htx$1 {
             'contracts': this.safeNumber(liquidation, 'volume'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'direction'),
             'baseValue': this.safeNumber(liquidation, 'amount'),
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
@@ -9663,4 +9666,4 @@ class htx extends htx$1 {
     }
 }
 
-module.exports = htx;
+exports["default"] = htx;

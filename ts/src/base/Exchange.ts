@@ -138,7 +138,8 @@ import {
     , ArgumentsRequired
     , RateLimitExceeded
     , BadRequest
-    , UnsubscribeError
+    , UnsubscribeError,
+    ExchangeClosedByUser
 } from "./errors.js"
 
 import { Precise } from './Precise.js'
@@ -173,6 +174,16 @@ import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
+
+
+let protobufMexc = undefined;
+(async () => {
+  try {
+    protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+  } catch {}
+})();
+
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -820,6 +831,40 @@ export default class Exchange {
         return undefined;
     }
 
+    isBinaryMessage(msg) {
+        return msg instanceof Uint8Array
+    }
+
+    decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof Uint8Array) {
+            const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode(data)
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
+        }
+        return data;
+    }
+
+
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
@@ -1213,7 +1258,8 @@ export default class Exchange {
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
-                }
+                },
+                'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
@@ -1415,8 +1461,14 @@ export default class Exchange {
     }
 
     async close () {
+        // test by running ts/src/pro/test/base/test.close.ts
         const clients = Object.values (this.clients || {});
         const closedClients = [];
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i] as WsClient;
+            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
+            closedClients.push(client.close ());
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
@@ -2157,6 +2209,14 @@ export default class Exchange {
         return -1;
     }
 
+    arraysConcat (arraysOfArrays: any[]) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            result = this.arrayConcat (result, arraysOfArrays[i]);
+        }
+        return result;
+    }
+
     findTimeframe (timeframe, timeframes = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
@@ -2724,7 +2784,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
@@ -2732,7 +2792,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
@@ -2796,7 +2856,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDepositAddressesByNetwork() is not supported yet');
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
+    async fetchOpenInterestHistory (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         throw new NotSupported (this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
 
@@ -5551,7 +5611,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
     }
 
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrder
@@ -5579,7 +5639,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrder() is not supported yet');
     }
 
-    async createTrailingAmountOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrderWs
@@ -5607,7 +5667,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrderWs() is not supported yet');
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrder
@@ -5635,7 +5695,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createTrailingPercentOrder() is not supported yet');
     }
 
-    async createTrailingPercentOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrderWs
@@ -6974,7 +7034,7 @@ export default class Exchange {
         }
     }
 
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchMarkOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exchange#fetchMarkOHLCV

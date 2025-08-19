@@ -667,8 +667,7 @@ export default class gate extends Exchange {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA', // CARDANO
                     'AVAXC': 'AVAX_C',
@@ -747,6 +746,9 @@ export default class gate extends Exchange {
                     'delivery': 'delivery',
                     'option': 'options',
                     'options': 'options',
+                },
+                'fetchMarkets': {
+                    'types': [ 'spot', 'swap', 'future', 'option' ],
                 },
                 'swap': {
                     'fetchMarkets': {
@@ -1230,22 +1232,27 @@ export default class gate extends Exchange {
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
+        const rawPromises = [];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let rawPromises = [
-            this.fetchContractMarkets (params),
-            this.fetchOptionMarkets (params),
-        ];
-        if (!sandboxMode) {
-            // gate doesn't have a sandbox for spot markets
-            const mainnetOnly = [ this.fetchSpotMarkets (params) ];
-            rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'spot') {
+                if (!sandboxMode) {
+                    // gate doesn't have a sandbox for spot markets
+                    rawPromises.push (this.fetchSpotMarkets (params));
+                }
+            } else if (marketType === 'swap') {
+                rawPromises.push (this.fetchSwapMarkets (params));
+            } else if (marketType === 'future') {
+                rawPromises.push (this.fetchFutureMarkets (params));
+            } else if (marketType === 'option') {
+                rawPromises.push (this.fetchOptionMarkets (params));
+            }
         }
-        const promises = await Promise.all (rawPromises);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const contractMarkets = this.safeValue (promises, 1, []);
-        const optionMarkets = this.safeValue (promises, 2, []);
-        const markets = this.arrayConcat (spotMarkets, contractMarkets);
-        return this.arrayConcat (markets, optionMarkets);
+        const results = await Promise.all (rawPromises);
+        return this.arraysConcat (results);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -1363,10 +1370,9 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params = {}) {
+    async fetchSwapMarkets (params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
-        const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
             const request: Dict = {
@@ -1378,6 +1384,12 @@ export default class gate extends Exchange {
                 result.push (parsedMarket);
             }
         }
+        return result;
+    }
+
+    async fetchFutureMarkets (params = {}) {
+        const result = [];
+        const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
             const request: Dict = {
@@ -2623,7 +2635,12 @@ export default class gate extends Exchange {
         //
         const [ request, query ] = this.prepareRequest (market, market['type'], params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            if (market['spot']) {
+                limit = Math.min (limit, 1000);
+            } else {
+                limit = Math.min (limit, 300);
+            }
+            request['limit'] = limit;
         }
         request['with_id'] = true;
         let response = undefined;
@@ -3965,7 +3982,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -5776,7 +5793,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -7633,12 +7650,30 @@ export default class gate extends Exchange {
         if (quoteValueString === undefined) {
             quoteValueString = Precise.stringMul (baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        const optPos = this.safeStringLower (liquidation, 'side');
+        let side: Str = undefined;
+        if (optPos === 'long') {
+            side = 'buy';
+        } else if (optPos === 'short') {
+            side = 'sell';
+        } else {
+            if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
+                if (Precise.stringGt (size, '0')) {
+                    side = 'buy';
+                } else if (Precise.stringLt (size, '0')) {
+                    side = 'sell';
+                }
+            }
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.parseNumber (contractsString),
             'contractSize': this.parseNumber (contractSizeString),
             'price': this.parseNumber (priceString),
+            'side': side,
             'baseValue': this.parseNumber (baseValueString),
             'quoteValue': this.parseNumber (Precise.stringAbs (quoteValueString)),
             'timestamp': timestamp,

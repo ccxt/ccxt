@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.98'
+__version__ = '4.5.0'
 
 # -----------------------------------------------------------------------------
 
@@ -125,6 +125,7 @@ from ccxt.async_support.gate import gate                                        
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
+from ccxt.async_support.hibachi import hibachi                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
@@ -233,6 +234,7 @@ exchanges = [
     'gateio',
     'gemini',
     'hashkey',
+    'hibachi',
     'hitbtc',
     'hollaex',
     'htx',

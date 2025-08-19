@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -848,16 +848,14 @@ class bybit(ccxt.async_support.bybit):
             if market['option']:
                 limit = 100
         else:
-            if not market['spot']:
-                if market['option']:
-                    if (limit != 25) and (limit != 100):
-                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
-                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
-                    # bybit only support limit 1, 50, 200, 500 for contract
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
-            else:
-                if (limit != 1) and (limit != 50) and (limit != 200):
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
+            limits = {
+                'spot': [1, 50, 200, 1000],
+                'option': [25, 100],
+                'default': [1, 50, 200, 500, 1000],
+            }
+            selectedLimits = self.safe_list_2(limits, market['type'], 'default')
+            if not self.in_array(limit, selectedLimits):
+                raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + self.json(selectedLimits))
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -870,7 +868,7 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the orderbook channel
 
@@ -1044,7 +1042,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unsubscribe from the trades channel
 
@@ -1631,6 +1629,7 @@ class bybit(ccxt.async_support.bybit):
             'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number_2(liquidation, 'price', 'p'),
+            'side': self.safe_string_lower(liquidation, 'side', 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2154,7 +2153,7 @@ class bybit(ccxt.async_support.bybit):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #   {
         #       "success": False,

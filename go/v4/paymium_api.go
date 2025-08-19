@@ -7,98 +7,98 @@
 
 package ccxt
 
-func (this *paymium) PublicGetCountries (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCountries", args...)
+func (this *paymium) PublicGetCountries(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCountries", args...)
 }
 
-func (this *paymium) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrencies", args...)
+func (this *paymium) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *paymium) PublicGetDataCurrencyTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDataCurrencyTicker", args...)
+func (this *paymium) PublicGetDataCurrencyTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDataCurrencyTicker", args...)
 }
 
-func (this *paymium) PublicGetDataCurrencyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDataCurrencyTrades", args...)
+func (this *paymium) PublicGetDataCurrencyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDataCurrencyTrades", args...)
 }
 
-func (this *paymium) PublicGetDataCurrencyDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDataCurrencyDepth", args...)
+func (this *paymium) PublicGetDataCurrencyDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDataCurrencyDepth", args...)
 }
 
-func (this *paymium) PublicGetBitcoinChartsIdTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBitcoinChartsIdTrades", args...)
+func (this *paymium) PublicGetBitcoinChartsIdTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBitcoinChartsIdTrades", args...)
 }
 
-func (this *paymium) PublicGetBitcoinChartsIdDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBitcoinChartsIdDepth", args...)
+func (this *paymium) PublicGetBitcoinChartsIdDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBitcoinChartsIdDepth", args...)
 }
 
-func (this *paymium) PrivateGetUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUser", args...)
+func (this *paymium) PrivateGetUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *paymium) PrivateGetUserAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserAddresses", args...)
+func (this *paymium) PrivateGetUserAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserAddresses", args...)
 }
 
-func (this *paymium) PrivateGetUserAddressesAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserAddressesAddress", args...)
+func (this *paymium) PrivateGetUserAddressesAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserAddressesAddress", args...)
 }
 
-func (this *paymium) PrivateGetUserOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserOrders", args...)
+func (this *paymium) PrivateGetUserOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserOrders", args...)
 }
 
-func (this *paymium) PrivateGetUserOrdersUuid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserOrdersUuid", args...)
+func (this *paymium) PrivateGetUserOrdersUuid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserOrdersUuid", args...)
 }
 
-func (this *paymium) PrivateGetUserPriceAlerts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserPriceAlerts", args...)
+func (this *paymium) PrivateGetUserPriceAlerts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserPriceAlerts", args...)
 }
 
-func (this *paymium) PrivateGetMerchantGetPaymentUuid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMerchantGetPaymentUuid", args...)
+func (this *paymium) PrivateGetMerchantGetPaymentUuid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMerchantGetPaymentUuid", args...)
 }
 
-func (this *paymium) PrivatePostUserAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserAddresses", args...)
+func (this *paymium) PrivatePostUserAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserAddresses", args...)
 }
 
-func (this *paymium) PrivatePostUserOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserOrders", args...)
+func (this *paymium) PrivatePostUserOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserOrders", args...)
 }
 
-func (this *paymium) PrivatePostUserWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserWithdrawals", args...)
+func (this *paymium) PrivatePostUserWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserWithdrawals", args...)
 }
 
-func (this *paymium) PrivatePostUserEmailTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserEmailTransfers", args...)
+func (this *paymium) PrivatePostUserEmailTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserEmailTransfers", args...)
 }
 
-func (this *paymium) PrivatePostUserPaymentRequests (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserPaymentRequests", args...)
+func (this *paymium) PrivatePostUserPaymentRequests(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserPaymentRequests", args...)
 }
 
-func (this *paymium) PrivatePostUserPriceAlerts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserPriceAlerts", args...)
+func (this *paymium) PrivatePostUserPriceAlerts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserPriceAlerts", args...)
 }
 
-func (this *paymium) PrivatePostMerchantCreatePayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMerchantCreatePayment", args...)
+func (this *paymium) PrivatePostMerchantCreatePayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMerchantCreatePayment", args...)
 }
 
-func (this *paymium) PrivateDeleteUserOrdersUuid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteUserOrdersUuid", args...)
+func (this *paymium) PrivateDeleteUserOrdersUuid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteUserOrdersUuid", args...)
 }
 
-func (this *paymium) PrivateDeleteUserOrdersUuidCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteUserOrdersUuidCancel", args...)
+func (this *paymium) PrivateDeleteUserOrdersUuidCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteUserOrdersUuidCancel", args...)
 }
 
-func (this *paymium) PrivateDeleteUserPriceAlertsId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteUserPriceAlertsId", args...)
+func (this *paymium) PrivateDeleteUserPriceAlertsId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteUserPriceAlertsId", args...)
 }

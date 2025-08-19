@@ -1735,7 +1735,7 @@ class apex(Exchange, ImplicitAPI):
             'rate': self.safe_number(income, 'rate'),
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

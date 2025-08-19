@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -881,19 +881,14 @@ export default class bybit extends bybitRest {
                 limit = 100;
             }
         } else {
-            if (!market['spot']) {
-                if (market['option']) {
-                    if ((limit !== 25) && (limit !== 100)) {
-                        throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
-                    }
-                } else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    // bybit only support limit 1, 50, 200, 500 for contract
-                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
-                }
-            } else {
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
-                    throw new BadRequest (this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
-                }
+            const limits = {
+                'spot': [ 1, 50, 200, 1000 ],
+                'option': [ 25, 100 ],
+                'default': [ 1, 50, 200, 500, 1000 ],
+            };
+            const selectedLimits = this.safeList2 (limits, market['type'], 'default');
+            if (!this.inArray (limit, selectedLimits)) {
+                throw new BadRequest (this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json (selectedLimits));
             }
         }
         const topics = [];
@@ -920,7 +915,7 @@ export default class bybit extends bybitRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBookForSymbols (symbols: Strings, params = {}): Promise<any> {
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel = 'orderbook.';
@@ -1109,7 +1104,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchTradesForSymbols (symbols: Strings, params = {}): Promise<any> {
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const url = await this.getUrlByMarketType (symbols[0], false, 'unWatchTradesForSymbols', params);
@@ -1736,6 +1731,7 @@ export default class bybit extends bybitRest {
             'contracts': this.safeNumber2 (liquidation, 'size', 'v'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber2 (liquidation, 'price', 'p'),
+            'side': this.safeStringLower (liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2295,7 +2291,7 @@ export default class bybit extends bybitRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //   {
         //       "success": false,

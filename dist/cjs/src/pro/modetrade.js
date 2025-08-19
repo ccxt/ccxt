@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var modetrade$1 = require('../modetrade.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +11,7 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class modetrade extends modetrade$1 {
+class modetrade extends modetrade$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1331,4 +1333,4 @@ class modetrade extends modetrade$1 {
     }
 }
 
-module.exports = modetrade;
+exports["default"] = modetrade;

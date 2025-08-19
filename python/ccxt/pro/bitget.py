@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -51,10 +51,14 @@ class bitget(ccxt.async_support.bitget):
                     'ws': {
                         'public': 'wss://ws.bitget.com/v2/ws/public',
                         'private': 'wss://ws.bitget.com/v2/ws/private',
+                        'utaPublic': 'wss://ws.bitget.com/v3/ws/public',
+                        'utaPrivate': 'wss://ws.bitget.com/v3/ws/private',
                     },
                     'demo': {
                         'public': 'wss://wspap.bitget.com/v2/ws/public',
                         'private': 'wss://wspap.bitget.com/v2/ws/private',
+                        'utaPublic': 'wss://wspap.bitget.com/v3/ws/public',
+                        'utaPrivate': 'wss://wspap.bitget.com/v3/ws/private',
                     },
                 },
             },
@@ -106,7 +110,9 @@ class bitget(ccxt.async_support.bitget):
             },
         })
 
-    def get_inst_type(self, market, params={}):
+    def get_inst_type(self, market, uta: bool = False, params={}):
+        if (uta is None) or not uta:
+            uta, params = self.handle_option_and_params(params, 'getInstType', 'uta', False)
         instType = None
         if market is None:
             instType, params = self.handleProductTypeAndParams(None, params)
@@ -117,6 +123,8 @@ class bitget(ccxt.async_support.bitget):
         instypeAux = None
         instypeAux, params = self.handle_option_and_params(params, 'getInstType', 'instType', instType)
         instType = instypeAux
+        if uta:
+            instType = instType.lower()
         return [instType, params]
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -125,9 +133,11 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
 
         :param str symbol: unified symbol of the market to watch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -135,12 +145,16 @@ class bitget(ccxt.async_support.bitget):
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchTicker', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
         args: dict = {
             'instType': instType,
-            'channel': 'ticker',
-            'instId': market['id'],
         }
+        topicOrChannel = 'topic' if uta else 'channel'
+        symbolOrInstId = 'symbol' if uta else 'instId'
+        args[topicOrChannel] = 'ticker'
+        args[symbolOrInstId] = market['id']
         return await self.watch_public(messageHash, args, params)
 
     async def un_watch_ticker(self, symbol: str, params={}) -> Any:
@@ -163,16 +177,20 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
 
         :param str[] symbols: unified symbol of the market to watch the tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         market = self.market(symbols[0])
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -180,9 +198,11 @@ class bitget(ccxt.async_support.bitget):
             marketInner = self.market(symbol)
             args: dict = {
                 'instType': instType,
-                'channel': 'ticker',
-                'instId': marketInner['id'],
             }
+            topicOrChannel = 'topic' if uta else 'channel'
+            symbolOrInstId = 'symbol' if uta else 'instId'
+            args[topicOrChannel] = 'ticker'
+            args[symbolOrInstId] = marketInner['id']
             topics.append(args)
             messageHashes.append('ticker:' + symbol)
         tickers = await self.watch_public_multiple(messageHashes, topics, params)
@@ -193,6 +213,8 @@ class bitget(ccxt.async_support.bitget):
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
+        #
+        # default
         #
         #     {
         #         "action": "snapshot",
@@ -221,6 +243,29 @@ class bitget(ccxt.async_support.bitget):
         #             }
         #         ],
         #         "ts": 1701842994341
+        #     }
+        #
+        # uta
+        #
+        #     {
+        #         "action": "snapshot",
+        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "data": [
+        #             {
+        #                 "highPrice24h": "120255.61",
+        #                 "lowPrice24h": "116145.88",
+        #                 "openPrice24h": "118919.38",
+        #                 "lastPrice": "119818.83",
+        #                 "turnover24h": "215859996.272276",
+        #                 "volume24h": "1819.756798",
+        #                 "bid1Price": "119811.26",
+        #                 "ask1Price": "119831.18",
+        #                 "bid1Size": "0.008732",
+        #                 "ask1Size": "0.004297",
+        #                 "price24hPcnt": "0.02002"
+        #             }
+        #         ],
+        #         "ts": 1753230479687
         #     }
         #
         self.handle_bid_ask(client, message)
@@ -301,56 +346,85 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701843962812
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "action": "snapshot",
+        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "data": [
+        #             {
+        #                 "highPrice24h": "120255.61",
+        #                 "lowPrice24h": "116145.88",
+        #                 "openPrice24h": "118919.38",
+        #                 "lastPrice": "119818.83",
+        #                 "turnover24h": "215859996.272276",
+        #                 "volume24h": "1819.756798",
+        #                 "bid1Price": "119811.26",
+        #                 "ask1Price": "119831.18",
+        #                 "bid1Size": "0.008732",
+        #                 "ask1Size": "0.004297",
+        #                 "price24hPcnt": "0.02002"
+        #             }
+        #         ],
+        #         "ts": 1753230479687
+        #     }
+        #
         arg = self.safe_value(message, 'arg', {})
         data = self.safe_value(message, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        timestamp = self.safe_integer(ticker, 'ts')
-        instType = self.safe_string(arg, 'instType')
-        marketType = 'spot' if (instType == 'SPOT') else 'contract'
-        marketId = self.safe_string(ticker, 'instId')
+        utaTimestamp = self.safe_integer(message, 'ts')
+        timestamp = self.safe_integer(ticker, 'ts', utaTimestamp)
+        instType = self.safe_string_lower(arg, 'instType')
+        marketType = 'spot' if (instType == 'spot') else 'contract'
+        utaMarketId = self.safe_string(arg, 'symbol')
+        marketId = self.safe_string(ticker, 'instId', utaMarketId)
         market = self.safe_market(marketId, market, None, marketType)
-        close = self.safe_string(ticker, 'lastPr')
-        changeDecimal = self.safe_string(ticker, 'change24h')
-        change = Precise.string_mul(changeDecimal, '100')
+        close = self.safe_string_2(ticker, 'lastPr', 'lastPrice')
+        changeDecimal = self.safe_string(ticker, 'change24h', '')
+        change = self.safe_string(ticker, 'price24hPcnt', Precise.string_mul(changeDecimal, '100'))
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high24h'),
-            'low': self.safe_string(ticker, 'low24h'),
-            'bid': self.safe_string(ticker, 'bidPr'),
-            'bidVolume': self.safe_string(ticker, 'bidSz'),
-            'ask': self.safe_string(ticker, 'askPr'),
-            'askVolume': self.safe_string(ticker, 'askSz'),
+            'high': self.safe_string_2(ticker, 'high24h', 'highPrice24h'),
+            'low': self.safe_string_2(ticker, 'low24h', 'lowPrice24h'),
+            'bid': self.safe_string_2(ticker, 'bidPr', 'bid1Price'),
+            'bidVolume': self.safe_string_2(ticker, 'bidSz', 'bid1Size'),
+            'ask': self.safe_string_2(ticker, 'askPr', 'ask1Price'),
+            'askVolume': self.safe_string_2(ticker, 'askSz', 'ask1Size'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'open24h'),
+            'open': self.safe_string_2(ticker, 'open24h', 'openPrice24h'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': None,
             'percentage': change,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string_2(ticker, 'baseVolume', 'volume24h'),
+            'quoteVolume': self.safe_string_2(ticker, 'quoteVolume', 'turnover24h'),
             'info': ticker,
         }, market)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        watches best bid & ask for symbols
 
         https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Tickers-Channel
 
-        watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         market = self.market(symbols[0])
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchBidsAsks', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -358,9 +432,11 @@ class bitget(ccxt.async_support.bitget):
             marketInner = self.market(symbol)
             args: dict = {
                 'instType': instType,
-                'channel': 'ticker',
-                'instId': marketInner['id'],
             }
+            topicOrChannel = 'topic' if uta else 'channel'
+            symbolOrInstId = 'symbol' if uta else 'instId'
+            args[topicOrChannel] = 'ticker'
+            args[symbolOrInstId] = marketInner['id']
             topics.append(args)
             messageHashes.append('bidask:' + symbol)
         tickers = await self.watch_public_multiple(messageHashes, topics, params)
@@ -381,19 +457,21 @@ class bitget(ccxt.async_support.bitget):
         arg = self.safe_value(message, 'arg', {})
         data = self.safe_value(message, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        timestamp = self.safe_integer(ticker, 'ts')
-        instType = self.safe_string(arg, 'instType')
-        marketType = 'spot' if (instType == 'SPOT') else 'contract'
-        marketId = self.safe_string(ticker, 'instId')
+        utaTimestamp = self.safe_integer(message, 'ts')
+        timestamp = self.safe_integer(ticker, 'ts', utaTimestamp)
+        instType = self.safe_string_lower(arg, 'instType')
+        marketType = 'spot' if (instType == 'spot') else 'contract'
+        utaMarketId = self.safe_string(arg, 'symbol')
+        marketId = self.safe_string(ticker, 'instId', utaMarketId)
         market = self.safe_market(marketId, market, None, marketType)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.safe_string(ticker, 'askPr'),
-            'askVolume': self.safe_string(ticker, 'askSz'),
-            'bid': self.safe_string(ticker, 'bidPr'),
-            'bidVolume': self.safe_string(ticker, 'bidSz'),
+            'ask': self.safe_string_2(ticker, 'askPr', 'ask1Price'),
+            'askVolume': self.safe_string_2(ticker, 'askSz', 'ask1Size'),
+            'bid': self.safe_string_2(ticker, 'bidPr', 'bid1Price'),
+            'bidVolume': self.safe_string_2(ticker, 'bidSz', 'bid1Size'),
             'info': ticker,
         }, market)
 
@@ -418,7 +496,7 @@ class bitget(ccxt.async_support.bitget):
         interval = self.safe_string(timeframes, timeframe)
         messageHash = 'candles:' + timeframe + ':' + symbol
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        instType, params = self.get_inst_type(market, False, params)
         args: dict = {
             'instType': instType,
             'channel': 'candle' + interval,
@@ -566,7 +644,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbol)
         messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        instType, params = self.get_inst_type(market, False, params)
         args: dict = {
             'instType': instType,
             'channel': channel,
@@ -599,7 +677,7 @@ class bitget(ccxt.async_support.bitget):
             symbol = symbols[i]
             market = self.market(symbol)
             instType = None
-            instType, params = self.get_inst_type(market, params)
+            instType, params = self.get_inst_type(market, False, params)
             args: dict = {
                 'instType': instType,
                 'channel': channel,
@@ -757,7 +835,7 @@ class bitget(ccxt.async_support.bitget):
             symbol = symbols[i]
             market = self.market(symbol)
             instType = None
-            instType, params = self.get_inst_type(market, params)
+            instType, params = self.get_inst_type(market, False, params)
             args: dict = {
                 'instType': instType,
                 'channel': 'trade',
@@ -941,7 +1019,7 @@ class bitget(ccxt.async_support.bitget):
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
-            instType, params = self.get_inst_type(market, params)
+            instType, params = self.get_inst_type(market, False, params)
         messageHash = instType + ':positions' + messageHash
         args: dict = {
             'instType': instType,
@@ -1136,7 +1214,7 @@ class bitget(ccxt.async_support.bitget):
         if market is None and type == 'spot':
             instType = 'SPOT'
         else:
-            instType, params = self.get_inst_type(market, params)
+            instType, params = self.get_inst_type(market, False, params)
         if type == 'spot' and (symbol is not None):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
@@ -1485,9 +1563,9 @@ class bitget(ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         instType = None
         if market is None and type == 'spot':
-            instType = 'SPOT'
+            instType = 'spot'
         else:
-            instType, params = self.get_inst_type(market, params)
+            instType, params = self.get_inst_type(market, False, params)
         subscriptionHash = 'fill:' + instType
         args: dict = {
             'instType': instType,
@@ -1708,12 +1786,21 @@ class bitget(ccxt.async_support.bitget):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, messageHash, args, params={}):
-        url = self.urls['api']['ws']['public']
+        uta = None
+        url = None
+        uta, params = self.handle_option_and_params(params, 'watchPublic', 'uta', False)
+        if uta:
+            url = self.urls['api']['ws']['utaPublic']
+        else:
+            url = self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
         if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                url = self.urls['api']['demo']['public']
+                if uta:
+                    url = self.urls['api']['demo']['utaPublic']
+                else:
+                    url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': [args],
@@ -1722,12 +1809,21 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def un_watch_public(self, messageHash, args, params={}):
-        url = self.urls['api']['ws']['public']
+        uta = None
+        url = None
+        uta, params = self.handle_option_and_params(params, 'unWatchPublic', 'uta', False)
+        if uta:
+            url = self.urls['api']['ws']['utaPublic']
+        else:
+            url = self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
         if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                url = self.urls['api']['demo']['public']
+                if uta:
+                    url = self.urls['api']['demo']['utaPublic']
+                else:
+                    url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'unsubscribe',
             'args': [args],
@@ -1736,13 +1832,22 @@ class bitget(ccxt.async_support.bitget):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_public_multiple(self, messageHashes, argsArray, params={}):
-        url = self.urls['api']['ws']['public']
+        uta = None
+        url = None
+        uta, params = self.handle_option_and_params(params, 'watchPublicMultiple', 'uta', False)
+        if uta:
+            url = self.urls['api']['ws']['utaPublic']
+        else:
+            url = self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
         if sandboxMode:
             argsArrayFirst = self.safe_dict(argsArray, 0, {})
             instType = self.safe_string(argsArrayFirst, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
-                url = self.urls['api']['demo']['public']
+                if uta:
+                    url = self.urls['api']['demo']['utaPublic']
+                else:
+                    url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1800,7 +1905,7 @@ class bitget(ccxt.async_support.bitget):
         future = self.safe_value(client.futures, messageHash)
         future.resolve(True)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {event: "error", code: 30015, msg: "Invalid sign"}
         #
@@ -1871,6 +1976,29 @@ class bitget(ccxt.async_support.bitget):
         #        ]
         #    }
         #
+        # uta
+        #
+        #     {
+        #         "action": "snapshot",
+        #         "arg": {"instType": "spot", topic: "ticker", symbol: "BTCUSDT"},
+        #         "data": [
+        #             {
+        #                 "highPrice24h": "120255.61",
+        #                 "lowPrice24h": "116145.88",
+        #                 "openPrice24h": "118919.38",
+        #                 "lastPrice": "119818.83",
+        #                 "turnover24h": "215859996.272276",
+        #                 "volume24h": "1819.756798",
+        #                 "bid1Price": "119811.26",
+        #                 "ask1Price": "119831.18",
+        #                 "bid1Size": "0.008732",
+        #                 "ask1Size": "0.004297",
+        #                 "price24hPcnt": "0.02002"
+        #             }
+        #         ],
+        #         "ts": 1753230479687
+        #     }
+        #
         if self.handle_error_message(client, message):
             return
         content = self.safe_string(message, 'message')
@@ -1905,7 +2033,7 @@ class bitget(ccxt.async_support.bitget):
             'account-crossed': self.handle_balance,
         }
         arg = self.safe_value(message, 'arg', {})
-        topic = self.safe_value(arg, 'channel', '')
+        topic = self.safe_value_2(arg, 'channel', 'topic', '')
         method = self.safe_value(methods, topic)
         if method is not None:
             method(client, message)
@@ -1981,7 +2109,7 @@ class bitget(ccxt.async_support.bitget):
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
         type = 'spot' if (instType == 'spot') else 'contract'
-        instId = self.safe_string(arg, 'instId')
+        instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
         messageHash = 'unsubscribe:ticker:' + market['symbol']
@@ -2042,7 +2170,7 @@ class bitget(ccxt.async_support.bitget):
             argsList = [self.safe_dict(message, 'arg', {})]
         for i in range(0, len(argsList)):
             arg = argsList[i]
-            channel = self.safe_string(arg, 'channel')
+            channel = self.safe_string_2(arg, 'channel', 'topic')
             if channel == 'books':
                 # for now only unWatchOrderBook is supporteod
                 self.handle_order_book_un_subscription(client, message)

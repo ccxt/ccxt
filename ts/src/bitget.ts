@@ -892,6 +892,7 @@ export default class bitget extends Exchange {
                     // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
                     '4001': ExchangeError, // no data received in 30s
                     '4002': ExchangeError, // Buffer full. cannot write data
+                    '40020': BadRequest, // {"code":"40020","msg":"Parameter orderId error","requestTime":1754305078588,"data":null}
                     // --------------------------------------------------------
                     '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
                     '30002': AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
@@ -1538,7 +1539,6 @@ export default class bitget extends Exchange {
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
                     // 'BEP20': 'BEP20', // different for BEP20
-                    'BSC': 'BEP20',
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
@@ -2775,7 +2775,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
@@ -5783,6 +5783,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -5801,13 +5802,32 @@ export default class bitget extends Exchange {
         if (!(market['spot'] && trigger)) {
             request['symbol'] = market['id'];
         }
-        if (!((market['swap'] || market['future']) && trigger)) {
-            request['orderId'] = id;
-        }
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', false);
+        const isPlanOrder = trigger || trailing;
+        const isContract = market['swap'] || market['future'];
+        const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        if (isContractTriggerEndpoint) {
+            const orderIdList = [];
+            const orderId: Dict = {};
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
+                orderId['clientOid'] = clientOrderId;
+            } else {
+                orderId['orderId'] = id;
+            }
+            orderIdList.push (orderId);
+            request['orderIdList'] = orderIdList;
+        } else {
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
+                request['clientOid'] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
+        }
         if (uta) {
-            request['orderId'] = id;
             if (trigger) {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
             } else {
@@ -5817,14 +5837,6 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (trigger || trailing) {
-                const orderIdList = [];
-                const orderId: Dict = {
-                    'orderId': id,
-                };
-                orderIdList.push (orderId);
-                request['orderIdList'] = orderIdList;
-            }
             if (trailing) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
@@ -5903,7 +5915,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let order = undefined;
-        if ((market['swap'] || market['future']) && trigger && !uta) {
+        if (isContractTriggerEndpoint) {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
@@ -6200,6 +6212,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -6209,8 +6222,15 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'orderId': id,
+            // 'orderId': id,
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, [ 'clientOrderId' ]);
+            request['clientOid'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
         let response = undefined;
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'uta', false);
@@ -6348,6 +6368,10 @@ export default class bitget extends Exchange {
             }
         }
         const dataList = this.safeList (response, 'data', []);
+        const dataListLength = dataList.length;
+        if (dataListLength === 0) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json (response));
+        }
         const first = this.safeDict (dataList, 0, {});
         return this.parseOrder (first, market);
         // const first = this.safeDict (data, 0, data);
@@ -8798,7 +8822,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

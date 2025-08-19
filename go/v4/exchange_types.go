@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -52,9 +53,24 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 	return nil
 }
 
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
+	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
 	Symbol         *string
@@ -98,6 +114,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 	return MarketInterface{
 		Info:           m,
+		Id:             SafeStringTyped(m, "id"),
 		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
 		Symbol:         SafeStringTyped(m, "symbol"),
@@ -128,6 +145,22 @@ func NewMarketInterface(data interface{}) MarketInterface {
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
+}
+
+func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
+	// data := ConvertToMap(data2)
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
+	}
+	data := data2.(map[string]interface{})
+	result := make(map[string]MarketInterface)
+	for key, value := range data {
+		result[key] = NewMarketInterface(value)
+	}
+	return result
 }
 
 // Precision struct
@@ -1087,6 +1120,7 @@ type Liquidation struct {
 	BaseValue  *float64
 	Timestamp  *int64
 	Datetime   *string
+	Side       *string
 	Info       map[string]interface{}
 }
 
@@ -1097,6 +1131,7 @@ func NewLiquidation(data interface{}) Liquidation {
 		BaseValue:  SafeFloatTyped(data, "baseValue"),
 		Timestamp:  SafeInt64Typed(data, "timestamp"),
 		Datetime:   SafeStringTyped(data, "datetime"),
+		Side:       SafeStringTyped(data, "side"),
 		Info:       GetInfo(data),
 	}
 }
@@ -1616,6 +1651,9 @@ type Currencies struct {
 }
 
 func NewCurrencies(data2 interface{}) Currencies {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
 	data := data2.(map[string]interface{})
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)

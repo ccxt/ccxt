@@ -1076,6 +1076,114 @@ public partial class modetrade : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        // {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
+        // }
+        //
+        object marketId = this.safeString(income, "symbol");
+        object symbol = this.safeSymbol(marketId, market);
+        object amount = this.safeString(income, "funding_fee");
+        object code = this.safeCurrencyCode("USDC");
+        object timestamp = this.safeInteger(income, "updated_time");
+        object rate = this.safeNumber(income, "funding_rate");
+        object paymentType = this.safeString(income, "payment_type");
+        amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", symbol },
+            { "code", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", null },
+            { "amount", this.parseNumber(amount) },
+            { "rate", rate },
+        };
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500);
+        }
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end_t"] = until;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = mathMin(limit, 500);
+        }
+        object response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        return this.parseIncomes(rows, market, since, limit);
+    }
+
     /**
      * @method
      * @name modetrade#fetchTradingFees

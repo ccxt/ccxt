@@ -18,6 +18,7 @@ type IBaseExchange interface {
 	SetHttpProxy(httpProxy interface{})
 	SetCurrencies(currencies interface{})
 	SetPrivateKey(privateKey interface{})
+	SetAccountId(privateKey interface{})
 	SetWalletAddress(walletAddress interface{})
 	SetSecret(secret interface{})
 	SetUid(uid interface{})
@@ -39,12 +40,16 @@ type IBaseExchange interface {
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	SetSandboxMode(enable interface{})
-	LoadMarkets(params ...interface{}) <-chan interface{}
+	LoadMarkets(params ...interface{}) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
 	Market(symbol interface{}) interface{}
 	Currency(code interface{}) interface{}
+	GetMarket(symbol string) MarketInterface
+	GetMarketsList() []MarketInterface
+	GetCurrency(currencyId string) Currency
+	GetCurrenciesList() []Currency
 
 	// methods from base
 }

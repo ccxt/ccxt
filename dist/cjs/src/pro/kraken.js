@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kraken$1 = require('../kraken.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class kraken extends kraken$1 {
+class kraken extends kraken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -67,6 +69,7 @@ class kraken extends kraken$1 {
                     'broad': {
                         'Already subscribed': errors.BadRequest,
                         'Currency pair not in ISO 4217-A3 format': errors.BadSymbol,
+                        'Currency pair not supported': errors.BadSymbol,
                         'Malformed request': errors.BadRequest,
                         'Pair field must be an array': errors.BadRequest,
                         'Pair field unsupported for this subscription type': errors.BadRequest,
@@ -1780,4 +1783,4 @@ class kraken extends kraken$1 {
     }
 }
 
-module.exports = kraken;
+exports["default"] = kraken;

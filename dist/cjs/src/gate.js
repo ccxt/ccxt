@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class gate
  * @augments Exchange
  */
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -667,8 +669,7 @@ class gate extends gate$1 {
                     'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
-                    'POLYGON': 'POL',
-                    'MATIC': 'POL',
+                    'MATIC': 'MATIC',
                     'OPTIMISM': 'OPETH',
                     'ADA': 'ADA',
                     'AVAXC': 'AVAX_C',
@@ -747,6 +748,9 @@ class gate extends gate$1 {
                     'delivery': 'delivery',
                     'option': 'options',
                     'options': 'options',
+                },
+                'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'option'],
                 },
                 'swap': {
                     'fetchMarkets': {
@@ -1225,22 +1229,30 @@ class gate extends gate$1 {
         if (this.checkRequiredCredentials(false)) {
             await this.loadUnifiedStatus();
         }
+        const rawPromises = [];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        let rawPromises = [
-            this.fetchContractMarkets(params),
-            this.fetchOptionMarkets(params),
-        ];
-        if (!sandboxMode) {
-            // gate doesn't have a sandbox for spot markets
-            const mainnetOnly = [this.fetchSpotMarkets(params)];
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        const types = this.safeList(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option']);
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'spot') {
+                if (!sandboxMode) {
+                    // gate doesn't have a sandbox for spot markets
+                    rawPromises.push(this.fetchSpotMarkets(params));
+                }
+            }
+            else if (marketType === 'swap') {
+                rawPromises.push(this.fetchSwapMarkets(params));
+            }
+            else if (marketType === 'future') {
+                rawPromises.push(this.fetchFutureMarkets(params));
+            }
+            else if (marketType === 'option') {
+                rawPromises.push(this.fetchOptionMarkets(params));
+            }
         }
-        const promises = await Promise.all(rawPromises);
-        const spotMarkets = this.safeValue(promises, 0, []);
-        const contractMarkets = this.safeValue(promises, 1, []);
-        const optionMarkets = this.safeValue(promises, 2, []);
-        const markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        const results = await Promise.all(rawPromises);
+        return this.arraysConcat(results);
     }
     async fetchSpotMarkets(params = {}) {
         const marginPromise = this.publicMarginGetCurrencyPairs(params);
@@ -1356,10 +1368,9 @@ class gate extends gate$1 {
         }
         return result;
     }
-    async fetchContractMarkets(params = {}) {
+    async fetchSwapMarkets(params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies('swap', 'fetchMarkets');
-        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
             const request = {
@@ -1371,6 +1382,11 @@ class gate extends gate$1 {
                 result.push(parsedMarket);
             }
         }
+        return result;
+    }
+    async fetchFutureMarkets(params = {}) {
+        const result = [];
+        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
             const request = {
@@ -2597,7 +2613,13 @@ class gate extends gate$1 {
         //
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            if (market['spot']) {
+                limit = Math.min(limit, 1000);
+            }
+            else {
+                limit = Math.min(limit, 300);
+            }
+            request['limit'] = limit;
         }
         request['with_id'] = true;
         let response = undefined;
@@ -7658,12 +7680,33 @@ class gate extends gate$1 {
         if (quoteValueString === undefined) {
             quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        const optPos = this.safeStringLower(liquidation, 'side');
+        let side = undefined;
+        if (optPos === 'long') {
+            side = 'buy';
+        }
+        else if (optPos === 'short') {
+            side = 'sell';
+        }
+        else {
+            if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
+                if (Precise["default"].stringGt(size, '0')) {
+                    side = 'buy';
+                }
+                else if (Precise["default"].stringLt(size, '0')) {
+                    side = 'sell';
+                }
+            }
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
             'contractSize': this.parseNumber(contractSizeString),
             'price': this.parseNumber(priceString),
+            'side': side,
             'baseValue': this.parseNumber(baseValueString),
             'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
             'timestamp': timestamp,
@@ -8237,4 +8280,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

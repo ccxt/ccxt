@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var krakenfutures$1 = require('./abstract/krakenfutures.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class krakenfutures
  * @augments Exchange
  */
-class krakenfutures extends krakenfutures$1 {
+class krakenfutures extends krakenfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'krakenfutures',
@@ -100,7 +102,7 @@ class krakenfutures extends krakenfutures$1 {
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://docs.futures.kraken.com/#introduction',
+                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': undefined,
@@ -231,6 +233,7 @@ class krakenfutures extends krakenfutures$1 {
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
+                            'account-log': 'private',
                         },
                     },
                 },
@@ -362,7 +365,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchMarkets
      * @description Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
      * @param {object} [params] exchange specific params
      * @returns An array of market structures
      */
@@ -537,7 +540,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchOrderBook
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
      * @description Fetches a list of open orders in a market
      * @param {string} symbol Unified market symbol
      * @param {int} [limit] Not used by krakenfutures
@@ -588,7 +591,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -707,7 +710,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchOHLCV
-     * @see https://docs.futures.kraken.com/#http-api-charts-candles
+     * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -790,8 +793,8 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchTrades
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
-     * @see https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
+     * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
      * @description Fetch a history of filled trades that this account has made
      * @param {string} symbol Unified CCXT market symbol
      * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1236,7 +1239,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#editOrder
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring
      * @description Edit an open order on the exchange
      * @param {string} id order id
      * @param {string} symbol Not used by Krakenfutures
@@ -1268,7 +1271,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#cancelOrder
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
      * @description Cancel an open order on the exchange
      * @param {string} id Order id
      * @param {string} symbol Not used by Krakenfutures
@@ -1290,7 +1293,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#cancelOrders
      * @description cancel multiple orders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1353,7 +1356,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#cancelAllOrders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
      * @description Cancels all orders on the exchange, including trigger orders
      * @param {str} symbol Unified market symbol
      * @param {dict} [params] Exchange specific params
@@ -1410,7 +1413,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -1436,7 +1439,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchOpenOrders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders
      * @description Gets all open orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
@@ -1499,7 +1502,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchCanceledOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
      * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -1988,7 +1991,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] *not used by the  api* the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2029,7 +2032,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchBalance
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
      * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
      * @param {object} [params] Exchange specific parameters
      * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -2253,7 +2256,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchFundingRates
      * @description fetch the current funding rates for multiple markets
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2339,7 +2342,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -2390,7 +2393,7 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#fetchPositions
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
      * @description Fetches current contract trading positions
      * @param {string[]} symbols List of unified symbols
      * @param {object} [params] Not used by krakenfutures
@@ -2487,7 +2490,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2677,8 +2680,8 @@ class krakenfutures extends krakenfutures$1 {
     /**
      * @method
      * @name krakenfutures#transfer
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/transfer
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer
      * @description transfers currencies between sub-accounts
      * @param {string} code Unified currency code
      * @param {float} amount Size of the transfer
@@ -2727,7 +2730,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#setLeverage
      * @description set the level of leverage for a market
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2751,7 +2754,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchLeverages
      * @description fetch the set leverage for all contract and margin markets
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -2778,7 +2781,7 @@ class krakenfutures extends krakenfutures$1 {
      * @method
      * @name krakenfutures#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -2880,4 +2883,4 @@ class krakenfutures extends krakenfutures$1 {
     }
 }
 
-module.exports = krakenfutures;
+exports["default"] = krakenfutures;

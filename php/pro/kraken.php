@@ -75,6 +75,7 @@ class kraken extends \ccxt\async\kraken {
                     'broad' => array(
                         'Already subscribed' => '\\ccxt\\BadRequest',
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
+                        'Currency pair not supported' => '\\ccxt\\BadSymbol',
                         'Malformed request' => '\\ccxt\\BadRequest',
                         'Pair field must be an array' => '\\ccxt\\BadRequest',
                         'Pair field unsupported for this subscription type' => '\\ccxt\\BadRequest',
@@ -1758,7 +1759,7 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",

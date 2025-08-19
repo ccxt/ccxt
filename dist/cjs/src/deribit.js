@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class deribit
  * @augments Exchange
  */
-class deribit extends deribit$1 {
+class deribit extends deribit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'deribit',
@@ -3786,4 +3788,4 @@ class deribit extends deribit$1 {
     }
 }
 
-module.exports = deribit;
+exports["default"] = deribit;

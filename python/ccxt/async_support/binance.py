@@ -2732,12 +2732,13 @@ class binance(Exchange, ImplicitAPI):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
-                # support legacy symbols
-                base, quote = symbol.split('/')
-                settle = base if (quote == 'USD') else quote
-                futuresSymbol = symbol + ':' + settle
-                if futuresSymbol in self.markets:
-                    return self.markets[futuresSymbol]
+                if (defaultType is not None) and (defaultType != 'spot'):
+                    # support legacy symbols
+                    base, quote = symbol.split('/')
+                    settle = base if (quote == 'USD') else quote
+                    futuresSymbol = symbol + ':' + settle
+                    if futuresSymbol in self.markets:
+                        return self.markets[futuresSymbol]
             elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):  # both exchange-id and unified symbols are supported self way regardless of the defaultType
                 return self.create_expired_option_market(symbol)
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
@@ -8843,7 +8844,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -10551,7 +10552,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
         return self.parse_incomes(response, market, since, limit)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -12440,6 +12441,7 @@ class binance(Exchange, ImplicitAPI):
             'contracts': self.safe_number(liquidation, 'executedQty'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'avgPrice'),
+            'side': self.safe_string_lower(liquidation, 'side'),
             'baseValue': self.safe_number(liquidation, 'cumBase'),
             'quoteValue': self.safe_number(liquidation, 'cumQuote'),
             'timestamp': timestamp,

@@ -2193,34 +2193,44 @@ class coinbase(Exchange, ImplicitAPI):
         # fetchTickersV3
         #
         #     [
-        #         {
-        #             "product_id": "TONE-USD",
-        #             "price": "0.01523",
-        #             "price_percentage_change_24h": "1.94109772423025",
-        #             "volume_24h": "19773129",
-        #             "volume_percentage_change_24h": "437.0170530929949",
-        #             "base_increment": "1",
-        #             "quote_increment": "0.00001",
-        #             "quote_min_size": "1",
-        #             "quote_max_size": "10000000",
-        #             "base_min_size": "26.7187147229469674",
-        #             "base_max_size": "267187147.2294696735908216",
-        #             "base_name": "TE-FOOD",
-        #             "quote_name": "US Dollar",
-        #             "watched": False,
-        #             "is_disabled": False,
-        #             "new": False,
-        #             "status": "online",
-        #             "cancel_only": False,
-        #             "limit_only": False,
-        #             "post_only": False,
-        #             "trading_disabled": False,
-        #             "auction_mode": False,
-        #             "product_type": "SPOT",
-        #             "quote_currency_id": "USD",
-        #             "base_currency_id": "TONE",
-        #             "fcm_trading_session_details": null,
-        #             "mid_market_price": ""
+        #        {
+        #            "product_id": "ETH-USD",
+        #            "price": "4471.59",
+        #            "price_percentage_change_24h": "0.14243387238731",
+        #            "volume_24h": "87329.92990204",
+        #            "volume_percentage_change_24h": "-60.7789801794578",
+        #            "base_increment": "0.00000001",
+        #            "quote_increment": "0.01",
+        #            "quote_min_size": "1",
+        #            "quote_max_size": "150000000",
+        #            "base_min_size": "0.00000001",
+        #            "base_max_size": "42000",
+        #            "base_name": "Ethereum",
+        #            "quote_name": "US Dollar",
+        #            "watched": False,
+        #            "is_disabled": False,
+        #            "new": False,
+        #            "status": "online",
+        #            "cancel_only": False,
+        #            "limit_only": False,
+        #            "post_only": False,
+        #            "trading_disabled": False,
+        #            "auction_mode": False,
+        #            "product_type": "SPOT",
+        #            "quote_currency_id": "USD",
+        #            "base_currency_id": "ETH",
+        #            "fcm_trading_session_details": null,
+        #            "mid_market_price": "",
+        #            "alias": "",
+        #            "alias_to": ["ETH-USDC"],
+        #            "base_display_symbol": "ETH",
+        #            "quote_display_symbol": "USD",
+        #            "view_only": False,
+        #            "price_increment": "0.01",
+        #            "display_name": "ETH-USD",
+        #            "product_venue": "CBE",
+        #            "approximate_quote_24h_volume": "390503641.25",
+        #            "new_at": "2023-01-01T00:00:00Z"
         #         },
         #         ...
         #     ]
@@ -2251,10 +2261,12 @@ class coinbase(Exchange, ImplicitAPI):
         if ('bids' in ticker):
             bids = self.safe_list(ticker, 'bids', [])
             asks = self.safe_list(ticker, 'asks', [])
-            bid = self.safe_number(bids[0], 'price')
-            bidVolume = self.safe_number(bids[0], 'size')
-            ask = self.safe_number(asks[0], 'price')
-            askVolume = self.safe_number(asks[0], 'size')
+            firstBid = self.safe_dict(bids, 0, {})
+            firstAsk = self.safe_dict(asks, 0, {})
+            bid = self.safe_number(firstBid, 'price')
+            bidVolume = self.safe_number(firstBid, 'size')
+            ask = self.safe_number(firstAsk, 'price')
+            askVolume = self.safe_number(firstAsk, 'size')
         marketId = self.safe_string(ticker, 'product_id')
         market = self.safe_market(marketId, market)
         last = self.safe_number(ticker, 'price')
@@ -2277,8 +2289,8 @@ class coinbase(Exchange, ImplicitAPI):
             'change': None,
             'percentage': self.safe_number(ticker, 'price_percentage_change_24h'),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': None,
+            'baseVolume': self.safe_number(ticker, 'volume_24h'),
+            'quoteVolume': self.safe_number(ticker, 'approximate_quote_24h_volume'),
             'info': ticker,
         }, market)
 
@@ -3901,7 +3913,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

@@ -239,6 +239,7 @@ class kraken extends Exchange {
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'FEE' => 'KFEE',
             ),
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -712,19 +713,6 @@ class kraken extends Exchange {
             $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
             return $result;
         }) ();
-    }
-
-    public function safe_currency($currencyId, ?array $currency = null) {
-        if ($currencyId !== null) {
-            if (strlen($currencyId) > 3) {
-                if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (!(mb_strpos($currencyId, '.') > 0) && ($currencyId !== 'ZEUS')) {
-                        $currencyId = mb_substr($currencyId, 1);
-                    }
-                }
-            }
-        }
-        return parent::safe_currency($currencyId, $currency);
     }
 
     public function fetch_status($params = array ()) {
@@ -3289,7 +3277,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

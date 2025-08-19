@@ -2314,34 +2314,44 @@ class coinbase extends Exchange {
         // fetchTickersV3
         //
         //     array(
-        //         array(
-        //             "product_id" => "TONE-USD",
-        //             "price" => "0.01523",
-        //             "price_percentage_change_24h" => "1.94109772423025",
-        //             "volume_24h" => "19773129",
-        //             "volume_percentage_change_24h" => "437.0170530929949",
-        //             "base_increment" => "1",
-        //             "quote_increment" => "0.00001",
-        //             "quote_min_size" => "1",
-        //             "quote_max_size" => "10000000",
-        //             "base_min_size" => "26.7187147229469674",
-        //             "base_max_size" => "267187147.2294696735908216",
-        //             "base_name" => "TE-FOOD",
-        //             "quote_name" => "US Dollar",
-        //             "watched" => false,
-        //             "is_disabled" => false,
-        //             "new" => false,
-        //             "status" => "online",
-        //             "cancel_only" => false,
-        //             "limit_only" => false,
-        //             "post_only" => false,
-        //             "trading_disabled" => false,
-        //             "auction_mode" => false,
-        //             "product_type" => "SPOT",
-        //             "quote_currency_id" => "USD",
-        //             "base_currency_id" => "TONE",
-        //             "fcm_trading_session_details" => null,
-        //             "mid_market_price" => ""
+        //        array(
+        //            "product_id" => "ETH-USD",
+        //            "price" => "4471.59",
+        //            "price_percentage_change_24h" => "0.14243387238731",
+        //            "volume_24h" => "87329.92990204",
+        //            "volume_percentage_change_24h" => "-60.7789801794578",
+        //            "base_increment" => "0.00000001",
+        //            "quote_increment" => "0.01",
+        //            "quote_min_size" => "1",
+        //            "quote_max_size" => "150000000",
+        //            "base_min_size" => "0.00000001",
+        //            "base_max_size" => "42000",
+        //            "base_name" => "Ethereum",
+        //            "quote_name" => "US Dollar",
+        //            "watched" => false,
+        //            "is_disabled" => false,
+        //            "new" => false,
+        //            "status" => "online",
+        //            "cancel_only" => false,
+        //            "limit_only" => false,
+        //            "post_only" => false,
+        //            "trading_disabled" => false,
+        //            "auction_mode" => false,
+        //            "product_type" => "SPOT",
+        //            "quote_currency_id" => "USD",
+        //            "base_currency_id" => "ETH",
+        //            "fcm_trading_session_details" => null,
+        //            "mid_market_price" => "",
+        //            "alias" => "",
+        //            "alias_to" => array( "ETH-USDC" ),
+        //            "base_display_symbol" => "ETH",
+        //            "quote_display_symbol" => "USD",
+        //            "view_only" => false,
+        //            "price_increment" => "0.01",
+        //            "display_name" => "ETH-USD",
+        //            "product_venue" => "CBE",
+        //            "approximate_quote_24h_volume" => "390503641.25",
+        //            "new_at" => "2023-01-01T00:00:00Z"
         //         ),
         //         ...
         //     )
@@ -2372,10 +2382,12 @@ class coinbase extends Exchange {
         if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
             $bids = $this->safe_list($ticker, 'bids', array());
             $asks = $this->safe_list($ticker, 'asks', array());
-            $bid = $this->safe_number($bids[0], 'price');
-            $bidVolume = $this->safe_number($bids[0], 'size');
-            $ask = $this->safe_number($asks[0], 'price');
-            $askVolume = $this->safe_number($asks[0], 'size');
+            $firstBid = $this->safe_dict($bids, 0, array());
+            $firstAsk = $this->safe_dict($asks, 0, array());
+            $bid = $this->safe_number($firstBid, 'price');
+            $bidVolume = $this->safe_number($firstBid, 'size');
+            $ask = $this->safe_number($firstAsk, 'price');
+            $askVolume = $this->safe_number($firstAsk, 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
         $market = $this->safe_market($marketId, $market);
@@ -2399,8 +2411,8 @@ class coinbase extends Exchange {
             'change' => null,
             'percentage' => $this->safe_number($ticker, 'price_percentage_change_24h'),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
+            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'approximate_quote_24h_volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -4182,7 +4194,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

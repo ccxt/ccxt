@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class mexc
  * @augments Exchange
  */
-class mexc extends mexc$1 {
+class mexc extends mexc$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -473,6 +475,12 @@ class mexc extends mexc$1 {
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
+                    'ARBITRUM': 'ARB',
+                    'STX': 'STACKS',
+                    'LUNC': 'LUNA',
+                    'STARK': 'STARKNET',
+                    'APT': 'APTOS',
+                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -502,6 +510,7 @@ class mexc extends mexc$1 {
                     // 'DNX': 'Dynex(DNX)',
                     // 'DOGE': 'Dogecoin(DOGE)',
                     // 'DOT': 'Polkadot(DOT)',
+                    'DOT': 'DOTASSETHUB',
                     // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -659,6 +668,7 @@ class mexc extends mexc$1 {
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
+                    'Ethereum(ERC20)': 'ERC20',
                     // TODO: uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -5191,7 +5201,7 @@ class mexc extends mexc$1 {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, 'symbol'), market);
+        market = this.safeMarket(this.safeString(position, 'symbol'), market, undefined, 'swap');
         const symbol = market['symbol'];
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
@@ -6089,4 +6099,4 @@ class mexc extends mexc$1 {
     }
 }
 
-module.exports = mexc;
+exports["default"] = mexc;

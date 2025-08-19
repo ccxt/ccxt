@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,7 +22,7 @@ class lbank(ccxt.async_support.lbank):
                 'fetchOrderBookWs': True,
                 'fetchTickerWs': True,
                 'fetchTradesWs': True,
-                'watchBalance': False,
+                'watchBalance': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
@@ -658,6 +658,59 @@ class lbank(ccxt.async_support.lbank):
         }
         return self.safe_string(statuses, status, status)
 
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://www.lbank.com/docs/index.html#update-subscribed-asset
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        key = await self.authenticate(params)
+        url = self.urls['api']['ws']
+        messageHash = 'balance'
+        message: dict = {
+            'action': 'subscribe',
+            'subscribe': 'assetUpdate',
+            'subscribeKey': key,
+        }
+        request = self.deep_extend(message, params)
+        return await self.watch(url, messageHash, request, messageHash, request)
+
+    def handle_balance(self, client: Client, message):
+        #
+        #     {
+        #         "data": {
+        #             "asset": "114548.31881315",
+        #             "assetCode": "usdt",
+        #             "free": "97430.6739041",
+        #             "freeze": "17117.64490905",
+        #             "time": 1627300043270,
+        #             "type": "ORDER_CREATE"
+        #         },
+        #         "SERVER": "V2",
+        #         "type": "assetUpdate",
+        #         "TS": "2021-07-26T19:48:03.548"
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        timestamp = self.parse8601(self.safe_string(message, 'TS'))
+        datetime = self.iso8601(timestamp)
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = datetime
+        currencyId = self.safe_string(data, 'assetCode')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'free')
+        account['used'] = self.safe_string(data, 'freeze')
+        account['total'] = self.safe_string(data, 'asset')
+        self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
+        client.resolve(self.balance, 'balance')
+
     async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
@@ -827,6 +880,7 @@ class lbank(ccxt.async_support.lbank):
             'trade': self.handle_trades,
             'tick': self.handle_ticker,
             'orderUpdate': self.handle_orders,
+            'assetUpdate': self.handle_balance,
         }
         handler = self.safe_value(handlers, type)
         if handler is not None:

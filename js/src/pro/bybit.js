@@ -867,21 +867,14 @@ export default class bybit extends bybitRest {
             }
         }
         else {
-            if (!market['spot']) {
-                if (market['option']) {
-                    if ((limit !== 25) && (limit !== 100)) {
-                        throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
-                    }
-                }
-                else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    // bybit only support limit 1, 50, 200, 500 for contract
-                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
-                }
-            }
-            else {
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
-                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
-                }
+            const limits = {
+                'spot': [1, 50, 200, 1000],
+                'option': [25, 100],
+                'default': [1, 50, 200, 500, 1000],
+            };
+            const selectedLimits = this.safeList2(limits, market['type'], 'default');
+            if (!this.inArray(limit, selectedLimits)) {
+                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
         const topics = [];
@@ -1710,6 +1703,7 @@ export default class bybit extends bybitRest {
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
+            'side': this.safeStringLower(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

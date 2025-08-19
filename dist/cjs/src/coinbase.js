@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +15,7 @@ var rsa = require('./base/functions/rsa.js');
  * @class coinbase
  * @augments Exchange
  */
-class coinbase extends coinbase$1 {
+class coinbase extends coinbase$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbase',
@@ -2246,34 +2248,44 @@ class coinbase extends coinbase$1 {
         // fetchTickersV3
         //
         //     [
-        //         {
-        //             "product_id": "TONE-USD",
-        //             "price": "0.01523",
-        //             "price_percentage_change_24h": "1.94109772423025",
-        //             "volume_24h": "19773129",
-        //             "volume_percentage_change_24h": "437.0170530929949",
-        //             "base_increment": "1",
-        //             "quote_increment": "0.00001",
-        //             "quote_min_size": "1",
-        //             "quote_max_size": "10000000",
-        //             "base_min_size": "26.7187147229469674",
-        //             "base_max_size": "267187147.2294696735908216",
-        //             "base_name": "TE-FOOD",
-        //             "quote_name": "US Dollar",
-        //             "watched": false,
-        //             "is_disabled": false,
-        //             "new": false,
-        //             "status": "online",
-        //             "cancel_only": false,
-        //             "limit_only": false,
-        //             "post_only": false,
-        //             "trading_disabled": false,
-        //             "auction_mode": false,
-        //             "product_type": "SPOT",
-        //             "quote_currency_id": "USD",
-        //             "base_currency_id": "TONE",
-        //             "fcm_trading_session_details": null,
-        //             "mid_market_price": ""
+        //        {
+        //            "product_id": "ETH-USD",
+        //            "price": "4471.59",
+        //            "price_percentage_change_24h": "0.14243387238731",
+        //            "volume_24h": "87329.92990204",
+        //            "volume_percentage_change_24h": "-60.7789801794578",
+        //            "base_increment": "0.00000001",
+        //            "quote_increment": "0.01",
+        //            "quote_min_size": "1",
+        //            "quote_max_size": "150000000",
+        //            "base_min_size": "0.00000001",
+        //            "base_max_size": "42000",
+        //            "base_name": "Ethereum",
+        //            "quote_name": "US Dollar",
+        //            "watched": false,
+        //            "is_disabled": false,
+        //            "new": false,
+        //            "status": "online",
+        //            "cancel_only": false,
+        //            "limit_only": false,
+        //            "post_only": false,
+        //            "trading_disabled": false,
+        //            "auction_mode": false,
+        //            "product_type": "SPOT",
+        //            "quote_currency_id": "USD",
+        //            "base_currency_id": "ETH",
+        //            "fcm_trading_session_details": null,
+        //            "mid_market_price": "",
+        //            "alias": "",
+        //            "alias_to": [ "ETH-USDC" ],
+        //            "base_display_symbol": "ETH",
+        //            "quote_display_symbol": "USD",
+        //            "view_only": false,
+        //            "price_increment": "0.01",
+        //            "display_name": "ETH-USD",
+        //            "product_venue": "CBE",
+        //            "approximate_quote_24h_volume": "390503641.25",
+        //            "new_at": "2023-01-01T00:00:00Z"
         //         },
         //         ...
         //     ]
@@ -2304,10 +2316,12 @@ class coinbase extends coinbase$1 {
         if (('bids' in ticker)) {
             const bids = this.safeList(ticker, 'bids', []);
             const asks = this.safeList(ticker, 'asks', []);
-            bid = this.safeNumber(bids[0], 'price');
-            bidVolume = this.safeNumber(bids[0], 'size');
-            ask = this.safeNumber(asks[0], 'price');
-            askVolume = this.safeNumber(asks[0], 'size');
+            const firstBid = this.safeDict(bids, 0, {});
+            const firstAsk = this.safeDict(asks, 0, {});
+            bid = this.safeNumber(firstBid, 'price');
+            bidVolume = this.safeNumber(firstBid, 'size');
+            ask = this.safeNumber(firstAsk, 'price');
+            askVolume = this.safeNumber(firstAsk, 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
@@ -2331,8 +2345,8 @@ class coinbase extends coinbase$1 {
             'change': undefined,
             'percentage': this.safeNumber(ticker, 'price_percentage_change_24h'),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'baseVolume': this.safeNumber(ticker, 'volume_24h'),
+            'quoteVolume': this.safeNumber(ticker, 'approximate_quote_24h_volume'),
             'info': ticker,
         }, market);
     }
@@ -5204,4 +5218,4 @@ class coinbase extends coinbase$1 {
     }
 }
 
-module.exports = coinbase;
+exports["default"] = coinbase;

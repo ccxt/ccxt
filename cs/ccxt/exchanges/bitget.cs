@@ -862,6 +862,7 @@ public partial class bitget : Exchange
                     { "4010", typeof(PermissionDenied) },
                     { "4001", typeof(ExchangeError) },
                     { "4002", typeof(ExchangeError) },
+                    { "40020", typeof(BadRequest) },
                     { "30001", typeof(AuthenticationError) },
                     { "30002", typeof(AuthenticationError) },
                     { "30003", typeof(AuthenticationError) },
@@ -1491,7 +1492,6 @@ public partial class bitget : Exchange
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "BEP20", "BSC" },
-                    { "BSC", "BEP20" },
                     { "ATOM", "ATOM" },
                     { "ACA", "AcalaToken" },
                     { "APT", "Aptos" },
@@ -5281,7 +5281,7 @@ public partial class bitget : Exchange
             object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
             if (isTrue(isStopLossOrTakeProfitTrigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradePlaceStrategyOrder", new object[] { request }));
+                response = await this.privateUtaPostV3TradePlaceStrategyOrder(request);
             } else
             {
                 response = await this.privateUtaPostV3TradePlaceOrder(request);
@@ -6059,7 +6059,7 @@ public partial class bitget : Exchange
                     }
                 }
                 parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice"});
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeModifyStrategyOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaPostV3TradeModifyStrategyOrder(this.extend(request, parameters));
             } else
             {
                 if (isTrue(!isEqual(price, null)))
@@ -6215,6 +6215,7 @@ public partial class bitget : Exchange
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -6239,20 +6240,44 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (!isTrue((isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger))))
-        {
-            ((IDictionary<string,object>)request)["orderId"] = id;
-        }
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
+        object isPlanOrder = isTrue(trigger) || isTrue(trailing);
+        object isContract = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
+        object isContractTriggerEndpoint = isTrue(isTrue(isContract) && isTrue(isPlanOrder)) && !isTrue(uta);
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
+        if (isTrue(isContractTriggerEndpoint))
+        {
+            object orderIdList = new List<object>() {};
+            object orderId = new Dictionary<string, object>() {};
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                parameters = this.omit(parameters, "clientOrderId");
+                ((IDictionary<string,object>)orderId)["clientOid"] = clientOrderId;
+            } else
+            {
+                ((IDictionary<string,object>)orderId)["orderId"] = id;
+            }
+            ((IList<object>)orderIdList).Add(orderId);
+            ((IDictionary<string,object>)request)["orderIdList"] = orderIdList;
+        } else
+        {
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                parameters = this.omit(parameters, "clientOrderId");
+                ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+            } else
+            {
+                ((IDictionary<string,object>)request)["orderId"] = id;
+            }
+        }
         if (isTrue(uta))
         {
-            ((IDictionary<string,object>)request)["orderId"] = id;
             if (isTrue(trigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaPostV3TradeCancelStrategyOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaPostV3TradeCancelStrategyOrder(this.extend(request, parameters));
             } else
             {
                 response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, parameters));
@@ -6264,15 +6289,6 @@ public partial class bitget : Exchange
             productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
-            if (isTrue(isTrue(trigger) || isTrue(trailing)))
-            {
-                object orderIdList = new List<object>() {};
-                object orderId = new Dictionary<string, object>() {
-                    { "orderId", id },
-                };
-                ((IList<object>)orderIdList).Add(orderId);
-                ((IDictionary<string,object>)request)["orderIdList"] = orderIdList;
-            }
             if (isTrue(trailing))
             {
                 object planType = this.safeString(parameters, "planType", "track_plan");
@@ -6362,7 +6378,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = null;
-        if (isTrue(isTrue(isTrue((isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future")))) && isTrue(trigger)) && !isTrue(uta)))
+        if (isTrue(isContractTriggerEndpoint))
         {
             object orderInfo = this.safeValue(data, "successList", new List<object>() {});
             order = getValue(orderInfo, 0);
@@ -6667,6 +6683,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -6678,9 +6695,16 @@ public partial class bitget : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "orderId", id },
-        };
+        object request = new Dictionary<string, object>() {};
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+            ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
         object response = null;
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "uta", false);
@@ -6829,6 +6853,11 @@ public partial class bitget : Exchange
             }
         }
         object dataList = this.safeList(response, "data", new List<object>() {});
+        object dataListLength = getArrayLength(dataList);
+        if (isTrue(isEqual(dataListLength, 0)))
+        {
+            throw new OrderNotFound ((string)add(add(add(add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
+        }
         object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
@@ -6952,7 +6981,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["category"] = productType;
             if (isTrue(trigger))
             {
-                response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeUnfilledStrategyOrders", new object[] { this.extend(request, parameters) }));
+                response = await this.privateUtaGetV3TradeUnfilledStrategyOrders(this.extend(request, parameters));
             } else
             {
                 response = await this.privateUtaGetV3TradeUnfilledOrders(this.extend(request, parameters));
@@ -7747,7 +7776,7 @@ public partial class bitget : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(trigger))
         {
-            response = await ((Task<object>)callDynamically(this, "privateUtaGetV3TradeHistoryStrategyOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateUtaGetV3TradeHistoryStrategyOrders(this.extend(request, parameters));
         } else
         {
             response = await this.privateUtaGetV3TradeHistoryOrders(this.extend(request, parameters));

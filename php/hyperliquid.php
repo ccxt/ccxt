@@ -1731,7 +1731,7 @@ class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
          *
          * @param {string[]} $ids order $ids
-         * @param {string} [$symbol] unified $market $symbol
+         * @param {string} [$symbol] unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->vaultAddress] the vault address
@@ -1743,6 +1743,45 @@ class hyperliquid extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         $this->load_markets();
+        $request = $this->cancel_orders_request($ids, $symbol, $params);
+        $response = $this->privatePostExchange ($request);
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":array(
+        //                     "success"
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        $innerResponse = $this->safe_dict($response, 'response');
+        $data = $this->safe_dict($innerResponse, 'data');
+        $statuses = $this->safe_list($data, 'statuses');
+        $orders = array();
+        for ($i = 0; $i < count($statuses); $i++) {
+            $status = $statuses[$i];
+            $orders[] = $this->safe_order(array(
+                'info' => $status,
+                'status' => $status,
+            ));
+        }
+        return $orders;
+    }
+
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array ()): array {
+        /**
+         * build the $request payload for cancelling multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params]
+         * @return {array} the raw $request object to be sent to the exchange
+         */
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
@@ -1788,32 +1827,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($request);
-        //
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //             "type":"cancel",
-        //             "data":{
-        //                 "statuses":array(
-        //                     "success"
-        //                 )
-        //             }
-        //         }
-        //     }
-        //
-        $innerResponse = $this->safe_dict($response, 'response');
-        $data = $this->safe_dict($innerResponse, 'data');
-        $statuses = $this->safe_list($data, 'statuses');
-        $orders = array();
-        for ($i = 0; $i < count($statuses); $i++) {
-            $status = $statuses[$i];
-            $orders[] = $this->safe_order(array(
-                'info' => $status,
-                'status' => $status,
-            ));
-        }
-        return $orders;
+        return $request;
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
@@ -2383,6 +2397,7 @@ class hyperliquid extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2391,12 +2406,19 @@ class hyperliquid extends Exchange {
         list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
         $this->load_markets();
         $market = $this->safe_market($symbol);
-        $isClientOrderId = strlen($id) >= 34;
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array(
             'type' => 'orderStatus',
-            'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
+            // 'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
             'user' => $userAddress,
         );
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['oid'] = $clientOrderId;
+        } else {
+            $isClientOrderId = strlen($id) >= 34;
+            $request['oid'] = $isClientOrderId ? $id : $this->parse_to_numeric($id);
+        }
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
@@ -2589,6 +2611,9 @@ class hyperliquid extends Exchange {
     }
 
     public function parse_order_status(?string $status) {
+        if ($status === null) {
+            return null;
+        }
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
@@ -2597,6 +2622,12 @@ class hyperliquid extends Exchange {
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
         );
+        if (str_ends_with($status, 'Rejected')) {
+            return 'rejected';
+        }
+        if (str_ends_with($status, 'Canceled')) {
+            return 'canceled';
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2945,7 +2976,7 @@ class hyperliquid extends Exchange {
         return $response;
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
@@ -3215,7 +3246,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal (only support USDC)
          *
@@ -3773,6 +3804,28 @@ class hyperliquid extends Exchange {
         );
     }
 
+    public function reserve_request_weight(?float $weight, $params = array ()): array {
+        /**
+         * Instead of trading to increase the address based rate limits, this $action allows reserving additional actions for 0.0005 USDC per $request-> The cost is paid from the Perps balance.
+         * @param {number} $weight the $weight to reserve, 1 $weight = 1 $action, 0.0005 USDC per $action
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response object
+         */
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+        );
+        $action = array(
+            'type' => 'reserveRequestWeight',
+            'weight' => $weight,
+        );
+        $signature = $this->sign_l1_action($action, $nonce);
+        $request['action'] = $action;
+        $request['signature'] = $signature;
+        $response = $this->privatePostExchange ($this->extend($request, $params));
+        return $response;
+    }
+
     public function extract_type_from_delta($data = []) {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -3826,19 +3879,27 @@ class hyperliquid extends Exchange {
         //     }
         // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
+        // array("status":"unknownOid")
+        //
         $status = $this->safe_string($response, 'status', '');
         $error = $this->safe_string($response, 'error');
         $message = null;
         if ($status === 'err') {
             $message = $this->safe_string($response, 'response');
+        } elseif ($status === 'unknownOid') {
+            throw new OrderNotFound($this->id . ' ' . $body); // array("status":"unknownOid")
         } elseif ($error !== null) {
             $message = $error;
         } else {
             $responsePayload = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responsePayload, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            $firstStatus = $this->safe_dict($statuses, 0);
-            $message = $this->safe_string($firstStatus, 'error');
+            for ($i = 0; $i < count($statuses); $i++) {
+                $message = $this->safe_string($statuses[$i], 'error');
+                if ($message !== null) {
+                    break;
+                }
+            }
         }
         $feedback = $this->id . ' ' . $body;
         $nonEmptyMessage = (($message !== null) && ($message !== ''));

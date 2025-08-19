@@ -1041,6 +1041,104 @@ class modetrade extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //         "symbol" => "PERP_ETH_USDC",
+        //         "funding_rate" => 0.00046875,
+        //         "mark_price" => 2100,
+        //         "funding_fee" => 0.000016,
+        //         "payment_type" => "Pay",
+        //         "status" => "Accrued",
+        //         "created_time" => 1682235722003,
+        //         "updated_time" => 1682235722003
+        // }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_string($income, 'funding_fee');
+        $code = $this->safe_currency_code('USDC');
+        $timestamp = $this->safe_integer($income, 'updated_time');
+        $rate = $this->safe_number($income, 'funding_rate');
+        $paymentType = $this->safe_string($income, 'payment_type');
+        $amount = ($paymentType === 'Pay') ? Precise::string_neg($amount) : $amount;
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->parse_number($amount),
+            'rate' => $rate,
+        );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500);
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_t'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
+        $params = $this->omit($params, array( 'until' ));
+        if ($until !== null) {
+            $request['end_t'] = $until;
+        }
+        if ($limit !== null) {
+            $request['size'] = min ($limit, 500);
+        }
+        $response = $this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989,
+        //     "data" => {
+        //         "meta" => array(
+        //             "total" => 9,
+        //             "records_per_page" => 25,
+        //             "current_page" => 1
+        //         ),
+        //         "rows" => [array(
+        //                 "symbol" => "PERP_ETH_USDC",
+        //                 "funding_rate" => 0.00046875,
+        //                 "mark_price" => 2100,
+        //                 "funding_fee" => 0.000016,
+        //                 "payment_type" => "Pay",
+        //                 "status" => "Accrued",
+        //                 "created_time" => 1682235722003,
+        //                 "updated_time" => 1682235722003
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        return $this->parse_incomes($rows, $market, $since, $limit);
+    }
+
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
@@ -2438,7 +2536,7 @@ class modetrade extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2574,7 +2672,7 @@ class modetrade extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a market
          *
