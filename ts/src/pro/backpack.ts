@@ -136,6 +136,34 @@ export default class backpack extends backpackRest {
                 if (symbol in this.trades) {
                     delete this.trades[symbol];
                 }
+            } else if (messageHash.indexOf ('orders') >= 0) {
+                if (messageHash === 'unsubscribe:orders') {
+                    const cache = this.orders;
+                    const keys = Object.keys (cache);
+                    for (let j = 0; j < keys.length; j++) {
+                        const symbol = keys[j];
+                        delete this.orders[symbol];
+                    }
+                } else {
+                    const symbol = messageHash.replace ('unsubscribe:orders:', '');
+                    if (symbol in this.orders) {
+                        delete this.orders[symbol];
+                    }
+                }
+            } else if (messageHash.indexOf ('positions') >= 0) {
+                if (messageHash === 'unsubscribe:positions') {
+                    const cache = this.positions;
+                    const keys = Object.keys (cache);
+                    for (let j = 0; j < keys.length; j++) {
+                        const symbol = keys[j];
+                        delete this.positions[symbol];
+                    }
+                } else {
+                    const symbol = messageHash.replace ('unsubscribe:positions:', '');
+                    if (symbol in this.positions) {
+                        delete this.positions[symbol];
+                    }
+                }
             }
         }
     }
