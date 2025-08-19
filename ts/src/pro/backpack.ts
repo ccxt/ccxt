@@ -16,27 +16,30 @@ export default class backpack extends backpackRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': false,
                 'watchBidsAsks': true,
                 'watchMyTrades': false,
-                'watchOrderBook': true,
-                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                'watchBalance': false,
                 'unwatchBidsAsks': true,
                 'unwatchOHLCV': true,
+                'unwatchOHLCVForSymbols': true,
+                'unwatchOrderBook': true,
+                'unwatchOrderBookForSymbols': true,
                 'unwatchTicker': true,
                 'unwatchTickers': true,
-                'createOrderWs': false,
-                'editOrderWs': false,
-                'cancelOrderWs': false,
-                'cancelOrdersWs': false,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchOrders': true,
+                'unWatchPositions': true,
             },
             'urls': {
                 'api': {
@@ -135,6 +138,24 @@ export default class backpack extends backpackRest {
                 }
             }
         }
+    }
+
+    async test () {
+        await this.watchTradesForSymbols ([ 'ETH/USDC', 'BTC/USDC' ], undefined, 3);
+        await this.sleep (2000);
+        console.log ('==================================================');
+        console.log (this.trades);
+        console.log ('==================================================');
+        try {
+            await this.unWatchTrades ('ETH/USDC');
+        } catch (error) {
+            console.log (error);
+        }
+        await this.sleep (1000);
+        console.log ('==================================================');
+        console.log ('After unWatchTrades');
+        console.log (this.trades);
+        console.log ('==================================================');
     }
 
     /**
@@ -330,7 +351,7 @@ export default class backpack extends backpackRest {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
             topics.push ('bookTicker.' + marketId);
-            messageHashes.push ('unwatch:bidask:' + symbol);
+            messageHashes.push ('unsubscribe:bidask:' + symbol);
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -487,7 +508,7 @@ export default class backpack extends backpackRest {
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
             topics.push ('kline.' + interval + '.' + market['id']);
-            messageHashes.push ('unwatch:candles:' + market['symbol'] + ':' + interval);
+            messageHashes.push ('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -646,7 +667,7 @@ export default class backpack extends backpackRest {
             const symbol = symbols[i];
             const marketId = this.marketId (symbol);
             topics.push ('trade.' + marketId);
-            messageHashes.push ('trades:' + symbol);
+            messageHashes.push ('unsubscribe:trades:' + symbol);
         }
         return await this.watchPublic (topics, messageHashes, params, true);
     }
@@ -783,13 +804,37 @@ export default class backpack extends backpackRest {
      * @method
      * @name backpack#unWatchOrderBook
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const marketIds = this.marketIds (symbols);
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+            const marketId = marketIds[i];
+            const topic = 'depth.' + marketId;
+            topics.push (topic);
+        }
+        return await this.watchPublic (topics, messageHashes, params, true);
     }
 
     handleOrderBook (client: Client, message) {
@@ -881,7 +926,7 @@ export default class backpack extends backpackRest {
      * @name backpack#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -912,7 +957,7 @@ export default class backpack extends backpackRest {
      * @name backpack#unWatchOrders
      * @description unWatches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -924,10 +969,10 @@ export default class backpack extends backpackRest {
             symbol = market['symbol'];
         }
         let topic = 'account.orderUpdate';
-        let messageHash = 'orders';
+        let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
-            messageHash = 'unwatch:orders:' + symbol;
+            messageHash = 'unsubscribe:orders:' + symbol;
         }
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
@@ -1086,21 +1131,19 @@ export default class backpack extends backpackRest {
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let positions = undefined;
-        let messageHashes = [];
-        let topics = [];
+        const messageHashes = [];
+        const topics = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 messageHashes.push ('positions' + ':' + symbol);
                 topics.push ('account.positionUpdate.' + this.marketId (symbol));
             }
-            positions = await this.watchPrivate (topics, messageHashes, params);
         } else {
-            messageHashes = [ 'positions' ];
-            topics = [ 'account.positionUpdate' ];
-            positions = await this.watchPrivate (topics, messageHashes, params);
+            messageHashes.push ('positions');
+            topics.push ('account.positionUpdate');
         }
+        const positions = await this.watchPrivate (topics, messageHashes, params);
         if (this.newUpdates) {
             return positions;
         }
@@ -1119,22 +1162,19 @@ export default class backpack extends backpackRest {
     async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let positions = undefined;
+        const messageHashes = [];
+        const topics = [];
         if (symbols !== undefined) {
-            const messageHashes = [];
-            const topics = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                messageHashes.push ('unwatch:positions' + ':' + symbol);
+                messageHashes.push ('unsubscribe:positions' + ':' + symbol);
                 topics.push ('account.positionUpdate.' + this.marketId (symbol));
             }
-            positions = await this.watchPrivate (topics, messageHashes, params, true);
         } else {
-            const messageHashes = [ 'unwatch:positions' ];
-            const topics = [ 'account.positionUpdate' ];
-            positions = await this.watchPrivate (topics, messageHashes, params, true);
+            messageHashes.push ('unsubscribe:positions');
+            topics.push ('account.positionUpdate');
         }
-        return positions;
+        return await this.watchPrivate (topics, messageHashes, params, true);
     }
 
     handlePositions (client, message) {
