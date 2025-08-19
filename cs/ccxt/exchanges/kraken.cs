@@ -192,6 +192,7 @@ public partial class kraken : Exchange
                 { "UST", "USTC" },
                 { "XBT", "BTC" },
                 { "XDG", "DOGE" },
+                { "FEE", "KFEE" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeDifference", 0 },
@@ -671,24 +672,6 @@ public partial class kraken : Exchange
         }
         ((IDictionary<string,object>)this.options)["marketsByAltname"] = this.indexBy(result, "altname");
         return result;
-    }
-
-    public override object safeCurrency(object currencyId, object currency = null)
-    {
-        if (isTrue(!isEqual(currencyId, null)))
-        {
-            if (isTrue(isGreaterThan(getArrayLength(currencyId), 3)))
-            {
-                if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
-                {
-                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
-                    {
-                        currencyId = slice(currencyId, 1, null);
-                    }
-                }
-            }
-        }
-        return base.safeCurrency(currencyId, currency);
     }
 
     /**
