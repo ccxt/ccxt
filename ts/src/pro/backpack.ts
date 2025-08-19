@@ -140,24 +140,6 @@ export default class backpack extends backpackRest {
         }
     }
 
-    async test () {
-        await this.watchTradesForSymbols ([ 'ETH/USDC', 'BTC/USDC' ], undefined, 3);
-        await this.sleep (2000);
-        console.log ('==================================================');
-        console.log (this.trades);
-        console.log ('==================================================');
-        try {
-            await this.unWatchTrades ('ETH/USDC');
-        } catch (error) {
-            console.log (error);
-        }
-        await this.sleep (1000);
-        console.log ('==================================================');
-        console.log ('After unWatchTrades');
-        console.log (this.trades);
-        console.log ('==================================================');
-    }
-
     /**
      * @method
      * @name backpack#watchTicker
