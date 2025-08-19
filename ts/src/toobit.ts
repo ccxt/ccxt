@@ -35,6 +35,7 @@ export default class toobit extends Exchange {
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': '',
@@ -60,6 +61,10 @@ export default class toobit extends Exchange {
                         'quote/v1/depth': 1, // todo: by limit 1-10
                         'quote/v1/depth/merged': 1,
                         'quote/v1/trades': 1,
+                        'quote/v1/klines': 1,
+                        'api/quote/v1/index/klines': 1,
+                        'api/quote/v1/markPrice/klines': 1,
+                        'quote/v1/markPrice': 1,
                     },
                 },
                 'spot': {
@@ -76,6 +81,20 @@ export default class toobit extends Exchange {
                 },
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -473,6 +492,69 @@ export default class toobit extends Exchange {
             'takerOrMaker': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = this.iso8601 (until);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.commonGetQuoteV1Klines (this.extend (request, params));
+        //
+        //    [
+        //        [
+        //            1755540660000,
+        //            "116399.99",
+        //            "116399.99",
+        //            "116360.09",
+        //            "116360.1",
+        //            "2.236869",
+        //            0,
+        //            "260303.79722607",
+        //            22,
+        //            "2.221061",
+        //            "258464.10338267"
+        //        ],
+        //        ...
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
