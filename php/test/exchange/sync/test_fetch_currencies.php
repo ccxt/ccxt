@@ -14,7 +14,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     $currencies = $exchange->fetch_currencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     $num_inactive_currencies = 0;
-    $max_inactive_currencies_percentage = 60; // no more than X% currencies should be inactive
+    $max_inactive_currencies_percentage = $exchange->safe_integer($skipped_properties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
     $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
     // todo: remove undefined check
     if ($currencies !== null) {

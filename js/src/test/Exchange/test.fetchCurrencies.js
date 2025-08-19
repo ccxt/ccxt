@@ -12,7 +12,7 @@ async function testFetchCurrencies(exchange, skippedProperties) {
     const currencies = await exchange.fetchCurrencies();
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let numInactiveCurrencies = 0;
-    const maxInactiveCurrenciesPercentage = 60; // no more than X% currencies should be inactive
+    const maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
     const requiredActiveCurrencies = ['BTC', 'ETH', 'USDT', 'USDC'];
     // todo: remove undefined check
     if (currencies !== undefined) {

@@ -2745,6 +2745,9 @@ func (this *Okx) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistor
 
 // missing typed methods from base
 // nolint
+func (this *Okx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Okx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

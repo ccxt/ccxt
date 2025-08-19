@@ -365,6 +365,13 @@ class gate(ccxt.async_support.gate):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -381,7 +388,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         payload = [marketId, interval]
         if limit is None:
-            limit = 100
+            limit = 100  # max 100 atm
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)

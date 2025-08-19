@@ -731,6 +731,9 @@ func (this *Tokocrypto) Withdraw(code string, amount float64, address string, op
 
 // missing typed methods from base
 // nolint
+func (this *Tokocrypto) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Tokocrypto) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

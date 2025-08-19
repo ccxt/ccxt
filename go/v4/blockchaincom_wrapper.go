@@ -794,6 +794,9 @@ func (this *Blockchaincom) FetchOrder(id string, options ...FetchOrderOptions) (
 
 // missing typed methods from base
 // nolint
+func (this *Blockchaincom) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Blockchaincom) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

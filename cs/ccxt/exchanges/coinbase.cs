@@ -2407,10 +2407,12 @@ public partial class coinbase : Exchange
         {
             object bids = this.safeList(ticker, "bids", new List<object>() {});
             object asks = this.safeList(ticker, "asks", new List<object>() {});
-            bid = this.safeNumber(getValue(bids, 0), "price");
-            bidVolume = this.safeNumber(getValue(bids, 0), "size");
-            ask = this.safeNumber(getValue(asks, 0), "price");
-            askVolume = this.safeNumber(getValue(asks, 0), "size");
+            object firstBid = this.safeDict(bids, 0, new Dictionary<string, object>() {});
+            object firstAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
+            bid = this.safeNumber(firstBid, "price");
+            bidVolume = this.safeNumber(firstBid, "size");
+            ask = this.safeNumber(firstAsk, "price");
+            askVolume = this.safeNumber(firstAsk, "size");
         }
         object marketId = this.safeString(ticker, "product_id");
         market = this.safeMarket(marketId, market);

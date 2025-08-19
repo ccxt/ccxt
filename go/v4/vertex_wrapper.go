@@ -832,6 +832,9 @@ func (this *Vertex) Withdraw(code string, amount float64, address string, option
 
 // missing typed methods from base
 // nolint
+func (this *Vertex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Vertex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

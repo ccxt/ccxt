@@ -750,6 +750,9 @@ func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddres
 
 // missing typed methods from base
 // nolint
+func (this *Luno) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Luno) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -837,6 +837,14 @@ class Exchange extends \ccxt\Exchange {
         return -1;
     }
 
+    public function arrays_concat(array $arraysOfArrays) {
+        $result = array();
+        for ($i = 0; $i < count($arraysOfArrays); $i++) {
+            $result = $this->array_concat($result, $arraysOfArrays[$i]);
+        }
+        return $result;
+    }
+
     public function find_timeframe($timeframe, $timeframes = null) {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;

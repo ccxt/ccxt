@@ -549,6 +549,9 @@ func (this *Yobit) Withdraw(code string, amount float64, address string, options
 
 // missing typed methods from base
 // nolint
+func (this *Yobit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Yobit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

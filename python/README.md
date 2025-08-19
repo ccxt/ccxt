@@ -569,7 +569,7 @@ func main() {
 		"clientOrderId": "myOrderId68768678",
 	}
 
-    <-exchange.LoadMarkets()
+    exchange.LoadMarkets()
 
 	order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
 	if err != nil {

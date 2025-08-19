@@ -1011,6 +1011,9 @@ func (this *Delta) FetchOption(symbol string, options ...FetchOptionOptions) (Op
 
 // missing typed methods from base
 // nolint
+func (this *Delta) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Delta) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

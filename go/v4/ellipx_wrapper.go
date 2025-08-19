@@ -615,6 +615,9 @@ func (this *Ellipx) Withdraw(code string, amount float64, address string, option
 
 // missing typed methods from base
 // nolint
+func (this *Ellipx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Ellipx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

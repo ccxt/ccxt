@@ -350,6 +350,9 @@ func (this *Cryptomus) FetchTradingFees(params ...interface{}) (TradingFees, err
 
 // missing typed methods from base
 // nolint
+func (this *Cryptomus) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Cryptomus) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

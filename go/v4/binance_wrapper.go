@@ -3398,6 +3398,9 @@ func (this *Binance) FetchLongShortRatioHistory(options ...FetchLongShortRatioHi
 
 // missing typed methods from base
 // nolint
+func (this *Binance) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Binance) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
