@@ -34,6 +34,7 @@ export default class toobit extends Exchange {
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': '',
@@ -58,6 +59,7 @@ export default class toobit extends Exchange {
                         'api/v1/exchangeInfo': 1,
                         'quote/v1/depth': 1, // todo: by limit 1-10
                         'quote/v1/depth/merged': 1,
+                        'quote/v1/trades': 1,
                     },
                 },
                 'spot': {
@@ -396,6 +398,81 @@ export default class toobit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 't');
         return this.parseOrderBook (response, market['symbol'], timestamp, 'b', 'a');
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchTrades
+     * @description get a list of the most recent trades for a particular symbol
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.commonGetQuoteV1Trades (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "t": "1755594277287",
+        //            "p": "115276.99",
+        //            "q": "0.001508",
+        //            "ibm": true
+        //        },
+        //    ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //        {
+        //            "t": "1755594277287",
+        //            "p": "115276.99",
+        //            "q": "0.001508",
+        //            "ibm": true
+        //        },
+        //
+        const timestamp = this.safeInteger (trade, 't');
+        const priceString = this.safeString (trade, 'p');
+        const amountString = this.safeString (trade, 'q');
+        let side = undefined;
+        const isBuyerMaker = this.safeBool (trade, 'ibm');
+        if (isBuyerMaker) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': undefined,
+            'order': undefined,
+            'type': undefined,
+            'side': side,
+            'amount': amountString,
+            'price': priceString,
+            'cost': undefined,
+            'takerOrMaker': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
