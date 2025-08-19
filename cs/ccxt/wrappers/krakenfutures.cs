@@ -10,7 +10,7 @@ public partial class krakenfutures
     /// Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class krakenfutures
     /// Fetches a list of open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -57,7 +57,7 @@ public partial class krakenfutures
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -77,7 +77,7 @@ public partial class krakenfutures
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-charts-candles"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/charts/candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -117,8 +117,8 @@ public partial class krakenfutures
     /// Fetch a history of filled trades that this account has made
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history"/>  <br/>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-history"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -265,7 +265,7 @@ public partial class krakenfutures
     /// Edit an open order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -293,7 +293,7 @@ public partial class krakenfutures
     /// Cancel an open order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -313,7 +313,7 @@ public partial class krakenfutures
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -339,7 +339,7 @@ public partial class krakenfutures
     /// Cancels all orders on the exchange, including trigger orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -359,7 +359,7 @@ public partial class krakenfutures
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -379,7 +379,7 @@ public partial class krakenfutures
     /// Gets all open orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -447,7 +447,7 @@ public partial class krakenfutures
     /// Gets all canceled orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/history/get-order-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -481,7 +481,7 @@ public partial class krakenfutures
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -521,7 +521,7 @@ public partial class krakenfutures
     /// Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -553,7 +553,7 @@ public partial class krakenfutures
     /// fetch the current funding rates for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -573,7 +573,7 @@ public partial class krakenfutures
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -607,7 +607,7 @@ public partial class krakenfutures
     /// Fetches current contract trading positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -627,7 +627,7 @@ public partial class krakenfutures
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -666,8 +666,8 @@ public partial class krakenfutures
     /// transfers currencies between sub-accounts
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer"/>  <br/>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/transfer"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -687,7 +687,7 @@ public partial class krakenfutures
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -707,7 +707,7 @@ public partial class krakenfutures
     /// fetch the set leverage for all contract and margin markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -727,7 +727,7 @@ public partial class krakenfutures
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
