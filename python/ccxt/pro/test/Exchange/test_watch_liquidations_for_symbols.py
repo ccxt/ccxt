@@ -12,6 +12,6 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.test.base import test_liquidation  # noqa E402
+from ccxt.test.exchange.base import test_liquidation  # noqa E402
 
 

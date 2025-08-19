@@ -169,6 +169,9 @@ abstract class gemini extends \ccxt\async\Exchange {
     public function private_post_v1_heartbeat($params = array()) {
         return $this->request('v1/heartbeat', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_v1_roles($params = array()) {
+        return $this->request('v1/roles', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function webExchangeGet($params = array()) {
         return $this->request('', 'webExchange', 'GET', $params, null, null, array());
     }
@@ -330,5 +333,8 @@ abstract class gemini extends \ccxt\async\Exchange {
     }
     public function privatePostV1Heartbeat($params = array()) {
         return $this->request('v1/heartbeat', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1Roles($params = array()) {
+        return $this->request('v1/roles', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

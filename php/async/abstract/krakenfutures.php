@@ -55,6 +55,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function private_get_pnlpreferences($params = array()) {
         return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_assignmentprogram_current($params = array()) {
+        return $this->request('assignmentprogram/current', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_assignmentprogram_history($params = array()) {
+        return $this->request('assignmentprogram/history', 'private', 'GET', $params, null, null, array());
+    }
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
     }
@@ -78,6 +84,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function private_post_withdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_assignmentprogram_add($params = array()) {
+        return $this->request('assignmentprogram/add', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_assignmentprogram_delete($params = array()) {
+        return $this->request('assignmentprogram/delete', 'private', 'POST', $params, null, null, array());
     }
     public function private_put_leveragepreferences($params = array()) {
         return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());
@@ -157,6 +169,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function privateGetPnlpreferences($params = array()) {
         return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetAssignmentprogramCurrent($params = array()) {
+        return $this->request('assignmentprogram/current', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetAssignmentprogramHistory($params = array()) {
+        return $this->request('assignmentprogram/history', 'private', 'GET', $params, null, null, array());
+    }
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
     }
@@ -180,6 +198,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function privatePostWithdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostAssignmentprogramAdd($params = array()) {
+        return $this->request('assignmentprogram/add', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostAssignmentprogramDelete($params = array()) {
+        return $this->request('assignmentprogram/delete', 'private', 'POST', $params, null, null, array());
     }
     public function privatePutLeveragepreferences($params = array()) {
         return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());

@@ -12,6 +12,7 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
+        this.decompressBinary = true;
         const defaults = {
             url,
             onMessageCallback,
@@ -275,11 +276,14 @@ export default class Client {
                 message = utf8.encode(arrayBuffer);
             }
             else {
-                message = message.toString();
+                if (this.decompressBinary) {
+                    message = message.toString();
+                }
             }
         }
         try {
             if (isJsonEncodedObject(message)) {
+                message = message.toString();
                 message = JSON.parse(message.replace(/:(\d{15,}),/g, ':"$1",'));
             }
             if (this.verbose) {

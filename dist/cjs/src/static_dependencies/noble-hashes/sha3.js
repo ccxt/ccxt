@@ -6,6 +6,7 @@ var _assert = require('./_assert.js');
 var _u64 = require('./_u64.js');
 var utils = require('./utils.js');
 
+// ----------------------------------------------------------------------------
 // Various per round constants calculations
 const [SHA3_PI, SHA3_ROTL, _SHA3_IOTA] = [[], [], []];
 const _0n = BigInt(0);
@@ -174,7 +175,7 @@ class Keccak extends utils.Hash {
     }
     _cloneInto(to) {
         const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
-        to || (to = new Keccak(blockLen, suffix, outputLen, enableXOF, rounds));
+        to ||= new Keccak(blockLen, suffix, outputLen, enableXOF, rounds);
         to.state32.set(this.state32);
         to.pos = this.pos;
         to.posOut = this.posOut;

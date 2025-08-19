@@ -7,13 +7,13 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\ChecksumError;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -21,6 +21,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => false,
                 'watchOrderBook' => true,
@@ -32,7 +33,9 @@ class independentreserve extends \ccxt\async\independentreserve {
                 ),
             ),
             'options' => array(
-                'checksum' => false, // TODO => currently only working for snapshot
+                'watchOrderBook' => array(
+                    'checksum' => true, // TODO => currently only working for snapshot
+                ),
             ),
             'streaming' => array(
             ),
@@ -208,7 +211,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
-        $checksum = $this->safe_bool($this->options, 'checksum', true);
+        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         if ($checksum && $receivedSnapshot) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];
@@ -228,7 +231,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $calculatedChecksum = $this->crc32($payload, true);
             $responseChecksum = $this->safe_integer($orderBook, 'Crc32');
             if ($calculatedChecksum !== $responseChecksum) {
-                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Market, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -14,7 +14,7 @@ from ccxt.base.errors import ExchangeError
 
 class bitopro(ccxt.async_support.bitopro):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitopro, self).describe(), {
             'has': {
                 'ws': True,
@@ -26,6 +26,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'ws': {
@@ -57,7 +58,9 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/order_book_stream.md
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -74,7 +77,7 @@ class bitopro(ccxt.async_support.bitopro):
         if limit is None:
             endPart = market['id']
         else:
-            endPart = market['id'] + ':' + limit
+            endPart = market['id'] + ':' + self.number_to_string(limit)
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
@@ -116,7 +119,9 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/trade_stream.md
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -171,12 +176,14 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/matches_stream.md
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -231,7 +238,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(trades, messageHash)
         client.resolve(trades, messageHash + ':' + symbol)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "base": "usdt",
@@ -303,7 +310,9 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -334,15 +343,16 @@ class bitopro(ccxt.async_support.bitopro):
         #     }
         #
         marketId = self.safe_string(message, 'pair')
-        market = self.safe_market(marketId, None, '_')
+        # market-ids are lowercase in REST API and uppercase in WS API
+        market = self.safe_market(marketId.lower(), None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol
-        result = self.parse_ticker(message)
+        result = self.parse_ticker(message, market)
+        result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
-        datetime = self.safe_string(message, 'datetime')
         result['timestamp'] = timestamp
-        result['datetime'] = datetime
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
@@ -381,7 +391,9 @@ class bitopro(ccxt.async_support.bitopro):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """

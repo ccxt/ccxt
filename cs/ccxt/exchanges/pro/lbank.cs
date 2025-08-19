@@ -20,6 +20,7 @@ public partial class lbank : ccxt.lbank
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -59,20 +60,20 @@ public partial class lbank : ccxt.lbank
         return newValue;
     }
 
+    /**
+     * @method
+     * @name lbank#fetchOHLCVWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#fetchOHLCVWs
-        * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -101,20 +102,20 @@ public partial class lbank : ccxt.lbank
         return await this.watch(url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchOHLCV
-        * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -235,17 +236,17 @@ public partial class lbank : ccxt.lbank
         }
     }
 
+    /**
+     * @method
+     * @name lbank#fetchTickerWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#fetchTickerWs
-        * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -261,17 +262,17 @@ public partial class lbank : ccxt.lbank
         return await this.watch(url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchTicker
+     * @see https://www.lbank.com/en-US/docs/index.html#market
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchTicker
-        * @see https://www.lbank.com/en-US/docs/index.html#market
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} params extra parameters specific to the lbank api endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -371,19 +372,19 @@ public partial class lbank : ccxt.lbank
         }, market);
     }
 
+    /**
+     * @method
+     * @name lbank#fetchTradesWs
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#fetchTradesWs
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -404,19 +405,19 @@ public partial class lbank : ccxt.lbank
         return await this.watch(url, messageHash, request, requestId, request);
     }
 
+    /**
+     * @method
+     * @name lbank#watchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchTrades
-        * @see https://www.lbank.com/en-US/docs/index.html#trade-record
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -451,7 +452,7 @@ public partial class lbank : ccxt.lbank
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -495,7 +496,7 @@ public partial class lbank : ccxt.lbank
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -505,8 +506,16 @@ public partial class lbank : ccxt.lbank
         {
             timestamp = this.parse8601(datetime);
         }
-        object side = this.safeString2(trade, "direction", 3);
-        side = ((string)side).Replace((string)"_market", (string)"");
+        object rawSide = this.safeString2(trade, "direction", 3);
+        object parts = ((string)rawSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object firstPart = this.safeString(parts, 0);
+        object secondPart = this.safeString(parts, 1);
+        object side = firstPart;
+        // reverse if it was 'maker'
+        if (isTrue(isTrue(!isEqual(secondPart, null)) && isTrue(isEqual(secondPart, "maker"))))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
             { "datetime", datetime },
@@ -524,19 +533,19 @@ public partial class lbank : ccxt.lbank
         }, market);
     }
 
+    /**
+     * @method
+     * @name lbank#watchOrders
+     * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
+     * @description get the list of trades associated with the user
+     * @param {string} [symbol] unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchOrders
-        * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
-        * @description get the list of trades associated with the user
-        * @param {string} [symbol] unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} params extra parameters specific to the lbank api endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object key = await this.authenticate(parameters);
@@ -702,18 +711,18 @@ public partial class lbank : ccxt.lbank
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name lbank#fetchOrderBookWs
+     * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchOrderBook
-        * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int|undefined} limit the maximum amount of order book entries to return
-        * @param {object} params extra parameters specific to the lbank api endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -734,19 +743,18 @@ public partial class lbank : ccxt.lbank
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name lbank#watchOrderBook
+     * @see https://www.lbank.com/en-US/docs/index.html#market-depth
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int|undefined} limit the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name lbank#watchOrderBook
-        * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-        * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int|undefined} limit the maximum amount of order book entries to return
-        * @param {object} params extra parameters specific to the lbank api endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -866,10 +874,16 @@ public partial class lbank : ccxt.lbank
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         object pingId = this.safeString(message, "ping");
-        await client.send(new Dictionary<string, object>() {
-            { "action", "pong" },
-            { "pong", pingId },
-        });
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "action", "pong" },
+                { "pong", pingId },
+            });
+        } catch(Exception e)
+        {
+            this.onError(client as WebSocketClient, e);
+        }
     }
 
     public override void handleMessage(WebSocketClient client, object message)

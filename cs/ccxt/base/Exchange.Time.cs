@@ -29,9 +29,12 @@ public partial class Exchange
     public long microseconds()
     {
 #if NET7_0_OR_GREATER
-        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond; ;
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond;
 #else
-        return DateTime.Now.Ticks / (TimeSpan.TicksPerMillisecond / 1000);
+        DateTime utcNow = DateTime.UtcNow;
+        DateTimeOffset dto = new DateTimeOffset(utcNow);
+        long unixTime = dto.ToUnixTimeMilliseconds() * 1000;
+        return unixTime + (utcNow.Ticks % TimeSpan.TicksPerSecond) / 10;
 #endif
     }
 

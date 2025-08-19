@@ -1,0 +1,7 @@
+Run Profile
+`go run profile.go`
+
+View profile on web
+`go tool pprof -http=:8080 mem.prof`
+`go tool pprof -http=:8080 cpu.prof`
+

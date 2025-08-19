@@ -25,7 +25,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             # updates the reference
             $prev_ref = $item;
             $item = &$prev_ref;
-            $index = array_search($item['side'], $this->index);
+            $index = array_search($item['symbol'] . $item['side'], $this->index);
             array_splice($this->index, $index, 1);
             array_splice($this->deque, $index, 1);
         } else {
@@ -38,7 +38,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         }
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
-        $this->index[] = $item['side'];
+        $this->index[] = $item['symbol'] . $item['side'];
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             $this->clear_updates_by_symbol = array();

@@ -21,6 +21,10 @@ public partial class bequant : hitbtc
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bequant.io/api/3" },
                     { "private", "https://api.bequant.io/api/3" },
+                    { "ws", new Dictionary<string, object>() {
+                        { "public", "wss://api.bequant.io/api/3/ws/public" },
+                        { "private", "wss://api.bequant.io/api/3/ws/trading" },
+                    } },
                 } },
                 { "www", "https://bequant.io" },
                 { "doc", new List<object>() {"https://api.bequant.io/"} },

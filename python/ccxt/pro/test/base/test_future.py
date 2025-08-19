@@ -178,7 +178,7 @@ async def test_closed_by_user():
     except Exception as e:
         assert False, f"Received Exception {e}"
 
-async def run_tests():
+async def test_ws_future():
     await test_resolve_before()
     await test_reject()
     await test_race_success_before()
@@ -192,5 +192,3 @@ async def run_tests():
     await test_race_with_precompleted_future()
     await test_closed_by_user()
 
-if __name__ == '__main__':
-    asyncio.run(run_tests())

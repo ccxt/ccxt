@@ -76,9 +76,11 @@ interface Exchange {
     privateSpotPostWithdraw (params?: {}): Promise<implicitReturnType>;
     privateSpotPostBalanceTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostBalanceAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWsToken (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteBatchOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOpenOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrderOrderId (params?: {}): Promise<implicitReturnType>;
+    privateSpotPutOrderOrderId (params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureTradeV1EntrustPlanDetail (params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureTradeV1EntrustPlanList (params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureTradeV1EntrustPlanListHistory (params?: {}): Promise<implicitReturnType>;
@@ -108,6 +110,7 @@ interface Exchange {
     privateLinearPostFutureTradeV1OrderCancelAll (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1OrderCreate (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1OrderCreateBatch (params?: {}): Promise<implicitReturnType>;
+    privateLinearPostFutureTradeV1OrderUpdate (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1AccountOpen (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1PositionAdjustLeverage (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1PositionAutoMargin (params?: {}): Promise<implicitReturnType>;
@@ -115,6 +118,7 @@ interface Exchange {
     privateLinearPostFutureUserV1PositionMargin (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1UserCollectionAdd (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
+    privateLinearPostFutureUserV1PositionChangeType (params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanDetail (params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanList (params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureTradeV1EntrustPlanListHistory (params?: {}): Promise<implicitReturnType>;
@@ -144,6 +148,7 @@ interface Exchange {
     privateInversePostFutureTradeV1OrderCancelAll (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1OrderCreate (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1OrderCreateBatch (params?: {}): Promise<implicitReturnType>;
+    privateInversePostFutureTradeV1OrderUpdate (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1AccountOpen (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1PositionAdjustLeverage (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1PositionAutoMargin (params?: {}): Promise<implicitReturnType>;

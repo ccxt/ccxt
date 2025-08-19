@@ -37,6 +37,9 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     public function public_get_products_spark_lines($params = array()) {
         return $this->request('products/spark-lines', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_products_volume_summary($params = array()) {
+        return $this->request('products/volume-summary', 'public', 'GET', $params, null, null, array());
+    }
     public function private_get_address_book($params = array()) {
         return $this->request('address-book', 'private', 'GET', $params, null, null, array());
     }
@@ -225,6 +228,9 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     }
     public function publicGetProductsSparkLines($params = array()) {
         return $this->request('products/spark-lines', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetProductsVolumeSummary($params = array()) {
+        return $this->request('products/volume-summary', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetAddressBook($params = array()) {
         return $this->request('address-book', 'private', 'GET', $params, null, null, array());

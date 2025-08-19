@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('../errors.js');
 var browser = require('../../static_dependencies/fflake/browser.js');
 var Future = require('./Future.js');
@@ -10,9 +12,11 @@ require('../functions/crypto.js');
 var time = require('../functions/time.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
+// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
+        this.decompressBinary = true;
         const defaults = {
             url,
             onMessageCallback,
@@ -276,11 +280,14 @@ class Client {
                 message = index.utf8.encode(arrayBuffer);
             }
             else {
-                message = message.toString();
+                if (this.decompressBinary) {
+                    message = message.toString();
+                }
             }
         }
         try {
             if (encode.isJsonEncodedObject(message)) {
+                message = message.toString();
                 message = JSON.parse(message.replace(/:(\d{15,}),/g, ':"$1",'));
             }
             if (this.verbose) {
@@ -303,4 +310,4 @@ class Client {
     }
 }
 
-module.exports = Client;
+exports["default"] = Client;
