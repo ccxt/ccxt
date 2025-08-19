@@ -3127,7 +3127,8 @@ export default class okx extends Exchange {
                 }
                 attachAlgoOrd = this.extend (attachAlgoOrd, tpOrder);
             }
-            const attachOrdLen = (Object.keys (attachAlgoOrd)).length;
+            const attachOrdKeys = Object.keys (attachAlgoOrd);
+            const attachOrdLen = attachOrdKeys.length;
             if (attachOrdLen > 0) {
                 request['attachAlgoOrds'] = [ attachAlgoOrd ];
             }
