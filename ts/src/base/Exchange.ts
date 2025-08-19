@@ -170,6 +170,7 @@ import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import {default as LocalWallet} from '../static_dependencies/dydx-v4-client/clients/modules/local-wallet.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
+import dydxProtos from '../static_dependencies/dydx-v4-client/clients/modules/proto-includes.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
@@ -1664,6 +1665,50 @@ export default class Exchange {
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
         const wallet = LocalWallet.fromPrivateKey (credentials.privateKey, 'dydx');
         return wallet;
+    }
+
+    async signDydxOrder(
+        wallet: any,
+        message: any,
+        // zeroFee?: boolean,
+        chainId: number,
+        // gasPrice?: any,
+        memo?: string,
+        account?: any,
+        authenticators?: number[],
+      ): Promise<string> {
+        // const msgsPromise = await messaging();
+        // const accountPromise = account ? await account() : this.account(wallet.address!);
+        // const msgsAndAccount = await Promise.all([msgsPromise, accountPromise]);
+        // const msgs = msgsAndAccount[0];
+        // return this.signTransaction(wallet, msgs, msgsAndAccount[1], zeroFee, gasPrice, memo);
+        const messages = [ message ];
+        const sequence = this.milliseconds ();
+        const fee = {
+            amount: [],
+            gas: '1000000',
+        }
+        // zeroFee
+        // ? {
+        //     amount: [],
+        //     gas: '1000000',
+        // }
+        // : await this.simulateTransaction(
+        //     wallet.pubKey!,
+        //     sequence,
+        //     messages,
+        //     gasPrice,
+        //     memo,
+        //     gasAdjustment,
+        // );
+    
+        const txOptions = {
+            sequence,
+            accountNumber: account.account_number,
+            chainId: chainId,
+            authenticators,
+        };
+        return this.binaryToBase64 (await wallet.signTransaction(messages, txOptions, fee, memo));
     }
 
     intToBase16(elem): string {

@@ -1191,7 +1191,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    async recoverLocalWallet(params) {
+    async recoverLocalWallet() {
         let wallet = this.safeDict (this.options, 'dydxLocalWallet');
         if (wallet !== undefined) {
             return wallet;
@@ -1425,7 +1425,7 @@ export default class dydx extends Exchange {
         }
         console.log(this.json (signingPayload))
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
-        return this.extend (request, params);
+        return this.extend (signingPayload, params);
     }
 
     /**
@@ -1452,19 +1452,28 @@ export default class dydx extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const wallet = await this.recoverLocalWallet ();
+        const account = await this.fetchDydxAccount ();
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        const response = await this.v1PrivatePostAlgoOrder (request);
-        //
-        //
-        const data = this.safeDict (response, 'data');
-        data['timestamp'] = this.safeInteger (response, 'timestamp');
-        const order = this.parseOrder (data, market);
-        order['type'] = type;
-        return order;
+        const signedOrder = await this.signDydxOrder (wallet, orderRequest, 11155111, undefined, account);
+        const request = {
+            'tx': signedOrder,
+        };
+        console.log(request)
+        // const response = await this.nodeRpcGetBroadcastTxAsync (request);
+        // //
+        // //
+        // console.log(response)
+        // const data = this.safeDict (response, 'data');
+        // data['timestamp'] = this.safeInteger (response, 'timestamp');
+        // const order = this.parseOrder (data, market);
+        // order['type'] = type;
+        // return order;
+        return {};
     }
 
     /**
@@ -1921,8 +1930,8 @@ export default class dydx extends Exchange {
         let url = this.implodeHostname (this.urls['api'][section]);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
-        if (section === 'indexer') {
-            url += '/' + pathWithParams;
+        url += '/' + pathWithParams;
+        if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
