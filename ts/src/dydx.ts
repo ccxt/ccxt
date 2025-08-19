@@ -6,6 +6,9 @@ import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1152,6 +1155,87 @@ export default class dydx extends Exchange {
         }, market);
     }
 
+    hashMessage (message) {
+        return this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'].length < 64 ? '0' + signature['r'] : signature['r'];
+        const s = signature['s'].length < 64 ? '0' + signature['s'] : signature['s'];
+        return {
+            'r': r,
+            's': s,
+            'v': this.sum (27, signature['v']),
+        };
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    signOnboardingAction (): object {
+        const message = {'action': this.encode ('dYdX Chain Onboarding')};
+        const chainId = 11155111; // TODO: chainid for production
+        const domain: Dict = {
+            'chainId': chainId,
+            'name': 'dYdX Chain',
+        };
+        const messageTypes: Dict = {
+            'dYdX': [
+                { 'name': 'action', 'type': 'string' },
+            ],
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        const signature = this.signMessage (msg, this.privateKey);
+        return signature;
+    }
+
+    async recoverLocalWallet(params) {
+        let wallet = this.safeDict (this.options, 'dydxLocalWallet');
+        if (wallet !== undefined) {
+            return wallet;
+        }
+        // if (this.privateKey !== undefined) {} else if (this.options.mnemonic !== undefined) {}
+        // TODO: recover from mnemonic
+        const signature = this.signOnboardingAction ();
+        const entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+        wallet = await this.retrieveDydxAccount (entropy);
+        this.options['dydxLocalWallet'] = wallet;
+        return wallet;
+    }
+
+    async fetchDydxAccount (params: Dict = undefined) {
+        const dydxAccount = this.safeDict (this.options, 'dydxAccount');
+        if (dydxAccount !== undefined) {
+            return dydxAccount;
+        }
+        const request = {
+            'dydxAddress': this.walletAddress,
+        };
+        //
+        // {
+        //     "info": {
+        //         "address": "string",
+        //         "pub_key": {
+        //             "type_url": "string",
+        //             "value": "string"
+        //         },
+        //         "account_number": "string",
+        //         "sequence": "string"
+        //     }
+        // }
+        //
+        const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
+        const account = this.safeDict (response, 'info');
+        this.options['dydxAccount'] = account;
+        return account;
+    }
+
+    // calculateQuantums (size: number, atomicResolution: string, stepBaseQuantums: string) {}
+    // calculateSubticks (size: number, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string) {}
+    // calculateConditionalOrderTriggerSubticks(type, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string, triggerPrice: string)
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
@@ -1161,10 +1245,10 @@ export default class dydx extends Exchange {
             'symbol': market['id'],
             'side': orderSide,
         };
+        // const account = this.fetchDydxAccount ();
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const algoType = this.safeString (params, 'algoType');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1174,6 +1258,8 @@ export default class dydx extends Exchange {
         const priceKey = isConditional ? 'price' : 'order_price';
         const typeKey = isConditional ? 'type' : 'order_type';
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        const marketInfo = this.safeDict (market, 'info');
+        // const quantums = this.calculateQuantums (amount, marketInfo['atomicResolution'], marketInfo['stepBaseQuantums']);
         let clientMetadata = 0;
         let conditionalType = 0;
         let orderFlag = undefined;
