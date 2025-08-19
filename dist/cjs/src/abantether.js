@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var abantether$1 = require('./abstract/abantether.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class abantether
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class abantether extends abantether$1 {
+class abantether extends abantether$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'abantether',
@@ -330,4 +332,4 @@ class abantether extends abantether$1 {
     }
 }
 
-module.exports = abantether;
+exports["default"] = abantether;

@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var eterex$1 = require('./abstract/eterex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class eterex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class eterex extends eterex$1 {
+class eterex extends eterex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'eterex',
@@ -295,4 +297,4 @@ class eterex extends eterex$1 {
     }
 }
 
-module.exports = eterex;
+exports["default"] = eterex;

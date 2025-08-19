@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var tetherland$1 = require('./abstract/tetherland.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class tetherland
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class tetherland extends tetherland$1 {
+class tetherland extends tetherland$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tetherland',
@@ -363,4 +365,4 @@ class tetherland extends tetherland$1 {
     }
 }
 
-module.exports = tetherland;
+exports["default"] = tetherland;

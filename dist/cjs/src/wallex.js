@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wallex$1 = require('./abstract/wallex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wallex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class wallex extends wallex$1 {
+class wallex extends wallex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wallex',
@@ -463,4 +465,4 @@ class wallex extends wallex$1 {
     }
 }
 
-module.exports = wallex;
+exports["default"] = wallex;

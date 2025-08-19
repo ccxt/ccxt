@@ -3,7 +3,7 @@
 var _commonjsHelpers = require('./_commonjsHelpers.js');
 
 const commonjsRegister = _commonjsHelpers.commonjsRegister;
-commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/qs/formats.cjs", function (module, exports) {
+commonjsRegister("/$$rollup_base$$/test-ccxt-ir/node_modules/ccxt-ir/js/src/static_dependencies/qs/formats.cjs", function (module, exports) {
 var replace = String.prototype.replace;
 var percentTwenties = /%20/g;
 module.exports = {

@@ -114,7 +114,7 @@ class sarmayex(Exchange, ImplicitAPI):
     async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
         """
         retrieves data on all markets for sarmayex
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -237,7 +237,7 @@ class sarmayex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -267,7 +267,7 @@ class sarmayex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`

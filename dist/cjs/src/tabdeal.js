@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var tabdeal$1 = require('./abstract/tabdeal.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class tabdeal
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class tabdeal extends tabdeal$1 {
+class tabdeal extends tabdeal$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tabdeal',
@@ -382,4 +384,4 @@ class tabdeal extends tabdeal$1 {
     }
 }
 
-module.exports = tabdeal;
+exports["default"] = tabdeal;

@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var afratether$1 = require('./abstract/afratether.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class afratether
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class afratether extends afratether$1 {
+class afratether extends afratether$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'afratether',
@@ -304,4 +306,4 @@ class afratether extends afratether$1 {
     }
 }
 
-module.exports = afratether;
+exports["default"] = afratether;

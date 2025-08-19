@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var farhadexchange$1 = require('./abstract/farhadexchange.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class farhadexchange
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class farhadexchange extends farhadexchange$1 {
+class farhadexchange extends farhadexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'farhadexchange',
@@ -276,4 +278,4 @@ class farhadexchange extends farhadexchange$1 {
     }
 }
 
-module.exports = farhadexchange;
+exports["default"] = farhadexchange;

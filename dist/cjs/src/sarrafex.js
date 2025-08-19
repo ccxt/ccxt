@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var sarrafex$1 = require('./abstract/sarrafex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class sarrafex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class sarrafex extends sarrafex$1 {
+class sarrafex extends sarrafex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'sarrafex',
@@ -497,4 +499,4 @@ class sarrafex extends sarrafex$1 {
     }
 }
 
-module.exports = sarrafex;
+exports["default"] = sarrafex;

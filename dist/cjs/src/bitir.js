@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitir$1 = require('./abstract/bitir.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitir
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class bitir extends bitir$1 {
+class bitir extends bitir$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitir',
@@ -517,4 +519,4 @@ class bitir extends bitir$1 {
     }
 }
 
-module.exports = bitir;
+exports["default"] = bitir;

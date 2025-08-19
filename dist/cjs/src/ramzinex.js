@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ramzinex$1 = require('./abstract/ramzinex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ramzinex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ramzinex extends ramzinex$1 {
+class ramzinex extends ramzinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ramzinex',
@@ -501,4 +503,4 @@ class ramzinex extends ramzinex$1 {
     }
 }
 
-module.exports = ramzinex;
+exports["default"] = ramzinex;

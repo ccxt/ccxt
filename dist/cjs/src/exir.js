@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var exir$1 = require('./abstract/exir.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class exir
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class exir extends exir$1 {
+class exir extends exir$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'exir',
@@ -394,4 +396,4 @@ class exir extends exir$1 {
     }
 }
 
-module.exports = exir;
+exports["default"] = exir;

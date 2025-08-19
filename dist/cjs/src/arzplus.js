@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var arzplus$1 = require('./abstract/arzplus.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class arzplus
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class arzplus extends arzplus$1 {
+class arzplus extends arzplus$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'arzplus',
@@ -432,4 +434,4 @@ class arzplus extends arzplus$1 {
     }
 }
 
-module.exports = arzplus;
+exports["default"] = arzplus;

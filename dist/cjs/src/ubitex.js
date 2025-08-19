@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ubitex$1 = require('./abstract/ubitex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ubitex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ubitex extends ubitex$1 {
+class ubitex extends ubitex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ubitex',
@@ -429,4 +431,4 @@ class ubitex extends ubitex$1 {
     }
 }
 
-module.exports = ubitex;
+exports["default"] = ubitex;

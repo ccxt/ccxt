@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var sarmayex$1 = require('./abstract/sarmayex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class sarmayex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class sarmayex extends sarmayex$1 {
+class sarmayex extends sarmayex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'sarmayex',
@@ -371,4 +373,4 @@ class sarmayex extends sarmayex$1 {
     }
 }
 
-module.exports = sarmayex;
+exports["default"] = sarmayex;

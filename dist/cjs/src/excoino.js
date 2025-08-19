@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var excoino$1 = require('./abstract/excoino.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class excoino
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class excoino extends excoino$1 {
+class excoino extends excoino$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'excoino',
@@ -422,4 +424,4 @@ class excoino extends excoino$1 {
     }
 }
 
-module.exports = excoino;
+exports["default"] = excoino;

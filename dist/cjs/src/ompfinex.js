@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ompfinex$1 = require('./abstract/ompfinex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ompfinex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ompfinex extends ompfinex$1 {
+class ompfinex extends ompfinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ompfinex',
@@ -497,4 +499,4 @@ class ompfinex extends ompfinex$1 {
     }
 }
 
-module.exports = ompfinex;
+exports["default"] = ompfinex;

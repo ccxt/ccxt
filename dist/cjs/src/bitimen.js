@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitimen$1 = require('./abstract/bitimen.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitimen
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class bitimen extends bitimen$1 {
+class bitimen extends bitimen$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitimen',
@@ -420,4 +422,4 @@ class bitimen extends bitimen$1 {
     }
 }
 
-module.exports = bitimen;
+exports["default"] = bitimen;

@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okexchange$1 = require('./abstract/okexchange.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okexchange
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class okexchange extends okexchange$1 {
+class okexchange extends okexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okexchange',
@@ -369,4 +371,4 @@ class okexchange extends okexchange$1 {
     }
 }
 
-module.exports = okexchange;
+exports["default"] = okexchange;

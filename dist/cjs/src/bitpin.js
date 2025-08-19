@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitpin$1 = require('./abstract/bitpin.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitpin
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class bitpin extends bitpin$1 {
+class bitpin extends bitpin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitpin',
@@ -473,4 +475,4 @@ class bitpin extends bitpin$1 {
     }
 }
 
-module.exports = bitpin;
+exports["default"] = bitpin;

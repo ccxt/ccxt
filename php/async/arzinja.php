@@ -7,8 +7,8 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\arzinja as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class arzinja extends Exchange {
 

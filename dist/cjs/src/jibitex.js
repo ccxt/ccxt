@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var jibitex$1 = require('./abstract/jibitex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class jibitex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class jibitex extends jibitex$1 {
+class jibitex extends jibitex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'jibitex',
@@ -412,4 +414,4 @@ class jibitex extends jibitex$1 {
     }
 }
 
-module.exports = jibitex;
+exports["default"] = jibitex;

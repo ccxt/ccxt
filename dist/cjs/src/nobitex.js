@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var nobitex$1 = require('./abstract/nobitex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class nobitex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class nobitex extends nobitex$1 {
+class nobitex extends nobitex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'nobitex',
@@ -445,4 +447,4 @@ class nobitex extends nobitex$1 {
     }
 }
 
-module.exports = nobitex;
+exports["default"] = nobitex;

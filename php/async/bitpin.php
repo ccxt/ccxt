@@ -7,8 +7,8 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\bitpin as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitpin extends Exchange {
 

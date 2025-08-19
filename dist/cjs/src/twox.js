@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var twox$1 = require('./abstract/twox.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class twox
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class twox extends twox$1 {
+class twox extends twox$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'twox',
@@ -340,4 +342,4 @@ class twox extends twox$1 {
     }
 }
 
-module.exports = twox;
+exports["default"] = twox;

@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hitobit$1 = require('./abstract/hitobit.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hitobit
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class hitobit extends hitobit$1 {
+class hitobit extends hitobit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitobit',
@@ -408,4 +410,4 @@ class hitobit extends hitobit$1 {
     }
 }
 
-module.exports = hitobit;
+exports["default"] = hitobit;

@@ -1,15 +1,17 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var arzinja$1 = require('./abstract/arzinja.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class arzinja
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class arzinja extends arzinja$1 {
+class arzinja extends arzinja$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'arzinja',
@@ -294,4 +296,4 @@ class arzinja extends arzinja$1 {
     }
 }
 
-module.exports = arzinja;
+exports["default"] = arzinja;
