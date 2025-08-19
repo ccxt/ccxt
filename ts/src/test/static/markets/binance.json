@@ -53,12 +53,12 @@
       },
       "market": {
         "min": 0,
-        "max": 103.1100897
+        "max": 121.91983711
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -86,7 +86,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -109,7 +108,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "103.11008970",
+          "maxQty": "121.91983711",
           "stepSize": "0.00000000"
         },
         {
@@ -350,17 +349,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -421,12 +417,12 @@
       },
       "market": {
         "min": 0,
-        "max": 2555.01656443
+        "max": 5051.02927824
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -454,7 +450,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -477,7 +472,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "2555.01656443",
+          "maxQty": "5051.02927824",
           "stepSize": "0.00000000"
         },
         {
@@ -718,17 +713,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -789,12 +781,12 @@
       },
       "market": {
         "min": 0,
-        "max": 2999472.31583333
+        "max": 2253456.78870292
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -822,7 +814,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -845,7 +836,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "2999472.31583333",
+          "maxQty": "2253456.78870292",
           "stepSize": "0.00000000"
         },
         {
@@ -1086,17 +1077,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -1157,12 +1145,12 @@
       },
       "market": {
         "min": 0,
-        "max": 10898.76742259
+        "max": 13435.66369037
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -1190,7 +1178,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1213,7 +1200,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "10898.76742259",
+          "maxQty": "13435.66369037",
           "stepSize": "0.00000000"
         },
         {
@@ -1454,17 +1441,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -1501,7 +1485,7 @@
     "strike": null,
     "optionType": null,
     "precision": {
-      "amount": 0.1,
+      "amount": 1,
       "price": 0.0001,
       "base": 1e-8,
       "quote": 1e-8
@@ -1512,7 +1496,7 @@
         "max": null
       },
       "amount": {
-        "min": 0.1,
+        "min": 1,
         "max": 9222449
       },
       "price": {
@@ -1525,12 +1509,12 @@
       },
       "market": {
         "min": 0,
-        "max": 2512403.10878661
+        "max": 3390003.40585774
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -1558,7 +1542,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1570,9 +1553,9 @@
         },
         {
           "filterType": "LOT_SIZE",
-          "minQty": "0.10000000",
+          "minQty": "1.00000000",
           "maxQty": "9222449.00000000",
-          "stepSize": "0.10000000"
+          "stepSize": "1.00000000"
         },
         {
           "filterType": "ICEBERG_PARTS",
@@ -1581,7 +1564,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "2512403.10878661",
+          "maxQty": "3390003.40585774",
           "stepSize": "0.00000000"
         },
         {
@@ -1822,17 +1805,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -1893,12 +1873,12 @@
       },
       "market": {
         "min": 0,
-        "max": 26833986.37916666
+        "max": 24584725.24267782
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -1926,7 +1906,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -1949,7 +1928,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "26833986.37916666",
+          "maxQty": "24584725.24267782",
           "stepSize": "0.00000000"
         },
         {
@@ -2190,17 +2169,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -2261,12 +2237,12 @@
       },
       "market": {
         "min": 0,
-        "max": 9057876.76569037
+        "max": 11420849.72845188
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -2294,7 +2270,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -2317,7 +2292,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "9057876.76569037",
+          "maxQty": "11420849.72845188",
           "stepSize": "0.00000000"
         },
         {
@@ -2558,17 +2533,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
@@ -2663,22 +2635,22 @@
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "filterType": "PRICE_FILTER",
           "maxPrice": "4529764",
+          "filterType": "PRICE_FILTER",
           "minPrice": "556.80",
           "tickSize": "0.10"
         },
         {
-          "filterType": "LOT_SIZE",
           "maxQty": "1000",
           "minQty": "0.001",
-          "stepSize": "0.001"
+          "stepSize": "0.001",
+          "filterType": "LOT_SIZE"
         },
         {
-          "filterType": "MARKET_LOT_SIZE",
           "maxQty": "120",
-          "minQty": "0.001",
-          "stepSize": "0.001"
+          "filterType": "MARKET_LOT_SIZE",
+          "stepSize": "0.001",
+          "minQty": "0.001"
         },
         {
           "limit": "200",
@@ -2689,18 +2661,18 @@
           "filterType": "MAX_NUM_ALGO_ORDERS"
         },
         {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "100"
+          "notional": "100",
+          "filterType": "MIN_NOTIONAL"
         },
         {
-          "multiplierUp": "1.0500",
-          "multiplierDecimal": "4",
           "filterType": "PERCENT_PRICE",
-          "multiplierDown": "0.9500"
+          "multiplierUp": "1.0500",
+          "multiplierDown": "0.9500",
+          "multiplierDecimal": "4"
         },
         {
-          "filterType": "POSITION_RISK_CONTROL",
-          "positionControlSide": "NONE"
+          "positionControlSide": "NONE",
+          "filterType": "POSITION_RISK_CONTROL"
         }
       ],
       "orderTypes": [
@@ -2718,10 +2690,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -2798,56 +2766,54 @@
       "onboardDate": "1597042800000",
       "contractStatus": "TRADING",
       "contractSize": "100",
+      "marginAsset": "BTC",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
       "baseAsset": "BTC",
       "quoteAsset": "USD",
-      "marginAsset": "BTC",
       "pricePrecision": "1",
       "quantityPrecision": "0",
       "baseAssetPrecision": "8",
       "quotePrecision": "8",
+      "equalQtyPrecision": "4",
+      "maxMoveOrderLimit": "10000",
+      "triggerProtect": "0.0500",
       "underlyingType": "COIN",
       "underlyingSubType": [
         "PoW"
       ],
-      "triggerProtect": "0.0500",
-      "liquidationFee": "0.015000",
-      "marketTakeBound": "0.05",
-      "equalQtyPrecision": "4",
-      "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "filterType": "PRICE_FILTER",
+          "minPrice": "1000",
           "maxPrice": "4520958",
-          "tickSize": "0.1",
-          "minPrice": "1000"
+          "filterType": "PRICE_FILTER",
+          "tickSize": "0.1"
         },
         {
-          "maxQty": "1000000",
-          "filterType": "LOT_SIZE",
-          "minQty": "1",
-          "stepSize": "1"
-        },
-        {
-          "filterType": "MARKET_LOT_SIZE",
-          "minQty": "1",
           "stepSize": "1",
-          "maxQty": "60000"
+          "filterType": "LOT_SIZE",
+          "maxQty": "1000000",
+          "minQty": "1"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "stepSize": "1",
+          "filterType": "MARKET_LOT_SIZE",
+          "maxQty": "60000",
+          "minQty": "1"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "20"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "multiplierDecimal": "4",
-          "filterType": "PERCENT_PRICE",
+          "limit": "20",
+          "filterType": "MAX_NUM_ALGO_ORDERS"
+        },
+        {
+          "multiplierDown": "0.9500",
           "multiplierUp": "1.0500",
-          "multiplierDown": "0.9500"
+          "multiplierDecimal": "4",
+          "filterType": "PERCENT_PRICE"
         }
       ],
       "orderTypes": [
@@ -2864,7 +2830,9 @@
         "IOC",
         "FOK",
         "GTX"
-      ]
+      ],
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.05"
     },
     "tierBased": false,
     "percentage": true,
@@ -2958,26 +2926,26 @@
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "maxPrice": "306177",
-          "tickSize": "0.01",
           "minPrice": "39.86",
-          "filterType": "PRICE_FILTER"
+          "maxPrice": "306177",
+          "filterType": "PRICE_FILTER",
+          "tickSize": "0.01"
         },
         {
-          "filterType": "LOT_SIZE",
           "maxQty": "10000",
-          "minQty": "0.001",
-          "stepSize": "0.001"
-        },
-        {
-          "minQty": "0.001",
+          "filterType": "LOT_SIZE",
           "stepSize": "0.001",
-          "maxQty": "2000",
-          "filterType": "MARKET_LOT_SIZE"
+          "minQty": "0.001"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "stepSize": "0.001",
+          "minQty": "0.001",
+          "filterType": "MARKET_LOT_SIZE",
+          "maxQty": "2000"
+        },
+        {
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
           "filterType": "MAX_NUM_ALGO_ORDERS",
@@ -3013,10 +2981,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3103,30 +3067,30 @@
       "quotePrecision": "8",
       "underlyingType": "COIN",
       "underlyingSubType": [
-        "Payment"
+        "PoW"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.012500",
+      "liquidationFee": "0.015000",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
+          "filterType": "PRICE_FILTER",
           "minPrice": "3.61",
           "maxPrice": "100000",
-          "filterType": "PRICE_FILTER",
           "tickSize": "0.01"
         },
         {
-          "filterType": "LOT_SIZE",
-          "maxQty": "10000",
           "stepSize": "0.001",
-          "minQty": "0.001"
+          "filterType": "LOT_SIZE",
+          "minQty": "0.001",
+          "maxQty": "10000"
         },
         {
-          "minQty": "0.001",
-          "maxQty": "5000",
           "filterType": "MARKET_LOT_SIZE",
-          "stepSize": "0.001"
+          "minQty": "0.001",
+          "stepSize": "0.001",
+          "maxQty": "5000"
         },
         {
           "filterType": "MAX_NUM_ORDERS",
@@ -3141,14 +3105,14 @@
           "notional": "20"
         },
         {
-          "filterType": "PERCENT_PRICE",
           "multiplierUp": "1.0500",
           "multiplierDown": "0.9500",
+          "filterType": "PERCENT_PRICE",
           "multiplierDecimal": "4"
         },
         {
-          "filterType": "POSITION_RISK_CONTROL",
-          "positionControlSide": "NONE"
+          "positionControlSide": "NONE",
+          "filterType": "POSITION_RISK_CONTROL"
         }
       ],
       "orderTypes": [
@@ -3166,10 +3130,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3218,7 +3178,7 @@
       },
       "amount": {
         "min": 1,
-        "max": 6000000
+        "max": 2000000
       },
       "price": {
         "min": 0.0174,
@@ -3230,7 +3190,7 @@
       },
       "market": {
         "min": 1,
-        "max": 1300000
+        "max": 300000
       }
     },
     "marginModes": {
@@ -3259,7 +3219,7 @@
         "Layer-1"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.012500",
+      "liquidationFee": "0.010000",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
@@ -3270,16 +3230,16 @@
           "minPrice": "0.01740"
         },
         {
-          "minQty": "1",
+          "filterType": "LOT_SIZE",
           "stepSize": "1",
-          "maxQty": "6000000",
-          "filterType": "LOT_SIZE"
+          "maxQty": "2000000",
+          "minQty": "1"
         },
         {
-          "filterType": "MARKET_LOT_SIZE",
-          "minQty": "1",
           "stepSize": "1",
-          "maxQty": "1300000"
+          "maxQty": "300000",
+          "minQty": "1",
+          "filterType": "MARKET_LOT_SIZE"
         },
         {
           "filterType": "MAX_NUM_ORDERS",
@@ -3290,14 +3250,14 @@
           "limit": "10"
         },
         {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "5"
+          "notional": "5",
+          "filterType": "MIN_NOTIONAL"
         },
         {
-          "multiplierDecimal": "4",
+          "multiplierUp": "1.0500",
           "filterType": "PERCENT_PRICE",
-          "multiplierDown": "0.9500",
-          "multiplierUp": "1.0500"
+          "multiplierDecimal": "4",
+          "multiplierDown": "0.9500"
         },
         {
           "filterType": "POSITION_RISK_CONTROL",
@@ -3319,10 +3279,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3417,22 +3373,22 @@
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "maxPrice": "100000",
           "filterType": "PRICE_FILTER",
           "minPrice": "0.0143",
+          "maxPrice": "100000",
           "tickSize": "0.0001"
         },
         {
-          "stepSize": "0.1",
           "maxQty": "10000000",
+          "filterType": "LOT_SIZE",
           "minQty": "0.1",
-          "filterType": "LOT_SIZE"
+          "stepSize": "0.1"
         },
         {
-          "stepSize": "0.1",
+          "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.1",
-          "maxQty": "2000000",
-          "filterType": "MARKET_LOT_SIZE"
+          "stepSize": "0.1",
+          "maxQty": "2000000"
         },
         {
           "filterType": "MAX_NUM_ORDERS",
@@ -3448,9 +3404,9 @@
         },
         {
           "multiplierDown": "0.9500",
-          "multiplierUp": "1.0500",
+          "filterType": "PERCENT_PRICE",
           "multiplierDecimal": "4",
-          "filterType": "PERCENT_PRICE"
+          "multiplierUp": "1.0500"
         },
         {
           "positionControlSide": "NONE",
@@ -3472,10 +3428,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3565,45 +3517,45 @@
         "Meme"
       ],
       "triggerProtect": "0.1000",
-      "liquidationFee": "0.015000",
+      "liquidationFee": "0.010000",
       "marketTakeBound": "0.10",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "maxPrice": "30",
-          "minPrice": "0.002440",
           "tickSize": "0.000010",
-          "filterType": "PRICE_FILTER"
+          "filterType": "PRICE_FILTER",
+          "maxPrice": "30",
+          "minPrice": "0.002440"
         },
         {
-          "minQty": "1",
           "filterType": "LOT_SIZE",
-          "stepSize": "1",
-          "maxQty": "50000000"
-        },
-        {
+          "maxQty": "50000000",
           "minQty": "1",
-          "stepSize": "1",
-          "filterType": "MARKET_LOT_SIZE",
-          "maxQty": "30000000"
+          "stepSize": "1"
         },
         {
-          "limit": "200",
-          "filterType": "MAX_NUM_ORDERS"
+          "maxQty": "30000000",
+          "filterType": "MARKET_LOT_SIZE",
+          "minQty": "1",
+          "stepSize": "1"
+        },
+        {
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": "200"
         },
         {
           "filterType": "MAX_NUM_ALGO_ORDERS",
           "limit": "10"
         },
         {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "5"
+          "notional": "5",
+          "filterType": "MIN_NOTIONAL"
         },
         {
           "filterType": "PERCENT_PRICE",
-          "multiplierUp": "1.1000",
           "multiplierDecimal": "4",
-          "multiplierDown": "0.9000"
+          "multiplierDown": "0.9000",
+          "multiplierUp": "1.1000"
         },
         {
           "positionControlSide": "NONE",
@@ -3625,10 +3577,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3718,45 +3666,45 @@
         "Layer-1"
       ],
       "triggerProtect": "0.0500",
-      "liquidationFee": "0.012500",
+      "liquidationFee": "0.010000",
       "marketTakeBound": "0.05",
       "maxMoveOrderLimit": "10000",
       "filters": [
         {
           "filterType": "PRICE_FILTER",
+          "maxPrice": "20000",
           "tickSize": "0.00001",
-          "minPrice": "0.00132",
-          "maxPrice": "20000"
+          "minPrice": "0.00132"
         },
         {
-          "stepSize": "1",
           "filterType": "LOT_SIZE",
-          "minQty": "1",
-          "maxQty": "10000000"
+          "maxQty": "10000000",
+          "stepSize": "1",
+          "minQty": "1"
         },
         {
-          "filterType": "MARKET_LOT_SIZE",
           "maxQty": "5000000",
-          "minQty": "1",
-          "stepSize": "1"
+          "stepSize": "1",
+          "filterType": "MARKET_LOT_SIZE",
+          "minQty": "1"
         },
         {
-          "filterType": "MAX_NUM_ORDERS",
-          "limit": "200"
+          "limit": "200",
+          "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "10"
+          "limit": "10",
+          "filterType": "MAX_NUM_ALGO_ORDERS"
         },
         {
-          "filterType": "MIN_NOTIONAL",
-          "notional": "5"
+          "notional": "5",
+          "filterType": "MIN_NOTIONAL"
         },
         {
-          "multiplierDecimal": "4",
-          "multiplierDown": "0.9500",
           "filterType": "PERCENT_PRICE",
-          "multiplierUp": "1.0500"
+          "multiplierDown": "0.9500",
+          "multiplierUp": "1.0500",
+          "multiplierDecimal": "4"
         },
         {
           "positionControlSide": "NONE",
@@ -3778,10 +3726,6 @@
         "FOK",
         "GTX",
         "GTD"
-      ],
-      "permissionSets": [
-        "GRID",
-        "COPY"
       ]
     },
     "tierBased": false,
@@ -3900,56 +3844,54 @@
       "onboardDate": "1597734000000",
       "contractStatus": "TRADING",
       "contractSize": "10",
+      "marginAsset": "ETH",
       "maintMarginPercent": "2.5000",
       "requiredMarginPercent": "5.0000",
       "baseAsset": "ETH",
       "quoteAsset": "USD",
-      "marginAsset": "ETH",
       "pricePrecision": "2",
       "quantityPrecision": "0",
       "baseAssetPrecision": "8",
       "quotePrecision": "8",
+      "equalQtyPrecision": "4",
+      "maxMoveOrderLimit": "10000",
+      "triggerProtect": "0.0500",
       "underlyingType": "COIN",
       "underlyingSubType": [
         "Layer-1"
       ],
-      "triggerProtect": "0.0500",
-      "liquidationFee": "0.015000",
-      "marketTakeBound": "0.05",
-      "equalQtyPrecision": "4",
-      "maxMoveOrderLimit": "10000",
       "filters": [
         {
-          "tickSize": "0.01",
-          "filterType": "PRICE_FILTER",
+          "minPrice": "50",
           "maxPrice": "306159",
-          "minPrice": "50"
+          "filterType": "PRICE_FILTER",
+          "tickSize": "0.01"
         },
         {
           "stepSize": "1",
-          "minQty": "1",
+          "filterType": "LOT_SIZE",
           "maxQty": "1000000",
-          "filterType": "LOT_SIZE"
+          "minQty": "1"
         },
         {
-          "maxQty": "500000",
           "stepSize": "1",
-          "minQty": "1",
-          "filterType": "MARKET_LOT_SIZE"
+          "filterType": "MARKET_LOT_SIZE",
+          "maxQty": "500000",
+          "minQty": "1"
         },
         {
           "limit": "200",
           "filterType": "MAX_NUM_ORDERS"
         },
         {
-          "filterType": "MAX_NUM_ALGO_ORDERS",
-          "limit": "20"
+          "limit": "20",
+          "filterType": "MAX_NUM_ALGO_ORDERS"
         },
         {
-          "filterType": "PERCENT_PRICE",
-          "multiplierDecimal": "4",
           "multiplierDown": "0.9500",
-          "multiplierUp": "1.0500"
+          "multiplierUp": "1.0500",
+          "multiplierDecimal": "4",
+          "filterType": "PERCENT_PRICE"
         }
       ],
       "orderTypes": [
@@ -3966,7 +3908,9 @@
         "IOC",
         "FOK",
         "GTX"
-      ]
+      ],
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.05"
     },
     "tierBased": false,
     "percentage": true,
@@ -4026,12 +3970,12 @@
       },
       "market": {
         "min": 0,
-        "max": 78414.55059166
+        "max": 90259.87503765
       }
     },
     "marginModes": {
-      "cross": false,
-      "isolated": false
+      "cross": true,
+      "isolated": true
     },
     "created": null,
     "info": {
@@ -4059,7 +4003,6 @@
       "quoteOrderQtyMarketAllowed": true,
       "allowTrailingStop": true,
       "cancelReplaceAllowed": true,
-      "amendAllowed": true,
       "isSpotTradingAllowed": true,
       "isMarginTradingAllowed": true,
       "filters": [
@@ -4082,7 +4025,7 @@
         {
           "filterType": "MARKET_LOT_SIZE",
           "minQty": "0.00000000",
-          "maxQty": "78414.55059166",
+          "maxQty": "90259.87503765",
           "stepSize": "0.00000000"
         },
         {
@@ -4323,17 +4266,14 @@
           "TRD_GRP_233",
           "TRD_GRP_234",
           "TRD_GRP_235",
-          "TRD_GRP_236",
-          "TRD_GRP_237",
-          "TRD_GRP_238"
+          "TRD_GRP_236"
         ]
       ],
       "defaultSelfTradePreventionMode": "EXPIRE_MAKER",
       "allowedSelfTradePreventionModes": [
         "EXPIRE_TAKER",
         "EXPIRE_MAKER",
-        "EXPIRE_BOTH",
-        "DECREMENT"
+        "EXPIRE_BOTH"
       ]
     },
     "tierBased": false,
