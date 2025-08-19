@@ -3347,10 +3347,12 @@ export default class Exchange {
             // autoset booleans (if undefined)
             for (let j = 0; j < knownTypes.length; j++) {
                 const type = knownTypes[j];
-                market[type] = false; // set each of them to false
-                if (market[type] === undefined && this.safeString (market, 'type') === type) {
-                    // only set the target 'type' to true
-                    market[type] = true;
+                if (market[type] === undefined) {
+                    market[type] = false; // set each of them to false
+                    if (this.safeString (market, 'type') === type) {
+                        // only set the target 'type' to true
+                        market[type] = true;
+                    }
                 }
             }
             // subType
