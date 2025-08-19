@@ -30,6 +30,9 @@ export default class toobit extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'fetchStatus': true,
+                'fetchTime': true,
+                'fetchMarkets': true,
             },
             'urls': {
                 'logo': '',
@@ -51,6 +54,7 @@ export default class toobit extends Exchange {
                     'get': {
                         'v1/time': 1,
                         'v1/ping': 1,
+                        'v1/exchangeInfo': 1,
                     },
                 },
                 'spot': {
@@ -117,6 +121,226 @@ export default class toobit extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchMarkets
+     * @description retrieves data on all markets for toobit
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<MarketInterface[]> {
+        const response = await this.commonGetV1ExchangeInfo (params);
+        //
+        //    {
+        //        "timezone": "UTC",
+        //        "serverTime": "1755583099926",
+        //        "brokerFilters": [],
+        //        "symbols": [
+        //            {
+        //                "filters": [
+        //                    {
+        //                        "minPrice": "0.01",
+        //                        "maxPrice": "10000000.00000000",
+        //                        "tickSize": "0.01",
+        //                        "filterType": "PRICE_FILTER"
+        //                    },
+        //                    {
+        //                        "minQty": "0.0001",
+        //                        "maxQty": "4000",
+        //                        "stepSize": "0.0001",
+        //                        "filterType": "LOT_SIZE"
+        //                    },
+        //                    {
+        //                        "minNotional": "5",
+        //                        "filterType": "MIN_NOTIONAL"
+        //                    },
+        //                    {
+        //                        "minAmount": "5",
+        //                        "maxAmount": "6600000",
+        //                        "minBuyPrice": "0.01",
+        //                        "filterType": "TRADE_AMOUNT"
+        //                    },
+        //                    {
+        //                        "maxSellPrice": "99999999",
+        //                        "buyPriceUpRate": "0.1",
+        //                        "sellPriceDownRate": "0.1",
+        //                        "filterType": "LIMIT_TRADING"
+        //                    },
+        //                    {
+        //                        "buyPriceUpRate": "0.1",
+        //                        "sellPriceDownRate": "0.1",
+        //                        "filterType": "MARKET_TRADING"
+        //                    },
+        //                    {
+        //                        "noAllowMarketStartTime": "0",
+        //                        "noAllowMarketEndTime": "0",
+        //                        "limitOrderStartTime": "0",
+        //                        "limitOrderEndTime": "0",
+        //                        "limitMinPrice": "0",
+        //                        "limitMaxPrice": "0",
+        //                        "filterType": "OPEN_QUOTE"
+        //                    }
+        //                ],
+        //                "exchangeId": "301",
+        //                "symbol": "ETHUSDT",
+        //                "symbolName": "ETHUSDT",
+        //                "status": "TRADING",
+        //                "baseAsset": "ETH",
+        //                "baseAssetName": "ETH",
+        //                "baseAssetPrecision": "0.0001",
+        //                "quoteAsset": "USDT",
+        //                "quoteAssetName": "USDT",
+        //                "quotePrecision": "0.01",
+        //                "icebergAllowed": false,
+        //                "isAggregate": false,
+        //                "allowMargin": true,
+        //             }
+        //        ],
+        //        "options": [],
+        //        "contracts": [
+        //            {
+        //                 "filters": [ ... ],
+        //                 "exchangeId": "301",
+        //                 "symbol": "BTC-SWAP-USDT",
+        //                 "symbolName": "BTC-SWAP-USDTUSDT",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "BTC-SWAP-USDT",
+        //                 "baseAssetPrecision": "0.001",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetPrecision": "0.1",
+        //                 "icebergAllowed": false,
+        //                 "inverse": false,
+        //                 "index": "BTC",
+        //                 "indexToken": "BTCUSDT",
+        //                 "marginToken": "USDT",
+        //                 "marginPrecision": "0.0001",
+        //                 "contractMultiplier": "0.001",
+        //                 "underlying": "BTC",
+        //                 "riskLimits": [
+        //                     {
+        //                         "riskLimitId": "200020911",
+        //                         "quantity": "42000.0",
+        //                         "initialMargin": "0.02",
+        //                         "maintMargin": "0.01",
+        //                         "isWhite": false
+        //                     },
+        //                     {
+        //                         "riskLimitId": "200020912",
+        //                         "quantity": "84000.0",
+        //                         "initialMargin": "0.04",
+        //                         "maintMargin": "0.02",
+        //                         "isWhite": false
+        //                     },
+        //                     ...
+        //                 ]
+        //            },
+        //        ],
+        //        "coins": [
+        //            {
+        //                "orgId": "9001",
+        //                "coinId": "TCOM",
+        //                "coinName": "TCOM",
+        //                "coinFullName": "TCOM",
+        //                "allowWithdraw": true,
+        //                "allowDeposit": true,
+        //                "chainTypes": [
+        //                    {
+        //                        "chainType": "BSC",
+        //                        "withdrawFee": "49.55478",
+        //                        "minWithdrawQuantity": "77",
+        //                        "maxWithdrawQuantity": "0",
+        //                        "minDepositQuantity": "48",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": false
+        //                    }
+        //                ],
+        //                "isVirtual": false
+        //            },
+        //          ...
+        //
+        const symbols = this.safeList (response, 'symbols', []);
+        const contracts = this.safeList (response, 'contracts', []);
+        const all = this.arrayConcat (symbols, contracts);
+        const result = [];
+        for (let i = 0; i < all.length; i++) {
+            const market = all[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const baseParts = baseId.split ('-');
+            const baseIdClean = baseParts[0];
+            const base = this.safeCurrencyCode (baseIdClean);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settleId = this.safeString (market, 'marginToken');
+            const settle = this.safeCurrencyCode (settleId);
+            const status = this.safeString (market, 'status');
+            const active = (status === 'TRADING');
+            const filters = this.safeList (market, 'filters', []);
+            const filtersByType = this.indexBy (filters, 'filterType');
+            const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+            const lotSizeFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+            const minNotionalFilter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
+            let symbol = base + '/' + quote;
+            const isContract = ('contractMultiplier' in market);
+            const inverse = this.safeBool (market, 'isInverse');
+            if (isContract) {
+                symbol += ':' + settle;
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': undefined,
+                'spot': !isContract,
+                'margin': false,
+                'swap': isContract,
+                'future': false,
+                'option': false,
+                'active': active,
+                'contract': isContract,
+                'linear': isContract ? !inverse : undefined,
+                'inverse': isContract ? inverse : undefined,
+                'contractSize': this.safeNumber (market, 'contractMultiplier'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'stepSize'),
+                    'price': this.safeNumber (priceFilter, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (lotSizeFilter, 'minQty'),
+                        'max': this.safeNumber (lotSizeFilter, 'maxQty'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (priceFilter, 'minPrice'),
+                        'max': this.safeNumber (priceFilter, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (minNotionalFilter, 'minNotional'),
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
