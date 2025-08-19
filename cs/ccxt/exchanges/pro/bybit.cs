@@ -936,24 +936,15 @@ public partial class bybit : ccxt.bybit
             }
         } else
         {
-            if (!isTrue(getValue(market, "spot")))
+            object limits = new Dictionary<string, object>() {
+                { "spot", new List<object>() {1, 50, 200, 1000} },
+                { "option", new List<object>() {25, 100} },
+                { "default", new List<object>() {1, 50, 200, 500, 1000} },
+            };
+            object selectedLimits = this.safeList2(limits, getValue(market, "type"), "default");
+            if (!isTrue(this.inArray(limit, selectedLimits)))
             {
-                if (isTrue(getValue(market, "option")))
-                {
-                    if (isTrue(isTrue((!isEqual(limit, 25))) && isTrue((!isEqual(limit, 100)))))
-                    {
-                        throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.")) ;
-                    }
-                } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
-                }
-            } else
-            {
-                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
-                }
+                throw new BadRequest ((string)add(add(add(add(this.id, " watchOrderBookForSymbols(): for "), getValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
             }
         }
         object topics = new List<object>() {};
