@@ -33,13 +33,14 @@ export default class toobit extends Exchange {
                 'fetchStatus': true,
                 'fetchTime': true,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
             },
             'urls': {
                 'logo': '',
                 'api': {
-                    'common': 'https://api.toobit.com/api',
-                    'spot': 'https://api.toobit.com/api',
-                    'swap': 'https://api.toobit.com/api',
+                    'common': 'https://api.toobit.com/',
+                    'spot': 'https://api.toobit.com/',
+                    'swap': 'https://api.toobit.com/',
                 },
                 'www': 'https://www.toobit.com/',
                 'doc': [
@@ -52,9 +53,11 @@ export default class toobit extends Exchange {
             'api': {
                 'common': {
                     'get': {
-                        'v1/time': 1,
-                        'v1/ping': 1,
-                        'v1/exchangeInfo': 1,
+                        'api/v1/time': 1,
+                        'api/v1/ping': 1,
+                        'api/v1/exchangeInfo': 1,
+                        'quote/v1/depth': 1, // todo: by limit 1-10
+                        'quote/v1/depth/merged': 1,
                     },
                 },
                 'spot': {
@@ -95,7 +98,7 @@ export default class toobit extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
-        const response = await this.commonGetV1Ping (params);
+        const response = await this.commonGetApiV1Ping (params);
         return {
             'status': 'ok',
             'updated': undefined,
@@ -114,7 +117,7 @@ export default class toobit extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.commonGetV1Time (params);
+        const response = await this.commonGetApiV1Time (params);
         //
         //     {
         //         "serverTime": 1699827319559
@@ -133,7 +136,7 @@ export default class toobit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<MarketInterface[]> {
-        const response = await this.commonGetV1ExchangeInfo (params);
+        const response = await this.commonGetApiV1ExchangeInfo (params);
         //
         //    {
         //        "timezone": "UTC",
@@ -295,10 +298,10 @@ export default class toobit extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': undefined,
                 'spot': !isContract,
                 'margin': false,
@@ -343,14 +346,67 @@ export default class toobit extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name toobit#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.commonGetQuoteV1Depth (this.extend (request, params));
+        //
+        //    {
+        //        "t": "1755593995237",
+        //        "b": [
+        //            [
+        //                "115186.47",
+        //                "4.184864"
+        //            ],
+        //            [
+        //                "115186.46",
+        //                "0.002756"
+        //            ],
+        //            ...
+        //        ],
+        //        "a": [
+        //            [
+        //                "115186.48",
+        //                "6.137369"
+        //            ],
+        //            [
+        //                "115186.49",
+        //                "0.002914"
+        //            ],
+        //            ...
+        //        ]
+        //    }
+        //
+        const timestamp = this.safeInteger (response, 't');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'b', 'a');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             let queryString = '';
