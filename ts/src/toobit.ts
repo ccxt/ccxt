@@ -49,6 +49,7 @@ export default class toobit extends Exchange {
             'api': {
                 'common': {
                     'get': {
+                        'v1/time': 1,
                     },
                 },
                 'spot': {
@@ -78,6 +79,24 @@ export default class toobit extends Exchange {
                 'defaultType': 'spot',
             },
         });
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.commonGetV1Time (params);
+        //
+        //     {
+        //         "serverTime": 1699827319559
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
