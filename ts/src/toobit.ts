@@ -65,6 +65,8 @@ export default class toobit extends Exchange {
                         'api/quote/v1/index/klines': 1,
                         'api/quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 1,
+                        'quote/v1/ticker/24hr': 1,
+                        'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
                     },
                 },
                 'spot': {
@@ -555,6 +557,80 @@ export default class toobit extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeString (symbols, 0);
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.commonGetQuoteV1Ticker24hr (params);
+        } else {
+            response = await this.commonGetQuoteV1ContractTicker24hr (params);
+        }
+        //
+        //    [
+        //        {
+        //            "t": "1755601440162",
+        //            "s": "GRDRUSDT",
+        //            "c": "0.38",
+        //            "h": "0.38",
+        //            "l": "0.38",
+        //            "o": "0.38",
+        //            "v": "0",
+        //            "qv": "0",
+        //            "pc": "0",
+        //            "pcp": "0"
+        //        },
+        //        ...
+        //
+        return this.parseTickers (response, symbols, params);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (ticker, 't');
+        const last = this.safeString (ticker, 'c');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'pc'),
+            'percentage': this.safeString (ticker, 'pcp'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
