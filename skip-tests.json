@@ -1093,7 +1093,6 @@
         }
     },
     "gemini": {
-        "skipWs": "fixes needed",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
