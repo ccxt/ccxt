@@ -1201,20 +1201,15 @@ export default class coinmate extends Exchange {
         const request: Dict = {
             'currencyPair': market['id'],
         };
-        
         // Handle trigger price for stop orders
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice' ]);
-        let isStopOrder = false;
-        
         if (triggerPrice !== undefined) {
             if (type === 'market') {
                 throw new InvalidOrder (this.id + ' createOrder() stop market orders are not supported, use stop limit orders instead');
             }
-            isStopOrder = true;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
-        
         if (type === 'market') {
             if (side === 'buy') {
                 request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
@@ -1227,7 +1222,6 @@ export default class coinmate extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
-        
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
