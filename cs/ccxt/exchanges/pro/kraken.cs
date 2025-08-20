@@ -62,6 +62,7 @@ public partial class kraken : ccxt.kraken
                     { "broad", new Dictionary<string, object>() {
                         { "Already subscribed", typeof(BadRequest) },
                         { "Currency pair not in ISO 4217-A3 format", typeof(BadSymbol) },
+                        { "Currency pair not supported", typeof(BadSymbol) },
                         { "Malformed request", typeof(BadRequest) },
                         { "Pair field must be an array", typeof(BadRequest) },
                         { "Pair field unsupported for this subscription type", typeof(BadRequest) },

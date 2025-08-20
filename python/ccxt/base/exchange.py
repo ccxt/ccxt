@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.100'
+__version__ = '4.5.1'
 
 # -----------------------------------------------------------------------------
 
@@ -2336,6 +2336,12 @@ class Exchange(object):
     def get_cache_index(self, orderbook, deltas):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1
+
+    def arrays_concat(self, arraysOfArrays: List[Any]):
+        result = []
+        for i in range(0, len(arraysOfArrays)):
+            result = self.array_concat(result, arraysOfArrays[i])
+        return result
 
     def find_timeframe(self, timeframe, timeframes=None):
         if timeframes is None:

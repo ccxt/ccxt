@@ -27,6 +27,7 @@ include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_parse_precision.php';
+include_once __DIR__ . '/test_arrays_concat.php';
 
 function base_tests_init() {
     test_language_specific();
@@ -49,4 +50,5 @@ function base_tests_init() {
     test_handle_methods();
     test_remove_repeated_elements_from_array();
     test_parse_precision();
+    test_arrays_concat();
 }

@@ -42,7 +42,8 @@ export default class gate extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchContractMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchFutureMarkets(params?: {}): Promise<any[]>;
     parseContractMarket(market: any, settleId: any): {
         id: string;
         symbol: string;

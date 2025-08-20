@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.100';
+$version = '4.5.1';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.100';
+    const VERSION = '4.5.1';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2841,6 +2841,14 @@ class Exchange {
     public function get_cache_index($orderbook, $deltas) {
         // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
         return -1;
+    }
+
+    public function arrays_concat(array $arraysOfArrays) {
+        $result = array();
+        for ($i = 0; $i < count($arraysOfArrays); $i++) {
+            $result = $this->array_concat($result, $arraysOfArrays[$i]);
+        }
+        return $result;
     }
 
     public function find_timeframe($timeframe, $timeframes = null) {

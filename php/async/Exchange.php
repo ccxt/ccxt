@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.100';
+$version = '4.5.1';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.100';
+    const VERSION = '4.5.1';
 
     public $browser;
     public $marketsLoading = null;
@@ -835,6 +835,14 @@ class Exchange extends \ccxt\Exchange {
     public function get_cache_index($orderbook, $deltas) {
         // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
         return -1;
+    }
+
+    public function arrays_concat(array $arraysOfArrays) {
+        $result = array();
+        for ($i = 0; $i < count($arraysOfArrays); $i++) {
+            $result = $this->array_concat($result, $arraysOfArrays[$i]);
+        }
+        return $result;
     }
 
     public function find_timeframe($timeframe, $timeframes = null) {

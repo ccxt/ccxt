@@ -922,7 +922,6 @@ public partial class mexc : ccxt.mexc
             object timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)storedOrderBook)["nonce"] = this.safeInteger(data, "fromVersion");
         } catch(Exception e)
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
@@ -1512,7 +1511,7 @@ public partial class mexc : ccxt.mexc
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
-            { "clientOrderId", this.safeString(order, "clientOrderId") },
+            { "clientOrderId", this.safeString(order, "clientId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
@@ -1681,7 +1680,7 @@ public partial class mexc : ccxt.mexc
             channel = add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", getValue(market, "id"));
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             channel = "unsub.ticker";
@@ -1689,7 +1688,7 @@ public partial class mexc : ccxt.mexc
                 { "symbol", getValue(market, "id") },
             };
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1733,7 +1732,7 @@ public partial class mexc : ccxt.mexc
             ((IList<object>)messageHashes).Add("unsubscribe:ticker");
         }
         var client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
         return null;
     }
@@ -1782,7 +1781,7 @@ public partial class mexc : ccxt.mexc
             { "params", topics },
         };
         var client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
         return null;
     }
@@ -1813,7 +1812,7 @@ public partial class mexc : ccxt.mexc
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             object channel = add(add(add("spot@public.kline.v3.api.pb@", getValue(market, "id")), "@"), timeframeId);
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1822,7 +1821,7 @@ public partial class mexc : ccxt.mexc
                 { "symbol", getValue(market, "id") },
                 { "interval", timeframeId },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1855,7 +1854,7 @@ public partial class mexc : ccxt.mexc
             parameters = ((IList<object>)frequencyparametersVariable)[1];
             object channel = add(add(add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), getValue(market, "id"));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1863,7 +1862,7 @@ public partial class mexc : ccxt.mexc
             object requestParams = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1892,7 +1891,7 @@ public partial class mexc : ccxt.mexc
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             object channel = add("spot@public.aggre.deals.v3.api.pb@100ms@", getValue(market, "id"));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1900,7 +1899,7 @@ public partial class mexc : ccxt.mexc
             object requestParams = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});

@@ -905,6 +905,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             return True
         data = self.safe_dict(message, 'data', {})
         id = self.safe_string(message, 'id')
+        if id is None:
+            id = self.safe_string(data, 'id')
         response = self.safe_dict(data, 'response', {})
         payload = self.safe_dict(response, 'payload', {})
         status = self.safe_string(payload, 'status')

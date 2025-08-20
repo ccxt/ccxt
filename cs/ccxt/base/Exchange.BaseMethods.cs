@@ -507,6 +507,16 @@ public partial class Exchange
         return -1;
     }
 
+    public virtual object arraysConcat(object arraysOfArrays)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(arraysOfArrays)); postFixIncrement(ref i))
+        {
+            result = this.arrayConcat(result, getValue(arraysOfArrays, i));
+        }
+        return result;
+    }
+
     public virtual object findTimeframe(object timeframe, object timeframes = null)
     {
         if (isTrue(isEqual(timeframes, null)))
