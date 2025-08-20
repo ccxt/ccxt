@@ -1241,7 +1241,21 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    // calculateQuantums (size: number, atomicResolution: string, stepBaseQuantums: string) {}
+    pow (n: string, m: string) {
+        let r = Precise.stringMul (n, '1');
+        const c = this.parseToInt (m);
+        // TODO: cap
+        for (let i = 1; i < c; i++) {
+            r = Precise.stringMul (r, n);
+        }
+        return r;
+    }
+
+    // calculateQuantums (size: string, atomicResolution: string, stepBaseQuantums: string): string {
+    //     const amount = Precise.stringMul (size, this.pow ('10', Precise.stringAbs (atomicResolution)));
+    //     return Precise.stringMax (amount, stepBaseQuantums);
+    // }
+
     // calculateSubticks (size: number, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string) {}
     // calculateConditionalOrderTriggerSubticks(type, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string, triggerPrice: string)
 
@@ -1250,10 +1264,6 @@ export default class dydx extends Exchange {
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        const request: Dict = {
-            'symbol': market['id'],
-            'side': orderSide,
-        };
         // const account = this.fetchDydxAccount ();
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
@@ -1263,12 +1273,10 @@ export default class dydx extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const timeInForceSeconds = this.safeInteger (params, 'timeInForceSeconds', 60);
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
-        const typeKey = isConditional ? 'type' : 'order_type';
-        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        const amountStr = this.amountToPrecision (symbol, amount);
+        const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
-        // const quantums = this.calculateQuantums (amount, marketInfo['atomicResolution'], marketInfo['stepBaseQuantums']);
+        const quantums = Precise.stringMul (amountStr, this.pow ('10', Precise.stringAbs (marketInfo['atomicResolution'])));
         let clientMetadata = 0;
         let conditionalType = 0;
         let orderFlag = undefined;
@@ -1286,27 +1294,26 @@ export default class dydx extends Exchange {
                 }
             }
         } else if (orderType === 'LIMIT') {
-            if (timeInForce !== undefined) {
-                if (timeInForce === 'GTT') {
-                    // long-term
-                    orderFlag = 64;
-                    if (postOnly) {
-                        timeInForceNumber = 2;
-                    } else {
-                        timeInForceNumber = 0;
-                    }
+            if (timeInForce === undefined) {
+                throw new ArgumentsRequired(this.id + ' timeInForce should be specified for limit order.');
+            }
+            if (timeInForce === 'GTT') {
+                // long-term
+                orderFlag = 64;
+                if (postOnly) {
+                    timeInForceNumber = 2;
                 } else {
-                    orderFlag = 0;
-                    if (timeInForce === 'FOK') {
-                        timeInForceNumber = 3;
-                    } else if (timeInForce === 'IOC') {
-                        timeInForceNumber = 1;
-                    } else {
-                        throw new Error('unexpected code path: timeInForce');
-                    }
+                    timeInForceNumber = 0;
                 }
             } else {
-                throw new Error('timeInForce should be specified');
+                orderFlag = 0;
+                if (timeInForce === 'FOK') {
+                    timeInForceNumber = 3;
+                } else if (timeInForce === 'IOC') {
+                    timeInForceNumber = 1;
+                } else {
+                    throw new Error('unexpected code path: timeInForce');
+                }
             }
         } else if (isConditional) {
             // conditional
@@ -1322,13 +1329,12 @@ export default class dydx extends Exchange {
         let goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
-                // TODO: fetch gtb
-                throw new Error('goodTillBlock is required');
+                throw new ArgumentsRequired(this.id + ' goodTillBlock is required for short term order.');
             }
         } else {
             if (goodTillBlockTime === undefined) {
                 // TODO: set gtt
-                throw new Error('goodTillBlockTime is required');
+                throw new ArgumentsRequired('goodTillBlockTime is required');
             }
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
@@ -1409,7 +1415,7 @@ export default class dydx extends Exchange {
                 },
                 'side': sideNumber,
                 'quantums': {
-                    'low': 10000000,
+                    'low': quantums,
                     'high': 0,
                     'unsigned': false
                 },
