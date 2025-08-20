@@ -1400,7 +1400,7 @@ class Exchange(object):
         return format(random.getrandbits(length * 8), 'x')
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False, use_coincurve=False):
+    def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         """
         ECDSA signing with support for multiple algorithms and coincurve for SECP256K1.
         
@@ -1410,8 +1410,7 @@ class Exchange(object):
             algorithm: The elliptic curve algorithm ('p192', 'p224', 'p256', 'p384', 'p521', 'secp256k1')
             hash: The hash function to use (defaults to algorithm-specific hash)
             fixed_length: Whether to ensure fixed-length signatures (for deterministic signing)
-            use_coincurve: Whether to use coincurve library for SECP256K1 (default: False)
-                          Note: coincurve produces non-deterministic signatures
+            Note: coincurve produces non-deterministic signatures
         
         Returns:
             dict: {'r': r_value, 's': s_value, 'v': v_value}
@@ -1429,7 +1428,7 @@ class Exchange(object):
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         
         # Use coincurve for SECP256K1 if explicitly requested and available
-        if algorithm == 'secp256k1' and use_coincurve and coincurve is not None:
+        if algorithm == 'secp256k1' and coincurve is not None:
             return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
         
         # Fall back to original ecdsa implementation for other algorithms or when deterministic signing is needed
@@ -1498,8 +1497,6 @@ class Exchange(object):
         
         # Handle PEM format
         if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
-            # For PEM format, we need to extract the raw bytes
-            # This is a simplified approach - in practice you might want more robust PEM parsing
             secret = base64.b16decode(secret.replace(b'-----BEGIN EC PRIVATE KEY-----', b'').replace(b'-----END EC PRIVATE KEY-----', b'').replace(b'\n', b'').replace(b'\r', b''), casefold=True)
         else:
             # Assume hex format

@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.append(root)
@@ -55,29 +54,15 @@ def test_cryptography():
 
     privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a'
 
-    # First ECDSA operation with timing
-    print("Testing ECDSA operation 1...")
-    start_time = time.time()
-    result1 = ecdsa('1a', privateKey, 'secp256k1', 'sha256')
-    end_time = time.time()
-    execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
-    print(f"ECDSA operation 1 took {execution_time:.2f} ms")
 
-    assert(equals(result1, {
+    assert(equals(ecdsa('1a', privateKey, 'secp256k1', 'sha256'), {
         'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
         's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
         'v': 0,
     }))
 
-    # Second ECDSA operation with timing
-    print("Testing ECDSA operation 2...")
-    start_time = time.time()
-    result2 = ecdsa(privateKey, privateKey, 'secp256k1', None)
-    end_time = time.time()
-    execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
-    print(f"ECDSA operation 2 took {execution_time:.2f} ms")
 
-    assert(equals(result2, {
+    assert(equals(ecdsa(privateKey, privateKey, 'secp256k1', None), {
         'r': 'b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1',
         's': '66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9',
         'v': 1,
@@ -145,4 +130,4 @@ def test_cryptography():
     assert crc32('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', True) == -51055998
 
     # assert eddsa('1b1b', privateKey, 'ed25519') == '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy'
-test_cryptography()
+
