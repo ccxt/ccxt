@@ -542,17 +542,45 @@ export default class bitget extends bitgetRest {
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const timeframes = this.safeDict (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
-        const channel = 'candle' + interval;
-        return await this.unWatchChannel (symbol, channel, 'candles:' + timeframe, params);
+        let channel = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let instType = undefined;
+        let messageHash = undefined;
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'unWatchOHLCV', 'uta', false);
+        [ instType, params ] = this.getInstType (market, uta, params);
+        const args: Dict = {
+            'instType': instType,
+        };
+        if (uta) {
+            channel = 'kline';
+            args['topic'] = channel;
+            args['symbol'] = market['id'];
+            args['interval'] = interval;
+            params['uta'] = true;
+            params['interval'] = interval;
+            messageHash = channel + symbol;
+        } else {
+            channel = 'candle' + interval;
+            args['channel'] = channel;
+            args['instId'] = market['id'];
+            messageHash = 'candles:' + interval;
+        }
+        return await this.unWatchChannel (symbol, channel, messageHash, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -727,12 +755,22 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
         let instType = undefined;
-        [ instType, params ] = this.getInstType (market, false, params);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'unWatchChannel', 'uta', false);
+        [ instType, params ] = this.getInstType (market, uta, params);
         const args: Dict = {
             'instType': instType,
-            'channel': channel,
-            'instId': market['id'],
         };
+        if (uta) {
+            args['topic'] = channel;
+            args['symbol'] = market['id'];
+            args['interval'] = this.safeString (params, 'interval', '1m');
+            params['uta'] = true;
+            params = this.omit (params, 'interval');
+        } else {
+            args['channel'] = channel;
+            args['instId'] = market['id'];
+        }
         return await this.unWatchPublic (messageHash, args, params);
     }
 
