@@ -2,10 +2,10 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/backpack.js';
-import { ArgumentsRequired, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -464,14 +464,41 @@ export default class backpack extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {},
-                // {"code":"INVALID_ORDER","message":"Order with client ID already exists: 123456739"}
+                'INVALID_CLIENT_REQUEST': InvalidOrder,
+                'INVALID_ORDER': InvalidOrder,
+                'ACCOUNT_LIQUIDATING': BadRequest,
+                'BORROW_LIMIT': BadRequest,
+                'BORROW_REQUIRES_LEND_REDEEM': BadRequest,
+                'FORBIDDEN': OperationRejected,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
+                'INSUFFICIENT_MARGIN': InsufficientFunds,
+                'INSUFFICIENT_SUPPLY': InsufficientFunds,
+                'INVALID_ASSET': BadRequest,
+                'INVALID_MARKET': BadSymbol,
+                'INVALID_PRICE': BadRequest,
+                'INVALID_POSITION_ID': BadRequest,
+                'INVALID_QUANTITY': BadRequest,
+                'INVALID_RANGE': BadRequest,
+                'INVALID_SIGNATURE': AuthenticationError,
+                'INVALID_SOURCE': BadRequest,
+                'INVALID_SYMBOL': BadSymbol,
+                'INVALID_TWO_FACTOR_CODE': BadRequest,
+                'LEND_LIMIT': BadRequest,
+                'LEND_REQUIRES_BORROW_REPAY': BadRequest,
+                'MAINTENANCE': ExchangeError,
+                'MAX_LEVERAGE_REACHED': InsufficientFunds,
+                'NOT_IMPLEMENTED': OperationFailed,
+                'ORDER_LIMIT': OperationRejected,
+                'POSITION_LIMIT': OperationRejected,
+                'PRECONDITION_FAILED': OperationFailed,
+                'RESOURCE_NOT_FOUND': ExchangeNotAvailable,
+                'SERVER_ERROR': NetworkError,
+                'TIMEOUT': RequestTimeout,
+                'TOO_MANY_REQUESTS': RateLimitExceeded,
+                'TRADING_PAUSED': ExchangeNotAvailable,
+                'UNAUTHORIZED': AuthenticationError,
                 // Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
-                // {"code":"INVALID_CLIENT_REQUEST","message":"Market orders must specify a `quantity` or `quoteQuantity`"}
-                // {"code":"INVALID_ORDER","message":"Invalid order"}
-                // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
-                // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify either `clientId` or `orderId`"}
-                // {"code":"INVALID_CLIENT_REQUEST","message":"Invalid signature"}
-                // {"code":"INVALID_CLIENT_REQUEST","message":"Invalid start time"}
+                // failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad': {},
             },
         });
@@ -2332,5 +2359,25 @@ export default class backpack extends Exchange {
             }
         }
         return payload;
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        // {"code":"INVALID_ORDER","message":"Invalid order"}
+        // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
+        //
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
