@@ -102,7 +102,7 @@ export default class gemini extends geminiRest {
         //     {
         //         "type": "trade",
         //         "symbol": "BTCUSD",
-        //         "event_id": 122258166739,
+        //         "event_id": 122258166738,
         //         "timestamp": 1655330221424,
         //         "price": "22269.14",
         //         "quantity": "0.00004473",
