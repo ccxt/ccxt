@@ -7665,7 +7665,8 @@ export default class Exchange {
     removeKeysFromDict (dict:Dict, removeKeys: string[]) {
         const keys = Object.keys (dict);
         const newDict = {};
-        for (const key of keys) {
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
             if (!removeKeys.includes (key)) {
                 newDict[key] = dict[key];
             }
