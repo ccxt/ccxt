@@ -7662,6 +7662,17 @@ export default class Exchange {
         return values as any;
     }
 
+    removeKeysFromDict (dict:Dict, removeKeys: string[]) {
+        const keys = Object.keys (dict);
+        const newDict = {};
+        for (const key of keys) {
+            if (!removeKeys.includes (key)) {
+                newDict[key] = dict[key];
+            }
+        }
+        return newDict;
+    }
+
     handleUntilOption (key: string, request, params, multiplier = 1) {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {

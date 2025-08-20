@@ -77,7 +77,8 @@ export default class gemini extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
+                'fetchLastPrices': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -297,6 +298,7 @@ export default class gemini extends Exchange {
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': [ 'efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd' ],
             },
             'features': {
                 'default': {
@@ -636,10 +638,10 @@ export default class gemini extends Exchange {
         //
         const result = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
-        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
         const marketIds = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (marketIdsRaw[i] !== bugSymbol) {
+            if (!this.inArray (marketIdsRaw[i], brokenPairs)) {
                 marketIds.push (marketIdsRaw[i]);
             }
         }
@@ -676,13 +678,15 @@ export default class gemini extends Exchange {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const tradingPair = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
-                    if (tradingPair !== undefined) {
+                    if (tradingPair !== undefined && !this.inArray (tradingPair, brokenPairs)) {
                         result.push (this.parseMarket (tradingPair));
                     }
                 }
             } else {
                 for (let i = 0; i < marketIds.length; i++) {
-                    result.push (this.parseMarket (marketIds[i]));
+                    if (!this.inArray (marketIds[i], brokenPairs)) {
+                        result.push (this.parseMarket (marketIds[i]));
+                    }
                 }
             }
         }
@@ -1072,7 +1076,9 @@ export default class gemini extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTickers (response, symbols);
+        const result = this.parseTickers (response, symbols);
+        const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
+        return this.removeKeysFromDict (result, brokenPairs);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
