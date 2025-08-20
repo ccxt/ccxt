@@ -84,7 +84,6 @@ setup(
         'requests>=2.18.4',
         'cryptography>=2.6.1',
         'typing_extensions>=4.4.0',
-        'coincurve>=21.0.0'
     ],
 
     extras_require={
@@ -92,6 +91,9 @@ setup(
             'aiohttp>=3.10.11',
             'aiodns>=1.1.1',
             'yarl>=1.7.2',
+        ],
+        ':python_version>="3.9"': [
+            'coincurve>=21.0.0',
         ],
         'qa': [
             'ruff==0.0.292',

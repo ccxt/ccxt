@@ -50,8 +50,10 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from ccxt.static_dependencies import ecdsa
 from ccxt.static_dependencies import keccak
 
-# coincurve for SECP256K1
-from ccxt.static_dependencies import coincurve
+try:
+    import coincurve
+except ImportError:
+    coincurve = None
 
 # eddsa signing
 try:
@@ -1414,6 +1416,10 @@ class Exchange(object):
         
         Returns:
             dict: {'r': r_value, 's': s_value, 'v': v_value}
+            
+        Note:
+            If coincurve is not available or fails for SECP256K1, the method automatically
+            falls back to the standard ecdsa implementation.
         """
         # your welcome - frosty00
         algorithms = {
@@ -1429,7 +1435,11 @@ class Exchange(object):
         
         # Use coincurve for SECP256K1 if explicitly requested and available
         if algorithm == 'secp256k1' and coincurve is not None:
-            return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
+            try:
+                return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
+            except Exception:
+                # If coincurve fails, fall back to ecdsa implementation
+                pass
         
         # Fall back to original ecdsa implementation for other algorithms or when deterministic signing is needed
         curve_info = algorithms[algorithm]
