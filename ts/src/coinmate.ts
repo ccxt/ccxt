@@ -33,6 +33,7 @@ export default class coinmate extends Exchange {
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
@@ -40,6 +41,7 @@ export default class coinmate extends Exchange {
                 'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
+                'editOrder': true,
                 'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -245,7 +247,6 @@ export default class coinmate extends Exchange {
                         'DAI': 'privatePostDaiWithdrawal',
                         'ADA': 'privatePostAdaWithdrawal',
                         'SOL': 'privatePostSolWithdrawal',
-                        'USDC': 'privatePostWithdrawVirtualCurrency',
                     },
                 },
             },
@@ -795,24 +796,17 @@ export default class coinmate extends Exchange {
         const depositMethods = {
             'BTC': 'privatePostBitcoinDepositAddresses',
             'LTC': 'privatePostLitecoinDepositAddresses',
-            'BCH': 'privatePostBitcoinCashDepositAddresses',
             'ETH': 'privatePostEthereumDepositAddresses',
             'XRP': 'privatePostRippleDepositAddresses',
-            'DASH': 'privatePostDashDepositAddresses',
             'ADA': 'privatePostAdaDepositAddresses',
             'SOL': 'privatePostSolDepositAddresses',
-            'USDC': 'privatePostVirtualCurrencyDepositAddresses',
         };
         const method = this.safeString (depositMethods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys (depositMethods);
             throw new ExchangeError (this.id + ' fetchDepositAddress() only supports the following currencies: ' + allowedCurrencies.join (', '));
         }
-        const request: Dict = {};
-        if (code === 'USDC') {
-            request['currency'] = currency['id'];
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend ({}, params));
         //
         // Bitcoin/Litecoin/Ethereum etc.
         //
@@ -1307,6 +1301,71 @@ export default class coinmate extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data);
+    }
+
+    /**
+     * @method
+     * @name coinmate#cancelAllOrders
+     * @description cancel all open orders, optionally for a specific market
+     * @see https://coinmate.docs.apiary.io/#reference/order/cancel-all-open-orders/post
+     * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOpenOrders (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
+    }
+
+    /**
+     * @method
+     * @name coinmate#editOrder
+     * @description edit a trade order by replacing it with new params
+     * @see https://coinmate.docs.apiary.io/#reference/order/replace-by-buy-limit-order/post
+     * @see https://coinmate.docs.apiary.io/#reference/order/replace-by-sell-limit-order/post
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = 'privatePostReplaceBy' + this.capitalize (side);
+        const request: Dict = {
+            'orderId': id,
+            'currencyPair': market['id'],
+        };
+        if (type === 'market') {
+            if (side === 'buy') {
+                request['total'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+            method += 'Instant';
+        } else {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            method += this.capitalize (type);
+        }
+        const response = await this[method] (this.extend (request, params));
+        const newOrderId = this.safeString (response, 'data');
+        return this.safeOrder ({
+            'info': response,
+            'id': newOrderId,
+        }, market);
     }
 
     nonce () {
