@@ -615,6 +615,10 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
     assert (deepEqual (a, b), 'two dicts do not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
 }
 
+function getMemoryUsage () {
+    return process.memoryUsage ().heapUsed;
+}
+
 export default {
     deepEqual,
     assertDeepEqual,

@@ -3410,6 +3410,38 @@ export default class Exchange {
         return this.markets;
     }
 
+    /**
+     * @method
+     * @name Exchange#setMarketsFromExchange
+     * @description Shares market data from another exchange instance for memory efficiency
+     * @param {Exchange} sourceExchange - The exchange instance to share markets from
+     * @returns {Dictionary} markets - Dictionary of exchange.markets
+     * @throws An error if the exchanges are of different types or if source markets are not loaded
+     * @remarks This method enables memory-efficient market sharing between exchange instances of the same type.
+     *          All market-related data is copied by reference, allowing multiple instances to share the same market objects.
+     *          This eliminates redundant API calls and reduces memory usage when using multiple exchange instances.
+     */
+    setMarketsFromExchange (sourceExchange: Exchange): Dictionary<MarketInterface> {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange.id + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange || this.isEmpty (sourceExchange.markets)) {
+            throw new ExchangeError (sourceExchange.id + ' setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this.markets;
+    }
+
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
         const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), currentRestInstance.describe ());
         const superWithRestDescribe = this.deepExtend (extendedRestDescribe, wsBaseDescribe);
