@@ -1385,16 +1385,18 @@ export default class dydx extends Exchange {
         //     }
         //     request['child_orders'] = [ outterOrder ];
         // }
+        const defaultClientOrderId = this.randNumber (10);
+        const clientOrderId = this.safeInteger (params, 'clientOrderId', defaultClientOrderId);
         const orderPayload = {
             'order': {
                 'orderId': {
                     'subaccountId': {
-                        'owner': 'dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art',
+                        'owner': this.walletAddress,
                         'number': 0
                     },
-                    'clientId': 1893853565,
+                    'clientId': clientOrderId,
                     'orderFlags': orderFlag,
-                    'clobPairId': '1'
+                    'clobPairId': market['info']['clobPairId']
                 },
                 'side': sideNumber,
                 'quantums': {
@@ -1452,19 +1454,20 @@ export default class dydx extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        const signedOrder = await this.signDydxOrder (wallet, orderRequest, 11155111, undefined, account);
+        const signedOrder = await this.signDydxOrder (wallet, orderRequest, 'dydx-testnet-4', undefined, account);
         const request = {
             'tx': signedOrder,
         };
         console.log(request)
-        // const response = await this.nodeRpcGetBroadcastTxAsync (request);
+        // nodeRpcGetBroadcastTxAsync
+        const response = await this.nodeRpcGetBroadcastTxSync (request);
         // //
         // //
         // console.log(response)

@@ -1671,7 +1671,7 @@ export default class Exchange {
         wallet: any,
         message: any,
         // zeroFee?: boolean,
-        chainId: number,
+        chainId: string,
         // gasPrice?: any,
         memo?: string,
         account?: any,
@@ -1708,7 +1708,7 @@ export default class Exchange {
             chainId: chainId,
             authenticators,
         };
-        return this.binaryToBase64 (await wallet.signTransaction(messages, txOptions, fee, memo));
+        return '0x' + this.binaryToBase16 (await wallet.signTransaction(messages, txOptions, fee, memo));
     }
 
     intToBase16(elem): string {
