@@ -1219,7 +1219,7 @@ export default class okx extends Exchange {
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
-                'brokerId': 'e847386590ce4dBC',
+                'brokerId': '6b9ad766b55dBCDE',
             },
             'features': {
                 'default': {
