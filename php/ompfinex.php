@@ -364,6 +364,7 @@ class ompfinex extends Exchange {
             $last /= 10;
             $quoteVolume /= 10;
         }
+        $baseVolume = $quoteVolume / $last;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -382,7 +383,7 @@ class ompfinex extends Exchange {
             'change' => $change,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);

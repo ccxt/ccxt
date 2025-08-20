@@ -86,7 +86,7 @@ class nobitex(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/nobitex/64x64.png',
                 'api': {
-                    'public': 'https://api.nobitex.ir',
+                    'public': 'https://apiv2.nobitex.ir',
                 },
                 'www': 'https://nobitex.ir/',
                 'doc': [
@@ -136,11 +136,7 @@ class nobitex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        }
-        response = self.publicGetMarketStats(request)
+        response = self.publicGetMarketStats()
         markets = self.safe_dict(response, 'stats')
         marketKeys = list(markets.keys())
         result = []
@@ -236,11 +232,7 @@ class nobitex(Exchange, ImplicitAPI):
         self.load_markets()
         if symbols is not None:
             symbols = self.market_symbols(symbols)
-        request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        }
-        response = self.publicGetMarketStats(request)
+        response = self.publicGetMarketStats()
         markets = self.safe_dict(response, 'stats')
         marketKeys = list(markets.keys())
         result = []
@@ -341,6 +333,8 @@ class nobitex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         endTime = Date.now()
+        if market['quote'] == 'IRT':
+            market['id'] = market['id'].replace('RLS', 'IRT')
         request = {
             'symbol': market['id'],
             'from': (endTime / 1000) - (24 * 60 * 60),

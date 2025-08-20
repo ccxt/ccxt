@@ -327,7 +327,7 @@ class abantether extends abantether$1["default"] {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['public'] + '/' + path + '?format=json';
-        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=9593a1412d8bfc752c7170b1d2264544' };
+        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=42f03956ded5873c087d9f052b33cbff' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }

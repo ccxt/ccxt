@@ -137,7 +137,7 @@ class bitpin extends bitpin$1["default"] {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetV1MktMarkets(params);
-        const markets = this.safeDict(response, 'results');
+        const markets = this.safeList(response, 'results');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = await this.parseMarket(markets[i]);
@@ -220,7 +220,7 @@ class bitpin extends bitpin$1["default"] {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetV1MktMarkets(params);
-        const markets = this.safeDict(response, 'results');
+        const markets = this.safeList(response, 'results');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
             const is_active = this.safeBool(markets[i], 'tradable');
@@ -365,9 +365,10 @@ class bitpin extends bitpin$1["default"] {
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const high = this.safeFloat(priceInfo, 'max', 0);
         const low = this.safeFloat(priceInfo, 'min', 0);
-        const last = this.safeFloat(priceInfo, 'lastPrice', 0);
+        const last = this.safeFloat(priceInfo, 'price', 0);
         const change = this.safeFloat(priceInfo, 'change', 0);
-        const quoteVolume = this.safeFloat(priceInfo, '24h_quoteVolume', 0);
+        const baseVolume = this.safeFloat(priceInfo, 'amount', 0);
+        const quoteVolume = this.safeFloat(priceInfo, 'value', 0);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -386,7 +387,7 @@ class bitpin extends bitpin$1["default"] {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);

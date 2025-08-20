@@ -356,6 +356,7 @@ class ompfinex(Exchange, ImplicitAPI):
             low /= 10
             last /= 10
             quoteVolume /= 10
+        baseVolume = quoteVolume / last
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -374,7 +375,7 @@ class ompfinex(Exchange, ImplicitAPI):
             'change': change,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market)

@@ -312,5 +312,5 @@ class abantether(Exchange, ImplicitAPI):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['public'] + '/' + path + '?format=json'
-        headers = {'Content-Type': 'application/json', 'Cookie': '__arcsco=9593a1412d8bfc752c7170b1d2264544'}
+        headers = {'Content-Type': 'application/json', 'Cookie': '__arcsco=42f03956ded5873c087d9f052b33cbff'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

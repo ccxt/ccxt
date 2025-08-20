@@ -88,7 +88,7 @@ export default class nobitex extends Exchange {
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/nobitex/64x64.png',
                 'api': {
-                    'public': 'https://api.nobitex.ir',
+                    'public': 'https://apiv2.nobitex.ir',
                 },
                 'www': 'https://nobitex.ir/',
                 'doc': [
@@ -140,11 +140,7 @@ export default class nobitex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        };
-        const response = await this.publicGetMarketStats(request);
+        const response = await this.publicGetMarketStats();
         const markets = this.safeDict(response, 'stats');
         const marketKeys = Object.keys(markets);
         const result = [];
@@ -245,11 +241,7 @@ export default class nobitex extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
         }
-        const request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        };
-        const response = await this.publicGetMarketStats(request);
+        const response = await this.publicGetMarketStats();
         const markets = this.safeDict(response, 'stats');
         const marketKeys = Object.keys(markets);
         const result = [];
@@ -357,6 +349,9 @@ export default class nobitex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const endTime = Date.now();
+        if (market['quote'] === 'IRT') {
+            market['id'] = market['id'].replace('RLS', 'IRT');
+        }
         const request = {
             'symbol': market['id'],
             'from': (endTime / 1000) - (24 * 60 * 60),

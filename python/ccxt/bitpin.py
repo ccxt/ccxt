@@ -134,7 +134,7 @@ class bitpin(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetV1MktMarkets(params)
-        markets = self.safe_dict(response, 'results')
+        markets = self.safe_list(response, 'results')
         result = []
         for i in range(0, len(markets)):
             market = self.parse_market(markets[i])
@@ -213,7 +213,7 @@ class bitpin(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = self.publicGetV1MktMarkets(params)
-        markets = self.safe_dict(response, 'results')
+        markets = self.safe_list(response, 'results')
         result = {}
         for i in range(0, len(markets)):
             is_active = self.safe_bool(markets[i], 'tradable')
@@ -354,9 +354,10 @@ class bitpin(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, None, marketType)
         high = self.safe_float(priceInfo, 'max', 0)
         low = self.safe_float(priceInfo, 'min', 0)
-        last = self.safe_float(priceInfo, 'lastPrice', 0)
+        last = self.safe_float(priceInfo, 'price', 0)
         change = self.safe_float(priceInfo, 'change', 0)
-        quoteVolume = self.safe_float(priceInfo, '24h_quoteVolume', 0)
+        baseVolume = self.safe_float(priceInfo, 'amount', 0)
+        quoteVolume = self.safe_float(priceInfo, 'value', 0)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -375,7 +376,7 @@ class bitpin(Exchange, ImplicitAPI):
             'change': change,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market)

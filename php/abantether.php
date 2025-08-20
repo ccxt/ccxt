@@ -325,7 +325,7 @@ class abantether extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api']['public'] . '/' . $path . '?format=json';
-        $headers = array( 'Content-Type' => 'application/json', 'Cookie' => '__arcsco=9593a1412d8bfc752c7170b1d2264544' );
+        $headers = array( 'Content-Type' => 'application/json', 'Cookie' => '__arcsco=42f03956ded5873c087d9f052b33cbff' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

@@ -273,6 +273,9 @@ class ramzinex extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
+                if (!$markets[$i].financial || $markets[$i].financial === 0) {
+                    continue;
+                }
                 $ticker = Async\await($this->parse_ticker($markets[$i]));
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;

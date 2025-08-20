@@ -367,6 +367,7 @@ class ompfinex extends ompfinex$1["default"] {
             last /= 10;
             quoteVolume /= 10;
         }
+        const baseVolume = quoteVolume / last;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -385,7 +386,7 @@ class ompfinex extends ompfinex$1["default"] {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);

@@ -274,6 +274,7 @@ class tabdeal extends tabdeal$1["default"] {
         const ask = this.safeFloat(ticker, 'price', 0);
         const last = this.safeFloat(ticker, 'price', 0);
         const baseVolume = this.safeFloat(ticker, 'volume', 0);
+        const quoteVolume = baseVolume * last;
         const datetime = this.safeString(ticker, 'created');
         return this.safeTicker({
             'symbol': symbol,
@@ -294,7 +295,7 @@ class tabdeal extends tabdeal$1["default"] {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }

@@ -264,6 +264,7 @@ class tabdeal(Exchange, ImplicitAPI):
         ask = self.safe_float(ticker, 'price', 0)
         last = self.safe_float(ticker, 'price', 0)
         baseVolume = self.safe_float(ticker, 'volume', 0)
+        quoteVolume = baseVolume * last
         datetime = self.safe_string(ticker, 'created')
         return self.safe_ticker({
             'symbol': symbol,
@@ -284,7 +285,7 @@ class tabdeal(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
-            'quoteVolume': None,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market)
 

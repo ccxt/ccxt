@@ -134,7 +134,7 @@ class bitpin extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetV1MktMarkets ($params);
-        $markets = $this->safe_dict($response, 'results');
+        $markets = $this->safe_list($response, 'results');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
@@ -217,7 +217,7 @@ class bitpin extends Exchange {
             $symbols = $this->market_symbols($symbols);
         }
         $response = $this->publicGetV1MktMarkets ($params);
-        $markets = $this->safe_dict($response, 'results');
+        $markets = $this->safe_list($response, 'results');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $is_active = $this->safe_bool($markets[$i], 'tradable');
@@ -362,9 +362,10 @@ class bitpin extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $high = $this->safe_float($priceInfo, 'max', 0);
         $low = $this->safe_float($priceInfo, 'min', 0);
-        $last = $this->safe_float($priceInfo, 'lastPrice', 0);
+        $last = $this->safe_float($priceInfo, 'price', 0);
         $change = $this->safe_float($priceInfo, 'change', 0);
-        $quoteVolume = $this->safe_float($priceInfo, '24h_quoteVolume', 0);
+        $baseVolume = $this->safe_float($priceInfo, 'amount', 0);
+        $quoteVolume = $this->safe_float($priceInfo, 'value', 0);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -383,7 +384,7 @@ class bitpin extends Exchange {
             'change' => $change,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);

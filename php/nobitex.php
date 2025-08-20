@@ -85,7 +85,7 @@ class nobitex extends Exchange {
             'urls' => array(
                 'logo' => 'https://cdn.arz.digital/cr-odin/img/exchanges/nobitex/64x64.png',
                 'api' => array(
-                    'public' => 'https://api.nobitex.ir',
+                    'public' => 'https://apiv2.nobitex.ir',
                 ),
                 'www' => 'https://nobitex.ir/',
                 'doc' => array(
@@ -136,11 +136,7 @@ class nobitex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $request = array(
-            'srcCurrency' => 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency' => 'rls,usdt',
-        );
-        $response = $this->publicGetMarketStats ($request);
+        $response = $this->publicGetMarketStats ();
         $markets = $this->safe_dict($response, 'stats');
         $marketKeys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -241,11 +237,7 @@ class nobitex extends Exchange {
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
         }
-        $request = array(
-            'srcCurrency' => 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency' => 'rls,usdt',
-        );
-        $response = $this->publicGetMarketStats ($request);
+        $response = $this->publicGetMarketStats ();
         $markets = $this->safe_dict($response, 'stats');
         $marketKeys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -352,6 +344,9 @@ class nobitex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $endTime = Date.now ();
+        if ($market['quote'] === 'IRT') {
+            $market['id'] = str_replace('RLS', 'IRT', $market['id']);
+        }
         $request = array(
             'symbol' => $market['id'],
             'from' => ($endTime / 1000) - (24 * 60 * 60),

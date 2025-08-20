@@ -372,6 +372,7 @@ export default class ompfinex extends Exchange {
             last /= 10;
             quoteVolume /= 10;
         }
+        const baseVolume = quoteVolume / last;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -390,7 +391,7 @@ export default class ompfinex extends Exchange {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);

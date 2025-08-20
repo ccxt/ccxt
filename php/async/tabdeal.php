@@ -279,6 +279,7 @@ class tabdeal extends Exchange {
         $ask = $this->safe_float($ticker, 'price', 0);
         $last = $this->safe_float($ticker, 'price', 0);
         $baseVolume = $this->safe_float($ticker, 'volume', 0);
+        $quoteVolume = $baseVolume * $last;
         $datetime = $this->safe_string($ticker, 'created');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -299,7 +300,7 @@ class tabdeal extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => null,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);
     }
