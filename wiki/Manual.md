@@ -1255,6 +1255,100 @@ Apart from the market info, the `loadMarkets()` call will also load the currenci
 
 The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the `loadMarkets()` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
 
+### Sharing Markets Between Exchange Instances
+
+To optimize memory usage and reduce redundant API calls, you can share market data between multiple instances of the same exchange. This is especially useful when creating multiple exchange instances or when you want to reuse market data that has already been loaded.
+
+<!-- tabs:start -->
+
+#### **Javascript**
+```javascript
+(async () => {
+    // Create first exchange instance and load markets
+    let exchange1 = new ccxt.binance()
+    await exchange1.loadMarkets()
+    
+    // Create second exchange instance
+    let exchange2 = new ccxt.binance()
+    
+    // Share markets from first instance to second using the new shareMarkets method
+    exchange2.shareMarkets(exchange1)
+    
+    // Now exchange2 can use the shared markets without loading them
+    console.log(exchange2.symbols) // Available immediately
+    
+    // When calling loadMarkets on exchange2, it will use cached markets
+    await exchange2.loadMarkets() // No API call, uses shared markets
+})()
+```
+
+#### **Python**
+```python
+# Create first exchange instance and load markets
+exchange1 = ccxt.binance()
+exchange1.load_markets()
+
+# Create second exchange instance
+exchange2 = ccxt.binance()
+
+# Share markets from first instance to second using the new shareMarkets method
+exchange2.share_markets(exchange1)
+
+# Now exchange2 can use the shared markets without loading them
+print(exchange2.symbols)  # Available immediately
+
+# When calling load_markets on exchange2, it will use cached markets
+exchange2.load_markets()  # No API call, uses shared markets
+```
+
+#### **PHP**
+```php
+// Create first exchange instance and load markets
+$exchange1 = new \ccxt\binance();
+$exchange1->load_markets();
+
+// Create second exchange instance
+$exchange2 = new \ccxt\binance();
+
+// Share markets from first instance to second using the new shareMarkets method
+$exchange2->share_markets($exchange1);
+
+// Now exchange2 can use the shared markets without loading them
+var_dump($exchange2->symbols); // Available immediately
+
+// When calling load_markets on exchange2, it will use cached markets
+$exchange2->load_markets(); // No API call, uses shared markets
+```
+
+<!-- tabs:end -->
+
+**Benefits of Market Sharing:**
+- **Memory Efficiency**: Multiple exchange instances share the same market objects in memory
+- **Performance**: Eliminates redundant API calls for market data
+- **Resource Conservation**: Reduces network requests and API rate limit usage
+- **Persistence**: Market data remains available even if individual exchange instances are destroyed
+
+**Alternative Simple Assignment:**
+
+If you prefer direct property assignment, you can also share markets by directly assigning the `markets` property:
+
+```javascript
+// Simple direct assignment (ensure both exchanges are of same type)
+exchange2.markets = exchange1.markets;
+exchange2.symbols = exchange1.symbols;  // Also copy symbols for full functionality
+```
+
+However, using the `shareMarkets()` method is recommended as it:
+- Validates that both exchanges are of the same type
+- Ensures all related market data is properly copied
+- Provides better error handling
+
+**Important Notes:**
+- Only share markets between instances of the same exchange type
+- Market sharing is most effective when both instances use the same API credentials and configuration
+- The shared market objects will persist in memory as long as at least one reference exists
+- Both the `shareMarkets()` method and direct assignment create shared references, not copies
+
 ## Symbols And Market Ids
 
 A currency code is a code of three to five letters, like `BTC`, `ETH`, `USD`, `GBP`, `CNY`, `JPY`, `DOGE`, `RUB`, `ZEC`, `XRP`, `XMR`, etc. Some exchanges have exotic currencies with longer codes.
