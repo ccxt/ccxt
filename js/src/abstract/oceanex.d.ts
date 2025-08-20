@@ -19,6 +19,11 @@ interface Exchange {
     privatePostOrderDelete(params?: {}): Promise<implicitReturnType>;
     privatePostOrderDeleteMulti(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersClear(params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawsSpecialNew(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddresses(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositHistory(params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawHistory(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

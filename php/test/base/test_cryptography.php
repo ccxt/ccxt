@@ -45,7 +45,7 @@ function rsa(...$arg) {
 
 function test_cryptography () {
 
-    $exchange = new Exchange ();
+    // $exchange = new Exchange ();
 
     // ---------------------------------------------------------------------------------------------------------------------
 

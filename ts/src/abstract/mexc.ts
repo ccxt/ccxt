@@ -27,6 +27,7 @@ interface Exchange {
     spotPrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetAccount (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetTradeFee (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountList (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountApiKey (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
@@ -63,6 +64,7 @@ interface Exchange {
     spotPrivateGetRebateAffiliateCommissionDetail (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetSelfSymbols (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrderTest (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;

@@ -1,0 +1,195 @@
+name: Python
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    steps:
+    - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
+      with:
+        fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    - name: Install python dependencies
+      run: pip install -r ci-requirements.txt
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: Check Python version
+      run: python --version
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Determine modified files
+      run: ./utils/init_actions.sh
+    - name: Pre-transpile (export exchanges and emit API)
+      run: npm run pre-transpile-py
+    - name: Transpile to Python
+      if: env.important_modified == 'true'
+      run: npm run force-transpile-fast-py
+    - name: Transpile to Python (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run transpileRest --python $exchange
+        done
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run transpileWs --python $exchange
+        done
+    - name: Post-transpile (syntax check)
+      run: npm run check-python-syntax
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-py
+    - name: Run Base Ws Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-ws-py
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-py
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-py
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run request-py-sync -- $exchange
+          npm run request-py-async -- $exchange
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: npm run response-py
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run response-py-sync -- $exchange
+          npm run response-py-async -- $exchange
+        done
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+
+    - name: Upload Python Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-files
+        path: python/
+    - name: Push Python changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add python/
+          git commit -m "[Automated changes] Python files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull --rebase --autostash origin master
+          git push
+  windows:
+    runs-on: windows-2022
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Download Py Files
+        uses: actions/download-artifact@v4
+        with:
+          name: python-files
+          path: python/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install python dependencies
+        run: pip install -r ci-requirements.txt
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Run Id Tests
+        run: npm run id-tests-py
+      - name: Request tests
+        run: npm run request-py
+      - name: Response tests
+        run: npm run response-py
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Download Py Files
+        uses: actions/download-artifact@v4
+        with:
+          name: python-files
+          path: python/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install python dependencies
+        run: pip install -r ci-requirements.txt
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: ./run-tests-simul.sh --python-async
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --python-async "${{ env.rest_files }}" "${{ env.ws_files }}"

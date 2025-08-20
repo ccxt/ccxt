@@ -23,7 +23,7 @@ function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    const emptyAllowedFor = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime'];
+    const emptyAllowedFor = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker'];
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);

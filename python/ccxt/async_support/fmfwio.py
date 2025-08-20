@@ -5,11 +5,12 @@
 
 from ccxt.async_support.hitbtc import hitbtc
 from ccxt.abstract.fmfwio import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class fmfwio(hitbtc, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(fmfwio, self).describe(), {
             'id': 'fmfwio',
             'name': 'FMFW.io',

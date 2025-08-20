@@ -1,0 +1,23 @@
+name: Test PROD environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input value'
+        required: false
+        default: 'default-value'
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if secret is available if not prod
+        run: |
+          if [ -z "${{ secrets.NUGET_PROD }}" ]; then
+            echo "❌ DEPLOY_KEY is NOT defined in this environment."
+            exit 1
+          else
+            echo "✅ DEPLOY_KEY is available."
+          fi

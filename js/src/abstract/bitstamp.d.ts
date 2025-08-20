@@ -24,6 +24,7 @@ interface Exchange {
     privatePostUserTransactions(params?: {}): Promise<implicitReturnType>;
     privatePostUserTransactionsPair(params?: {}): Promise<implicitReturnType>;
     privatePostCryptoTransactions(params?: {}): Promise<implicitReturnType>;
+    privatePostOpenOrder(params?: {}): Promise<implicitReturnType>;
     privatePostOpenOrdersAll(params?: {}): Promise<implicitReturnType>;
     privatePostOpenOrdersPair(params?: {}): Promise<implicitReturnType>;
     privatePostOrderStatus(params?: {}): Promise<implicitReturnType>;

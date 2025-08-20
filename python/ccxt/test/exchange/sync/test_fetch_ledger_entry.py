@@ -26,3 +26,4 @@ def test_fetch_ledger_entry(exchange, skipped_properties, code):
         item = exchange.fetch_ledger_entry(id)
         now = exchange.milliseconds()
         test_ledger_entry(exchange, skipped_properties, method, item, code, now)
+    return True

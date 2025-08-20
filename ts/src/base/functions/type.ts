@@ -45,8 +45,8 @@ const safeInteger = (o: implicitReturnType, k: IndexType, $default?: number): In
 };
 
 const safeIntegerProduct = (o: implicitReturnType, k: IndexType, $factor: number, $default?: number): Int => {
-    const n = asFloat (prop (o, k))
-    return isNumber (n) ? parseInt (n * $factor as any) : $default
+    const n = asFloat (prop (o, k));
+    return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
 const safeTimestamp = (o: implicitReturnType, k: IndexType, $default?: number): Int => {
@@ -96,7 +96,7 @@ const safeInteger2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $defa
 };
 
 const safeIntegerProduct2 = (o: implicitReturnType, k1: IndexType, k2: IndexType, $factor: number, $default?: number): Int => {
-    const n = asInteger (prop2 (o, k1, k2));
+    const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
@@ -149,7 +149,7 @@ const safeIntegerN = (o: implicitReturnType, k: (IndexType)[], $default?: number
 };
 
 const safeIntegerProductN = (o: implicitReturnType, k: (IndexType)[], $factor: number, $default?: number): Int => {
-    const n = asInteger (getValueFromKeysInArray (o, k));
+    const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 

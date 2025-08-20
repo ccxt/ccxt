@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchOpenInterestHistory(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchOpenInterestHistory(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchOpenInterestHistory";
         object openInterestHistory = await exchange.fetchOpenInterestHistory(symbol);
@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         {
             testOpenInterest(exchange, skippedProperties, method, getValue(openInterestHistory, i));
         }
+        return true;
     }
 
 }

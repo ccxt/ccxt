@@ -54,9 +54,9 @@
                   "XRP",
                   35.03221,
                   "rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2",
-                  376382
+                  "376382"
                 ],
-                "output": "{\"apiKey\":\"23974850e-39kd-393d-393d-12038540\",\"nonce\":1721298323,\"signature\":\"AALSDKJFLKJEKLJLKJLKAWJLKJJLKASJLDKGJALSKDJ\",\"primaryCurrencyCode\":\"Xrp\",\"withdrawalAddress\":\"rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2\",\"amount\":\"35.03221\",\"destinationTag\":376382}"
+                "output": "{\"apiKey\":\"23974850e-39kd-393d-393d-12038540\",\"nonce\":1721298323,\"signature\":\"AALSDKJFLKJEKLJLKJLKAWJLKJJLKASJLDKGJALSKDJ\",\"primaryCurrencyCode\":\"Xrp\",\"withdrawalAddress\":\"rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2\",\"amount\":\"35.03221\",\"destinationTag\":\"376382\"}"
             }
         ]
     }

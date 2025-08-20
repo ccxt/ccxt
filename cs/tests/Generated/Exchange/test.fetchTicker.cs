@@ -7,11 +7,12 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchTicker(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchTicker(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchTicker";
         object ticker = await exchange.fetchTicker(symbol);
         testTicker(exchange, skippedProperties, method, ticker, symbol);
+        return true;
     }
 
 }

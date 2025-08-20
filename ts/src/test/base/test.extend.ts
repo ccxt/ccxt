@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
@@ -48,8 +48,8 @@ function testExtend () {
     const extended = exchange.extend (obj1, obj2);
     tbfeCheckExtended (extended, true);
     // deepExtend
-    const deepExtended = exchange.deepExtend (obj1, obj2);
-    tbfeCheckExtended (extended, true);
+    // const deepExtended = exchange.deepExtend (obj1, obj2);
+    // tbfeCheckExtended (extended, true);
     // todo !
     // tbfeCheckExtended (deepExtended["sub"], false);
 }

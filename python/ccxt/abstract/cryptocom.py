@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    base_public_get_v1_public_get_announcements = basePublicGetV1PublicGetAnnouncements = Entry('v1/public/get-announcements', ['base', 'public'], 'GET', {'cost': 1})
     v1_public_get_public_auth = v1PublicGetPublicAuth = Entry('public/auth', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_instruments = v1PublicGetPublicGetInstruments = Entry('public/get-instruments', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_book = v1PublicGetPublicGetBook = Entry('public/get-book', ['v1', 'public'], 'GET', {'cost': 1})
@@ -11,6 +12,7 @@ class ImplicitAPI:
     v1_public_get_public_get_valuations = v1PublicGetPublicGetValuations = Entry('public/get-valuations', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_public_get_expired_settlement_price = v1PublicGetPublicGetExpiredSettlementPrice = Entry('public/get-expired-settlement-price', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_insurance = v1PublicGetPublicGetInsurance = Entry('public/get-insurance', ['v1', 'public'], 'GET', {'cost': 1})
+    v1_public_get_public_get_risk_parameters = v1PublicGetPublicGetRiskParameters = Entry('public/get-risk-parameters', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_post_public_staking_get_conversion_rate = v1PublicPostPublicStakingGetConversionRate = Entry('public/staking/get-conversion-rate', ['v1', 'public'], 'POST', {'cost': 2})
     v1_private_post_private_set_cancel_on_disconnect = v1PrivatePostPrivateSetCancelOnDisconnect = Entry('private/set-cancel-on-disconnect', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_cancel_on_disconnect = v1PrivatePostPrivateGetCancelOnDisconnect = Entry('private/get-cancel-on-disconnect', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
@@ -18,6 +20,7 @@ class ImplicitAPI:
     v1_private_post_private_user_balance_history = v1PrivatePostPrivateUserBalanceHistory = Entry('private/user-balance-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_positions = v1PrivatePostPrivateGetPositions = Entry('private/get-positions', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_create_order = v1PrivatePostPrivateCreateOrder = Entry('private/create-order', ['v1', 'private'], 'POST', {'cost': 0.6666666666666666})
+    v1_private_post_private_amend_order = v1PrivatePostPrivateAmendOrder = Entry('private/amend-order', ['v1', 'private'], 'POST', {'cost': 1.3333333333333333})
     v1_private_post_private_create_order_list = v1PrivatePostPrivateCreateOrderList = Entry('private/create-order-list', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_cancel_order = v1PrivatePostPrivateCancelOrder = Entry('private/cancel-order', ['v1', 'private'], 'POST', {'cost': 0.6666666666666666})
     v1_private_post_private_cancel_order_list = v1PrivatePostPrivateCancelOrderList = Entry('private/cancel-order-list', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
@@ -38,6 +41,8 @@ class ImplicitAPI:
     v1_private_post_private_get_accounts = v1PrivatePostPrivateGetAccounts = Entry('private/get-accounts', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_withdrawal_history = v1PrivatePostPrivateGetWithdrawalHistory = Entry('private/get-withdrawal-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_deposit_history = v1PrivatePostPrivateGetDepositHistory = Entry('private/get-deposit-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
+    v1_private_post_private_get_fee_rate = v1PrivatePostPrivateGetFeeRate = Entry('private/get-fee-rate', ['v1', 'private'], 'POST', {'cost': 2})
+    v1_private_post_private_get_instrument_fee_rate = v1PrivatePostPrivateGetInstrumentFeeRate = Entry('private/get-instrument-fee-rate', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_stake = v1PrivatePostPrivateStakingStake = Entry('private/staking/stake', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_unstake = v1PrivatePostPrivateStakingUnstake = Entry('private/staking/unstake', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_get_staking_position = v1PrivatePostPrivateStakingGetStakingPosition = Entry('private/staking/get-staking-position', ['v1', 'private'], 'POST', {'cost': 2})

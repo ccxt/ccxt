@@ -91,6 +91,85 @@
                 ],
                 "output": "{\"senderPublicKey\":\"7vhqbdwotF593MRLMUtQvRkiR7aDdDf4Zp3yBrvzMYqr\",\"amount\":1234567,\"fee\":100000,\"type\":4,\"version\":2,\"attachment\":\"\",\"feeAssetId\":\"\",\"proofs\":[\"B9fBho2jM61aZNZnvThgeWjkwprnvGuGKSQ7UQiVAg4s23feqfFgkXmBG3kYfrVTopoXeuKzkcfW8qhLNDk6V76\"],\"assetId\":\"\",\"recipient\":\"3P9tXxu38a8tgewNEKFzourVsdqHd11pUsX\",\"timestamp\":1715788510988,\"signature\":\"B9fBho2jM61aZNZnvThgeWjkwprnvGuGKSQ7UQiVAg4s23feqfFgkXmBG3kYfrVTopoXeuKzkcfW8qhLNDk6V76\"}"
             }
+        ],
+        "fetchOHLCV": [
+          {
+            "description": "fetchOHLCV with since",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735689600000&timeEnd=1735776000000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              1735689600000
+            ]
+          },
+          {
+            "description": "fetchOHLCV with until",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735606860000&timeEnd=1735693200000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              null,
+              null,
+              {
+                "until": 1735693200000
+              }
+            ]
+          },
+          {
+            "description": "fetchOHLCV with since, and limit",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735689600000&timeEnd=1735689840000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              1735689600000,
+              4
+            ]
+          },
+          {
+            "description": "fetchOHLCV with since and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735689600000&timeEnd=1735693200000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              1735689600000,
+              null,
+              {
+                "until": 1735693200000
+              }
+            ]
+          },
+          {
+            "description": "fetchOHLCV with limit and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735693020000&timeEnd=1735693200000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              null,
+              4,
+              {
+                "until": 1735693200000
+              }
+            ]
+          },
+          {
+            "description": "fetchOHLCV with since, limit and until",
+            "method": "fetchOHLCV",
+            "url": "https://api.wavesplatform.com/v0/candles/WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC?interval=1m&timeStart=1735689600000&timeEnd=1735693200000",
+            "input": [
+              "WAVES/USDT",
+              "1m",
+              1735689600000,
+              3,
+              {
+                "until": 1735693200000
+              }
+            ]
+          }          
         ]
     }
 }
