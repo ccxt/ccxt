@@ -16,6 +16,8 @@ declare const errorHierarchy: {
                     MarginModeAlreadySet: {};
                 };
                 MarketClosed: {};
+                ManualInteractionNeeded: {};
+                RestrictedLocation: {};
             };
             InsufficientFunds: {};
             InvalidAddress: {
@@ -50,6 +52,7 @@ declare const errorHierarchy: {
             };
             CancelPending: {};
         };
+        UnsubscribeError: {};
     };
 };
 export default errorHierarchy;

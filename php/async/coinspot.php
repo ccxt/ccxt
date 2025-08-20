@@ -10,12 +10,12 @@ use ccxt\async\abstract\coinspot as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinspot extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -30,33 +30,61 @@ class coinspot extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
@@ -66,13 +94,19 @@ class coinspot extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'ws' => false,
@@ -143,6 +177,54 @@ class coinspot extends Exchange {
             'options' => array(
                 'fetchBalance' => 'private_post_my_balances',
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => null, // todo implement
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
         ));
     }
@@ -180,7 +262,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://www.coinspot.com.au/api#listmybalance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -211,7 +295,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://www.coinspot.com.au/api#listopenorders
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -267,7 +353,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://www.coinspot.com.au/api#latestprices
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structure~
@@ -277,7 +365,7 @@ class coinspot extends Exchange {
             $response = Async\await($this->publicGetLatest ($params));
             $id = $market['id'];
             $id = strtolower($id);
-            $prices = $this->safe_value($response, 'prices');
+            $prices = $this->safe_dict($response, 'prices', array());
             //
             //     {
             //         "status":"ok",
@@ -299,7 +387,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://www.coinspot.com.au/api#latestprices
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
@@ -309,22 +399,22 @@ class coinspot extends Exchange {
             //
             //    {
             //        "status" => "ok",
-            //        "prices" => {
-            //        "btc" => array(
-            //        "bid" => "25050",
-            //        "ask" => "25370",
-            //        "last" => "25234"
-            //        ),
-            //        "ltc" => {
-            //        "bid" => "79.39192993",
-            //        "ask" => "87.98",
-            //        "last" => "87.95"
+            //        "prices" =>   {
+            //            "btc" =>   array(
+            //                "bid" => "25050",
+            //                "ask" => "25370",
+            //                "last" => "25234"
+            //            ),
+            //            "ltc" =>   {
+            //                "bid" => "79.39192993",
+            //                "ask" => "87.98",
+            //                "last" => "87.95"
+            //            }
             //        }
-            //      }
             //    }
             //
             $result = array();
-            $prices = $this->safe_value($response, 'prices');
+            $prices = $this->safe_dict($response, 'prices', array());
             $ids = is_array($prices) ? array_keys($prices) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
@@ -343,7 +433,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.coinspot.com.au/api#orderhistory
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -373,7 +465,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://www.coinspot.com.au/api#rotransaction
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -391,36 +485,36 @@ class coinspot extends Exchange {
             }
             $response = Async\await($this->privatePostRoMyTransactions ($this->extend($request, $params)));
             //  {
-            //   "status" => "ok",
-            //   "buyorders" => array(
-            //     array(
-            //       "otc" => false,
-            //       "market" => "ALGO/AUD",
-            //       "amount" => 386.95197925,
-            //       "created" => "2022-10-20T09:56:44.502Z",
-            //       "audfeeExGst" => 1.80018002,
-            //       "audGst" => 0.180018,
-            //       "audtotal" => 200
-            //     ),
-            //   ),
-            //   "sellorders" => array(
-            //     array(
-            //       "otc" => false,
-            //       "market" => "SOLO/ALGO",
-            //       "amount" => 154.52345614,
-            //       "total" => 115.78858204658796,
-            //       "created" => "2022-04-16T09:36:43.698Z",
-            //       "audfeeExGst" => 1.08995731,
-            //       "audGst" => 0.10899573,
-            //       "audtotal" => 118.7
-            //     ),
-            //   )
+            //      "status" => "ok",
+            //      "buyorders" => array(
+            //          array(
+            //              "otc" => false,
+            //              "market" => "ALGO/AUD",
+            //              "amount" => 386.95197925,
+            //              "created" => "2022-10-20T09:56:44.502Z",
+            //              "audfeeExGst" => 1.80018002,
+            //              "audGst" => 0.180018,
+            //              "audtotal" => 200
+            //          ),
+            //      ),
+            //      "sellorders" => array(
+            //          array(
+            //              "otc" => false,
+            //              "market" => "SOLO/ALGO",
+            //              "amount" => 154.52345614,
+            //              "total" => 115.78858204658796,
+            //              "created" => "2022-04-16T09:36:43.698Z",
+            //              "audfeeExGst" => 1.08995731,
+            //              "audGst" => 0.10899573,
+            //              "audtotal" => 118.7
+            //          ),
+            //      )
             // }
-            $buyTrades = $this->safe_value($response, 'buyorders', array());
+            $buyTrades = $this->safe_list($response, 'buyorders', array());
             for ($i = 0; $i < count($buyTrades); $i++) {
                 $buyTrades[$i]['side'] = 'buy';
             }
-            $sellTrades = $this->safe_value($response, 'sellorders', array());
+            $sellTrades = $this->safe_list($response, 'sellorders', array());
             for ($i = 0; $i < count($sellTrades); $i++) {
                 $sellTrades[$i]['side'] = 'sell';
             }
@@ -503,7 +597,9 @@ class coinspot extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://www.coinspot.com.au/api#placebuyorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -523,7 +619,8 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            return Async\await($this->$method ($this->extend($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -531,8 +628,10 @@ class coinspot extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://www.coinspot.com.au/api#cancelbuyorder
              * @see https://www.coinspot.com.au/api#cancelsellorder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinspot cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

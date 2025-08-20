@@ -2,6 +2,431 @@
     "exchange": "hollaex",
     "skipKeys": [],
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades for sandbox",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "count": 2,
+                    "data": [
+                        {
+                            "side": "buy",
+                            "symbol": "btc-usdt",
+                            "size": "0.0002",
+                            "price": "102000",
+                            "timestamp": "2025-06-17T12:12:36.304Z",
+                            "order_id": "3d4147c3-8319-4800-b740-ca826b83099e",
+                            "fee": "7e-7",
+                            "fee_coin": "btc"
+                        },
+                        {
+                            "side": "sell",
+                            "symbol": "xht-usdt",
+                            "size": "2",
+                            "price": "0.22",
+                            "timestamp": "2022-05-16T11:32:55.814Z",
+                            "order_id": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                            "fee": "0.00044",
+                            "fee_coin": "usdt"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "side": "sell",
+                            "symbol": "xht-usdt",
+                            "size": "2",
+                            "price": "0.22",
+                            "timestamp": "2022-05-16T11:32:55.814Z",
+                            "order_id": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                            "fee": "0.00044",
+                            "fee_coin": "usdt"
+                        },
+                        "id": null,
+                        "timestamp": 1652700775814,
+                        "datetime": "2022-05-16T11:32:55.814Z",
+                        "symbol": "XHT/USDT",
+                        "order": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.22,
+                        "amount": 2,
+                        "cost": 0.44,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00044
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00044
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "side": "buy",
+                            "symbol": "btc-usdt",
+                            "size": "0.0002",
+                            "price": "102000",
+                            "timestamp": "2025-06-17T12:12:36.304Z",
+                            "order_id": "3d4147c3-8319-4800-b740-ca826b83099e",
+                            "fee": "7e-7",
+                            "fee_coin": "btc"
+                        },
+                        "id": null,
+                        "timestamp": 1750162356304,
+                        "datetime": "2025-06-17T12:12:36.304Z",
+                        "symbol": "BTC/USDT",
+                        "order": "3d4147c3-8319-4800-b740-ca826b83099e",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 102000,
+                        "amount": 0.0002,
+                        "cost": 20.4,
+                        "fee": {
+                            "currency": "BTC",
+                            "cost": 7e-7
+                        },
+                        "fees": [
+                            {
+                                "currency": "BTC",
+                                "cost": 7e-7
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create a limit test order",
+                "method": "createOrder",
+                "input": [
+                    "SHIB/USDT",
+                    "limit",
+                    "buy",
+                    1000,
+                    0.000001
+                ],
+                "httpResponse": {
+                    "fee": "0",
+                    "meta": {},
+                    "symbol": "shib-usdt",
+                    "side": "buy",
+                    "size": "1000",
+                    "type": "limit",
+                    "price": "0.000001",
+                    "fee_structure": {
+                        "maker": "0.35",
+                        "taker": "0.35"
+                    },
+                    "fee_coin": "shib",
+                    "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                    "created_by": "1388",
+                    "filled": "0",
+                    "average": "0.000001",
+                    "status": "new",
+                    "updated_at": "2025-06-17T12:36:27.279Z",
+                    "created_at": "2025-06-17T12:36:27.279Z",
+                    "stop": null
+                },
+                "parsedResponse": {
+                    "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                    "clientOrderId": null,
+                    "timestamp": 1750163787279,
+                    "datetime": "2025-06-17T12:36:27.279Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "SHIB/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 0.000001,
+                    "triggerPrice": null,
+                    "amount": 1000,
+                    "filled": 0,
+                    "remaining": 1000,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "fee": "0",
+                        "meta": {},
+                        "symbol": "shib-usdt",
+                        "side": "buy",
+                        "size": "1000",
+                        "type": "limit",
+                        "price": "0.000001",
+                        "fee_structure": {
+                            "maker": "0.35",
+                            "taker": "0.35"
+                        },
+                        "fee_coin": "shib",
+                        "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                        "created_by": "1388",
+                        "filled": "0",
+                        "average": "0.000001",
+                        "status": "new",
+                        "updated_at": "2025-06-17T12:36:27.279Z",
+                        "created_at": "2025-06-17T12:36:27.279Z",
+                        "stop": null
+                    },
+                    "average": null,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "coins": {
+                        "usdt": {
+                            "id": "6",
+                            "fullname": "USD Tether",
+                            "symbol": "usdt",
+                            "active": true,
+                            "verified": true,
+                            "allow_deposit": true,
+                            "allow_withdrawal": true,
+                            "withdrawal_fee": "20",
+                            "min": "1",
+                            "max": "10000000",
+                            "increment_unit": "0.0001",
+                            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+                            "code": "usdt",
+                            "is_public": true,
+                            "meta": {
+                                "color": "#27a17a",
+                                "website": "https://tether.to",
+                                "explorer": "https://blockchair.com/tether",
+                                "decimal_points": "6"
+                            },
+                            "estimated_price": "1",
+                            "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+                            "type": "blockchain",
+                            "network": "eth,trx,bnb,matic",
+                            "standard": "",
+                            "issuer": "HollaEx",
+                            "withdrawal_fees": {
+                                "bnb": {
+                                    "value": "0.8",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "eth": {
+                                    "value": "1.5",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "trx": {
+                                    "value": "4",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "matic": {
+                                    "value": "0.3",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            },
+                            "display_name": null,
+                            "deposit_fees": null,
+                            "is_risky": false,
+                            "market_cap": "144568098696.29",
+                            "category": "stable",
+                            "created_at": "2019-08-09T10:45:43.367Z",
+                            "updated_at": "2025-03-25T17:12:37.970Z",
+                            "created_by": "168",
+                            "owner_id": "1"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "id": "6",
+                            "fullname": "USD Tether",
+                            "symbol": "usdt",
+                            "active": true,
+                            "verified": true,
+                            "allow_deposit": true,
+                            "allow_withdrawal": true,
+                            "withdrawal_fee": "20",
+                            "min": "1",
+                            "max": "10000000",
+                            "increment_unit": "0.0001",
+                            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+                            "code": "usdt",
+                            "is_public": true,
+                            "meta": {
+                                "color": "#27a17a",
+                                "website": "https://tether.to",
+                                "explorer": "https://blockchair.com/tether",
+                                "decimal_points": "6"
+                            },
+                            "estimated_price": "1",
+                            "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+                            "type": "blockchain",
+                            "network": "eth,trx,bnb,matic",
+                            "standard": "",
+                            "issuer": "HollaEx",
+                            "withdrawal_fees": {
+                                "bnb": {
+                                    "value": "0.8",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "eth": {
+                                    "value": "1.5",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "trx": {
+                                    "value": "4",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                },
+                                "matic": {
+                                    "value": "0.3",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            },
+                            "display_name": null,
+                            "deposit_fees": null,
+                            "is_risky": false,
+                            "market_cap": "144568098696.29",
+                            "category": "stable",
+                            "created_at": "2019-08-09T10:45:43.367Z",
+                            "updated_at": "2025-03-25T17:12:37.970Z",
+                            "created_by": "168",
+                            "owner_id": "1"
+                        },
+                        "id": "usdt",
+                        "numericId": 6,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USD Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.3,
+                        "fees": {},
+                        "networks": {
+                            "BNB": {
+                                "id": "bnb",
+                                "network": "BNB",
+                                "active": true,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 0.8,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "value": "0.8",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            },
+                            "ERC20": {
+                                "id": "eth",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 1.5,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "value": "1.5",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "trx",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 4,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "value": "4",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            },
+                            "MATIC": {
+                                "id": "matic",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 0.3,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "value": "0.3",
+                                    "active": true,
+                                    "symbol": "usdt"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 1,
+                                "max": 10000000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -40,7 +465,7 @@
                         "price": 73282.95,
                         "amount": 0.01752,
                         "cost": 1283.917284,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -88,9 +513,11 @@
                     "previousClose": null,
                     "change": 1254.21,
                     "percentage": 1.7401987989921301,
-                    "average": 72699.905,
+                    "average": 72699.9,
                     "baseVolume": 28,
-                    "quoteVolume": null
+                    "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null
                 }
             }
         ],

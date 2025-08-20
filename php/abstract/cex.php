@@ -7,178 +7,172 @@ namespace ccxt\abstract;
 
 
 abstract class cex extends \ccxt\Exchange {
-    public function public_get_currency_profile($params = array()) {
-        return $this->request('currency_profile', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_server_time($params = array()) {
+        return $this->request('get_server_time', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_currency_limits($params = array()) {
-        return $this->request('currency_limits/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_pairs_info($params = array()) {
+        return $this->request('get_pairs_info', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_last_price_pair($params = array()) {
-        return $this->request('last_price/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_currencies_info($params = array()) {
+        return $this->request('get_currencies_info', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_last_prices_currencies($params = array()) {
-        return $this->request('last_prices/{currencies}/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_processing_info($params = array()) {
+        return $this->request('get_processing_info', 'public', 'POST', $params, null, null, array("cost" => 10));
     }
-    public function public_get_ohlcv_hd_yyyymmdd_pair($params = array()) {
-        return $this->request('ohlcv/hd/{yyyymmdd}/{pair}', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_ticker($params = array()) {
+        return $this->request('get_ticker', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_order_book_pair($params = array()) {
-        return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_trade_history($params = array()) {
+        return $this->request('get_trade_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_ticker_pair($params = array()) {
-        return $this->request('ticker/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_order_book($params = array()) {
+        return $this->request('get_order_book', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_tickers_currencies($params = array()) {
-        return $this->request('tickers/{currencies}/', 'public', 'GET', $params, null, null, array());
+    public function public_post_get_candles($params = array()) {
+        return $this->request('get_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_get_trade_history_pair($params = array()) {
-        return $this->request('trade_history/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function private_post_get_my_current_fee($params = array()) {
+        return $this->request('get_my_current_fee', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function public_post_convert_pair($params = array()) {
-        return $this->request('convert/{pair}', 'public', 'POST', $params, null, null, array());
+    public function private_post_get_fee_strategy($params = array()) {
+        return $this->request('get_fee_strategy', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function public_post_price_stats_pair($params = array()) {
-        return $this->request('price_stats/{pair}', 'public', 'POST', $params, null, null, array());
+    public function private_post_get_my_volume($params = array()) {
+        return $this->request('get_my_volume', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_active_orders_status($params = array()) {
-        return $this->request('active_orders_status/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_create_account($params = array()) {
+        return $this->request('do_create_account', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_archived_orders_pair($params = array()) {
-        return $this->request('archived_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_my_account_status_v3($params = array()) {
+        return $this->request('get_my_account_status_v3', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_balance($params = array()) {
-        return $this->request('balance/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_my_wallet_balance($params = array()) {
+        return $this->request('get_my_wallet_balance', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_cancel_order($params = array()) {
-        return $this->request('cancel_order/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_my_orders($params = array()) {
+        return $this->request('get_my_orders', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_cancel_orders_pair($params = array()) {
-        return $this->request('cancel_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_my_new_order($params = array()) {
+        return $this->request('do_my_new_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_cancel_replace_order_pair($params = array()) {
-        return $this->request('cancel_replace_order/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_cancel_my_order($params = array()) {
+        return $this->request('do_cancel_my_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_close_position_pair($params = array()) {
-        return $this->request('close_position/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_cancel_all_orders($params = array()) {
+        return $this->request('do_cancel_all_orders', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_get_address($params = array()) {
-        return $this->request('get_address/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_order_book($params = array()) {
+        return $this->request('get_order_book', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_get_crypto_address($params = array()) {
-        return $this->request('get_crypto_address', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_candles($params = array()) {
+        return $this->request('get_candles', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_get_myfee($params = array()) {
-        return $this->request('get_myfee/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_trade_history($params = array()) {
+        return $this->request('get_trade_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_get_order($params = array()) {
-        return $this->request('get_order/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_my_transaction_history($params = array()) {
+        return $this->request('get_my_transaction_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_get_order_tx($params = array()) {
-        return $this->request('get_order_tx/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_my_funding_history($params = array()) {
+        return $this->request('get_my_funding_history', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_open_orders_pair($params = array()) {
-        return $this->request('open_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_my_internal_transfer($params = array()) {
+        return $this->request('do_my_internal_transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_open_orders($params = array()) {
-        return $this->request('open_orders/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_processing_info($params = array()) {
+        return $this->request('get_processing_info', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
-    public function private_post_open_position_pair($params = array()) {
-        return $this->request('open_position/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_get_deposit_address($params = array()) {
+        return $this->request('get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_open_positions_pair($params = array()) {
-        return $this->request('open_positions/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_deposit_funds_from_wallet($params = array()) {
+        return $this->request('do_deposit_funds_from_wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_place_order_pair($params = array()) {
-        return $this->request('place_order/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function private_post_do_withdrawal_funds_to_wallet($params = array()) {
+        return $this->request('do_withdrawal_funds_to_wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_raw_tx_history($params = array()) {
-        return $this->request('raw_tx_history', 'private', 'POST', $params, null, null, array());
+    public function publicPostGetServerTime($params = array()) {
+        return $this->request('get_server_time', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetCurrencyProfile($params = array()) {
-        return $this->request('currency_profile', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetPairsInfo($params = array()) {
+        return $this->request('get_pairs_info', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetCurrencyLimits($params = array()) {
-        return $this->request('currency_limits/', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetCurrenciesInfo($params = array()) {
+        return $this->request('get_currencies_info', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetLastPricePair($params = array()) {
-        return $this->request('last_price/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetProcessingInfo($params = array()) {
+        return $this->request('get_processing_info', 'public', 'POST', $params, null, null, array("cost" => 10));
     }
-    public function publicGetLastPricesCurrencies($params = array()) {
-        return $this->request('last_prices/{currencies}/', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetTicker($params = array()) {
+        return $this->request('get_ticker', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetOhlcvHdYyyymmddPair($params = array()) {
-        return $this->request('ohlcv/hd/{yyyymmdd}/{pair}', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetTradeHistory($params = array()) {
+        return $this->request('get_trade_history', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetOrderBookPair($params = array()) {
-        return $this->request('order_book/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetOrderBook($params = array()) {
+        return $this->request('get_order_book', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetTickerPair($params = array()) {
-        return $this->request('ticker/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function publicPostGetCandles($params = array()) {
+        return $this->request('get_candles', 'public', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicGetTickersCurrencies($params = array()) {
-        return $this->request('tickers/{currencies}/', 'public', 'GET', $params, null, null, array());
+    public function privatePostGetMyCurrentFee($params = array()) {
+        return $this->request('get_my_current_fee', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function publicGetTradeHistoryPair($params = array()) {
-        return $this->request('trade_history/{pair}/', 'public', 'GET', $params, null, null, array());
+    public function privatePostGetFeeStrategy($params = array()) {
+        return $this->request('get_fee_strategy', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function publicPostConvertPair($params = array()) {
-        return $this->request('convert/{pair}', 'public', 'POST', $params, null, null, array());
+    public function privatePostGetMyVolume($params = array()) {
+        return $this->request('get_my_volume', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function publicPostPriceStatsPair($params = array()) {
-        return $this->request('price_stats/{pair}', 'public', 'POST', $params, null, null, array());
+    public function privatePostDoCreateAccount($params = array()) {
+        return $this->request('do_create_account', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostActiveOrdersStatus($params = array()) {
-        return $this->request('active_orders_status/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetMyAccountStatusV3($params = array()) {
+        return $this->request('get_my_account_status_v3', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostArchivedOrdersPair($params = array()) {
-        return $this->request('archived_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetMyWalletBalance($params = array()) {
+        return $this->request('get_my_wallet_balance', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostBalance($params = array()) {
-        return $this->request('balance/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetMyOrders($params = array()) {
+        return $this->request('get_my_orders', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostCancelOrder($params = array()) {
-        return $this->request('cancel_order/', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoMyNewOrder($params = array()) {
+        return $this->request('do_my_new_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostCancelOrdersPair($params = array()) {
-        return $this->request('cancel_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoCancelMyOrder($params = array()) {
+        return $this->request('do_cancel_my_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostCancelReplaceOrderPair($params = array()) {
-        return $this->request('cancel_replace_order/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoCancelAllOrders($params = array()) {
+        return $this->request('do_cancel_all_orders', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostClosePositionPair($params = array()) {
-        return $this->request('close_position/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetOrderBook($params = array()) {
+        return $this->request('get_order_book', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostGetAddress($params = array()) {
-        return $this->request('get_address/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetCandles($params = array()) {
+        return $this->request('get_candles', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostGetCryptoAddress($params = array()) {
-        return $this->request('get_crypto_address', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetTradeHistory($params = array()) {
+        return $this->request('get_trade_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostGetMyfee($params = array()) {
-        return $this->request('get_myfee/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetMyTransactionHistory($params = array()) {
+        return $this->request('get_my_transaction_history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostGetOrder($params = array()) {
-        return $this->request('get_order/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetMyFundingHistory($params = array()) {
+        return $this->request('get_my_funding_history', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostGetOrderTx($params = array()) {
-        return $this->request('get_order_tx/', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoMyInternalTransfer($params = array()) {
+        return $this->request('do_my_internal_transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOpenOrdersPair($params = array()) {
-        return $this->request('open_orders/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetProcessingInfo($params = array()) {
+        return $this->request('get_processing_info', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
-    public function privatePostOpenOrders($params = array()) {
-        return $this->request('open_orders/', 'private', 'POST', $params, null, null, array());
+    public function privatePostGetDepositAddress($params = array()) {
+        return $this->request('get_deposit_address', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostOpenPositionPair($params = array()) {
-        return $this->request('open_position/{pair}/', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoDepositFundsFromWallet($params = array()) {
+        return $this->request('do_deposit_funds_from_wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOpenPositionsPair($params = array()) {
-        return $this->request('open_positions/{pair}/', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePostPlaceOrderPair($params = array()) {
-        return $this->request('place_order/{pair}/', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePostRawTxHistory($params = array()) {
-        return $this->request('raw_tx_history', 'private', 'POST', $params, null, null, array());
+    public function privatePostDoWithdrawalFundsToWallet($params = array()) {
+        return $this->request('do_withdrawal_funds_to_wallet', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

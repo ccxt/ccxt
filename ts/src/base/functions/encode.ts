@@ -28,10 +28,10 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
     , binaryConcat = concatBytes
     , binaryConcatArray = (arr: any[]) => concatBytes (...arr)
 
-    , urlencode = (object: object) => qs.stringify (object)
+    , urlencode = (object: object, sort = false) => qs.stringify (object)
     , urlencodeNested =  (object: object) => qs.stringify (object) // implemented only in python
     , urlencodeWithArrayRepeat = (object: object) => qs.stringify (object, { arrayFormat: 'repeat' })
-    , rawencode = (object: object) => qs.stringify (object, { encode: false })
+    , rawencode = (object: object, sort = false) => qs.stringify (object, { encode: false })
     , encode = utf8.decode // lol
     , decode = utf8.encode
 

@@ -15,6 +15,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOHLCV", false },
                 { "watchTicker", false },
                 { "watchTickers", false },
@@ -43,17 +44,17 @@ public partial class bitstamp : ccxt.bitstamp
         });
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -171,18 +172,18 @@ public partial class bitstamp : ccxt.bitstamp
         return getArrayLength(deltas);
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -287,18 +288,18 @@ public partial class bitstamp : ccxt.bitstamp
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -339,6 +340,7 @@ public partial class bitstamp : ccxt.bitstamp
         //        "price_str":"1000.00"
         //     },
         //     "channel":"private-my_orders_ltcusd-4848701",
+        //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
         object channel = this.safeString(message, "channel");
@@ -352,6 +354,7 @@ public partial class bitstamp : ccxt.bitstamp
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, channel);
         object symbol = this.safeString(subscription, "symbol");
         object market = this.market(symbol);
+        ((IDictionary<string,object>)order)["event"] = this.safeString(message, "event");
         object parsed = this.parseWsOrder(order, market);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, channel});
@@ -360,23 +363,60 @@ public partial class bitstamp : ccxt.bitstamp
     public override object parseWsOrder(object order, object market = null)
     {
         //
-        //   {
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
+        //    {
+        //        "id": "1894876776091648",
+        //        "id_str": "1894876776091648",
+        //        "order_type": 0,
+        //        "order_subtype": 0,
+        //        "datetime": "1751451375",
+        //        "microtimestamp": "1751451375070000",
+        //        "amount": 1.1,
+        //        "amount_str": "1.10000000",
+        //        "amount_traded": "0",
+        //        "amount_at_create": "1.10000000",
+        //        "price": 10.23,
+        //        "price_str": "10.23",
+        //        "is_liquidation": false,
+        //        "trade_account_id": 0
         //    }
         //
         object id = this.safeString(order, "id_str");
-        object orderType = this.safeStringLower(order, "order_type");
+        object orderTypeRaw = this.safeStringLower(order, "order_type");
+        object side = ((bool) isTrue((isEqual(orderTypeRaw, "1")))) ? "sell" : "buy";
+        object orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        object orderType = null;
+        object timeInForce = null;
+        if (isTrue(isEqual(orderSubTypeRaw, "0")))
+        {
+            orderType = "limit";
+        } else if (isTrue(isEqual(orderSubTypeRaw, "2")))
+        {
+            orderType = "market";
+        } else if (isTrue(isEqual(orderSubTypeRaw, "4")))
+        {
+            orderType = "limit";
+            timeInForce = "IOC";
+        } else if (isTrue(isEqual(orderSubTypeRaw, "6")))
+        {
+            orderType = "limit";
+            timeInForce = "FOK";
+        } else if (isTrue(isEqual(orderSubTypeRaw, "8")))
+        {
+            orderType = "limit";
+            timeInForce = "GTD";
+        }
         object price = this.safeString(order, "price_str");
         object amount = this.safeString(order, "amount_str");
-        object side = ((bool) isTrue((isEqual(orderType, "1")))) ? "sell" : "buy";
+        object filled = this.safeString(order, "amount_traded");
+        object eventVar = this.safeString(order, "event");
+        object status = null;
+        if (isTrue(Precise.stringEq(filled, amount)))
+        {
+            status = "closed";
+        } else if (isTrue(isEqual(eventVar, "order_deleted")))
+        {
+            status = "canceled";
+        }
         object timestamp = this.safeTimestamp(order, "datetime");
         market = this.safeMarket(null, market);
         object symbol = getValue(market, "symbol");
@@ -388,8 +428,8 @@ public partial class bitstamp : ccxt.bitstamp
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "type", null },
-            { "timeInForce", null },
+            { "type", orderType },
+            { "timeInForce", timeInForce },
             { "postOnly", null },
             { "side", side },
             { "price", price },
@@ -398,9 +438,9 @@ public partial class bitstamp : ccxt.bitstamp
             { "amount", amount },
             { "cost", null },
             { "average", null },
-            { "filled", null },
+            { "filled", filled },
             { "remaining", null },
-            { "status", null },
+            { "status", status },
             { "fee", null },
             { "trades", null },
         }, market);
@@ -472,6 +512,7 @@ public partial class bitstamp : ccxt.bitstamp
         //         "price_str":"1000.00"
         //         },
         //         "channel":"private-my_orders_ltcusd-4848701",
+        //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
         object channel = this.safeString(message, "channel");
@@ -507,7 +548,7 @@ public partial class bitstamp : ccxt.bitstamp
             object code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -577,7 +618,7 @@ public partial class bitstamp : ccxt.bitstamp
             object sessionToken = this.safeString(response, "token");
             if (isTrue(!isEqual(sessionToken, null)))
             {
-                object userId = this.safeNumber(response, "user_id");
+                object userId = this.safeString(response, "user_id");
                 object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                 ((IDictionary<string,object>)this.options)["expiresIn"] = this.sum(time, validity);
                 ((IDictionary<string,object>)this.options)["userId"] = userId;

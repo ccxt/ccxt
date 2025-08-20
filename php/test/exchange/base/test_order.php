@@ -53,9 +53,14 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'remaining'));
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'filled'));
     if (!(is_array($skipped_properties) && array_key_exists('trades', $skipped_properties))) {
+        $skipped_new = $exchange->deep_extend($skipped_properties, array(
+            'timestamp' => true,
+            'datetime' => true,
+            'side' => true,
+        ));
         if ($entry['trades'] !== null) {
             for ($i = 0; $i < count($entry['trades']); $i++) {
-                test_trade($exchange, $skipped_properties, $method, $entry['trades'][$i], $symbol, $now);
+                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now);
             }
         }
     }

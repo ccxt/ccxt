@@ -11,6 +11,11 @@ public partial class cryptocom : Exchange
 {
     public cryptocom (object args = null): base(args) {}
 
+    public async Task<object> basePublicGetV1PublicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("basePublicGetV1PublicGetAnnouncements",parameters);
+    }
+
     public async Task<object> v1PublicGetPublicAuth (object parameters = null)
     {
         return await this.callAsync ("v1PublicGetPublicAuth",parameters);
@@ -56,6 +61,11 @@ public partial class cryptocom : Exchange
         return await this.callAsync ("v1PublicGetPublicGetInsurance",parameters);
     }
 
+    public async Task<object> v1PublicGetPublicGetRiskParameters (object parameters = null)
+    {
+        return await this.callAsync ("v1PublicGetPublicGetRiskParameters",parameters);
+    }
+
     public async Task<object> v1PublicPostPublicStakingGetConversionRate (object parameters = null)
     {
         return await this.callAsync ("v1PublicPostPublicStakingGetConversionRate",parameters);
@@ -89,6 +99,11 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateCreateOrder (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateCreateOrder",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateAmendOrder (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateAmendOrder",parameters);
     }
 
     public async Task<object> v1PrivatePostPrivateCreateOrderList (object parameters = null)
@@ -189,6 +204,16 @@ public partial class cryptocom : Exchange
     public async Task<object> v1PrivatePostPrivateGetDepositHistory (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateGetDepositHistory",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateGetFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetFeeRate",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateGetInstrumentFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
     }
 
     public async Task<object> v1PrivatePostPrivateStakingStake (object parameters = null)

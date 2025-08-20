@@ -1,19 +1,50 @@
+
 // AUTO_TRANSPILE_ENABLED
 
-import testNumber from './test.number.js';
+import testDecimalToPrecision from './test.decimalToPrecision.js';
+import testNumberToString from './test.numberToString.js';
+import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
-import testLanguageSpecific from './test.languageSpecific.js';
+import testDeepExtend from './test.deepExtend.js';
+import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
+import testSafeTicker from './test.safeTicker.js';
+// import testJson from './test.json.js';
+import testSortBy from './test.sortBy.js';
+import testSum from './test.sum.js';
+import testOmit from './test.omit.js';
+import testGroupBy from './test.groupBy.js';
+import testFilterBy from './test.filterBy.js';
+import testAfterConstructor from './test.afterConstructor.js';
+import testHandleMethods from './test.handleMethods.js';
+import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
+import testParsePrecision from './test.parsePrecision.js';
+import testArraysConcat from './test.arraysConcat.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
+    testAfterConstructor ();
     testExtend ();
+    testDeepExtend ();
     testCryptography ();
     testDatetime ();
-    testNumber ();
+    testDecimalToPrecision ();
+    testNumberToString ();
+    testPrecise ();
     testSafeMethods ();
+    testSafeTicker ();
+    // testJson ();
+    testSortBy ();
+    testSum ();
+    testOmit ();
+    testGroupBy ();
+    testFilterBy ();
+    testHandleMethods ();
+    testRemoveRepeatedElementsFromArray ();
+    testParsePrecision ();
+    testArraysConcat ();
 }
 
 export default baseTestsInit;

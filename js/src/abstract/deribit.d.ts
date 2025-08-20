@@ -58,6 +58,7 @@ interface Exchange {
     privateGetEnableApiKey(params?: {}): Promise<implicitReturnType>;
     privateGetGetAccessLog(params?: {}): Promise<implicitReturnType>;
     privateGetGetAccountSummary(params?: {}): Promise<implicitReturnType>;
+    privateGetGetAccountSummaries(params?: {}): Promise<implicitReturnType>;
     privateGetGetAffiliateProgramInfo(params?: {}): Promise<implicitReturnType>;
     privateGetGetEmailLanguage(params?: {}): Promise<implicitReturnType>;
     privateGetGetNewAnnouncements(params?: {}): Promise<implicitReturnType>;

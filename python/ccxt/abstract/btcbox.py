@@ -12,3 +12,4 @@ class ImplicitAPI:
     private_post_trade_list = privatePostTradeList = Entry('trade_list', 'private', 'POST', {})
     private_post_trade_view = privatePostTradeView = Entry('trade_view', 'private', 'POST', {})
     private_post_wallet = privatePostWallet = Entry('wallet', 'private', 'POST', {})
+    webapi_get_ajax_coin_coininfo = webApiGetAjaxCoinCoinInfo = Entry('ajax/coin/coinInfo', 'webApi', 'GET', {})

@@ -12,7 +12,7 @@ use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_deposit_withdrawal.php';
 include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
-function test_fetch_deposits_withdrawals($exchange, $skipped_properties, $code) {
+function test_fetch_deposit_withdrawals($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchTransactions';
         $transactions = Async\await($exchange->fetch_transactions($code));
@@ -22,5 +22,6 @@ function test_fetch_deposits_withdrawals($exchange, $skipped_properties, $code) 
             test_deposit_withdrawal($exchange, $skipped_properties, $method, $transactions[$i], $code, $now);
         }
         assert_timestamp_order($exchange, $method, $code, $transactions);
+        return true;
     }) ();
 }

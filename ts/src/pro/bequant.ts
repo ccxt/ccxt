@@ -8,7 +8,7 @@ import bequantRest from '../bequant.js';
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
-    describe () {
+    describe (): any {
         // eslint-disable-next-line new-cap
         const describeExtended = this.getDescribeForExtendedWsExchange (new bequantRest (), new hitbtcRest (), super.describe ());
         return this.deepExtend (describeExtended, {
@@ -21,6 +21,10 @@ export default class bequant extends hitbtc {
                 'api': {
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
+                    'ws': {
+                        'public': 'wss://api.bequant.io/api/3/ws/public',
+                        'private': 'wss://api.bequant.io/api/3/ws/trading',
+                    },
                 },
                 'www': 'https://bequant.io',
                 'doc': [
