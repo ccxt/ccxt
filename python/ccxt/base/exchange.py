@@ -1405,7 +1405,6 @@ class Exchange(object):
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         """
         ECDSA signing with support for multiple algorithms and coincurve for SECP256K1.
-        
         Args:
             request: The message to sign
             secret: The private key (hex string or PEM format)
@@ -1413,10 +1412,8 @@ class Exchange(object):
             hash: The hash function to use (defaults to algorithm-specific hash)
             fixed_length: Whether to ensure fixed-length signatures (for deterministic signing)
             Note: coincurve produces non-deterministic signatures
-        
         Returns:
             dict: {'r': r_value, 's': s_value, 'v': v_value}
-            
         Note:
             If coincurve is not available or fails for SECP256K1, the method automatically
             falls back to the standard ecdsa implementation.
@@ -1477,20 +1474,16 @@ class Exchange(object):
     def _ecdsa_secp256k1_coincurve(request, secret, hash=None, fixed_length=False):
         """
         Use coincurve library for SECP256K1 ECDSA signing.
-        
         This method provides faster SECP256K1 signing using the coincurve library,
         which is a Python binding to libsecp256k1. Note that this implementation
         produces non-deterministic signatures (different signatures for the same input).
-        
         Args:
             request: The message to sign
             secret: The private key (hex string or PEM format)
             hash: The hash function to use
             fixed_length: Not used in coincurve implementation (signatures are always fixed length)
-        
         Returns:
             dict: {'r': r_value, 's': s_value, 'v': v_value}
-            
         Raises:
             ArgumentsRequired: If coincurve library is not available
         """
@@ -1499,7 +1492,6 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
         # Handle PEM format
