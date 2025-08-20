@@ -744,6 +744,20 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
+    handlePublicAddress (methodName: string, params: Dict) {
+        let userAux = undefined;
+        [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
+        let user = userAux;
+        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        if ((user !== undefined) && (user !== '')) {
+            return [ user, params ];
+        }
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
+            return [ this.walletAddress, params ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
@@ -866,11 +880,8 @@ export default class dydx extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let userAddress = undefined;
         let subAccountNumber = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a address parameter inside \'params\' or the wallet address set');
-        }
         await this.loadMarkets ();
         const request: Dict = {
             'address': userAddress,
@@ -1042,11 +1053,8 @@ export default class dydx extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         let userAddress = undefined;
         let subAccountNumber = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'address');
+        [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a address parameter inside \'params\' or the wallet address set');
-        }
         await this.loadMarkets ();
         const request: Dict = {
             'address': userAddress,
@@ -1086,10 +1094,10 @@ export default class dydx extends Exchange {
         //
         //
         const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
-        const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
-        const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const orderId = this.safeStringN (order, [ 'id' ]);
+        const clientOrderId = this.omitZero (this.safeString (order, 'clientId'));
+        const ticker = this.safeString (order, 'ticker');
+        market = this.safeMarket (ticker, market);
         const symbol = market['symbol'];
         const price = this.safeString2 (order, 'order_price', 'price');
         const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
@@ -1101,7 +1109,7 @@ export default class dydx extends Exchange {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower (order, 'side');
-        const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.omitZero (this.safeValue (order, 'totalFilled'));
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
         const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
@@ -1122,20 +1130,21 @@ export default class dydx extends Exchange {
                 stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
             }
         }
-        const lastUpdateTimestamp = this.safeInteger2 (order, 'updatedTime', 'updated_time');
+        const lastUpdateAt = this.safeString (order, 'updatedAt');
+        // const lastUpdateTimestamp = this.safeInteger2 (order, 'updatedTime', 'updated_time');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'lastUpdateTimestamp': this.parse8601 (lastUpdateAt),
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': this.parseOrderType (orderType),
-            'timeInForce': this.parseTimeInForce (orderType),
-            'postOnly': undefined, // TO_DO
-            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'timeInForce': this.safeStringLower (order, 'timeInForce'),
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
@@ -1144,7 +1153,7 @@ export default class dydx extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining, // TO_DO
+            'remaining': remaining,
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1809,11 +1818,8 @@ export default class dydx extends Exchange {
         params = this.omit (params, 'methodName');
         let userAddress = undefined;
         let subAccountNumber = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, methodName, 'address');
+        [ userAddress, params ] = this.handlePublicAddress (methodName, params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a address parameter inside \'params\' or the wallet address set');
-        }
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1856,10 +1862,7 @@ export default class dydx extends Exchange {
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'address');
-        if (userAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchAccounts() requires a address parameter inside \'params\' or the wallet address set');
-        }
+        [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
         const request: Dict = {
             'address': userAddress,
         };
