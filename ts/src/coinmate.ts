@@ -50,6 +50,8 @@ export default class coinmate extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -243,6 +245,7 @@ export default class coinmate extends Exchange {
                         'DAI': 'privatePostDaiWithdrawal',
                         'ADA': 'privatePostAdaWithdrawal',
                         'SOL': 'privatePostSolWithdrawal',
+                        'USDC': 'privatePostWithdrawVirtualCurrency',
                     },
                 },
             },
@@ -770,6 +773,85 @@ export default class coinmate extends Exchange {
             transaction['status'] = 'pending';
         }
         return transaction;
+    }
+
+    /**
+     * @method
+     * @name coinmate#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://coinmate.docs.apiary.io/#reference/bitcoin-withdrawal-and-deposit/get-bitcoin-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/litecoin-withdrawal-and-deposit/get-litecoin-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/ethereum-withdrawal-and-deposit/get-ethereum-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/ripple-withdrawal-and-deposit/get-ripple-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/cardano-withdrawal-and-deposit/get-cardano-deposit-addresses/post
+     * @see https://coinmate.docs.apiary.io/#reference/solana-withdrawal-and-deposit/get-solana-deposit-addresses/post
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const depositMethods = {
+            'BTC': 'privatePostBitcoinDepositAddresses',
+            'LTC': 'privatePostLitecoinDepositAddresses',
+            'BCH': 'privatePostBitcoinCashDepositAddresses',
+            'ETH': 'privatePostEthereumDepositAddresses',
+            'XRP': 'privatePostRippleDepositAddresses',
+            'DASH': 'privatePostDashDepositAddresses',
+            'ADA': 'privatePostAdaDepositAddresses',
+            'SOL': 'privatePostSolDepositAddresses',
+            'USDC': 'privatePostVirtualCurrencyDepositAddresses',
+        };
+        const method = this.safeString (depositMethods, code);
+        if (method === undefined) {
+            const allowedCurrencies = Object.keys (depositMethods);
+            throw new ExchangeError (this.id + ' fetchDepositAddress() only supports the following currencies: ' + allowedCurrencies.join (', '));
+        }
+        const request: Dict = {};
+        if (code === 'USDC') {
+            request['currency'] = currency['id'];
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Bitcoin/Litecoin/Ethereum etc.
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": [
+        //             "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        //         ]
+        //     }
+        //
+        // XRP
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "address": "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
+        //             "destinationTag": "123456789"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        let address = undefined;
+        let tag = undefined;
+        if (Array.isArray (data)) {
+            address = this.safeString (data, 0);
+        } else {
+            address = this.safeString (data, 'address');
+            tag = this.safeString (data, 'destinationTag');
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': response,
+        };
     }
 
     /**
