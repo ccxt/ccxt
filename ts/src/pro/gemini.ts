@@ -500,8 +500,10 @@ export default class gemini extends geminiRest {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601 (timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
+        const bidsAsksDict = {};
+        bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
-        client.resolve (currentBidAsk, messageHash);
+        client.resolve (bidsAsksDict, messageHash);
     }
 
     async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
