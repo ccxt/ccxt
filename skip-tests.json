@@ -35,7 +35,8 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "type": "todo",
                 "withdraw": "not provided for empty chains",
-                "deposit": "not provided for empty chains"
+                "deposit": "not provided for empty chains",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:214"
