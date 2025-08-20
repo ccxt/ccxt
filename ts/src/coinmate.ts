@@ -40,6 +40,7 @@ export default class coinmate extends Exchange {
                 'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -250,7 +251,7 @@ export default class coinmate extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true, // todo implement
+                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false, // todo
@@ -1107,6 +1108,8 @@ export default class coinmate extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price to trigger a stop order, in units of the quote currency
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1116,6 +1119,20 @@ export default class coinmate extends Exchange {
         const request: Dict = {
             'currencyPair': market['id'],
         };
+        
+        // Handle trigger price for stop orders
+        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice' ]);
+        let isStopOrder = false;
+        
+        if (triggerPrice !== undefined) {
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' createOrder() stop market orders are not supported, use stop limit orders instead');
+            }
+            isStopOrder = true;
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+        }
+        
         if (type === 'market') {
             if (side === 'buy') {
                 request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
@@ -1128,12 +1145,39 @@ export default class coinmate extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
         }
+        
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
             'id': id,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name coinmate#createTriggerOrder
+     * @description create a trigger stop order
+     * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
+     * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'limit' (market orders not supported for stop orders)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, triggerPrice: Num = undefined, params = {}) {
+        if (triggerPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
+        }
+        if (type === 'market') {
+            throw new InvalidOrder (this.id + ' createTriggerOrder() does not support market orders, use limit orders instead');
+        }
+        params['triggerPrice'] = triggerPrice;
+        return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
     /**
