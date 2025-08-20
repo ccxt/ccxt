@@ -506,8 +506,11 @@ export default class gemini extends geminiRest {
         client.resolve (bidsAsksDict, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new NotSupported (this.id + ' watchMultiple requires at least one symbol');
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {
