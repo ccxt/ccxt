@@ -1323,7 +1323,6 @@ public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
 public class  Tradeogre: tradeogre { public Tradeogre(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
-public class  Vertex: vertex { public Vertex(object args = null) : base(args) { } }
 public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
