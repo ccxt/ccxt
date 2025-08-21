@@ -68,6 +68,7 @@ class bitget(ccxt.async_support.bitget):
                 # WS timeframes differ from REST timeframes
                 'timeframes': {
                     '1m': '1m',
+                    '3m': '3m',
                     '5m': '5m',
                     '15m': '15m',
                     '30m': '30m',
@@ -481,12 +482,14 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -494,14 +497,24 @@ class bitget(ccxt.async_support.bitget):
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
-        messageHash = 'candles:' + timeframe + ':' + symbol
+        messageHash = None
         instType = None
-        instType, params = self.get_inst_type(market, False, params)
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchOHLCV', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
         args: dict = {
             'instType': instType,
-            'channel': 'candle' + interval,
-            'instId': market['id'],
         }
+        if uta:
+            args['topic'] = 'kline'
+            args['symbol'] = market['id']
+            args['interval'] = interval
+            params['uta'] = True
+            messageHash = 'kline:' + symbol
+        else:
+            args['channel'] = 'candle' + interval
+            args['instId'] = market['id']
+            messageHash = 'candles:' + timeframe + ':' + symbol
         ohlcv = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
@@ -513,17 +526,43 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
 
         :param str symbol: unified symbol of the market to unwatch the ohlcv for
         :param str [timeframe]: the period for the ratio, default is 1 minute
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
-        channel = 'candle' + interval
-        return await self.un_watch_channel(symbol, channel, 'candles:' + timeframe, params)
+        channel = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        instType = None
+        messageHash = None
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'unWatchOHLCV', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
+        args: dict = {
+            'instType': instType,
+        }
+        if uta:
+            channel = 'kline'
+            args['topic'] = channel
+            args['symbol'] = market['id']
+            args['interval'] = interval
+            params['uta'] = True
+            params['interval'] = interval
+            messageHash = channel + symbol
+        else:
+            channel = 'candle' + interval
+            args['channel'] = channel
+            args['instId'] = market['id']
+            messageHash = 'candles:' + interval
+        return await self.un_watch_channel(symbol, channel, messageHash, params)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -559,15 +598,45 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701901610417
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "action": "snapshot",
+        #         "arg": {
+        #             "instType": "usdt-futures",
+        #             "topic": "kline",
+        #             "symbol": "BTCUSDT",
+        #             "interval": "1m"
+        #         },
+        #         "data": [
+        #             {
+        #                 "start": "1755564480000",
+        #                 "open": "116286",
+        #                 "close": "116256.2",
+        #                 "high": "116310.2",
+        #                 "low": "116232.8",
+        #                 "volume": "39.7062",
+        #                 "turnover": "4616746.46654"
+        #             },
+        #         ],
+        #         "ts": 1755594421877
+        #     }
+        #
         arg = self.safe_value(message, 'arg', {})
-        instType = self.safe_string(arg, 'instType')
-        marketType = 'spot' if (instType == 'SPOT') else 'contract'
-        marketId = self.safe_string(arg, 'instId')
+        instType = self.safe_string_lower(arg, 'instType')
+        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        channel = self.safe_string(arg, 'channel')
-        interval = channel.replace('candle', '')
+        channel = self.safe_string_2(arg, 'channel', 'topic')
+        interval = self.safe_string(arg, 'interval')
+        isUta = None
+        if interval is None:
+            isUta = False
+            interval = channel.replace('candle', '')
+        else:
+            isUta = True
         timeframes = self.safe_value(self.options, 'timeframes')
         timeframe = self.find_timeframe(interval, timeframes)
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -579,7 +648,11 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
-        messageHash = 'candles:' + timeframe + ':' + symbol
+        messageHash = None
+        if isUta:
+            messageHash = 'kline:' + symbol
+        else:
+            messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(stored, messageHash)
 
     def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
@@ -595,14 +668,26 @@ class bitget(ccxt.async_support.bitget):
         #         "437404.105512"  # USDT volume
         #     ]
         #
+        # uta
+        #
+        #     {
+        #         "start": "1755564480000",
+        #         "open": "116286",
+        #         "close": "116256.2",
+        #         "high": "116310.2",
+        #         "low": "116232.8",
+        #         "volume": "39.7062",
+        #         "turnover": "4616746.46654"
+        #     }
+        #
         volumeIndex = 6 if (market['inverse']) else 5
         return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, volumeIndex),
+            self.safe_integer_2(ohlcv, 'start', 0),
+            self.safe_number_2(ohlcv, 'open', 1),
+            self.safe_number_2(ohlcv, 'high', 2),
+            self.safe_number_2(ohlcv, 'low', 3),
+            self.safe_number_2(ohlcv, 'close', 4),
+            self.safe_number_2(ohlcv, 'volume', volumeIndex),
         ]
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -644,12 +729,21 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbol)
         messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         instType = None
-        instType, params = self.get_inst_type(market, False, params)
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'unWatchChannel', 'uta', False)
+        instType, params = self.get_inst_type(market, uta, params)
         args: dict = {
             'instType': instType,
-            'channel': channel,
-            'instId': market['id'],
         }
+        if uta:
+            args['topic'] = channel
+            args['symbol'] = market['id']
+            args['interval'] = self.safe_string(params, 'interval', '1m')
+            params['uta'] = True
+            params = self.omit(params, 'interval')
+        else:
+            args['channel'] = channel
+            args['instId'] = market['id']
         return await self.un_watch_public(messageHash, args, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
@@ -1999,6 +2093,18 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1753230479687
         #     }
         #
+        # unsubscribe
+        #
+        #     {
+        #         "event": "unsubscribe",
+        #         "arg": {
+        #             "instType": "spot",
+        #             "topic": "kline",
+        #             "symbol": "BTCUSDT",
+        #             "interval": "1m"
+        #         }
+        #     }
+        #
         if self.handle_error_message(client, message):
             return
         content = self.safe_string(message, 'message')
@@ -2031,6 +2137,7 @@ class bitget(ccxt.async_support.bitget):
             'positions': self.handle_positions,
             'account-isolated': self.handle_balance,
             'account-crossed': self.handle_balance,
+            'kline': self.handle_ohlcv,
         }
         arg = self.safe_value(message, 'arg', {})
         topic = self.safe_value_2(arg, 'channel', 'topic', '')
@@ -2128,18 +2235,34 @@ class bitget(ccxt.async_support.bitget):
         #
         #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         #
+        # UTA
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
+        #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
         type = 'spot' if (instType == 'spot') else 'contract'
-        instId = self.safe_string(arg, 'instId')
-        channel = self.safe_string(arg, 'channel')
-        interval = channel.replace('candle', '')
+        instId = self.safe_string_2(arg, 'instId', 'symbol')
+        channel = self.safe_string_2(arg, 'channel', 'topic')
+        interval = self.safe_string(arg, 'interval')
+        isUta = None
+        if interval is None:
+            isUta = False
+            interval = channel.replace('candle', '')
+        else:
+            isUta = True
         timeframes = self.safe_value(self.options, 'timeframes')
         timeframe = self.find_timeframe(interval, timeframes)
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
-        messageHash = 'unsubscribe:candles:' + timeframe + ':' + market['symbol']
-        subMessageHash = 'candles:' + timeframe + ':' + symbol
+        messageHash = None
+        subMessageHash = None
+        if isUta:
+            messageHash = 'unsubscribe:kline:' + symbol
+            subMessageHash = 'kline:' + symbol
+        else:
+            messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol
+            subMessageHash = 'candles:' + timeframe + ':' + symbol
         if symbol in self.ohlcvs:
             if timeframe in self.ohlcvs[symbol]:
                 del self.ohlcvs[symbol][timeframe]
@@ -2179,5 +2302,7 @@ class bitget(ccxt.async_support.bitget):
             elif channel == 'ticker':
                 self.handle_ticker_un_subscription(client, message)
             elif channel.startswith('candle'):
+                self.handle_ohlcv_un_subscription(client, message)
+            elif channel.startswith('kline'):
                 self.handle_ohlcv_un_subscription(client, message)
         return message
