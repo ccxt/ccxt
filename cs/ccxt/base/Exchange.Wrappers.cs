@@ -1279,7 +1279,6 @@ public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public class  Derive: derive { public Derive(object args = null) : base(args) { } }
 public class  Digifinex: digifinex { public Digifinex(object args = null) : base(args) { } }
-public class  Ellipx: ellipx { public Ellipx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
 public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { } }
 public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { } }
