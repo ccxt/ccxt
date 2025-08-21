@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, Currencies } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, Currencies, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default class coinmate extends Exchange {
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': true,
@@ -52,9 +52,11 @@ export default class coinmate extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositsWithdrawals': true,
+                'fetchLedger': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -82,6 +84,7 @@ export default class coinmate extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -577,6 +580,121 @@ export default class coinmate extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    /**
+     * @method
+     * @name coinmate#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://coinmate.docs.apiary.io/#reference/transaction-history/get-transaction-history/post
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'limit': 1000,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timestampFrom'] = since;
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privatePostTransactionHistory (this.extend (request, params));
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": [
+        //             {
+        //                 "timestamp": 1505823601032,
+        //                 "transactionId": 1394384,
+        //                 "transactionType": "DEPOSIT",
+        //                 "price": null,
+        //                 "priceCurrency": null,
+        //                 "amount": 1000.00,
+        //                 "amountCurrency": "CZK",
+        //                 "fee": 0,
+        //                 "feeCurrency": "CZK",
+        //                 "description": "BANK_WIRE: 1000.00, CZK",
+        //                 "status": "OK",
+        //                 "orderId": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "timestamp": 1505823601032,
+        //         "transactionId": 1394384,
+        //         "transactionType": "DEPOSIT", // DEPOSIT, WITHDRAWAL, BUY, SELL, etc.
+        //         "price": 24243.86,
+        //         "priceCurrency": "CZK",
+        //         "amount": 0.02055184,
+        //         "amountCurrency": "BTC",
+        //         "fee": 1.74,
+        //         "feeCurrency": "CZK",
+        //         "description": "Kč 499.99",
+        //         "status": "OK",
+        //         "orderId": 3690273
+        //     }
+        //
+        const type = this.safeStringLower (item, 'transactionType');
+        const amount = this.safeNumber (item, 'amount');
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const currencyId = this.safeString (item, 'amountCurrency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const feeCurrencyId = this.safeString (item, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        // Map transaction types to CCXT ledger types
+        let direction = undefined;
+        let ledgerType = type;
+        if (type === 'deposit') {
+            direction = 'in';
+        } else if (type === 'withdrawal') {
+            direction = 'out';
+        } else if (type === 'buy') {
+            ledgerType = 'trade';
+            direction = 'in';  // Receiving the base currency
+        } else if (type === 'sell') {
+            ledgerType = 'trade';
+            direction = 'out'; // Giving away the base currency
+        } else if (type === 'instant_buy') {
+            ledgerType = 'trade';
+            direction = 'in';
+        } else if (type === 'instant_sell') {
+            ledgerType = 'trade';
+            direction = 'out';
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'transactionId'),
+            'timestamp': timestamp,
+            'type': ledgerType,
+            'currency': code,
+            'amount': Math.abs (amount),
+            'direction': direction,
+            'referenceId': this.safeString (item, 'orderId'),
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'fee': {
+                'cost': this.safeNumber (item, 'fee'),
+                'currency': feeCurrency,
+            },
+        }, currency);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
