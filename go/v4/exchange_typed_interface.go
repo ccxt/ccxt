@@ -432,9 +432,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "upbit":
 		itf := NewUpbit(options)
 		return itf
-	case "vertex":
-		itf := NewVertex(options)
-		return itf
 	case "wavesexchange":
 		itf := NewWavesexchange(options)
 		return itf

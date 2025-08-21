@@ -397,10 +397,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		upbitItf := &upbit{}
 		upbitItf.Init(exchangeArgs)
 		return upbitItf, true
-	case "vertex":
-		vertexItf := &vertex{}
-		vertexItf.Init(exchangeArgs)
-		return vertexItf, true
 	case "wavesexchange":
 		wavesexchangeItf := &wavesexchange{}
 		wavesexchangeItf.Init(exchangeArgs)
