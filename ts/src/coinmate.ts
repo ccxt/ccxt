@@ -242,7 +242,7 @@ export default class coinmate extends Exchange {
             },
             'options': {
                 'withdraw': {
-                    'fillResponsefromRequest': true,
+                    'fillResponseFromRequest': true,
                     'methods': {
                         'BTC': 'privatePostBitcoinWithdrawal',
                         'LTC': 'privatePostLitecoinWithdrawal',
@@ -259,11 +259,11 @@ export default class coinmate extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': false, // Disabled 2025-02-27
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false, // todo
-                        'takeProfitPrice': false, // todo
+                        'stopLossPrice': false, // Disabled by exchange 2025-02-27
+                        'takeProfitPrice': false, // Disabled by exchange 2025-02-27
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -272,9 +272,9 @@ export default class coinmate extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo implement
+                        'trailing': false, // Disabled - stop orders not supported 2025-02-27
                         'leverage': false,
-                        'marketBuyByCost': false,
+                        'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
                         'iceberg': true, // todo
@@ -298,7 +298,7 @@ export default class coinmate extends Exchange {
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': true,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -332,6 +332,8 @@ export default class coinmate extends Exchange {
                     'max allowed precision': InvalidOrder, // {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
                     'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
+                    'stop': NotSupported, // Stop orders disabled 2025-02-27
+                    'Not implemented': NotSupported, // Stop loss orders disabled
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -673,10 +675,10 @@ export default class coinmate extends Exchange {
         } else if (type === 'sell') {
             ledgerType = 'trade';
             direction = 'out'; // Giving away the base currency
-        } else if (type === 'instant_buy') {
+        } else if (type === 'instant_buy' || type === 'quick_buy') {
             ledgerType = 'trade';
             direction = 'in';
-        } else if (type === 'instant_sell') {
+        } else if (type === 'instant_sell' || type === 'quick_sell') {
             ledgerType = 'trade';
             direction = 'out';
         }
@@ -826,7 +828,7 @@ export default class coinmate extends Exchange {
         //         "id": 2132583,
         //     }
         //
-        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const timestamp = this.safeInteger2 (transaction, 'timestamp', 'createdTimestamp');
         const currencyId = this.safeString (transaction, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
@@ -1430,8 +1432,11 @@ export default class coinmate extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] the price to trigger a stop order, in units of the quote currency
-     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.triggerPrice] the price to trigger a stop order, in units of the quote currency (DISABLED)
+     * @param {float} [params.stopPrice] alias for triggerPrice (DISABLED)
+     * @param {bool} [params.postOnly] if true, the order will only be placed if it does not immediately execute (limit orders only)
+     * @param {bool} [params.immediateOrCancel] if true, execute immediately and cancel any remaining unfilled portion (limit orders only)
+     * @param {bool} [params.hidden] if true, the order will be hidden from the order book (limit orders only)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1448,17 +1453,32 @@ export default class coinmate extends Exchange {
         }
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                // total is cost in quote currency
+                request['total'] = this.costToPrecision (symbol, amount);
             } else {
-                request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                // amount is base currency amount
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
             method += 'Instant';
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
+            // Handle time-in-force options for limit orders
+            const postOnly = this.safeBool (params, 'postOnly');
+            const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
+            const hidden = this.safeBool (params, 'hidden');
+            if (postOnly !== undefined) {
+                request['postOnly'] = postOnly ? 1 : 0;
+            }
+            if (immediateOrCancel !== undefined) {
+                request['immediateOrCancel'] = immediateOrCancel ? 1 : 0;
+            }
+            if (hidden !== undefined) {
+                request['hidden'] = hidden ? 1 : 0;
+            }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ])));
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
@@ -1583,6 +1603,9 @@ export default class coinmate extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be placed if it does not immediately execute (limit orders only)
+     * @param {bool} [params.immediateOrCancel] if true, execute immediately and cancel any remaining unfilled portion (limit orders only)
+     * @param {bool} [params.hidden] if true, the order will be hidden from the order book (limit orders only)
      * @returns {Order} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1595,7 +1618,7 @@ export default class coinmate extends Exchange {
         };
         if (type === 'market') {
             if (side === 'buy') {
-                request['total'] = this.amountToPrecision (symbol, amount);
+                request['total'] = this.costToPrecision (symbol, amount);
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
@@ -1604,8 +1627,21 @@ export default class coinmate extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
             method += this.capitalize (type);
+            // Handle time-in-force options for limit orders
+            const postOnly = this.safeBool (params, 'postOnly');
+            const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
+            const hidden = this.safeBool (params, 'hidden');
+            if (postOnly !== undefined) {
+                request['postOnly'] = postOnly ? 1 : 0;
+            }
+            if (immediateOrCancel !== undefined) {
+                request['immediateOrCancel'] = immediateOrCancel ? 1 : 0;
+            }
+            if (hidden !== undefined) {
+                request['hidden'] = hidden ? 1 : 0;
+            }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ])));
         // replaceBy* returns an object with createdOrderId and cancel info
         const data = this.safeDict (response, 'data', {});
         const newOrderId = this.safeString (data, 'createdOrderId');
@@ -1652,7 +1688,8 @@ export default class coinmate extends Exchange {
         //     {"error":true,"errorMessage":"Access denied.","data":null}
         //
         const errorMessage = this.safeString (response, 'errorMessage');
-        if (errorMessage !== undefined) {
+        const errorFlag = this.safeBool (response, 'error');
+        if (errorMessage !== undefined || (errorFlag === true)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
