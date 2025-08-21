@@ -155,8 +155,6 @@ export default class coinmate extends Exchange {
                 'private': {
                     'post': [
                         'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
                         'bitcoinDepositAddresses',
                         'bitcoinWithdrawal',
                         'bitcoinWithdrawalFees',
@@ -165,8 +163,7 @@ export default class coinmate extends Exchange {
                         'cancelOrder',
                         'cancelOrderWithInfo',
                         'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
+                        // removed DASH/BCH endpoints (deprecated per latest API docs)
                         'ethereumWithdrawal',
                         'ethereumDepositAddresses',
                         'litecoinWithdrawal',
@@ -191,8 +188,6 @@ export default class coinmate extends Exchange {
                         'transfer',
                         'transferHistory',
                         'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
                         'unconfirmedEthereumDeposits',
                         'unconfirmedLitecoinDeposits',
                         'unconfirmedRippleDeposits',
@@ -207,6 +202,9 @@ export default class coinmate extends Exchange {
                         'solWithdrawal',
                         'solDepositAddresses',
                         'unconfirmedSolDeposits',
+                        // new endpoints per 2025-06-16 and Lightning (bankWireWithdrawal removed per request)
+                        'lightningDeposit',
+                        'lightningWithdraw',
                     ],
                 },
             },
@@ -1088,10 +1086,12 @@ export default class coinmate extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
+        const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId, market ? this.currency (market['quote']) : undefined);
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': feeCurrency,
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -1387,12 +1387,18 @@ export default class coinmate extends Exchange {
         const priceString = this.safeString (order, 'price');
         const amountString = this.safeString (order, 'originalAmount');
         const remainingString = this.safeString2 (order, 'remainingAmount', 'amount');
+        const cumulativeString = this.safeString (order, 'cumulativeAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         const averageString = this.safeString (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const trailingUpdatedTimestamp = this.safeInteger (order, 'trailingUpdatedTimestamp');
+        const originalStopPrice = this.safeNumber (order, 'originalStopPrice');
+        const marketPriceAtLastUpdate = this.safeNumber (order, 'marketPriceAtLastUpdate');
+        const marketPriceAtOrderCreation = this.safeNumber (order, 'marketPriceAtOrderCreation');
+        const associatedTrades = this.safeList (order, 'trades');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1411,10 +1417,15 @@ export default class coinmate extends Exchange {
             'average': averageString,
             'filled': undefined,
             'remaining': remainingString,
+            'cumulative': cumulativeString,
             'status': status,
-            'trades': undefined,
+            'trades': associatedTrades,
             'info': order,
             'fee': undefined,
+            'trailingUpdatedTimestamp': trailingUpdatedTimestamp,
+            'originalStopPrice': originalStopPrice,
+            'marketPriceAtLastUpdate': marketPriceAtLastUpdate,
+            'marketPriceAtOrderCreation': marketPriceAtOrderCreation,
         }, market);
     }
 
@@ -1468,6 +1479,11 @@ export default class coinmate extends Exchange {
             const postOnly = this.safeBool (params, 'postOnly');
             const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
             const hidden = this.safeBool (params, 'hidden');
+            // stop orders disabled; ensure stopPrice isn't silently accepted anywhere
+            const stopPrice = this.safeValue (params, 'stopPrice');
+            if (stopPrice !== undefined) {
+                throw new NotSupported (this.id + ' createOrder() stop orders are disabled by exchange');
+            }
             if (postOnly !== undefined) {
                 request['postOnly'] = postOnly ? 1 : 0;
             }
@@ -1519,14 +1535,23 @@ export default class coinmate extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const request: Dict = {
-            'orderId': id,
-        };
+        const request: Dict = {};
         let market = undefined;
         if (symbol) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostOrderById (this.extend (request, params));
+        const byClient = this.safeBool (params, 'byClientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId', id);
+        let response = undefined;
+        if (byClient) {
+            request['clientOrderId'] = clientOrderId;
+            response = await this.privatePostOrder (this.extend (request, this.omit (params, [ 'byClientOrderId', 'clientOrderId' ])));
+            const list = this.safeList (response, 'data', []);
+            const first = this.safeDict (list, 0, {});
+            return this.parseOrder (first, market);
+        }
+        request['orderId'] = id;
+        response = await this.privatePostOrderById (this.extend (request, params));
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
     }
@@ -1631,6 +1656,11 @@ export default class coinmate extends Exchange {
             const postOnly = this.safeBool (params, 'postOnly');
             const immediateOrCancel = this.safeBool (params, 'immediateOrCancel');
             const hidden = this.safeBool (params, 'hidden');
+            // stop orders disabled; ensure stopPrice isn't silently accepted anywhere
+            const stopPrice = this.safeValue (params, 'stopPrice');
+            if (stopPrice !== undefined) {
+                throw new NotSupported (this.id + ' editOrder() stop orders are disabled by exchange');
+            }
             if (postOnly !== undefined) {
                 request['postOnly'] = postOnly ? 1 : 0;
             }
