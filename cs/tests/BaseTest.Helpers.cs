@@ -11,7 +11,8 @@ using dict = Dictionary<string, object>;
 
 public partial class testMainClass : BaseTest
 {
-    public static SharedMethods testSharedMethods = new Shar    // public Exchange exchange = new Exchange();
+    public static SharedMethods testSharedMethods = new SharedMethods();
+    // public Exchange exchange = new Exchange();
     // public dict testFiles = new dict();
     // consts to be accessed from transpiled tests
     public static string EXT = "cs";
