@@ -1264,37 +1264,30 @@ export default class dydx extends Exchange {
         }
     }
 
-    // calculateQuantums (size: string, atomicResolution: string, stepBaseQuantums: string): string {
-    //     const amount = Precise.stringMul (size, this.pow ('10', Precise.stringAbs (atomicResolution)));
-    //     return Precise.stringMax (amount, stepBaseQuantums);
-    // }
-
-    // calculateSubticks (size: number, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string) {}
-    // calculateConditionalOrderTriggerSubticks(type, atomicResolution: string, quantumConversionExponent: string, subticksPerTick: string, triggerPrice: string)
-
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
-        // const account = this.fetchDydxAccount ();
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        const timeInForceSeconds = this.safeInteger (params, 'timeInForceSeconds', 60);
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
         const atomicResolution = Precise.stringNeg (marketInfo['atomicResolution']);
-        const quantums = Precise.stringMul (amountStr, this.pow ('10', atomicResolution));
+        const quantumScale = this.pow ('10', atomicResolution);
+        const quantums = Precise.stringMul (amountStr, quantumScale);
         const quantumConversionExponent = marketInfo['quantumConversionExponent'];
-        const subticks = Precise.stringMul (priceStr, this.pow ('10', Precise.stringAdd (atomicResolution, Precise.stringAdd (quantumConversionExponent, '6'))));
+        const priceScale = this.pow ('10', Precise.stringAdd (atomicResolution, Precise.stringAdd (quantumConversionExponent, '6')));
+        const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
+        let conditionalOrderTriggerSubticks = '0';
         let orderFlag = undefined;
         let timeInForceNumber = undefined;
         if (orderType === 'MARKET') {
@@ -1331,15 +1324,19 @@ export default class dydx extends Exchange {
                     throw new Error('unexpected code path: timeInForce');
                 }
             }
-        } else if (isConditional) {
+        }
+        if (isConditional) {
             // conditional
             orderFlag = 32;
             // TODO: change timeInForceNumber
-            if (stopLoss !== undefined) {
+            if (stopLossPrice !== undefined) {
                 conditionalType = 1;
-            } else if (takeProfit !== undefined) {
+                conditionalOrderTriggerSubticks = this.priceToPrecision (symbol, stopLossPrice);
+            } else if (takeProfitPrice !== undefined) {
                 conditionalType = 2;
+                conditionalOrderTriggerSubticks = this.priceToPrecision (symbol, takeProfitPrice);
             }
+            conditionalOrderTriggerSubticks = Precise.stringMul (conditionalOrderTriggerSubticks, priceScale);
         }
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
@@ -1349,73 +1346,10 @@ export default class dydx extends Exchange {
             }
         } else {
             if (goodTillBlockTime === undefined) {
-                // TODO: set gtt
-                throw new ArgumentsRequired('goodTillBlockTime is required');
+                throw new ArgumentsRequired('goodTillBlockTime is required.');
             }
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
-        // TODO: quantums / subticks / conditionalOrderTriggerSubticks
-        // if (!isConditional) {
-        //     if (postOnly) {
-        //         request['order_type'] = 'POST_ONLY';
-        //     } else if (timeInForce === 'fok') {
-        //         request['order_type'] = 'FOK';
-        //     } else if (timeInForce === 'ioc') {
-        //         request['order_type'] = 'IOC';
-        //     }
-        // }
-        // if (reduceOnly) {
-        //     request['reduce_only'] = reduceOnly;
-        // }
-        // if (price !== undefined) {
-        //     request[priceKey] = this.priceToPrecision (symbol, price);
-        // }
-        // if (isMarket && !isConditional) {
-        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
-        // } else if (algoType !== 'POSITIONAL_TP_SL') {
-        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
-        // }
-        // const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        // if (clientOrderId !== undefined) {
-        //     request['client_order_id'] = clientOrderId;
-        // }
-        // if (triggerPrice !== undefined) {
-        //     request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-        //     request['algo_type'] = 'STOP';
-        // } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
-        //     request['algo_type'] = 'TP_SL';
-        //     const outterOrder: Dict = {
-        //         'symbol': market['id'],
-        //         'reduce_only': false,
-        //         'algo_type': 'POSITIONAL_TP_SL',
-        //         'child_orders': [],
-        //     };
-        //     const childOrders = outterOrder['child_orders'];
-        //     const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-        //     if (stopLoss !== undefined) {
-        //         const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
-        //         const stopLossOrder: Dict = {
-        //             'side': closeSide,
-        //             'algo_type': 'TP_SL',
-        //             'trigger_price': this.priceToPrecision (symbol, stopLossPrice),
-        //             'type': 'LIMIT',
-        //             'reduce_only': true,
-        //         };
-        //         childOrders.push (stopLossOrder);
-        //     }
-        //     if (takeProfit !== undefined) {
-        //         const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
-        //         const takeProfitOrder: Dict = {
-        //             'side': closeSide,
-        //             'algo_type': 'TP_SL',
-        //             'trigger_price': this.priceToPrecision (symbol, takeProfitPrice),
-        //             'type': 'LIMIT',
-        //             'reduce_only': true,
-        //         };
-        //         outterOrder.push (takeProfitOrder);
-        //     }
-        //     request['child_orders'] = [ outterOrder ];
-        // }
         const defaultClientOrderId = this.randNumber (10);
         const clientOrderId = this.safeInteger (params, 'clientOrderId', defaultClientOrderId);
         const orderPayload = {
@@ -1432,17 +1366,14 @@ export default class dydx extends Exchange {
                 'side': sideNumber,
                 'quantums': this.toLong (quantums),
                 'subticks': this.toLong (subticks),
+                'goodTilBlock': goodTillBlock,
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
-                'conditionalOrderTriggerSubticks': {
-                    'low': 0,
-                    'high': 0,
-                    'unsigned': false
-                }
-            }
+                'conditionalOrderTriggerSubticks': this.toLong (conditionalOrderTriggerSubticks),
+            },
         }
         const signingPayload = {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
