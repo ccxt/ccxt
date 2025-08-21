@@ -11,8 +11,7 @@ using dict = Dictionary<string, object>;
 
 public partial class testMainClass : BaseTest
 {
-    public static SharedMethods testSharedMethods = new SharedMethods();
-    // public Exchange exchange = new Exchange();
+    public static SharedMethods testSharedMethods = new Shar    // public Exchange exchange = new Exchange();
     // public dict testFiles = new dict();
     // consts to be accessed from transpiled tests
     public static string EXT = "cs";
@@ -22,6 +21,7 @@ public partial class testMainClass : BaseTest
     public static string ROOT_DIR = Tests.ccxtBaseDir + "/";
     public static dict ENV_VARS = null;
     public static string NEW_LINE = "\n";
+    public int LOG_CHARS_LENGTH = 10000;
 
     //public bool info = Tests.info;
     //public bool verbose = Tests.verbose;
@@ -281,7 +281,14 @@ public partial class testMainClass : BaseTest
     public string exceptionMessage(object exc)
     {
         var e = exc as Exception;
-        return e.Message;
+        var message = e.StackTrace;
+        // if (e is AggregateException) {
+        //     foreach (var innerExc in e.InnerExceptions) {
+        //         message += innerExc.Message + '\n';
+        //     }
+        // }
+        // "[" + e.GetType().Name + "] " + message
+        return e?.ToString().Substring(0, LOG_CHARS_LENGTH) ?? "Exception occurred, but no message available.";
     }
 
     public System.Exception getRootException(Exception exc)
@@ -366,5 +373,29 @@ public partial class testMainClass : BaseTest
         {
             return Exchange.Json(a);
         }
+ = @"(?<=\d)\.0+$|(\.\d*?[1-9])0+$";
+        string pattern = @"(?<=\.[0-9]*[1-9])0+\b|(?<=\d)\.0+\b";
+
+
+        string result1 = Regex.Replace(decodedString, pattern, "");
+        return result1;
+
+    }
+
+    public partial class SharedMethods
+    {
+        // stub, the actual content is generated inside Generated/Exchange
+\.0+$|(\.\d*?[1-9])0+$";
+        string pattern = @"(?<=\.[0-9]*[1-9])0+\b|(?<=\d)\.0+\b";
+
+
+        string result1 = Regex.Replace(decodedString, pattern, "");
+        return result1;
+
+    }
+
+    public partial class SharedMethods
+    {
+        // stub, the actual content is generated inside Generated/Exchange
     }
 }
