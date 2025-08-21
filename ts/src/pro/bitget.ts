@@ -2230,6 +2230,18 @@ export default class bitget extends bitgetRest {
         //         "ts": 1753230479687
         //     }
         //
+        // unsubscribe
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "instType": "spot",
+        //             "topic": "kline",
+        //             "symbol": "BTCUSDT",
+        //             "interval": "1m"
+        //         }
+        //     }
+        //
         if (this.handleErrorMessage (client, message)) {
             return;
         }
