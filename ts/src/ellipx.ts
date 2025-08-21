@@ -966,7 +966,7 @@ export default class ellipx extends Exchange {
                     'id': id,
                     'code': code,
                     'info': [],
-                    'type': undefined,
+                    'type': 'crypto',
                     'name': this.safeString (token, 'Name'),
                     'active': undefined,
                     'deposit': undefined,
@@ -1057,7 +1057,7 @@ export default class ellipx extends Exchange {
         //         "USDC"
         //     ],
         //     "bid": {
-        //         "id": "mktor-swishf-uv6n-hrzj-63ye-bdqnk33q",
+        //         "id": "mktor-swishf-uv6n-hrzj-63ye-bdqnk35q",
         //         "iss": "ellipx:beta",
         //         "uniq": "order:1731053859:914141972:0"
         //     },
