@@ -374,29 +374,5 @@ public partial class testMainClass : BaseTest
         {
             return Exchange.Json(a);
         }
- = @"(?<=\d)\.0+$|(\.\d*?[1-9])0+$";
-        string pattern = @"(?<=\.[0-9]*[1-9])0+\b|(?<=\d)\.0+\b";
-
-
-        string result1 = Regex.Replace(decodedString, pattern, "");
-        return result1;
-
-    }
-
-    public partial class SharedMethods
-    {
-        // stub, the actual content is generated inside Generated/Exchange
-\.0+$|(\.\d*?[1-9])0+$";
-        string pattern = @"(?<=\.[0-9]*[1-9])0+\b|(?<=\d)\.0+\b";
-
-
-        string result1 = Regex.Replace(decodedString, pattern, "");
-        return result1;
-
-    }
-
-    public partial class SharedMethods
-    {
-        // stub, the actual content is generated inside Generated/Exchange
     }
 }
