@@ -1,8 +1,17 @@
 {
     "exchange": "coinmetro",
     "skipKeys": [],
-    "outputType": "urlencode",
+    "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coinmetro.com/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit order",
@@ -97,12 +106,12 @@
             }
         ],
         "fetchBalance": [
-            {
-                "description": "fetch spot balance",
-                "method": "fetchBalance",
-                "url": "https://api.coinmetro.com/users/balances",
-                "input": []
-            }
+          {
+            "description": "fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://api.coinmetro.com/users/wallets",
+            "input": []
+          }
         ],
         "fetchOpenOrders":[
             {

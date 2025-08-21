@@ -7,9 +7,155 @@ public class  Binance: binance { public Binance(object args = null) : base(args)
 public partial class binance
 {
     /// <summary>
+    /// watch the public liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// watch the public liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// watch the private liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchMyLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// watch the private liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -36,6 +182,12 @@ public partial class binance
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -62,7 +214,8 @@ public partial class binance
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#order-book-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -89,6 +242,10 @@ public partial class binance
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -106,6 +263,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>
@@ -122,6 +285,10 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -141,6 +308,12 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
@@ -155,6 +328,9 @@ public partial class binance
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -174,6 +350,12 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -185,10 +367,51 @@ public partial class binance
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
+    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
+        return Helper.ConvertToDictionaryOHLCVList(res);
+    }
+    /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -220,7 +443,7 @@ public partial class binance
     /// query historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#klines"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -236,6 +459,12 @@ public partial class binance
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -258,9 +487,67 @@ public partial class binance
         return new Ticker(res);
     }
     /// <summary>
+    /// watches a mark price for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.use1sFreq</term>
+    /// <description>
+    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> WatchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// watches the mark price for all markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.use1sFreq</term>
+    /// <description>
+    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMarkPrices(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -280,9 +567,9 @@ public partial class binance
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -307,9 +594,9 @@ public partial class binance
     /// fetch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -329,7 +616,7 @@ public partial class binance
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -349,7 +636,8 @@ public partial class binance
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -400,8 +688,9 @@ public partial class binance
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -422,8 +711,9 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-and-replace-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -434,8 +724,9 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
@@ -444,9 +735,16 @@ public partial class binance
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -465,8 +763,14 @@ public partial class binance
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-open-orders-trade"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -485,9 +789,22 @@ public partial class binance
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#query-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -500,7 +817,7 @@ public partial class binance
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -546,7 +863,7 @@ public partial class binance
     /// fetch closed orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -580,7 +897,7 @@ public partial class binance
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#current-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -602,9 +919,9 @@ public partial class binance
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#payload-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -646,6 +963,18 @@ public partial class binance
     /// <remarks>
     /// <list type="table">
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// number : since timestamp
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// number : limit
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.portfolioMargin</term>
     /// <description>
     /// boolean : set to true if you would like to watch positions in a portfolio margin account
@@ -665,7 +994,7 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-trade-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -699,7 +1028,7 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -728,7 +1057,7 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchTradesWs(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTradesWs(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -766,7 +1095,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

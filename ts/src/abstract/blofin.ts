@@ -27,12 +27,34 @@ interface Exchange {
     privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
     privateGetAccountMarginMode (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountPositionMode (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBatchLeverageInfo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslPending (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrderPriceRange (params?: {}): Promise<implicitReturnType>;
+    privateGetUserQueryApikey (params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateBasic (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountPositionsByOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountPositionsDetailsByOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountPositionsByContract (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountPositionMode (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingTradeOrdersPending (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingTradePendingTpslByContract (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingTradePositionHistoryByOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetCopytradingTradePendingTpslByOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeCancelAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderTpsl (params?: {}): Promise<implicitReturnType>;
@@ -40,6 +62,16 @@ interface Exchange {
     privatePostTradeCancelTpsl (params?: {}): Promise<implicitReturnType>;
     privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
     privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingAccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradePlaceOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradePlaceTpslByContract (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradeCancelTpslByContract (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradePlaceTpslByOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradeCancelTpslByOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradeClosePositionByOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCopytradingTradeClosePositionByContract (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

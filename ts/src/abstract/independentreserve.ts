@@ -23,6 +23,9 @@ interface Exchange {
     publicGetGetFxRates (params?: {}): Promise<implicitReturnType>;
     publicGetGetOrderMinimumVolumes (params?: {}): Promise<implicitReturnType>;
     publicGetGetCryptoWithdrawalFees (params?: {}): Promise<implicitReturnType>;
+    publicGetGetCryptoWithdrawalFees2 (params?: {}): Promise<implicitReturnType>;
+    publicGetGetNetworks (params?: {}): Promise<implicitReturnType>;
+    publicGetGetPrimaryCurrencyConfig2 (params?: {}): Promise<implicitReturnType>;
     privatePostGetOpenOrders (params?: {}): Promise<implicitReturnType>;
     privatePostGetClosedOrders (params?: {}): Promise<implicitReturnType>;
     privatePostGetClosedFilledOrders (params?: {}): Promise<implicitReturnType>;
@@ -31,7 +34,9 @@ interface Exchange {
     privatePostGetTransactions (params?: {}): Promise<implicitReturnType>;
     privatePostGetFiatBankAccounts (params?: {}): Promise<implicitReturnType>;
     privatePostGetDigitalCurrencyDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostGetDigitalCurrencyDepositAddress2 (params?: {}): Promise<implicitReturnType>;
     privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<implicitReturnType>;
+    privatePostGetDigitalCurrencyDepositAddresses2 (params?: {}): Promise<implicitReturnType>;
     privatePostGetTrades (params?: {}): Promise<implicitReturnType>;
     privatePostGetBrokerageFees (params?: {}): Promise<implicitReturnType>;
     privatePostGetDigitalCurrencyWithdrawal (params?: {}): Promise<implicitReturnType>;
@@ -42,6 +47,7 @@ interface Exchange {
     privatePostRequestFiatWithdrawal (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawFiatCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawDigitalCurrency (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawCrypto (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

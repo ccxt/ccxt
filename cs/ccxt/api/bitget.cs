@@ -341,6 +341,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("publicMixGetV2MixMarketQueryPositionLever",parameters);
     }
 
+    public async Task<object> publicMixGetV2MixMarketAccountLongShort (object parameters = null)
+    {
+        return await this.callAsync ("publicMixGetV2MixMarketAccountLongShort",parameters);
+    }
+
     public async Task<object> publicMarginGetMarginV1CrossPublicInterestRateAndLimit (object parameters = null)
     {
         return await this.callAsync ("publicMarginGetMarginV1CrossPublicInterestRateAndLimit",parameters);
@@ -371,6 +376,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("publicMarginGetV2MarginCurrencies",parameters);
     }
 
+    public async Task<object> publicMarginGetV2MarginMarketLongShortRatio (object parameters = null)
+    {
+        return await this.callAsync ("publicMarginGetV2MarginMarketLongShortRatio",parameters);
+    }
+
     public async Task<object> publicEarnGetV2EarnLoanPublicCoinInfos (object parameters = null)
     {
         return await this.callAsync ("publicEarnGetV2EarnLoanPublicCoinInfos",parameters);
@@ -379,6 +389,76 @@ public partial class bitget : Exchange
     public async Task<object> publicEarnGetV2EarnLoanPublicHourInterest (object parameters = null)
     {
         return await this.callAsync ("publicEarnGetV2EarnLoanPublicHourInterest",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketInstruments (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketInstruments",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketTickers (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketTickers",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketOrderbook",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketFills (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketFills",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketOpenInterest (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketOpenInterest",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketCandles",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketHistoryCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketHistoryCandles",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketCurrentFundRate (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketCurrentFundRate",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketHistoryFundRate (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketHistoryFundRate",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketRiskReserve (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketRiskReserve",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketDiscountRate (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketDiscountRate",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketMarginLoans (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketMarginLoans",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketPositionTier (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketPositionTier",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketOiLimit (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketOiLimit",parameters);
     }
 
     public async Task<object> privateSpotGetSpotV1WalletDepositAddress (object parameters = null)
@@ -504,6 +584,21 @@ public partial class bitget : Exchange
     public async Task<object> privateSpotGetV2SpotAccountTransferRecords (object parameters = null)
     {
         return await this.callAsync ("privateSpotGetV2SpotAccountTransferRecords",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountFundingAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountFundingAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountBotAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountBotAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountAllAccountBalance",parameters);
     }
 
     public async Task<object> privateSpotGetV2SpotWalletDepositAddress (object parameters = null)
@@ -1084,6 +1179,11 @@ public partial class bitget : Exchange
     public async Task<object> privateMixGetV2MixOrderOrdersPlanHistory (object parameters = null)
     {
         return await this.callAsync ("privateMixGetV2MixOrderOrdersPlanHistory",parameters);
+    }
+
+    public async Task<object> privateMixGetV2MixMarketPositionLongShort (object parameters = null)
+    {
+        return await this.callAsync ("privateMixGetV2MixMarketPositionLongShort",parameters);
     }
 
     public async Task<object> privateMixPostMixV1AccountSubAccountContractAssets (object parameters = null)
@@ -2476,6 +2576,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateEarnGetV2EarnLoanReduces",parameters);
     }
 
+    public async Task<object> privateEarnGetV2EarnAccountAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetV2EarnAccountAssets",parameters);
+    }
+
     public async Task<object> privateEarnPostV2EarnSavingsSubscribe (object parameters = null)
     {
         return await this.callAsync ("privateEarnPostV2EarnSavingsSubscribe",parameters);
@@ -2509,6 +2614,256 @@ public partial class bitget : Exchange
     public async Task<object> privateCommonGetV2CommonTradeRate (object parameters = null)
     {
         return await this.callAsync ("privateCommonGetV2CommonTradeRate",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountAssets",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSettings (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSettings",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountDepositRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountDepositRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountFinancialRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountFinancialRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountRepayableCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountRepayableCoins",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountPaymentCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountPaymentCoins",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountConvertRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountConvertRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountTransferableCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountTransferableCoins",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSubTransferRecord (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSubTransferRecord",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanTransfered (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanTransfered",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanSymbols (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanSymbols",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanRiskUnit (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanRiskUnit",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanRepaidHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanRepaidHistory",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanProductInfos (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanProductInfos",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanLoanOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanLoanOrder",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanLtvConvert (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanLtvConvert",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3InsLoanEnsureCoinsConvert (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3InsLoanEnsureCoinsConvert",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3PositionCurrentPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3PositionCurrentPosition",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3PositionHistoryPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3PositionHistoryPosition",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeOrderInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeOrderInfo",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeUnfilledOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeUnfilledOrders",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeUnfilledStrategyOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeUnfilledStrategyOrders",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeHistoryOrders",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeHistoryStrategyOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeHistoryStrategyOrders",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TradeFills (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TradeFills",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3UserSubList (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3UserSubList",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3UserSubApiList (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3UserSubApiList",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountSetLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSetLeverage",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountSetHoldMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSetHoldMode",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountRepay",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountTransfer",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountSubTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSubTransfer",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountMaxOpenAvailable (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountMaxOpenAvailable",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3InsLoanBindUid (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3InsLoanBindUid",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradePlaceOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradePlaceOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradePlaceStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradePlaceStrategyOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeModifyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeModifyOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeModifyStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeModifyStrategyOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCancelOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCancelStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCancelStrategyOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradePlaceBatch (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradePlaceBatch",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeBatchModifyOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeBatchModifyOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCancelBatch (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCancelBatch",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCancelSymbolOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCancelSymbolOrder",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeClosePositions (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeClosePositions",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3UserCreateSub (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3UserCreateSub",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3UserFreezeSub (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3UserFreezeSub",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3UserCreateSubApi (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3UserCreateSubApi",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3UserUpdateSubApi (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3UserUpdateSubApi",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3UserDeleteSubApi (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3UserDeleteSubApi",parameters);
     }
 
 }

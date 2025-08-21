@@ -9,19 +9,21 @@ use Exception; // a common import
 use ccxt\async\abstract\indodax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class indodax extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
             // 10 requests per second for making trades => 1000ms / 10 = 100ms
             // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
-            'rateLimit' => 100,
+            'rateLimit' => 50,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -30,6 +32,9 @@ class indodax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -41,9 +46,14 @@ class indodax extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -54,27 +64,52 @@ class indodax extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionForSymbolWs' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsForSymbolWs' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
@@ -85,9 +120,13 @@ class indodax extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -193,6 +232,70 @@ class indodax extends Exchange {
                     '1w' => '1W',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true, // todo implementation
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null, // todo implement
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000, // todo => not in request
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'STR' => 'XLM',
                 'BCHABC' => 'BCH',
@@ -208,11 +311,13 @@ class indodax extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -231,7 +336,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for indodax
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -354,7 +461,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -398,7 +507,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -409,12 +520,12 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $orderbook = Async\await($this->publicGetApiDepthPair (array_merge($request, $params)));
+            $orderbook = Async\await($this->publicGetApiDepthPair ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"0.01951",
@@ -460,7 +571,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#$ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -470,7 +583,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $response = Async\await($this->publicGetApiTickerPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetApiTickerPair ($this->extend($request, $params)));
             //
             //     {
             //         "ticker" => {
@@ -494,7 +607,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -517,12 +632,12 @@ class indodax extends Exchange {
             // }
             //
             $response = Async\await($this->publicGetApiTickerAll ($params));
-            $tickers = $this->safe_list($response, 'tickers');
+            $tickers = $this->safe_dict($response, 'tickers', array());
             return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'date');
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'tid'),
@@ -545,7 +660,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -557,7 +674,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['base'] . $market['quote'],
             );
-            $response = Async\await($this->publicGetApiTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetApiTradesPair ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -600,8 +717,8 @@ class indodax extends Exchange {
             $timeframes = $this->options['timeframes'];
             $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
             $now = $this->seconds();
-            $until = $this->safe_integer_2($params, 'until', 'till', $now);
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $until = $this->safe_integer($params, 'until', $now);
+            $params = $this->omit($params, array( 'until' ));
             $request = array(
                 'to' => $until,
                 'tf' => $selectedTimeframe,
@@ -616,7 +733,7 @@ class indodax extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['from'] = $now - $limit * $duration - 1;
             }
-            $response = Async\await($this->publicGetTradingviewHistoryV2 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradingviewHistoryV2 ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -633,7 +750,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'open' => 'open',
             'filled' => 'closed',
@@ -642,7 +759,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "order_id" => "12345",
@@ -666,6 +783,24 @@ class indodax extends Exchange {
         //       "order_xrp" => "30.45000000",
         //       "remain_xrp" => "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 666883,
+        //        "client_order_id" => "clientx-sj82ks82j",
+        //        "type" => "sell",
+        //        "pair" => "btc_idr",
+        //        "balance" => {
+        //            "idr" => "33605800",
+        //            "btc" => "0.00000000",
+        //            ...
+        //            "frozen_idr" => "0",
+        //            "frozen_btc" => "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -676,6 +811,8 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $marketId = $this->safe_string($order, 'pair');
+        $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
@@ -698,7 +835,7 @@ class indodax extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -708,7 +845,6 @@ class indodax extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => $cost,
             'average' => null,
@@ -725,7 +861,10 @@ class indodax extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-$order-endpoints
+             *
+             * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -739,9 +878,9 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'order_id' => $id,
             );
-            $response = Async\await($this->privatePostGetOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetOrder ($this->extend($request, $params)));
             $orders = $response['return'];
-            $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders['order']), $market);
+            $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
             $order['info'] = $response;
             return $order;
         }) ();
@@ -751,7 +890,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -765,7 +906,7 @@ class indodax extends Exchange {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
             }
-            $response = Async\await($this->privatePostOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOpenOrders ($this->extend($request, $params)));
             $rawOrders = $response['return']['orders'];
             // array( success => 1, return => array( orders => null )) if no orders
             if (!$rawOrders) {
@@ -793,7 +934,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -808,7 +951,7 @@ class indodax extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderHistory ($this->extend($request, $params)));
             $orders = $this->parse_orders($response['return']['orders'], $market);
             $orders = $this->filter_by($orders, 'status', 'closed');
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
@@ -819,18 +962,17 @@ class indodax extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of $currency you want to trade in units of base $currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote $currency, ignored in $market orders
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            if ($type !== 'limit') {
-                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -838,14 +980,45 @@ class indodax extends Exchange {
                 'type' => $side,
                 'price' => $price,
             );
-            $currency = $market['baseId'];
-            if ($side === 'buy') {
-                $request[$market['quoteId']] = $amount * $price;
-            } else {
-                $request[$market['baseId']] = $amount;
+            $priceIsRequired = false;
+            $quantityIsRequired = false;
+            if ($type === 'market') {
+                if ($side === 'buy') {
+                    $quoteAmount = null;
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $quoteAmount = $this->cost_to_precision($symbol, $cost);
+                    } else {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price).');
+                        }
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $costRequest = Precise::string_mul($amountString, $priceString);
+                        $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
+                    }
+                    $request[$market['quoteId']] = $quoteAmount;
+                } else {
+                    $quantityIsRequired = true;
+                }
+            } elseif ($type === 'limit') {
+                $priceIsRequired = true;
+                $quantityIsRequired = true;
+                if ($side === 'buy') {
+                    $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                }
             }
-            $request[$currency] = $amount;
-            $result = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            if ($priceIsRequired) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
+                }
+                $request['price'] = $price;
+            }
+            if ($quantityIsRequired) {
+                $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
+            }
+            $result = Async\await($this->privatePostTrade ($this->extend($request, $params)));
             $data = $this->safe_value($result, 'return', array());
             $id = $this->safe_string($data, 'order_id');
             return $this->safe_order(array(
@@ -859,7 +1032,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -879,7 +1054,28 @@ class indodax extends Exchange {
                 'pair' => $market['id'],
                 'type' => $side,
             );
-            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            //
+            //    {
+            //        "success" => 1,
+            //        "return" => {
+            //            "order_id" => 666883,
+            //            "client_order_id" => "clientx-sj82ks82j",
+            //            "type" => "sell",
+            //            "pair" => "btc_idr",
+            //            "balance" => {
+            //                "idr" => "33605800",
+            //                "btc" => "0.00000000",
+            //                ...
+            //                "frozen_idr" => "0",
+            //                "frozen_btc" => "0.00000000",
+            //                ...
+            //            }
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'return');
+            return $this->parse_order($data);
         }) ();
     }
 
@@ -887,7 +1083,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for a transaction
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -897,7 +1095,7 @@ class indodax extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostWithdrawFee (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawFee ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -922,7 +1120,9 @@ class indodax extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and withdrawals
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -936,7 +1136,7 @@ class indodax extends Exchange {
                 $request['start'] = $startTime;
                 $request['end'] = $this->iso8601($this->milliseconds(mb_substr()), 0, 10 - 0);
             }
-            $response = Async\await($this->privatePostTransHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTransHistory ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1020,11 +1220,13 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1052,7 +1254,7 @@ class indodax extends Exchange {
             if ($tag) {
                 $request['withdraw_memo'] = $tag;
             }
-            $response = Async\await($this->privatePostWithdrawCoin (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawCoin ($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1072,7 +1274,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1150,18 +1352,20 @@ class indodax extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'success' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
+             *
              * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+             *
              * @param {string[]} [$codes] list of unified currency $codes, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~
@@ -1232,8 +1436,8 @@ class indodax extends Exchange {
                     $result[$code] = array(
                         'info' => array(),
                         'currency' => $code,
-                        'address' => $address,
                         'network' => $network,
+                        'address' => $address,
                         'tag' => null,
                     );
                 }
@@ -1253,7 +1457,7 @@ class indodax extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],
@@ -1267,19 +1471,24 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }
         // array( success => 0, $error => "invalid order." )
         // or
         // [array( data, ... ), array( ... ), ... ]
+        // array("success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":"")
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');
         if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
             return null; // no 'success' property on public responses
+        }
+        $status = $this->safe_string($response, 'success');
+        if ($status === 'approved') {
+            return null;
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))

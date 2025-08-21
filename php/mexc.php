@@ -10,7 +10,7 @@ use ccxt\abstract\mexc as Exchange;
 
 class mexc extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc',
             'name' => 'MEXC Global',
@@ -27,6 +27,9 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -34,18 +37,27 @@ class mexc extends Exchange {
                 'closePosition' => false,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
-                'createMarketOrderWithCost' => false,
-                'createMarketSellOrderWithCost' => false,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
-                'fetchBorrowRateHistory' => null,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
@@ -60,12 +72,15 @@ class mexc extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
@@ -74,11 +89,13 @@ class mexc extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
-                'fetchMarketLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -86,9 +103,11 @@ class mexc extends Exchange {
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => 'emulated',
+                'fetchPositionHistory' => 'emulated',
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -96,8 +115,8 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
@@ -110,7 +129,7 @@ class mexc extends Exchange {
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
                 'setLeverage' => true,
-                'setMarginMode' => null,
+                'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => null,
                 'transfer' => null,
@@ -142,7 +161,7 @@ class mexc extends Exchange {
                 'fees' => array(
                     'https://www.mexc.com/fee',
                 ),
-                'referral' => 'https://m.mexc.com/auth/signup?inviteCode=1FQ1G',
+                'referral' => 'https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1',
             ),
             'api' => array(
                 'spot' => array(
@@ -170,6 +189,7 @@ class mexc extends Exchange {
                             'allOrders' => 10,
                             'account' => 10,
                             'myTrades' => 10,
+                            'tradeFee' => 10,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
                             'capital/config/getall' => 10,
@@ -206,6 +226,7 @@ class mexc extends Exchange {
                             'rebate/affiliate/commission/detail' => 1,
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
+                            'selfSymbols' => 1,
                         ),
                         'post' => array(
                             'order' => 1,
@@ -216,6 +237,7 @@ class mexc extends Exchange {
                             'sub-account/margin' => 1,
                             'batchOrders' => 10,
                             'capital/withdraw/apply' => 1,
+                            'capital/withdraw' => 1,
                             'capital/transfer' => 1,
                             'capital/transfer/internal' => 1,
                             'capital/deposit/address' => 1,
@@ -234,6 +256,7 @@ class mexc extends Exchange {
                             'margin/order' => 1,
                             'margin/openOrders' => 1,
                             'userDataStream' => 1,
+                            'capital/withdraw' => 1,
                         ),
                     ),
                 ),
@@ -392,7 +415,8 @@ class mexc extends Exchange {
                 ),
             ),
             'options' => array(
-                'createMarketBuyOrderRequiresPrice' => true,
+                'adjustForTimeDifference' => false,
+                'timeDifference' => 0,
                 'unavailableContracts' => array(
                     'BTC/USDT:USDT' => true,
                     'LTC/USDT:USDT' => true,
@@ -407,6 +431,7 @@ class mexc extends Exchange {
                         ),
                     ),
                 ),
+                'useCcxtTradeId' => true,
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1m',
@@ -416,6 +441,7 @@ class mexc extends Exchange {
                         '1h' => '60m',
                         '4h' => '4h',
                         '1d' => '1d',
+                        '1w' => '1W',
                         '1M' => '1M',
                     ),
                     'swap' => array(
@@ -441,164 +467,92 @@ class mexc extends Exchange {
                     'LTC' => 'LTC',
                 ),
                 'networks' => array(
-                    'ABBC' => 'ABBC',
+                    'ZKSYNC' => 'ZKSYNCERA',
+                    'TRC20' => 'TRX',
+                    'TON' => 'TONCOIN',
+                    'ARBITRUM' => 'ARB',
+                    'STX' => 'STACKS',
+                    'LUNC' => 'LUNA',
+                    'STARK' => 'STARKNET',
+                    'APT' => 'APTOS',
+                    'PEAQ' => 'PEAQEVM',
+                    'AVAXC' => 'AVAX_CCHAIN',
+                    'ERC20' => 'ETH',
                     'ACA' => 'ACALA',
-                    'ADA' => 'Cardano(ADA)',
-                    'AE' => 'AE',
-                    'ALGO' => 'Algorand(ALGO)',
-                    'ALPH' => 'Alephium(ALPH)',
-                    'AME' => 'AME',
-                    'AOK' => 'AOK',
-                    'APT' => 'APTOS(APT)',
-                    'AR' => 'AR',
-                    'ARB' => 'Arbitrum One(ARB)',
-                    'ARBNOVA' => 'ARBNOVA',
-                    'ARBONE' => 'ArbitrumOne(ARB)',
-                    'ARK' => 'ARK',
+                    'BEP20' => 'BSC',
+                    'OPTIMISM' => 'OP',
+                    // 'ADA' => 'Cardano(ADA)',
+                    // 'AE' => 'AE',
+                    // 'ALGO' => 'Algorand(ALGO)',
+                    // 'ALPH' => 'Alephium(ALPH)',
+                    // 'ARB' => 'Arbitrum One(ARB)',
+                    // 'ARBONE' => 'ArbitrumOne(ARB)',
                     'ASTR' => 'ASTAR', // ASTAREVM is different
-                    'ATOM' => 'Cosmos(ATOM)',
-                    'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
-                    'AVAXX' => 'Avalanche X Chain(AVAX XCHAIN)',
-                    'AZERO' => 'Aleph Zero(AZERO)',
-                    'BCH' => 'Bitcoin Cash(BCH)',
-                    'BDX' => 'BDX',
-                    'BEAM' => 'BEAM',
-                    'BEP2' => 'BNB Beacon Chain(BEP2)',
-                    'BEP20' => 'BNB Smart Chain(BEP20)',
-                    'BITCI' => 'BITCI',
-                    'BNC' => 'BNC',
-                    'BNCDOT' => 'BNCPOLKA',
-                    'BOBA' => 'BOBA',
-                    'BSC' => 'BEP20(BSC)',
-                    'BSV' => 'Bitcoin SV(BSV)',
-                    'BTC' => 'Bitcoin(BTC)',
+                    // 'ATOM' => 'Cosmos(ATOM)',
+                    // 'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
+                    // 'AVAXX' => 'Avalanche X Chain(AVAX XCHAIN)',
+                    // 'AZERO' => 'Aleph Zero(AZERO)',
+                    // 'BCH' => 'Bitcoin Cash(BCH)',
+                    // 'BNCDOT' => 'BNCPOLKA',
+                    // 'BSV' => 'Bitcoin SV(BSV)',
+                    // 'BTC' => 'Bitcoin(BTC)',
                     'BTM' => 'BTM2',
-                    'CELO' => 'CELO',
-                    'CFX' => 'CFX',
-                    'CHZ' => 'Chiliz Legacy Chain(CHZ)',
-                    'CHZ2' => 'Chiliz Chain(CHZ2)',
-                    'CKB' => 'CKB',
-                    'CLORE' => 'Clore.ai(CLORE)',
+                    // 'CHZ' => 'Chiliz Legacy Chain(CHZ)',
+                    // 'CHZ2' => 'Chiliz Chain(CHZ2)',
+                    // 'CLORE' => 'Clore.ai(CLORE)',
                     'CRC20' => 'CRONOS',
-                    'CSPR' => 'CSPR',
-                    'DASH' => 'DASH',
-                    'DC' => 'Dogechain(DC)',
-                    'DCR' => 'DCR',
-                    'DNX' => 'Dynex(DNX)',
-                    'DOGE' => 'Dogecoin(DOGE)',
-                    'DOT' => 'Polkadot(DOT)',
-                    'DYM' => 'Dymension(DYM)',
-                    'EDG' => 'EDG',
-                    'EGLD' => 'EGLD',
-                    'EOS' => 'EOS',
-                    'ERC20' => 'Ethereum(ERC20)',
-                    'ETC' => 'Ethereum Classic(ETC)',
+                    // 'DC' => 'Dogechain(DC)',
+                    // 'DNX' => 'Dynex(DNX)',
+                    // 'DOGE' => 'Dogecoin(DOGE)',
+                    // 'DOT' => 'Polkadot(DOT)',
+                    'DOT' => 'DOTASSETHUB',
+                    // 'DYM' => 'Dymension(DYM)',
                     'ETHF' => 'ETF',
-                    'ETHW' => 'ETHW',
-                    'EVER' => 'EVER',
-                    'FET' => 'FET',
-                    'FIL' => 'FIL',
-                    'FIO' => 'FIO',
-                    'FLOW' => 'FLOW',
-                    'FSN' => 'FSN',
-                    'FTM' => 'Fantom(FTM)',
-                    'FUSE' => 'FUSE',
-                    'GLMR' => 'GLMR',
-                    'GRIN' => 'GRIN',
-                    'HBAR' => 'Hedera(HBAR)',
-                    'HIVE' => 'HIVE',
                     'HRC20' => 'HECO',
-                    'HYDRA' => 'HYDRA',
-                    'ICP' => 'Internet Computer(ICP)',
-                    'INDEX' => 'Index Chain',
-                    'IOST' => 'IOST',
-                    'IOTA' => 'IOTA',
-                    'IOTX' => 'IOTX',
-                    'IRIS' => 'IRIS',
-                    'KAR' => 'KAR',
-                    'KAS' => 'Kaspa(KAS)',
-                    'KAVA' => 'KAVA',
-                    'KDA' => 'KDA',
-                    'KILT' => 'KILT',
-                    'KLAY' => 'Klaytn(KLAY)',
-                    'KMA' => 'KMA',
-                    'KSM' => 'KSM',
-                    'LAT' => 'LAT',
-                    'LAVA' => 'Elysium(LAVA)',
-                    'LTC' => 'Litecoin(LTC)',
-                    'LUNA' => 'Terra(LUNA)',
-                    'MASS' => 'MASS',
-                    'MATIC' => 'Polygon(MATIC)',
-                    'MCOIN' => 'Mcoin Network',
-                    'METIS' => 'METIS',
-                    'MINA' => 'MINA',
-                    'MNT' => 'Mantle(MNT)',
-                    'MOVR' => 'MOVR',
-                    'MTRG' => 'Meter(MTRG)',
-                    'NAS' => 'NAS',
-                    'NEAR' => 'NEAR Protocol(NEAR)',
-                    'NEBL' => 'NEBL',
-                    'NEM' => 'NEM',
-                    'NEO' => 'NEO',
-                    'NEO3' => 'NEO3',
-                    'NEOXA' => 'Neoxa Network',
-                    'NULS' => 'NULS',
+                    // 'KLAY' => 'Klaytn(KLAY)',
                     'OASIS' => 'ROSE',
-                    'OASYS' => 'OASYS',
                     'OKC' => 'OKT',
-                    'OMN' => 'Omega Network(OMN)',
-                    'OMNI' => 'OMNI',
-                    'ONE' => 'ONE',
-                    'ONT' => 'ONT',
-                    'OPTIMISM' => 'Optimism(OP)',
-                    'OSMO' => 'OSMO',
-                    'PLCU' => 'PLCU',
-                    'POKT' => 'POKT',
-                    'QKC' => 'QKC',
-                    'QTUM' => 'QTUM',
-                    'RAP20' => 'RAP20 (Rangers Mainnet)',
-                    'REI' => 'REI',
                     'RSK' => 'RBTC',
-                    'RVN' => 'Ravencoin(RVN)',
-                    'SATOX' => 'Satoxcoin(SATOX)',
-                    'SC' => 'SC',
-                    'SCRT' => 'SCRT',
-                    'SDN' => 'SDN',
-                    'SGB' => 'SGB',
-                    'SOL' => 'Solana(SOL)',
-                    'STAR' => 'STAR',
-                    'STARK' => 'Starknet(STARK)',
-                    'STEEM' => 'STEEM',
-                    'SYS' => 'SYS',
-                    'TAO' => 'Bittensor(TAO)',
-                    'TIA' => 'Celestia(TIA)',
-                    'TOMO' => 'TOMO',
-                    'TON' => 'Toncoin(TON)',
-                    'TRC10' => 'TRC10',
-                    'TRC20' => 'Tron(TRC20)',
-                    'UGAS' => 'UGAS(Ultrain)',
-                    'VET' => 'VeChain(VET)',
-                    'VEX' => 'Vexanium(VEX)',
-                    'VSYS' => 'VSYS',
-                    'WAVES' => 'WAVES',
-                    'WAX' => 'WAX',
-                    'WEMIX' => 'WEMIX',
-                    'XCH' => 'Chia(XCH)',
-                    'XDC' => 'XDC',
-                    'XEC' => 'XEC',
-                    'XLM' => 'Stellar(XLM)',
-                    'XMR' => 'Monero(XMR)',
-                    'XNA' => 'Neurai(XNA)',
-                    'XPR' => 'XPR Network',
-                    'XRD' => 'XRD',
-                    'XRP' => 'Ripple(XRP)',
-                    'XTZ' => 'XTZ',
-                    'XVG' => 'XVG',
-                    'XYM' => 'XYM',
-                    'ZEC' => 'ZEC',
-                    'ZEN' => 'ZEN',
-                    'ZIL' => 'Zilliqa(ZIL)',
-                    'ZTG' => 'ZTG',
+                    // 'RVN' => 'Ravencoin(RVN)',
+                    // 'SATOX' => 'Satoxcoin(SATOX)',
+                    // 'SC' => 'SC',
+                    // 'SCRT' => 'SCRT',
+                    // 'SDN' => 'SDN',
+                    // 'SGB' => 'SGB',
+                    // 'SOL' => 'Solana(SOL)',
+                    // 'STAR' => 'STAR',
+                    // 'STARK' => 'Starknet(STARK)',
+                    // 'STEEM' => 'STEEM',
+                    // 'SYS' => 'SYS',
+                    // 'TAO' => 'Bittensor(TAO)',
+                    // 'TIA' => 'Celestia(TIA)',
+                    // 'TOMO' => 'TOMO',
+                    // 'TON' => 'Toncoin(TON)',
+                    // 'TRC10' => 'TRC10',
+                    // 'TRC20' => 'Tron(TRC20)',
+                    // 'UGAS' => 'UGAS(Ultrain)',
+                    // 'VET' => 'VeChain(VET)',
+                    // 'VEX' => 'Vexanium(VEX)',
+                    // 'VSYS' => 'VSYS',
+                    // 'WAVES' => 'WAVES',
+                    // 'WAX' => 'WAX',
+                    // 'WEMIX' => 'WEMIX',
+                    // 'XCH' => 'Chia(XCH)',
+                    // 'XDC' => 'XDC',
+                    // 'XEC' => 'XEC',
+                    // 'XLM' => 'Stellar(XLM)',
+                    // 'XMR' => 'Monero(XMR)',
+                    // 'XNA' => 'Neurai(XNA)',
+                    // 'XPR' => 'XPR Network',
+                    // 'XRD' => 'XRD',
+                    // 'XRP' => 'Ripple(XRP)',
+                    // 'XTZ' => 'XTZ',
+                    // 'XVG' => 'XVG',
+                    // 'XYM' => 'XYM',
+                    // 'ZEC' => 'ZEC',
+                    // 'ZEN' => 'ZEN',
+                    // 'ZIL' => 'Zilliqa(ZIL)',
+                    // 'ZTG' => 'ZTG',
                     // todo => uncomment below after concensus
                     // 'ALAYA' => 'ATP',
                     // 'ANDUSCHAIN' => 'DEB',
@@ -706,69 +660,10 @@ class mexc extends Exchange {
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 ),
                 'networksById' => array(
-                    'Aleph Zero(AZERO)' => 'AZERO',
-                    'Alephium(ALPH)' => 'ALPH',
-                    'Algorand(ALGO)' => 'ALGO',
-                    'APTOS(APT)' => 'APT',
-                    'Arbitrum One(ARB)' => 'ARB',
-                    'Avalanche C Chain(AVAX CCHAIN)' => 'AVAXC',
-                    'Avalanche X Chain(AVAX XCHAIN)' => 'AVAXX',
-                    'BEP20(BSC)' => 'BSC',
-                    'Bitcoin Cash(BCH)' => 'BCH',
-                    'Bitcoin SV(BSV)' => 'BSV',
-                    'Bitcoin(BTC)' => 'BTC',
-                    'Bittensor(TAO)' => 'TAO',
-                    'BNB Beacon Chain(BEP2)' => 'BEP2',
                     'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
-                    'Cardano(ADA)' => 'ADA',
-                    'Celestia(TIA)' => 'TIA',
-                    'Chia(XCH)' => 'XCH',
-                    'Chiliz Chain(CHZ2)' => 'CHZ2',
-                    'Chiliz Legacy Chain(CHZ)' => 'CHZ',
-                    'Clore.ai(CLORE)' => 'CLORE',
-                    'Cosmos(ATOM)' => 'ATOM',
-                    'Dogechain(DC)' => 'DC',
-                    'Dogecoin(DOGE)' => 'DOGE',
-                    'Dymension(DYM)' => 'DYM',
-                    'Dynex(DNX)' => 'DNX',
-                    'Elysium(LAVA)' => 'LAVA',
-                    'Ethereum Classic(ETC)' => 'ETC',
                     'Ethereum(ERC20)' => 'ERC20',
-                    'Fantom(FTM)' => 'FTM',
-                    'Hedera(HBAR)' => 'HBAR',
-                    'Index Chain' => 'INDEX',
-                    'Internet Computer(ICP)' => 'ICP',
-                    'Kaspa(KAS)' => 'KAS',
-                    'Klaytn(KLAY)' => 'KLAY',
-                    'Litecoin(LTC)' => 'LTC',
-                    'Mantle(MNT)' => 'MNT',
-                    'Mcoin Network' => 'MCOIN',
-                    'Meter(MTRG)' => 'MTRG',
-                    'Monero(XMR)' => 'XMR',
-                    'NEAR Protocol(NEAR)' => 'NEAR',
-                    'Neoxa Network' => 'NEOXA',
-                    'Neurai(XNA)' => 'XNA',
-                    'Omega Network(OMN)' => 'OMN',
-                    'Optimism(OP)' => 'OPTIMISM',
-                    'Polkadot(DOT)' => 'DOT',
-                    'Polygon(MATIC)' => 'MATIC',
-                    'RAP20 (Rangers Mainnet)' => 'RAP20',
-                    'Ravencoin(RVN)' => 'RVN',
-                    'Ripple(XRP)' => 'XRP',
-                    'Satoxcoin(SATOX)' => 'SATOX',
-                    'Solana(SOL)' => 'SOL',
-                    'Starknet(STARK)' => 'STARK',
-                    'Stellar(XLM)' => 'XLM',
-                    'Terra(LUNA)' => 'LUNA',
-                    'Toncoin(TON)' => 'TON',
-                    'Tron(TRC20)' => 'TRC20',
-                    'UGAS(Ultrain)' => 'UGAS',
-                    'VeChain(VET)' => 'VET',
-                    'Vexanium(VEX)' => 'VEX',
-                    'XPR Network' => 'XPR',
-                    'Zilliqa(ZIL)' => 'ZIL',
                     // TODO => uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -786,27 +681,172 @@ class mexc extends Exchange {
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
                 'broker' => 'CCXT',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => array(
+                            'last' => false,
+                            'mark' => false,
+                            'index' => false,
+                        ),
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 30,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 7,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 7,
+                        'daysBackCanceled' => 7,
+                        'untilDays' => 7,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivs' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => true, // todo
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'hedged' => true,
+                        'leverage' => true, // todo
+                        'marketBuyByCost' => false,
+                    ),
+                    'createOrders' => null, // todo => needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'untilDays' => 90,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'untilDays' => 90,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 90,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
                 'BIFI' => 'BIFIF',
-                'BYN' => 'BeyondFi',
+                'BYN' => 'BEYONDFI',
                 'COFI' => 'COFIX', // conflict with CoinFi
-                'DFI' => 'DfiStarter',
-                'DFT' => 'dFuture',
+                'DFI' => 'DFISTARTER',
+                'DFT' => 'DFUTURE',
                 'DRK' => 'DRK',
-                'EGC' => 'Egoras Credit',
+                'EGC' => 'EGORASCREDIT',
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
-                'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'FREE' => 'FREEROSSDAO', // conflict with FREE Coin
                 'GAS' => 'GASDAO',
                 'GASNEO' => 'GAS',
-                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'GMT' => 'GMTTOKEN', // Conflict with GMT (STEPN)
                 'STEPN' => 'GMT', // Conflict with GMT Token
-                'HERO' => 'Step Hero', // conflict with Metahero
-                'MIMO' => 'Mimosa',
-                'PROS' => 'Pros.Finance', // conflict with Prosper
-                'SIN' => 'Sin City Token',
-                'SOUL' => 'Soul Swap',
+                'HERO' => 'STEPHERO', // conflict with Metahero
+                'MIMO' => 'MIMOSA',
+                'PROS' => 'PROSFINANCE', // conflict with Prosper
+                'SIN' => 'SINCITYTOKEN',
+                'SOUL' => 'SOULSWAP',
+                'XBT' => 'XBT', // restore original mapping
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -931,6 +971,10 @@ class mexc extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
@@ -963,9 +1007,13 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -990,7 +1038,9 @@ class mexc extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1045,88 +1095,49 @@ class mexc extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'coin');
             $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $currencyActive = false;
-            $currencyFee = null;
-            $currencyWithdrawMin = null;
-            $currencyWithdrawMax = null;
-            $depositEnabled = false;
-            $withdrawEnabled = false;
             $networks = array();
             $chains = $this->safe_value($currency, 'networkList', array());
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'network');
+                $networkId = $this->safe_string_2($chain, 'netWork', 'network');
                 $network = $this->network_id_to_code($networkId);
-                $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
-                $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
-                $active = ($isDepositEnabled && $isWithdrawEnabled);
-                $currencyActive = $active || $currencyActive;
-                $withdrawMin = $this->safe_string($chain, 'withdrawMin');
-                $withdrawMax = $this->safe_string($chain, 'withdrawMax');
-                $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
-                $currencyWithdrawMax = ($currencyWithdrawMax === null) ? $withdrawMax : $currencyWithdrawMax;
-                $fee = $this->safe_number($chain, 'withdrawFee');
-                $currencyFee = ($currencyFee === null) ? $fee : $currencyFee;
-                if (Precise::string_gt($currencyWithdrawMin, $withdrawMin)) {
-                    $currencyWithdrawMin = $withdrawMin;
-                }
-                if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
-                    $currencyWithdrawMax = $withdrawMax;
-                }
-                if ($isDepositEnabled) {
-                    $depositEnabled = true;
-                }
-                if ($isWithdrawEnabled) {
-                    $withdrawEnabled = true;
-                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
-                    'active' => $active,
-                    'deposit' => $isDepositEnabled,
-                    'withdraw' => $isWithdrawEnabled,
-                    'fee' => $fee,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'depositEnable', false),
+                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable', false),
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $withdrawMin,
-                            'max' => $withdrawMax,
+                            'min' => $this->safe_string($chain, 'withdrawMin'),
+                            'max' => $this->safe_string($chain, 'withdrawMax'),
                         ),
                     ),
+                    'contract' => $this->safe_string($chain, 'contract'),
                 );
             }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkKeysLength = count($networkKeys);
-            if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
-                $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
-                if ($defaultNetwork !== null) {
-                    $currencyFee = $defaultNetwork['fee'];
-                }
-            }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'id' => $id,
                 'code' => $code,
-                'name' => $name,
-                'active' => $currencyActive,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => $currencyFee,
+                'name' => $this->safe_string($currency, 'name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
                 'precision' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array(
-                        'min' => $currencyWithdrawMin,
-                        'max' => $currencyWithdrawMax,
-                    ),
                 ),
+                'type' => 'crypto',
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -1134,15 +1145,32 @@ class mexc extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for mexc
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $spotMarket = $this->fetch_spot_markets($params);
-        $swapMarket = $this->fetch_swap_markets($params);
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
+        $spotMarketPromise = $this->fetch_spot_markets($params);
+        $swapMarketPromise = $this->fetch_swap_markets($params);
+        list($spotMarket, $swapMarket) = array( $spotMarketPromise, $swapMarketPromise );
         return $this->array_concat($spotMarket, $swapMarket);
     }
 
     public function fetch_spot_markets($params = array ()) {
+        /**
+         * @ignore
+         * retrieves $data on all spot markets for mexc
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market $data
+         */
         $response = $this->spotPublicGetExchangeInfo ($params);
         //
         //     {
@@ -1153,7 +1181,7 @@ class mexc extends Exchange {
         //         "symbols" => array(
         //           array(
         //                "symbol" => "OGNUSDT",
-        //                "status" => "ENABLED",
+        //                "status" => "1",
         //                "baseAsset" => "OGN",
         //                "baseAssetPrecision" => "2",
         //                "quoteAsset" => "USDT",
@@ -1198,7 +1226,7 @@ class mexc extends Exchange {
             $status = $this->safe_string($market, 'status');
             $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
             $active = false;
-            if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+            if (($status === '1') && ($isSpotTradingAllowed)) {
                 $active = true;
             }
             $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
@@ -1261,7 +1289,19 @@ class mexc extends Exchange {
     }
 
     public function fetch_swap_markets($params = array ()) {
+        /**
+         * @ignore
+         * retrieves $data on all swap markets for mexc
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market $data
+         */
+        $currentRl = $this->rateLimit;
+        $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
         $response = $this->contractPublicGetDetail ($params);
+        $this->set_property($this, 'rateLimit', $currentRl);
         //
         //     {
         //         "success":true,
@@ -1318,6 +1358,7 @@ class mexc extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $state = $this->safe_string($market, 'state');
+            $isLinear = $quote === $settle;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -1335,8 +1376,8 @@ class mexc extends Exchange {
                 'option' => false,
                 'active' => ($state === '0'),
                 'contract' => true,
-                'linear' => true,
-                'inverse' => false,
+                'linear' => $isLinear,
+                'inverse' => !$isLinear,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),
@@ -1375,8 +1416,10 @@ class mexc extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+         *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1393,7 +1436,7 @@ class mexc extends Exchange {
         }
         $orderbook = null;
         if ($market['spot']) {
-            $response = $this->spotPublicGetDepth (array_merge($request, $params));
+            $response = $this->spotPublicGetDepth ($this->extend($request, $params));
             //
             //     {
             //         "lastUpdateId" => "744267132",
@@ -1411,7 +1454,7 @@ class mexc extends Exchange {
             $orderbook = $this->parse_order_book($response, $symbol, $spotTimestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         } elseif ($market['swap']) {
-            $response = $this->contractPublicGetDepthSymbol (array_merge($request, $params));
+            $response = $this->contractPublicGetDepthSymbol ($this->extend($request, $params));
             //
             //     {
             //         "success":true,
@@ -1451,9 +1494,11 @@ class mexc extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-$trades-list
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-$trades-list
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+         *
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1472,7 +1517,7 @@ class mexc extends Exchange {
         }
         $trades = null;
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
+            $until = $this->safe_integer_n($params, array( 'endTime', 'until' ));
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
@@ -1489,11 +1534,11 @@ class mexc extends Exchange {
             $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
             $params = $this->omit($params, array( 'method' ));
             if ($method === 'spotPublicGetAggTrades') {
-                $trades = $this->spotPublicGetAggTrades (array_merge($request, $params));
+                $trades = $this->spotPublicGetAggTrades ($this->extend($request, $params));
             } elseif ($method === 'spotPublicGetHistoricalTrades') {
-                $trades = $this->spotPublicGetHistoricalTrades (array_merge($request, $params));
+                $trades = $this->spotPublicGetHistoricalTrades ($this->extend($request, $params));
             } elseif ($method === 'spotPublicGetTrades') {
-                $trades = $this->spotPublicGetTrades (array_merge($request, $params));
+                $trades = $this->spotPublicGetTrades ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchTrades() not support this method');
             }
@@ -1528,7 +1573,7 @@ class mexc extends Exchange {
             //     )
             //
         } elseif ($market['swap']) {
-            $response = $this->contractPublicGetDealsSymbol (array_merge($request, $params));
+            $response = $this->contractPublicGetDealsSymbol ($this->extend($request, $params));
             //
             //     {
             //         "success" => true,
@@ -1550,7 +1595,7 @@ class mexc extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -1676,8 +1721,8 @@ class mexc extends Exchange {
                 }
             }
         }
-        if ($id === null) {
-            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amountString, $priceString, $type, $takerOrMaker);
+        if ($id === null && $this->safe_bool($this->options, 'useCcxtTradeId', true)) {
+            $id = $this->create_ccxt_trade_id($timestamp, $side, $amountString, $priceString, $takerOrMaker);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1696,34 +1741,12 @@ class mexc extends Exchange {
         ), $market);
     }
 
-    public function synthetic_trade_id($market = null, $timestamp = null, $side = null, $amount = null, $price = null, $orderType = null, $takerOrMaker = null) {
-        // TODO => can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
-        $id = '';
-        if ($timestamp !== null) {
-            $id = $this->number_to_string($timestamp) . '-' . $this->safe_string($market, 'id', '_');
-            if ($side !== null) {
-                $id .= '-' . $side;
-            }
-            if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
-            }
-            if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
-            }
-            if ($takerOrMaker !== null) {
-                $id .= '-' . $takerOrMaker;
-            }
-            if ($orderType !== null) {
-                $id .= '-' . $orderType;
-            }
-        }
-        return $id;
-    }
-
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-$data
+         *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1752,7 +1775,7 @@ class mexc extends Exchange {
         );
         $candles = null;
         if ($market['spot']) {
-            $until = $this->safe_integer_n($params, array( 'until', 'endTime', 'till' ));
+            $until = $this->safe_integer_n($params, array( 'until', 'endTime' ));
             if ($since !== null) {
                 $request['startTime'] = $since;
                 if ($until === null) {
@@ -1766,10 +1789,10 @@ class mexc extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['endTime'] = $until;
             }
-            $response = $this->spotPublicGetKlines (array_merge($request, $params));
+            $response = $this->spotPublicGetKlines ($this->extend($request, $params));
             //
             //     array(
             //       array(
@@ -1786,23 +1809,23 @@ class mexc extends Exchange {
             //
             $candles = $response;
         } elseif ($market['swap']) {
-            $until = $this->safe_integer_product_n($params, array( 'until', 'endTime', 'till' ), 0.001);
+            $until = $this->safe_integer_product_n($params, array( 'until', 'endTime' ), 0.001);
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
             if ($until !== null) {
-                $params = $this->omit($params, array( 'until', 'till' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['end'] = $until;
             }
             $priceType = $this->safe_string($params, 'price', 'default');
             $params = $this->omit($params, 'price');
             $response = null;
             if ($priceType === 'default') {
-                $response = $this->contractPublicGetKlineSymbol (array_merge($request, $params));
+                $response = $this->contractPublicGetKlineSymbol ($this->extend($request, $params));
             } elseif ($priceType === 'index') {
-                $response = $this->contractPublicGetKlineIndexPriceSymbol (array_merge($request, $params));
+                $response = $this->contractPublicGetKlineIndexPriceSymbol ($this->extend($request, $params));
             } elseif ($priceType === 'mark') {
-                $response = $this->contractPublicGetKlineFairPriceSymbol (array_merge($request, $params));
+                $response = $this->contractPublicGetKlineFairPriceSymbol ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() not support this price type, [default, index, mark]');
             }
@@ -1841,6 +1864,10 @@ class mexc extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1861,7 +1888,7 @@ class mexc extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($marketType === 'spot') {
-            $tickers = $this->spotPublicGetTicker24hr (array_merge($request, $query));
+            $tickers = $this->spotPublicGetTicker24hr ($this->extend($request, $query));
             //
             //     array(
             //         {
@@ -1887,7 +1914,7 @@ class mexc extends Exchange {
             //     )
             //
         } elseif ($marketType === 'swap') {
-            $response = $this->contractPublicGetTicker (array_merge($request, $query));
+            $response = $this->contractPublicGetTicker ($this->extend($request, $query));
             //
             //     {
             //         "success":true,
@@ -1927,6 +1954,10 @@ class mexc extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-$ticker-price-change-statistics
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1939,7 +1970,7 @@ class mexc extends Exchange {
             'symbol' => $market['id'],
         );
         if ($marketType === 'spot') {
-            $ticker = $this->spotPublicGetTicker24hr (array_merge($request, $query));
+            $ticker = $this->spotPublicGetTicker24hr ($this->extend($request, $query));
             //
             //     {
             //         "symbol" => "BTCUSDT",
@@ -1963,7 +1994,7 @@ class mexc extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            $response = $this->contractPublicGetTicker (array_merge($request, $query));
+            $response = $this->contractPublicGetTicker ($this->extend($request, $query));
             //
             //     {
             //         "success":true,
@@ -1995,7 +2026,7 @@ class mexc extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -2115,6 +2146,9 @@ class mexc extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2155,7 +2189,9 @@ class mexc extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2166,32 +2202,60 @@ class mexc extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params));
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+        /**
+         * create a $market sell order by providing the $symbol and $cost
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'sell', 0, null, $this->extend($req, $params));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-         *
+         * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode, default is false
+         * @param {string} [$params->timeInForce] 'IOC' or 'FOK', default is 'GTC'
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [$params->leverage] *contract only* leverage is necessary on isolated margin
          * @param {long} [$params->positionId] *contract only* it is recommended to property_exists($this, fill) parameter when closing a position
          * @param {string} [$params->externalOid] *contract only* external order ID
          * @param {int} [$params->positionMode] *contract only*  1:hedge, 2:one-way, default => the user's current config
+         * @param {boolean} [$params->test] *spot only* whether to use the test endpoint or not, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2212,24 +2276,23 @@ class mexc extends Exchange {
             'side' => $orderSide,
             'type' => strtoupper($type),
         );
-        if ($orderSide === 'BUY' && $type === 'market') {
-            $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+        if ($type === 'market') {
             $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
             $params = $this->omit($params, 'cost');
             if ($cost !== null) {
                 $amount = $cost;
-            } elseif ($createMarketBuyOrderRequiresPrice) {
+                $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount);
+            } else {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = Precise::string_mul($amountString, $priceString);
                     $amount = $quoteAmount;
+                    $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount);
                 }
             }
-            $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -2251,13 +2314,45 @@ class mexc extends Exchange {
         if ($postOnly) {
             $request['type'] = 'LIMIT_MAKER';
         }
-        return array_merge($request, $params);
+        $tif = $this->safe_string($params, 'timeInForce');
+        if ($tif !== null) {
+            $params = $this->omit($params, 'timeInForce');
+            if ($tif === 'IOC') {
+                $request['type'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($tif === 'FOK') {
+                $request['type'] = 'FILL_OR_KILL';
+            }
+        }
+        return $this->extend($request, $params);
     }
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
+        /**
+         * @ignore
+         * create a trade $order
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-$order
+         *
+         * @param {string} $market unified symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {string} [$marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         */
         $this->load_markets();
+        $test = $this->safe_bool($params, 'test', false);
+        $params = $this->omit($params, 'test');
         $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
-        $response = $this->spotPrivatePostOrder (array_merge($request, $params));
+        $response = null;
+        if ($test) {
+            $response = $this->spotPrivatePostOrderTest ($request);
+        } else {
+            $response = $this->spotPrivatePostOrder ($request);
+        }
         //
         // spot
         //
@@ -2280,12 +2375,43 @@ class mexc extends Exchange {
         $order = $this->parse_order($response, $market);
         $order['side'] = $side;
         $order['type'] = $type;
-        $order['price'] = $price;
-        $order['amount'] = $amount;
+        if ($this->safe_string($order, 'price') === null) {
+            $order['price'] = $price;
+        }
+        if ($this->safe_string($order, 'amount') === null) {
+            $order['amount'] = $amount;
+        }
         return $order;
     }
 
     public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
+        /**
+         * @ignore
+         * create a trade order
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+         *
+         * @param {string} $market unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {string} [$marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [$params->reduceOnly] indicates if this order is to reduce the size of a position
+         * @param {bool} [$params->hedged] *swap only* true for $hedged mode, false for one way mode, default is false
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->leverage] $leverage is necessary on isolated margin
+         * @param {long} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
+         * @param {string} [$params->externalOid] external order ID
+         * @param {int} [$params->positionMode] 1:hedge, 2:one-way, default => the user's current config
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
         $this->load_markets();
         $symbol = $market['symbol'];
         $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
@@ -2353,27 +2479,39 @@ class mexc extends Exchange {
             }
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        if ($reduceOnly) {
-            $request['side'] = ($side === 'buy') ? 2 : 4;
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        $sideInteger = null;
+        if ($hedged) {
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly'); // $hedged mode does not accept this parameter
+                $side = ($side === 'buy') ? 'sell' : 'buy';
+            }
+            $sideInteger = ($side === 'buy') ? 1 : 3;
+            $request['positionMode'] = 1;
         } else {
-            $request['side'] = ($side === 'buy') ? 1 : 3;
+            if ($reduceOnly) {
+                $sideInteger = ($side === 'buy') ? 2 : 4;
+            } else {
+                $sideInteger = ($side === 'buy') ? 1 : 3;
+            }
         }
+        $request['side'] = $sideInteger;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
         if ($clientOrderId !== null) {
             $request['externalOid'] = $clientOrderId;
         }
-        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice' ));
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ));
         $response = null;
-        if ($stopPrice) {
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($triggerPrice) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
             $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
             $request['trend'] = $this->safe_integer($params, 'trend', 1);
             $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
-            $response = $this->contractPrivatePostPlanorderPlace (array_merge($request, $params));
+            $response = $this->contractPrivatePostPlanorderPlace ($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivatePostOrderSubmit (array_merge($request, $params));
+            $response = $this->contractPrivatePostOrderSubmit ($this->extend($request, $params));
         }
         //
         // Swap
@@ -2383,13 +2521,15 @@ class mexc extends Exchange {
         //     array("success":true,"code":0,"data":259208506303929856)
         //
         $data = $this->safe_string($response, 'data');
-        return $this->parse_order($data, $market);
+        return $this->safe_order(array( 'id' => $data ), $market);
     }
 
     public function create_orders(array $orders, $params = array ()) {
         /**
          * *spot only*  *all $orders must have the same $symbol* create a list of trade $orders
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-$orders
+         *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2451,6 +2591,11 @@ class mexc extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$query-order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
+         *
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
@@ -2478,9 +2623,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $data = $this->spotPrivateGetMarginOrder (array_merge($request, $query));
+                $data = $this->spotPrivateGetMarginOrder ($this->extend($request, $query));
             } else {
-                $data = $this->spotPrivateGetOrder (array_merge($request, $query));
+                $data = $this->spotPrivateGetOrder ($this->extend($request, $query));
             }
             //
             // spot
@@ -2528,7 +2673,7 @@ class mexc extends Exchange {
             //
         } elseif ($market['swap']) {
             $request['order_id'] = $id;
-            $response = $this->contractPrivateGetOrderGetOrderId (array_merge($request, $params));
+            $response = $this->contractPrivateGetOrderGetOrderId ($this->extend($request, $params));
             //
             //     {
             //         "success" => true,
@@ -2569,10 +2714,16 @@ class mexc extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2583,6 +2734,8 @@ class mexc extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
@@ -2592,6 +2745,9 @@ class mexc extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -2600,9 +2756,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $response = $this->spotPrivateGetMarginAllOrders (array_merge($request, $queryInner));
+                $response = $this->spotPrivateGetMarginAllOrders ($this->extend($request, $queryInner));
             } else {
-                $response = $this->spotPrivateGetAllOrders (array_merge($request, $queryInner));
+                $response = $this->spotPrivateGetAllOrders ($this->extend($request, $queryInner));
             }
             //
             // spot
@@ -2656,10 +2812,19 @@ class mexc extends Exchange {
         } else {
             if ($since !== null) {
                 $request['start_time'] = $since;
-                $end = $this->safe_integer($params, 'end_time');
+                $end = $this->safe_integer($params, 'end_time', $until);
                 if ($end === null) {
                     $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+                } else {
+                    if (($end - $since) > $this->options['maxTimeTillEnd']) {
+                        throw new BadRequest($this->id . ' $end is invalid, i.e. exceeds allowed 90 days.');
+                    } else {
+                        $request['end_time'] = $until;
+                    }
                 }
+            } elseif ($until !== null) {
+                $request['start_time'] = $this->sum($until, $this->options['maxTimeTillEnd'] * -1);
+                $request['end_time'] = $until;
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
@@ -2669,7 +2834,7 @@ class mexc extends Exchange {
             $ordersOfRegular = array();
             $ordersOfTrigger = array();
             if ($method === 'contractPrivateGetOrderListHistoryOrders') {
-                $response = $this->contractPrivateGetOrderListHistoryOrders (array_merge($request, $query));
+                $response = $this->contractPrivateGetOrderListHistoryOrders ($this->extend($request, $query));
                 //
                 //     {
                 //         "success" => true,
@@ -2707,7 +2872,7 @@ class mexc extends Exchange {
                 $ordersOfRegular = $this->safe_value($response, 'data');
             } else {
                 // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
-                $response = $this->contractPrivateGetPlanorderListOrders (array_merge($request, $query));
+                $response = $this->contractPrivateGetPlanorderListOrders ($this->extend($request, $query));
                 //
                 //     {
                 //         "success" => true,
@@ -2754,7 +2919,7 @@ class mexc extends Exchange {
             throw new BadRequest($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
         } else {
             $request['order_ids'] = implode(',', $ids);
-            $response = $this->contractPrivateGetOrderBatchQuery (array_merge($request, $query));
+            $response = $this->contractPrivateGetOrderBatchQuery ($this->extend($request, $query));
             //
             //     {
             //         "success" => true,
@@ -2797,6 +2962,11 @@ class mexc extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2823,9 +2993,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $response = $this->spotPrivateGetMarginOpenOrders (array_merge($request, $query));
+                $response = $this->spotPrivateGetMarginOpenOrders ($this->extend($request, $query));
             } else {
-                $response = $this->spotPrivateGetOpenOrders (array_merge($request, $query));
+                $response = $this->spotPrivateGetOpenOrders ($this->extend($request, $query));
             }
             //
             // spot
@@ -2885,6 +3055,11 @@ class mexc extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2897,6 +3072,11 @@ class mexc extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
@@ -2918,13 +3098,18 @@ class mexc extends Exchange {
             throw new NotSupported($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
         } else {
             $request['states'] = $state;
-            return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
         }
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-$order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-$order-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-$order-under-maintenance
+         *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2960,9 +3145,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $data = $this->spotPrivateDeleteMarginOrder (array_merge($requestInner, $query));
+                $data = $this->spotPrivateDeleteMarginOrder ($this->extend($requestInner, $query));
             } else {
-                $data = $this->spotPrivateDeleteOrder (array_merge($requestInner, $query));
+                $data = $this->spotPrivateDeleteOrder ($this->extend($requestInner, $query));
             }
             //
             // spot
@@ -3036,6 +3221,9 @@ class mexc extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3069,6 +3257,11 @@ class mexc extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-$symbol
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
+         *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
@@ -3090,9 +3283,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $response = $this->spotPrivateDeleteMarginOpenOrders (array_merge($request, $query));
+                $response = $this->spotPrivateDeleteMarginOpenOrders ($this->extend($request, $query));
             } else {
-                $response = $this->spotPrivateDeleteOpenOrders (array_merge($request, $query));
+                $response = $this->spotPrivateDeleteOpenOrders ($this->extend($request, $query));
             }
             //
             // spot
@@ -3141,9 +3334,9 @@ class mexc extends Exchange {
             $method = $this->safe_string($query, 'method', $method);
             $response = null;
             if ($method === 'contractPrivatePostOrderCancelAll') {
-                $response = $this->contractPrivatePostOrderCancelAll (array_merge($request, $query));
+                $response = $this->contractPrivatePostOrderCancelAll ($this->extend($request, $query));
             } elseif ($method === 'contractPrivatePostPlanorderCancelAll') {
-                $response = $this->contractPrivatePostPlanorderCancelAll (array_merge($request, $query));
+                $response = $this->contractPrivatePostPlanorderCancelAll ($this->extend($request, $query));
             }
             //
             //     {
@@ -3156,15 +3349,29 @@ class mexc extends Exchange {
         }
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
-        // spot => createOrder
+        // spot
+        //    createOrder
         //
-        //     {
+        //    {
+        //        "symbol" => "FARTCOINUSDT",
+        //        "orderId" => "C02__342252993005723644225",
+        //        "orderListId" => "-1",
+        //        "price" => "1.1",
+        //        "origQty" => "6.3",
+        //        "type" => "IMMEDIATE_OR_CANCEL",
+        //        "side" => "SELL",
+        //        "transactTime" => "1745852205223"
+        //    }
+        //
+        //    unknown endpoint on spot
+        //
+        //    {
         //         "symbol" => "BTCUSDT",
         //         "orderId" => "123738410679123456",
         //         "orderListId" => -1
-        //     }
+        //    }
         //
         // margin => createOrder
         //
@@ -3328,6 +3535,11 @@ class mexc extends Exchange {
         } else {
             $id = $this->safe_string_2($order, 'orderId', 'id');
         }
+        $timeInForce = $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce'));
+        $typeRaw = $this->safe_string($order, 'type');
+        if ($timeInForce === null) {
+            $timeInForce = $this->get_tif_from_raw_order_type($typeRaw);
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'transactTime' ));
@@ -3350,11 +3562,10 @@ class mexc extends Exchange {
             'lastTradeTimestamp' => null, // TODO => this might be 'updateTime' if $order-status is filled, otherwise cancellation time. needs to be checked
             'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
             'symbol' => $market['symbol'],
-            'type' => $this->parse_order_type($this->safe_string($order, 'type')),
-            'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
+            'type' => $this->parse_order_type($typeRaw),
+            'timeInForce' => $timeInForce,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'average' => $this->safe_number($order, 'dealAvgPrice'),
             'amount' => $this->safe_number_2($order, 'origQty', 'vol'),
@@ -3383,11 +3594,14 @@ class mexc extends Exchange {
             'MARKET' => 'market',
             'LIMIT' => 'limit',
             'LIMIT_MAKER' => 'limit',
+            // on spot, during submission below types are used only accepted order
+            'IMMEDIATE_OR_CANCEL' => 'limit',
+            'FILL_OR_KILL' => 'limit',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -3411,6 +3625,17 @@ class mexc extends Exchange {
             'IOC' => 'IOC',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function get_tif_from_raw_order_type(?string $orderType = null) {
+        $statuses = array(
+            'LIMIT' => 'GTC',
+            'LIMIT_MAKER' => 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'MARKET' => 'IOC',
+        );
+        return $this->safe_string($statuses, $orderType, $orderType);
     }
 
     public function fetch_account_helper($type, $params) {
@@ -3472,6 +3697,10 @@ class mexc extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$account-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
          */
@@ -3495,31 +3724,45 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
-         * fetch the trading fees for multiple markets
+         * fetch the trading fees for a $market
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+         *
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
-        $response = $this->fetch_account_helper('spot', $params);
-        $makerFee = $this->safe_string($response, 'makerCommission');
-        $takerFee = $this->safe_string($response, 'takerCommission');
-        $makerFee = Precise::string_div($makerFee, '1000');
-        $takerFee = Precise::string_div($takerFee, '1000');
-        $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'symbol' => $symbol,
-                'maker' => $this->parse_number($makerFee),
-                'taker' => $this->parse_number($takerFee),
-                'percentage' => true,
-                'tierBased' => false,
-                'info' => $response,
-            );
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new BadRequest($this->id . ' fetchTradingFee() supports spot markets only');
         }
-        return $result;
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->spotPrivateGetTradeFee ($this->extend($request, $params));
+        //
+        //  {
+        //      "data":array(
+        //        "makerCommission":0.003000000000000000,
+        //        "takerCommission":0.003000000000000000
+        //      ),
+        //      "code":0,
+        //      "msg":"success",
+        //      "timestamp":1669109672717
+        //  }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return array(
+            'info' => $data,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($data, 'makerCommission'),
+            'taker' => $this->safe_number($data, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
+        );
     }
 
     public function custom_parse_balance($response, $marketType): array {
@@ -3646,9 +3889,11 @@ class mexc extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbols] // required for margin, $market id's separated by commas
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -3677,11 +3922,11 @@ class mexc extends Exchange {
             $marketType = 'margin';
             $request['symbols'] = $parsedSymbols;
             $params = $this->omit($params, array( 'symbol', 'symbols' ));
-            $response = $this->spotPrivateGetMarginIsolatedAccount (array_merge($request, $params));
+            $response = $this->spotPrivateGetMarginIsolatedAccount ($this->extend($request, $params));
         } elseif ($marketType === 'spot') {
-            $response = $this->spotPrivateGetAccount (array_merge($request, $params));
+            $response = $this->spotPrivateGetAccount ($this->extend($request, $params));
         } elseif ($marketType === 'swap') {
-            $response = $this->contractPrivateGetAccountAssets (array_merge($request, $params));
+            $response = $this->contractPrivateGetAccountAssets ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchBalance() not support this method');
         }
@@ -3775,10 +4020,15 @@ class mexc extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
@@ -3786,19 +4036,25 @@ class mexc extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request = array(
             'symbol' => $market['id'],
         );
         $trades = null;
         if ($marketType === 'spot') {
             if ($since !== null) {
-                $request['start_time'] = $since;
+                $request['startTime'] = $since;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = $this->spotPrivateGetMyTrades (array_merge($request, $query));
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
+            }
+            $trades = $this->spotPrivateGetMyTrades ($this->extend($request, $params));
             //
             // spot
             //
@@ -3831,7 +4087,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = $this->contractPrivateGetOrderListOrderDeals (array_merge($request, $query));
+            $response = $this->contractPrivateGetOrderListOrderDeals ($this->extend($request, $params));
             //
             //     {
             //         "success" => true,
@@ -3863,6 +4119,10 @@ class mexc extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -3884,7 +4144,7 @@ class mexc extends Exchange {
             }
             $request['symbol'] = $market['id'];
             $request['orderId'] = $id;
-            $trades = $this->spotPrivateGetMyTrades (array_merge($request, $query));
+            $trades = $this->spotPrivateGetMyTrades ($this->extend($request, $query));
             //
             // spot
             //
@@ -3908,7 +4168,7 @@ class mexc extends Exchange {
             //
         } else {
             $request['order_id'] = $id;
-            $response = $this->contractPrivateGetOrderDealDetailsOrderId (array_merge($request, $query));
+            $response = $this->contractPrivateGetOrderDealDetailsOrderId ($this->extend($request, $query));
             //
             //     {
             //         "success" => true,
@@ -3948,7 +4208,7 @@ class mexc extends Exchange {
             'amount' => $amount,
             'type' => $addOrReduce,
         );
-        $response = $this->contractPrivatePostPositionChangeMargin (array_merge($request, $params));
+        $response = $this->contractPrivatePostPositionChangeMargin ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -3957,9 +4217,12 @@ class mexc extends Exchange {
         return $response;
     }
 
-    public function reduce_margin(string $symbol, $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3968,9 +4231,12 @@ class mexc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
-    public function add_margin(string $symbol, $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3979,9 +4245,12 @@ class mexc extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-$leverage
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4006,12 +4275,15 @@ class mexc extends Exchange {
         } else {
             $request['positionId'] = $positionId;
         }
-        return $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
+        return $this->contractPrivatePostPositionChangeLeverage ($this->extend($request, $params));
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4033,7 +4305,7 @@ class mexc extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->contractPrivateGetPositionFundingRecords (array_merge($request, $params));
+        $response = $this->contractPrivateGetPositionFundingRecords ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -4085,7 +4357,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -4100,9 +4372,13 @@ class mexc extends Exchange {
         $nextFundingRate = $this->safe_number($contract, 'fundingRate');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextSettleTime');
         $marketId = $this->safe_string($contract, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($contract, 'timestamp');
-        $datetime = $this->iso8601($timestamp);
+        $interval = $this->safe_string($contract, 'collectCycle');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4111,7 +4387,7 @@ class mexc extends Exchange {
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $nextFundingRate,
             'fundingTimestamp' => $nextFundingTimestamp,
             'fundingDatetime' => $this->iso8601($nextFundingTimestamp),
@@ -4121,12 +4397,29 @@ class mexc extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $intervalString,
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4136,7 +4429,7 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPublicGetFundingRateSymbol (array_merge($request, $params));
+        $response = $this->contractPublicGetFundingRateSymbol ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -4159,6 +4452,9 @@ class mexc extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by mexc, but filtered internally by ccxt
          * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100
@@ -4178,7 +4474,7 @@ class mexc extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->contractPublicGetFundingRateHistory (array_merge($request, $params));
+        $response = $this->contractPublicGetFundingRateHistory ($this->extend($request, $params));
         //
         //    {
         //        "success" => true,
@@ -4223,10 +4519,12 @@ class mexc extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+         *
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+         *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -4283,7 +4581,7 @@ class mexc extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -4322,6 +4620,7 @@ class mexc extends Exchange {
         //        "isHidden" => false
         //    }
         //
+        $marketId = $this->safe_string($info, 'symbol');
         $maintenanceMarginRate = $this->safe_string($info, 'maintenanceMarginRate');
         $initialMarginRate = $this->safe_string($info, 'initialMarginRate');
         $maxVol = $this->safe_string($info, 'maxVol');
@@ -4335,9 +4634,10 @@ class mexc extends Exchange {
             return array(
                 array(
                     'tier' => 0,
+                    'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                     'currency' => $this->safe_currency_code($quoteId),
-                    'notionalFloor' => null,
-                    'notionalCap' => null,
+                    'minNotional' => null,
+                    'maxNotional' => null,
                     'maintenanceMarginRate' => null,
                     'maxLeverage' => $this->safe_number($info, 'maxLeverage'),
                     'info' => $info,
@@ -4348,9 +4648,10 @@ class mexc extends Exchange {
             $cap = Precise::string_add($floor, $riskIncrVol);
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_currency_code($quoteId),
-                'notionalFloor' => $this->parse_number($floor),
-                'notionalCap' => $this->parse_number($cap),
+                'minNotional' => $this->parse_number($floor),
+                'maxNotional' => $this->parse_number($cap),
                 'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                 'info' => $info,
@@ -4362,7 +4663,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        coin => "USDT",
@@ -4373,24 +4674,26 @@ class mexc extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
-        $networkId = $this->safe_string($depositAddress, 'network');
+        $networkId = $this->safe_string($depositAddress, 'netWork');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->network_id_to_code($networkId, $currencyId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->network_id_to_code($networkId),
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
-         * fetch a dictionary of addresses for a $currency, indexed by network
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+         * fetch a dictionary of addresses for a $currency, indexed by $network
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the $network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4400,18 +4703,27 @@ class mexc extends Exchange {
         $networkCode = $this->safe_string($params, 'network');
         $networkId = null;
         if ($networkCode !== null) {
-            $networkId = $this->network_code_to_id($networkCode, $code);
+            // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+            $networkUnified = $this->network_id_to_code($networkCode, $code);
+            $networks = $this->safe_dict($currency, 'networks', array());
+            if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+                $network = $this->safe_dict($networks, $networkUnified, array());
+                $networkInfo = $this->safe_value($network, 'info', array());
+                $networkId = $this->safe_string($networkInfo, 'network');
+            } else {
+                $networkId = $this->network_code_to_id($networkCode, $code);
+            }
         }
         if ($networkId !== null) {
             $request['network'] = $networkId;
         }
         $params = $this->omit($params, 'network');
-        $response = $this->spotPrivateGetCapitalDepositAddress (array_merge($request, $params));
+        $response = $this->spotPrivateGetCapitalDepositAddress ($this->extend($request, $params));
         //
         //    array(
         //        {
         //            coin => "USDT",
-        //            network => "BNB Smart Chain(BEP20)",
+        //            $network => "BNB Smart Chain(BEP20)",
         //            address => "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
         //            memo =>  null
         //        }
@@ -4422,13 +4734,15 @@ class mexc extends Exchange {
         return $this->index_by($addressStructures, 'network');
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-$network
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] the blockchain network name
+         * @param {string} [$params->network] the blockchain $network name
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -4438,14 +4752,24 @@ class mexc extends Exchange {
         );
         $networkCode = $this->safe_string($params, 'network');
         if ($networkCode === null) {
-            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `network` parameter');
+            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `$network` parameter');
         }
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+        $networkId = null;
+        $networkUnified = $this->network_id_to_code($networkCode, $code);
+        $networks = $this->safe_dict($currency, 'networks', array());
+        if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+            $network = $this->safe_dict($networks, $networkUnified, array());
+            $networkInfo = $this->safe_value($network, 'info', array());
+            $networkId = $this->safe_string($networkInfo, 'network');
+        } else {
+            $networkId = $this->network_code_to_id($networkCode, $code);
+        }
         if ($networkId !== null) {
             $request['network'] = $networkId;
         }
         $params = $this->omit($params, 'network');
-        $response = $this->spotPrivatePostCapitalDepositAddress (array_merge($request, $params));
+        $response = $this->spotPrivatePostCapitalDepositAddress ($this->extend($request, $params));
         //     {
         //        "coin" => "EOS",
         //        "network" => "EOS",
@@ -4455,17 +4779,18 @@ class mexc extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
+         *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $network = $this->safe_string($params, 'network');
-        $params = $this->omit($params, array( 'network' ));
         $addressStructures = $this->fetch_deposit_addresses_by_network($code, $params);
         $result = null;
         if ($network !== null) {
@@ -4490,7 +4815,9 @@ class mexc extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -4502,7 +4829,7 @@ class mexc extends Exchange {
             // 'coin' => $currency['id'] . network example => USDT-TRX,
             // 'status' => 'status',
             // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->milliseconds(),
+            // 'endTime' => $this->nonce(),
             // 'limit' => $limit, // default 1000, maximum 1000
         );
         $currency = null;
@@ -4514,7 +4841,7 @@ class mexc extends Exchange {
             $rawNetwork = $this->safe_string($params, 'network');
             if ($rawNetwork !== null) {
                 $params = $this->omit($params, 'network');
-                $request['coin'] .= '-' . $rawNetwork;
+                $request['coin'] = $request['coin'] . '-' . $rawNetwork;
             }
         }
         if ($since !== null) {
@@ -4526,7 +4853,7 @@ class mexc extends Exchange {
             }
             $request['limit'] = $limit;
         }
-        $response = $this->spotPrivateGetCapitalDepositHisrec (array_merge($request, $params));
+        $response = $this->spotPrivateGetCapitalDepositHisrec ($this->extend($request, $params));
         //
         // array(
         //     {
@@ -4535,11 +4862,14 @@ class mexc extends Exchange {
         //         "network" => "TRX",
         //         "status" => "5",
         //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //         "insertTime" => "1664805021000",
         //         "unlockConfirm" => "200",
         //         "confirmTimes" => "203",
-        //         "memo" => "xxyy1122"
+        //         "memo" => "xxyy1122",
+        //         "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "updateTime" => "1664805621000",
+        //         "netWork => "TRX"
         //     }
         // )
         //
@@ -4549,7 +4879,9 @@ class mexc extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -4561,7 +4893,7 @@ class mexc extends Exchange {
             // 'coin' => $currency['id'],
             // 'status' => 'status',
             // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->milliseconds(),
+            // 'endTime' => $this->nonce(),
             // 'limit' => $limit, // default 1000, maximum 1000
         );
         $currency = null;
@@ -4578,12 +4910,12 @@ class mexc extends Exchange {
             }
             $request['limit'] = $limit;
         }
-        $response = $this->spotPrivateGetCapitalWithdrawHistory (array_merge($request, $params));
+        $response = $this->spotPrivateGetCapitalWithdrawHistory ($this->extend($request, $params));
         //
         // array(
         //     {
         //       "id" => "adcd1c8322154de691b815eedcd10c42",
-        //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //       "coin" => "USDC-MATIC",
         //       "network" => "MATIC",
         //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4594,14 +4926,18 @@ class mexc extends Exchange {
         //       "confirmNo" => null,
         //       "applyTime" => "1664882739000",
         //       "remark" => '',
-        //       "memo" => null
+        //       "memo" => null,
+        //       "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "updateTime" => "1664882799000",
+        //       "netWork => "MATIC"
         //     }
         // )
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4611,18 +4947,21 @@ class mexc extends Exchange {
         //     "network" => "TRX",
         //     "status" => "5",
         //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
         //     "insertTime" => "1664805021000",
         //     "unlockConfirm" => "200",
         //     "confirmTimes" => "203",
-        //     "memo" => "xxyy1122"
+        //     "memo" => "xxyy1122",
+        //     "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime" => "1664805621000",
+        //     "netWork => "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id" => "adcd1c8322154de691b815eedcd10c42",
-        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
         //     "coin" => "USDC-MATIC",
         //     "network" => "MATIC",
         //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4632,8 +4971,12 @@ class mexc extends Exchange {
         //     "transactionFee" => "1",
         //     "confirmNo" => null,
         //     "applyTime" => "1664882739000",
-        //     "remark" => '',
-        //     "memo" => null
+        //     "remark" => "",
+        //     "memo" => null,
+        //     "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime" => "1664882799000",
+        //     "netWork => "MATIC"
         //   }
         //
         // withdraw
@@ -4645,6 +4988,7 @@ class mexc extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
+        $updated = $this->safe_integer($transaction, 'updateTime');
         $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
@@ -4659,7 +5003,7 @@ class mexc extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $txid = $this->safe_string($transaction, 'txId');
+        $txid = $this->safe_string_2($transaction, 'transHash', 'txId');
         $fee = null;
         $feeCostString = $this->safe_string($transaction, 'transactionFee');
         if ($feeCostString !== null) {
@@ -4689,8 +5033,8 @@ class mexc extends Exchange {
             'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
-            'comment' => null,
+            'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'remark'),
             'internal' => null,
             'fee' => $fee,
         );
@@ -4727,6 +5071,9 @@ class mexc extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade position
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4736,13 +5083,16 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->fetch_positions(null, array_merge($request, $params));
+        $response = $this->fetch_positions(null, $this->extend($request, $params));
         return $this->safe_value($response, 0);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4783,7 +5133,9 @@ class mexc extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
+        //
+        // fetchPositions
         //
         //     {
         //         "positionId" => 1394650,
@@ -4808,7 +5160,41 @@ class mexc extends Exchange {
         //         "autoAddIm" => false
         //     }
         //
-        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId => '390281084',
+        //        $symbol => 'RVN_USDT',
+        //        positionType => '1',
+        //        $openType => '2',
+        //        state => '3',
+        //        holdVol => '0',
+        //        frozenVol => '0',
+        //        closeVol => '1141',
+        //        holdAvgPrice => '0.03491',
+        //        holdAvgPriceFullyScale => '0.03491',
+        //        openAvgPrice => '0.03491',
+        //        openAvgPriceFullyScale => '0.03491',
+        //        closeAvgPrice => '0.03494',
+        //        liquidatePrice => '0.03433',
+        //        oim => '0',
+        //        im => '0',
+        //        holdFee => '0',
+        //        realised => '0.1829',
+        //        $leverage => '50',
+        //        createTime => '1711512408000',
+        //        updateTime => '1711512553000',
+        //        autoAddIm => false,
+        //        version => '4',
+        //        profitRatio => '0.0227',
+        //        newOpenAvgPrice => '0.03491',
+        //        newCloseAvgPrice => '0.03494',
+        //        closeProfitLoss => '0.3423',
+        //        fee => '0.1593977',
+        //        positionShowStatus => 'CLOSED'
+        //    }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
@@ -4829,7 +5215,7 @@ class mexc extends Exchange {
             'entryPrice' => $entryPrice,
             'collateral' => null,
             'side' => $side,
-            'unrealizedProfit' => null,
+            'unrealizedPnl' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,
@@ -4851,14 +5237,24 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()): array {
+        /**
+         * fetches a transfer
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+         *
+         * @param {string} $id transfer $id
+         * @param {string} [$code] not used by mexc fetchTransfer
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
         if ($marketType === 'spot') {
             $request = array(
                 'transact_id' => $id,
             );
-            $response = $this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query));
+            $response = $this->spot2PrivateGetAssetInternalTransferInfo ($this->extend($request, $query));
             //
             //     {
             //         "code" => "200",
@@ -4880,9 +5276,13 @@ class mexc extends Exchange {
         return null;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
@@ -4908,7 +5308,7 @@ class mexc extends Exchange {
                 }
                 $request['page-size'] = $limit;
             }
-            $response = $this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query));
+            $response = $this->spot2PrivateGetAssetInternalTransferRecord ($this->extend($request, $query));
             //
             //     {
             //         "code" => "200",
@@ -4934,7 +5334,7 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = $this->contractPrivateGetAccountTransferRecord (array_merge($request, $query));
+            $response = $this->contractPrivateGetAccountTransferRecord ($this->extend($request, $query));
             $data = $this->safe_value($response, 'data');
             $resultList = $this->safe_value($data, 'resultList');
             //
@@ -4968,7 +5368,9 @@ class mexc extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -5009,21 +5411,21 @@ class mexc extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->spotPrivatePostCapitalTransfer (array_merge($request, $params));
+        $response = $this->spotPrivatePostCapitalTransfer ($this->extend($request, $params));
         //
         //     {
         //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
         $transaction = $this->parse_transfer($response, $currency);
-        return array_merge($transaction, array(
+        return $this->extend($transaction, array(
             'amount' => $amount,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
         ));
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // spot => fetchTransfer
         //
@@ -5090,7 +5492,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'SUCCESS' => 'ok',
             'FAILED' => 'failed',
@@ -5099,10 +5501,12 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         *
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -5110,13 +5514,14 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $networks = $this->safe_dict($this->options, 'networks', array());
+        $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
+        $network = $this->network_code_to_id($network, $currency['code']);
+        $this->check_address($address);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
@@ -5126,10 +5531,10 @@ class mexc extends Exchange {
             $request['memo'] = $tag;
         }
         if ($network !== null) {
-            $request['network'] = $network;
-            $params = $this->omit($params, array( 'network', 'chain' ));
+            $request['netWork'] = $network;
+            $params = $this->omit($params, array( 'network', 'netWork' ));
         }
-        $response = $this->spotPrivatePostCapitalWithdrawApply (array_merge($request, $params));
+        $response = $this->spotPrivatePostCapitalWithdraw ($this->extend($request, $params));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -5139,10 +5544,20 @@ class mexc extends Exchange {
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+         *
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string} $symbol not used by mexc setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
         $request = array(
             'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         );
-        $response = $this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params));
+        $response = $this->contractPrivatePostPositionChangePositionMode ($this->extend($request, $params));
         //
         //     {
         //         "success":true,
@@ -5153,6 +5568,15 @@ class mexc extends Exchange {
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+         *
+         * @param {string} $symbol not used by mexc fetchPositionMode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
         $response = $this->contractPrivateGetPositionPositionMode ($params);
         //
         //     {
@@ -5171,7 +5595,9 @@ class mexc extends Exchange {
     public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdrawal fees
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         *
          * @param {string[]|null} $codes returns fees for all currencies if null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -5270,7 +5696,9 @@ class mexc extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdrawal fees
+         *
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         *
          * @param {string[]|null} $codes returns fees for all currencies if null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -5359,7 +5787,9 @@ class mexc extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
+         *
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
@@ -5369,7 +5799,7 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetPositionLeverage (array_merge($request, $params));
+        $response = $this->contractPrivateGetPositionLeverage ($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -5404,7 +5834,7 @@ class mexc extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marginMode = null;
         $longLeverage = null;
         $shortLeverage = null;
@@ -5446,6 +5876,129 @@ class mexc extends Exchange {
         return array( $marginMode, $params );
     }
 
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical $positions
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+         *
+         * @param {string[]} [$symbols] unified contract $symbols
+         * @param {int} [$since] not used by mexc fetchPositionsHistory
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->type] position type，1 => long, 2 => short
+         * @param {int} [$params->page_num] current page number, default is 1
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->contractPrivateGetPositionListHistoryPositions ($this->extend($request, $params));
+        //
+        //    {
+        //        success => true,
+        //        code => '0',
+        //        $data => array(
+        //            array(
+        //                positionId => '390281084',
+        //                symbol => 'RVN_USDT',
+        //                positionType => '1',
+        //                openType => '2',
+        //                state => '3',
+        //                holdVol => '0',
+        //                frozenVol => '0',
+        //                closeVol => '1141',
+        //                holdAvgPrice => '0.03491',
+        //                holdAvgPriceFullyScale => '0.03491',
+        //                openAvgPrice => '0.03491',
+        //                openAvgPriceFullyScale => '0.03491',
+        //                closeAvgPrice => '0.03494',
+        //                liquidatePrice => '0.03433',
+        //                oim => '0',
+        //                im => '0',
+        //                holdFee => '0',
+        //                realised => '0.1829',
+        //                leverage => '50',
+        //                createTime => '1711512408000',
+        //                updateTime => '1711512553000',
+        //                autoAddIm => false,
+        //                version => '4',
+        //                profitRatio => '0.0227',
+        //                newOpenAvgPrice => '0.03491',
+        //                newCloseAvgPrice => '0.03494',
+        //                closeProfitLoss => '0.3423',
+        //                fee => '0.1593977',
+        //                positionShowStatus => 'CLOSED'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_list($response, 'data');
+        $positions = $this->parse_positions($data, $symbols, $params);
+        return $this->filter_by_since_limit($positions, $since, $limit);
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-$leverage
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} [$symbol] required when there is no position, else provide $params["positionId"]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionId] required when a position is set
+         * @param {string} [$params->direction] "long" or "short" required when there is no position
+         * @return {array} $response from the exchange
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+        }
+        $leverage = $this->safe_integer($params, 'leverage');
+        if ($leverage === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
+        }
+        $direction = $this->safe_string_lower_2($params, 'direction', 'positionId');
+        $request = array(
+            'leverage' => $leverage,
+            'openType' => ($marginMode === 'isolated') ? 1 : 2,
+        );
+        if ($symbol !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        if ($direction !== null) {
+            $request['positionType'] = ($direction === 'short') ? 2 : 1;
+        }
+        $params = $this->omit($params, 'direction');
+        $response = $this->contractPrivatePostPositionChangeLeverage ($this->extend($request, $params));
+        //
+        // array( success => true, code => '0' )
+        //
+        return $this->parse_leverage($response, $market); // tmp revert type
+    }
+
+    public function nonce() {
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $section = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
@@ -5457,13 +6010,22 @@ class mexc extends Exchange {
             } else {
                 $url = $this->urls['api'][$section][$access] . '/api/' . $this->version . '/' . $path;
             }
-            $paramsEncoded = '';
+            $urlParams = $params;
             if ($access === 'private') {
-                $params['timestamp'] = $this->milliseconds();
-                $params['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
+                if ($section === 'broker' && (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE'))) {
+                    $urlParams = array(
+                        'timestamp' => $this->nonce(),
+                        'recvWindow' => $this->safe_integer($this->options, 'recvWindow', 5000),
+                    );
+                    $body = $this->json($params);
+                } else {
+                    $urlParams['timestamp'] = $this->nonce();
+                    $urlParams['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
+                }
             }
-            if ($params) {
-                $paramsEncoded = $this->urlencode($params);
+            $paramsEncoded = '';
+            if ($urlParams) {
+                $paramsEncoded = $this->urlencode($urlParams);
                 $url .= '?' . $paramsEncoded;
             }
             if ($access === 'private') {
@@ -5487,7 +6049,7 @@ class mexc extends Exchange {
                 }
             } else {
                 $this->check_required_credentials();
-                $timestamp = (string) $this->milliseconds();
+                $timestamp = (string) $this->nonce();
                 $auth = '';
                 $headers = array(
                     'ApiKey' => $this->apiKey,
@@ -5513,7 +6075,7 @@ class mexc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

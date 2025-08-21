@@ -447,6 +447,94 @@
                 ]
             },
             {
+                "description": "fetchOHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC%2FUSD&interval=60&from=1735776000000&to=1735786800001",
+                "input": [
+                  "BTC/USD",
+                  "1h",
+                  1735776000000,
+                  3
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC%2FUSD&interval=60&from=1735776000000&to=1737576000001",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1735776000000
+                ]
+            },
+            {
+                "description": "fetchOHLVC with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&to=1735689600001&from=1735678800000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3,
+                    {
+                    "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&to=1735689600001&from=1733889600000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&n=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&from=1735682400000&to=1735689600001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1735682400000,
+                    null,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=60&from=1735682400000&to=1735689600001",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1735682400000,
+                    2,
+                    {
+                        "until": 1735689600000
+                    }
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://ascendex.com/api/pro/v1/barhist?symbol=BTC-PERP&interval=1",
@@ -469,7 +557,7 @@
                 "method": "fetchMarginMode",
                 "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -497,7 +585,155 @@
                 "method": "fetchLeverage",
                 "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "disabled": "until multi-requests methods are supported",
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://ascendex.com/api/pro/v1/assets",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "disabled": "until multi-requests methods are supported",
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://ascendex.com/api/pro/v1/products",
+                "input": []
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://ascendex.com/api/pro/v1/info",
+                "input": []
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/spot/fee",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://ascendex.com/api/pro/v1/wallet/transactions?txType=withdrawal",
+                "input": []
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://ascendex.com/api/pro/v1/wallet/transactions",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://ascendex.com/api/pro/v2/futures/pricing-data",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduceMargin",
+                "method": "reduceMargin",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/isolated-position-margin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"amount\":\"-1\"}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "addMargin",
+                "method": "addMargin",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/isolated-position-margin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"amount\":\"1\"}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/leverage",
+                "input": [
+                    5,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"leverage\":5}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "setMarginMode",
+                "method": "setMarginMode",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/margin-type",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC-PERP\",\"marginType\":\"crossed\"}"
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "fetchLeverageTiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://ascendex.com/api/pro/v2/futures/contract",
+                "input": []
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://ascendex.com/api/pro/v2/assets",
+                "input": []
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/funding-payments?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

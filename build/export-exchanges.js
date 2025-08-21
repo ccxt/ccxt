@@ -5,6 +5,7 @@
 // ----------------------------------------------------------------------------
 
 import fs from 'fs'
+import path from 'path'
 import log  from 'ololog'
 import ansi from 'ansicolor'
 import { pathToFileURL } from 'url'
@@ -19,6 +20,12 @@ const { keys, values, entries, fromEntries } = Object
 ansi.nice
 
 const unlimitedLog = log.unlimited;
+
+let isPartiaBuild = false;
+
+const capitalize = (s) => {
+    return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
+};
 
 function cloneGitHubWiki (gitWikiPath) {
 
@@ -37,7 +44,13 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function getIncludedExchangeIds (path) {
+function getIncludedExchangeIds (pathToDirectory) {
+
+    if (process.argv.length > 2) {
+        // allow a specific exchange to be specified via command line
+        isPartiaBuild = true;
+        return process.argv.slice (2);
+    }
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
@@ -45,8 +58,10 @@ function getIncludedExchangeIds (path) {
         .map (line => line.split ('#')[0].trim ()) // trim comments
         .filter (exchange => exchange); // filter empty lines
 
+    isPartiaBuild = includedIds.length > 0;
+
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-    const ids = fs.readdirSync (path)
+    const ids = fs.readdirSync (pathToDirectory)
         .filter (file => file.match (/[a-zA-Z0-9_-]+.ts$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -93,6 +108,7 @@ function createExchange (id, content) {
         const isPro = definesPro ? content.indexOf("'pro': true") > -1 : undefined;
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
+        const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -129,6 +145,7 @@ function createExchange (id, content) {
             'version': version,
             'countries': countries,
             'parent': parent,
+            'dex': isDex,
         }
     }
     return {
@@ -174,11 +191,11 @@ function extendedExchangesById (exchanges){
 // ----------------------------------------------------------------------------
 
 async function createExchanges (ids) {
-    const path = './ts/src/'
+    const pathToSrcDirectory = './ts/src/'
 
     // readd all files simultaneously
     const promiseReadFile = promisify (fs.readFile);
-    const fileArray = await Promise.all (ids.map (id => promiseReadFile (path + id + '.ts', 'utf8')));
+    const fileArray = await Promise.all (ids.map (id => promiseReadFile (pathToSrcDirectory + id + '.ts', 'utf8')));
 
 
     let exchanges = fileArray.map ((file, index) => createExchange(ids[index], file)).filter(exchange => exchange !== undefined)
@@ -262,6 +279,7 @@ function createMarkdownExchange (exchange) {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'ver': getVersionBadge (exchange),
+        'type': exchange.dex ? '![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")' : '![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange")',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'pro': exchange.pro ? ccxtProBadge : '',
     }
@@ -395,13 +413,14 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths && numExchanges) {
         const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT library currently supports the following "
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
-            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of allExchangesPaths) {
-            logExportExchanges (path, allExchangesRegex, allExchangesReplacement)
+            // , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "\n<!--- end list -->"
+            , allExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
+        for (const exchangePath of allExchangesPaths) {
+            logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
     }
 
@@ -409,32 +428,77 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const numProExchanges = proExchanges.length
     if (proExchangesPaths && numProExchanges) {
         const proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT Pro library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
             , totalString = beginning + numProExchanges + ending
-            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
-            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-        for (const path of proExchangesPaths) {
-            logExportExchanges (path, proExchangesRegex, proExchangesReplacement)
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "\n<!--- end list -->"
+            , proExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
+        for (const exchangePath of proExchangesPaths) {
+            logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }
     }
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
+    // certified exchanges are sorted according to the following order
+    const certifiedExchangesSortingOrder = [
+        'binance',
+        'binanceusdm',
+        'binancecoinm',
+        'bybit',
+        'okx',
+        'gate',
+        'kucoin',
+        'kucoinfutures',
+        'bitget',
+        'hyperliquid',
+        'bitmex',
+        'bingx',
+        'htx',
+        'mexc',
+        'bitmart',
+        'cryptocom',
+        'coinex',
+        'hashkey',
+        'woo',
+        'woofipro',
+    ]
+
+    let copyOfCertifiedExchanges = certifiedExchanges.slice (); // makes a new array with the same elements
+    let reorderedCertifiedExchanges = []
+    for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
+        const exchangeId = certifiedExchangesSortingOrder[i]
+        const index = copyOfCertifiedExchanges.findIndex (exchange => exchange.id == exchangeId)
+        if (index >= 0) {
+            const splicedExchanges = copyOfCertifiedExchanges.splice (index, 1)
+            const exchange = splicedExchanges[0]
+            reorderedCertifiedExchanges.push (exchange)
+        } else {
+            const errorMessage = exchangeId + ' not certified in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+        }
+    }
+    if (copyOfCertifiedExchanges.length > 0) {
+            const errorMessage = 'Not all certified exchanges listed in export-exchanges.js'
+            console.log (errorMessage)
+            throw new Error (errorMessage)
+    }
+
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (reorderedCertifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-        for (const path of certifiedExchangesPaths) {
-            logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
+        for (const exchangePath of certifiedExchangesPaths) {
+            logExportExchanges (exchangePath, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
     }
 
     if (exchangesByCountriesPaths) {
         const exchangesByCountriesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
-        for (const path of exchangesByCountriesPaths) {
-            fs.truncateSync (path)
-            fs.writeFileSync (path, result)
+        for (const exchangePath of exchangesByCountriesPaths) {
+            fs.truncateSync (exchangePath)
+            fs.writeFileSync (exchangePath, result)
         }
     }
 }
@@ -507,8 +571,8 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 function getErrorHierarchy() {
-    const path = './ts/src/base/errorHierarchy.ts';
-    const content = fs.readFileSync (path, 'utf8');
+    const pathToErrorHierarchy = './ts/src/base/errorHierarchy.ts';
+    const content = fs.readFileSync (pathToErrorHierarchy, 'utf8');
     let errorObject = content.matchAll (/const\s*[\w\d]+\s*=\s({(.|\n)+});/gm).next().value[1];
     errorObject = errorObject.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
     errorObject = errorObject.replace(/'/g, '"');
@@ -521,7 +585,7 @@ function generateErrorsTs () {
     const classBlock = (className, extendedClassName) => {
         return '' + 
             `class ${className} extends ${extendedClassName} {\n` +
-            `    constructor (message) {\n` +
+            `    constructor (message: string) {\n` +
             `        super (message);\n` +
             `        this.name = '${className}';\n` +
             `    }\n` +
@@ -553,6 +617,32 @@ function generateErrorsTs () {
 
 // ----------------------------------------------------------------------------
 
+function getTypesExports() {
+    const typesPath = './ts/src/base/types.ts';
+    const fileContent = fs.readFileSync(typesPath, 'utf8');
+
+    // Regular expressions to match type and interface declarations
+    const typeRegex = /export\stype\s+([A-Za-z0-9_]+)/g;
+    const interfaceRegex = /export\sinterface\s+([A-Za-z0-9_]+)/g;
+
+    const typeNames = [];
+    const interfaceNames = [];
+
+    let match;
+      // Extract type names
+    while ((match = typeRegex.exec(fileContent)) !== null) {
+      typeNames.push(match[1]);
+    }
+
+    // Extract interface names
+    while ((match = interfaceRegex.exec(fileContent)) !== null) {
+      interfaceNames.push(match[1]);
+    }
+    return typeNames.concat(interfaceNames);
+}
+
+// ----------------------------------------------------------------------------
+
 async function exportEverything () {
     const ids = getIncludedExchangeIds ('./ts/src')
 
@@ -564,7 +654,7 @@ async function exportEverything () {
     const errorsExports = [...flat];
     flat.push ('error_hierarchy')
 
-    const typeExports = ['Market', 'Trade' , 'Fee', 'Ticker', 'OrderBook', 'Order', 'Transaction', 'Tickers', 'Currency', 'Balance', 'DepositAddress', 'WithdrawalResponse', 'DepositAddressResponse', 'OHLCV', 'Balances', 'PartialBalances', 'Dictionary', 'MinMax', 'Position', 'FundingRateHistory', 'Liquidation', 'FundingHistory', 'MarginMode', 'Greeks', 'Leverage', 'Leverages', 'Option', 'OptionChain', 'Conversion' ]
+    const typeExports = getTypesExports();
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
@@ -644,6 +734,11 @@ async function exportEverything () {
         },
         {
             file: './python/ccxt/pro/__init__.py',
+            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END\n)[\n]/s,
+            replacement: '$1\n' +flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n",
+        },
+        {
+            file: './python/ccxt/pro/__init__.py',
             regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
@@ -657,12 +752,22 @@ async function exportEverything () {
             regex: /public static List<string> exchanges =.+$/gm,
             replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
         },
+        {
+            file: './go/v4/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
 
     // strategically placed exactly here (we can require it AFTER the export)
     const exchanges = await createExchanges (ids)
+
+    if (isPartiaBuild) {
+        log.bright.cyan ('Using a partial build'.yellow, 'building only', ids)
+        return
+    }
 
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'
@@ -694,12 +799,17 @@ async function exportEverything () {
     unlimitedLog.bright.green ('Exported successfully.')
 }
 
+
 // ============================================================================
 // main entry point
+
+// remove extensions
 let metaUrl = import.meta.url
-metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+metaUrl = path.join(path.dirname(metaUrl), path.parse(metaUrl).name) 
 const url = pathToFileURL(process.argv[1]);
-const href = (url.href.indexOf('.') !== -1) ? url.href.substring(0, url.href.lastIndexOf(".")) : url.href;
+const href = path.join(path.dirname(url.href), path.parse(url.href).name)
+
+// compare paths to check if it's launched directly or included as a module
 if (metaUrl === href) {
 
     // if called directly like `node module`

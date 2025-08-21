@@ -10,7 +10,7 @@ public partial class krakenfutures
     /// Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class krakenfutures
     /// Fetches a list of open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -57,7 +57,7 @@ public partial class krakenfutures
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -73,6 +73,39 @@ public partial class krakenfutures
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    /// <summary>
+    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/charts/candles"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
     public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -84,8 +117,8 @@ public partial class krakenfutures
     /// Fetch a history of filled trades that this account has made
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history"/>  <br/>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-history"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -143,12 +176,18 @@ public partial class krakenfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
     /// float : limit order price
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -195,7 +234,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -206,8 +245,14 @@ public partial class krakenfutures
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -220,7 +265,7 @@ public partial class krakenfutures
     /// Edit an open order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -248,7 +293,7 @@ public partial class krakenfutures
     /// Cancel an open order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -259,16 +304,16 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -294,7 +339,7 @@ public partial class krakenfutures
     /// Cancels all orders on the exchange, including trigger orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -305,16 +350,36 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// Gets all open orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -382,7 +447,7 @@ public partial class krakenfutures
     /// Gets all canceled orders, including trigger orders, for an account from the exchange api
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/history/get-order-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -416,7 +481,7 @@ public partial class krakenfutures
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -456,7 +521,7 @@ public partial class krakenfutures
     /// Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -485,10 +550,10 @@ public partial class krakenfutures
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the current funding rates
+    /// fetch the current funding rates for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -499,16 +564,16 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -542,7 +607,7 @@ public partial class krakenfutures
     /// Fetches current contract trading positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -562,7 +627,7 @@ public partial class krakenfutures
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -573,11 +638,25 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
+    /// <summary>
+    /// transfer from futures wallet to spot wallet
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// dict : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
     public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transferOut(code, amount, parameters);
@@ -587,8 +666,8 @@ public partial class krakenfutures
     /// transfers currencies between sub-accounts
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer"/>  <br/>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/transfer"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -608,7 +687,7 @@ public partial class krakenfutures
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -628,7 +707,7 @@ public partial class krakenfutures
     /// fetch the set leverage for all contract and margin markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -639,7 +718,7 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
@@ -648,7 +727,7 @@ public partial class krakenfutures
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

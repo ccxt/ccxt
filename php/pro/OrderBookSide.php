@@ -31,6 +31,10 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         }
     }
 
+    public function store_array($delta) {
+        return $this->storeArray($delta);
+    }
+
     public function storeArray($delta) {
         $price = $delta[0];
         $size = $delta[1];

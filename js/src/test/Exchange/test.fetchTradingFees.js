@@ -15,5 +15,6 @@ async function testFetchTradingFees(exchange, skippedProperties) {
         const symbol = symbols[i];
         testTradingFee(exchange, skippedProperties, method, symbol, fees[symbol]);
     }
+    return true;
 }
 export default testFetchTradingFees;

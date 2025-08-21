@@ -9,11 +9,12 @@ use Exception; // a common import
 
 class binanceus extends \ccxt\pro\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binanceus ();
         $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend($restDescribe, parent::describe());
+        $parentWsDescribe = parent::describe_data();
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
             'id' => 'binanceus',
             'name' => 'Binance US',
@@ -28,7 +29,7 @@ class binanceus extends \ccxt\pro\binance {
                     'web' => 'https://www.binance.us',
                     'sapi' => 'https://api.binance.us/sapi/v1',
                     'wapi' => 'https://api.binance.us/wapi/v3',
-                    'public' => 'https://api.binance.us/api/v1',
+                    'public' => 'https://api.binance.us/api/v3',
                     'private' => 'https://api.binance.us/api/v3',
                     'v3' => 'https://api.binance.us/api/v3',
                     'v1' => 'https://api.binance.us/api/v1',
@@ -42,14 +43,8 @@ class binanceus extends \ccxt\pro\binance {
                 'fetchCurrencies' => false,
                 'quoteOrderQty' => false,
                 'defaultType' => 'spot',
-                'fetchMarkets' => array( 'spot' ),
-            ),
-            'fees' => array(
-                'trading' => array(
-                    'tierBased' => false,
-                    'percentage' => true,
-                    'taker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                'fetchMarkets' => array(
+                    'types' => array( 'spot' ),
                 ),
             ),
         ));

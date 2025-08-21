@@ -17,5 +17,6 @@ async function testFetchOrderBooks(exchange, skippedProperties) {
         const symbolInner = orderBookKeys[i];
         testOrderBook(exchange, skippedProperties, method, orderBooks[symbolInner], symbolInner);
     }
+    return true;
 }
 export default testFetchOrderBooks;

@@ -288,7 +288,7 @@ public class ArrayCacheBySymbolById : ArrayCache
         var beforeLength = idSet.Count;
         idSet.Add(itemId);
         var afterLength = idSet.Count;
-        var defaultAllNewUpdates = (this.allNewUpdates == null) ? 0 : this.allNewUpdates;
+        var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
 }
@@ -314,8 +314,11 @@ public class ArrayCacheBySymbolBySide : ArrayCache
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
-        var bySide = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSide] as Dictionary<string, object> : new Dictionary<string, object>();
-
+        if (!this.hashmap.ContainsKey(itemSymbol))
+        {
+            this.hashmap[itemSymbol] = new Dictionary<string, object>();
+        }
+        var bySide = this.hashmap[itemSymbol] as Dictionary<string, object>;
         if (bySide.ContainsKey(itemSide))
         {
             var reference = bySide[itemSide];
@@ -361,7 +364,7 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         var beforeLength = sideSet.Count;
         sideSet.Add(itemSide);
         var afterLength = sideSet.Count;
-        var defaultAllNewUpdates = (this.allNewUpdates == null) ? 0 : this.allNewUpdates;
+        var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
 }

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var novadax$1 = require('./abstract/novadax.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -7,13 +9,13 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class novadax
  * @augments Exchange
  */
-class novadax extends novadax$1 {
+class novadax extends novadax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',
@@ -32,6 +34,9 @@ class novadax extends novadax$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -44,9 +49,14 @@ class novadax extends novadax$1 {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -56,28 +66,53 @@ class novadax extends novadax$1 {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -85,9 +120,14 @@ class novadax extends novadax$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': 'emulated',
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -204,17 +244,96 @@ class novadax extends novadax$1 {
                     'fillResponseFromRequest': true,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo max 3000
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
+    /**
+     * @method
+     * @name novadax#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://doc.novadax.com/en-US/#get-current-system-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://doc.novadax.com/en-US/#get-current-system-time
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.publicGetCommonTimestamp(params);
         //
         //     {
@@ -225,15 +344,15 @@ class novadax extends novadax$1 {
         //
         return this.safeInteger(response, 'data');
     }
+    /**
+     * @method
+     * @name novadax#fetchMarkets
+     * @description retrieves data on all markets for novadax
+     * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchMarkets
-         * @description retrieves data on all markets for novadax
-         * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetCommonSymbols(params);
         //
         //     {
@@ -362,16 +481,16 @@ class novadax extends novadax$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name novadax#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -399,16 +518,16 @@ class novadax extends novadax$1 {
         const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
+    /**
+     * @method
+     * @name novadax#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetMarketTickers(params);
@@ -441,17 +560,17 @@ class novadax extends novadax$1 {
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name novadax#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.novadax.com/en-US/#get-market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://doc.novadax.com/en-US/#get-market-depth
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -562,18 +681,18 @@ class novadax extends novadax$1 {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name novadax#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.novadax.com/en-US/#get-recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://doc.novadax.com/en-US/#get-recent-trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -597,19 +716,19 @@ class novadax extends novadax$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name novadax#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.novadax.com/en-US/#get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://doc.novadax.com/en-US/#get-kline-data
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -697,15 +816,15 @@ class novadax extends novadax$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name novadax#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://doc.novadax.com/en-US/#get-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://doc.novadax.com/en-US/#get-account-balance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetAccountGetBalance(params);
         //
@@ -724,21 +843,21 @@ class novadax extends novadax$1 {
         //
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name novadax#createOrder
+     * @description create a trade order
+     * @see https://doc.novadax.com/en-US/#order-introduction
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#createOrder
-         * @description create a trade order
-         * @see https://doc.novadax.com/en-US/#order-introduction
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let uppercaseType = type.toUpperCase();
@@ -752,8 +871,8 @@ class novadax extends novadax$1 {
             // "stopPrice": this.priceToPrecision (symbol, stopPrice),
             // "accountId": "...", // subaccount id, optional
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
             }
@@ -767,7 +886,7 @@ class novadax extends novadax$1 {
             }
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString(params, 'operator', defaultOperator);
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
@@ -832,17 +951,17 @@ class novadax extends novadax$1 {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name novadax#cancelOrder
+     * @description cancels an open order
+     * @see https://doc.novadax.com/en-US/#cancel-an-order
+     * @param {string} id order id
+     * @param {string} symbol not used by novadax cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#cancelOrder
-         * @description cancels an open order
-         * @see https://doc.novadax.com/en-US/#cancel-an-order
-         * @param {string} id order id
-         * @param {string} symbol not used by novadax cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'id': id,
@@ -860,16 +979,17 @@ class novadax extends novadax$1 {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
+    /**
+     * @method
+     * @name novadax#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://doc.novadax.com/en-US/#get-order-details
+     * @param {string} id order id
+     * @param {string} symbol not used by novadax fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://doc.novadax.com/en-US/#get-order-details
-         * @param {string} symbol not used by novadax fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'id': id,
@@ -899,18 +1019,18 @@ class novadax extends novadax$1 {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
+    /**
+     * @method
+     * @name novadax#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://doc.novadax.com/en-US/#get-order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://doc.novadax.com/en-US/#get-order-history
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
@@ -959,53 +1079,53 @@ class novadax extends novadax$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name novadax#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://doc.novadax.com/en-US/#get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://doc.novadax.com/en-US/#get-order-history
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const request = {
             'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name novadax#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://doc.novadax.com/en-US/#get-order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://doc.novadax.com/en-US/#get-order-history
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const request = {
             'status': 'FILLED,CANCELED,REJECTED',
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name novadax#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://doc.novadax.com/en-US/#get-order-match-details
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @see https://doc.novadax.com/en-US/#get-order-match-details
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const request = {
             'id': id,
@@ -1099,7 +1219,6 @@ class novadax extends novadax$1 {
         }
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_');
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'id': id,
             'clientOrderId': undefined,
@@ -1113,8 +1232,7 @@ class novadax extends novadax$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1125,19 +1243,19 @@ class novadax extends novadax$1 {
             'trades': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name novadax#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://doc.novadax.com/en-US/#get-sub-account-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name novadax#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://doc.novadax.com/en-US/#get-sub-account-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         if (fromAccount !== 'main' && toAccount !== 'main') {
@@ -1185,7 +1303,6 @@ class novadax extends novadax$1 {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': currencyCode,
             'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,
@@ -1200,19 +1317,19 @@ class novadax extends novadax$1 {
         };
         return this.safeString(statuses, status, 'failed');
     }
+    /**
+     * @method
+     * @name novadax#withdraw
+     * @description make a withdrawal
+     * @see https://doc.novadax.com/en-US/#send-cryptocurrencies
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#withdraw
-         * @description make a withdrawal
-         * @see https://doc.novadax.com/en-US/#send-cryptocurrencies
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1234,15 +1351,15 @@ class novadax extends novadax$1 {
         //
         return this.parseTransaction(response, currency);
     }
+    /**
+     * @method
+     * @name novadax#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://doc.novadax.com/en-US/#get-sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     async fetchAccounts(params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @see https://doc.novadax.com/en-US/#get-sub-account-list
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
         const response = await this.privateGetAccountSubs(params);
         //
         //     {
@@ -1273,52 +1390,52 @@ class novadax extends novadax$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name novadax#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const request = {
             'type': 'coin_in',
         };
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name novadax#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const request = {
             'type': 'coin_out',
         };
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name novadax#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
-         * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
-         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'currency': currency['id'],
@@ -1446,18 +1563,18 @@ class novadax extends novadax$1 {
             },
         };
     }
+    /**
+     * @method
+     * @name novadax#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://doc.novadax.com/en-US/#get-order-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name novadax#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://doc.novadax.com/en-US/#get-order-history
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const request = {
         //  'orderId': id, // Order ID, string
@@ -1557,4 +1674,4 @@ class novadax extends novadax$1 {
     }
 }
 
-module.exports = novadax;
+exports["default"] = novadax;

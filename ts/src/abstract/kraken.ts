@@ -23,6 +23,7 @@ interface Exchange {
     privatePostAddOrder (params?: {}): Promise<implicitReturnType>;
     privatePostAddOrderBatch (params?: {}): Promise<implicitReturnType>;
     privatePostAddExport (params?: {}): Promise<implicitReturnType>;
+    privatePostAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostBalance (params?: {}): Promise<implicitReturnType>;
     privatePostCancelAll (params?: {}): Promise<implicitReturnType>;
     privatePostCancelAllOrdersAfter (params?: {}): Promise<implicitReturnType>;

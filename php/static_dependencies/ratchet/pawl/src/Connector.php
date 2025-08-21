@@ -15,7 +15,7 @@ class Connector {
     protected $_connector;
     protected $_negotiator;
 
-    public function __construct(LoopInterface $loop = null, ConnectorInterface $connector = null) {
+    public function __construct(?LoopInterface $loop = null, ?ConnectorInterface $connector = null) {
         $this->_loop = $loop ?: Loop::get();
 
         if (null === $connector) {

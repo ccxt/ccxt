@@ -27,11 +27,11 @@ async function closeAfter(exchange, ms) {
     await sleep(ms);
     await exchange.close();
 }
-async function testClose() {
+async function testWsClose() {
     const exchange = new ccxt.pro.binance();
     // --------------------------------------------
     console.log('Testing exchange.close(): No future awaiting, should close with no errors');
-    await exchange.watchTicker('BTC/USD');
+    await exchange.watchTicker('BTC/USDT');
     console.log('ticker received');
     await exchange.close();
     console.log('PASSED - exchange closed with no errors');
@@ -71,4 +71,4 @@ async function testClose() {
     }
     process.exit(0);
 }
-await testClose();
+export default testWsClose;

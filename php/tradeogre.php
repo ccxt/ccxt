@@ -10,14 +10,14 @@ use ccxt\abstract\tradeogre as Exchange;
 
 class tradeogre extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tradeogre',
             'name' => 'tradeogre',
             'countries' => [ ],
             'rateLimit' => 100,
             'version' => 'v2',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -26,6 +26,9 @@ class tradeogre extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -41,9 +44,14 @@ class tradeogre extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -54,46 +62,72 @@ class tradeogre extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => false,
                 'fetchLedgerEntry' => false,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
+                'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
-                'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawAddresses' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -125,11 +159,12 @@ class tradeogre extends Exchange {
                         'orders/{market}' => 1,
                         'ticker/{market}' => 1,
                         'history/{market}' => 1,
+                        'chart/{interval}/{market}/{timestamp}' => 1,
+                        'chart/{interval}/{market}' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/balance' => 1,
                         'account/balances' => 1,
                         'account/order/{uuid}' => 1,
                     ),
@@ -139,6 +174,7 @@ class tradeogre extends Exchange {
                         'order/cancel' => 1,
                         'orders' => 1,
                         'account/orders' => 1,
+                        'account/balance' => 1,
                     ),
                 ),
             ),
@@ -153,7 +189,68 @@ class tradeogre extends Exchange {
                     'Order not found' => '\\ccxt\\BadRequest',
                 ),
             ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '15m' => '15m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '1d' => '1d',
+                '1w' => '1w',
+            ),
             'options' => array(
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => null, // todo
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
         ));
     }
@@ -161,7 +258,9 @@ class tradeogre extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bigone
+         *
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -212,7 +311,7 @@ class tradeogre extends Exchange {
                 'inverse' => null,
                 'contractSize' => null,
                 'taker' => $this->fees['trading']['taker'],
-                'maker' => $this->fees['trading']['taker'],
+                'maker' => $this->fees['trading']['maker'],
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -259,7 +358,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetTickerMarket (array_merge($request, $params));
+        $response = $this->publicGetTickerMarket ($this->extend($request, $params));
         //
         //   {
         //       "success":true,
@@ -275,18 +374,74 @@ class tradeogre extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        $response = $this->publicGetMarkets ($this->extend($request, $params));
+        //
+        //     array(
+        //         {
+        //             "AAVE-USDT" => array(
+        //                 "initialprice" => "177.20325711",
+        //                 "price" => "177.20325711",
+        //                 "high" => "177.20325711",
+        //                 "low" => "177.20325711",
+        //                 "volume" => "0.00000000",
+        //                 "bid" => "160.72768581",
+        //                 "ask" => "348.99999999",
+        //                 "basename" => "Aave"
+        //             }
+        //         ),
+        //         ...
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $marketIdArray = is_array($entry) ? array_keys($entry) : array();
+            $marketId = $this->safe_string($marketIdArray, 0);
+            $market = $this->safe_market($marketId);
+            $data = $entry[$marketId];
+            $ticker = $this->parse_ticker($data, $market);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+    }
+
     public function parse_ticker($ticker, ?array $market = null) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     array(
+        //         "initialprice" => "177.20325711",
+        //         "price" => "177.20325711",
+        //         "high" => "177.20325711",
+        //         "low" => "177.20325711",
+        //         "volume" => "0.00000000",
+        //         "bid" => "160.72768581",
+        //         "ask" => "348.99999999",
+        //         "basename" => "Aave"
+        //     ),
+        //     ...
         //
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -299,9 +454,9 @@ class tradeogre extends Exchange {
             'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
-            'close' => null,
-            'last' => null,
+            'open' => $this->safe_string($ticker, 'initialprice'),
+            'close' => $this->safe_string($ticker, 'price'),
+            'last' => $this->safe_string($ticker, 'price'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
@@ -310,6 +465,68 @@ class tradeogre extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp of the latest candle in ms
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        $response = null;
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['timestamp'] = $this->parse_to_int($until / 1000);
+            $response = $this->publicGetChartIntervalMarketTimestamp ($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetChartIntervalMarket ($this->extend($request, $params));
+        }
+        //
+        //     array(
+        //         array(
+        //             1729130040,
+        //             67581.47235999,
+        //             67581.47235999,
+        //             67338.01,
+        //             67338.01,
+        //             6.72168016
+        //         ),
+        //     )
+        //
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+        //
+        //     array(
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+        );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -325,7 +542,7 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetOrdersMarket (array_merge($request, $params));
+        $response = $this->publicGetOrdersMarket ($this->extend($request, $params));
         //
         // {
         //     "success" => true,
@@ -343,6 +560,7 @@ class tradeogre extends Exchange {
             'asks' => $rawAsks,
         );
         $orderbook = $this->parse_order_book($rawOrderbook, $symbol);
+        $orderbook['nonce'] = $this->safe_integer($response, 's');
         return $orderbook;
     }
 
@@ -373,11 +591,11 @@ class tradeogre extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicGetHistoryMarket (array_merge($request, $params));
+        $response = $this->publicGetHistoryMarket ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         //  {
         //      "date":1515128233,
@@ -411,10 +629,27 @@ class tradeogre extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->currency] $currency to fetch the balance for
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $response = $this->privateGetAccountBalances ($params);
+        $response = null;
+        $currency = $this->safe_string($params, 'currency');
+        if ($currency !== null) {
+            $response = $this->privatePostAccountBalance ($params);
+            $singleCurrencyresult = array(
+                'info' => $response,
+            );
+            $code = $this->safe_currency_code($currency);
+            $account = array(
+                'total' => $this->safe_number($response, 'balance'),
+                'free' => $this->safe_number($response, 'available'),
+            );
+            $singleCurrencyresult[$code] = $account;
+            return $this->safe_balance($singleCurrencyresult);
+        } else {
+            $response = $this->privateGetAccountBalances ($params);
+        }
         $result = $this->safe_dict($response, 'balances', array());
         return $this->parse_balance($result);
     }
@@ -444,29 +679,35 @@ class tradeogre extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
+         * @see https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type not used by tradeogre
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'quantity' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-            'price' => $this->parse_to_numeric($this->price_to_precision($symbol, $price)),
-        );
         if ($type === 'market') {
             throw new BadRequest($this->id . ' createOrder does not support $market orders');
         }
+        if ($price === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires a $price parameter');
+        }
+        $request = array(
+            'market' => $market['id'],
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
+        );
         $response = null;
         if ($side === 'buy') {
-            $response = $this->privatePostOrderBuy (array_merge($request, $params));
+            $response = $this->privatePostOrderBuy ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOrderSell (array_merge($request, $params));
+            $response = $this->privatePostOrderSell ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -483,7 +724,7 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
+        $response = $this->privatePostOrderCancel ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -495,12 +736,18 @@ class tradeogre extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        return $this->cancel_order('all', $symbol, $params);
+        $response = $this->cancel_order('all', $symbol, $params);
+        return array(
+            $response,
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
+         *
+         * @see https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -516,14 +763,17 @@ class tradeogre extends Exchange {
         if ($symbol !== null) {
             $request['market'] = $market['id'];
         }
-        $response = $this->privatePostAccountOrders (array_merge($request, $params));
+        $response = $this->privatePostAccountOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+         *
+         * @see https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)
+         *
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -532,11 +782,11 @@ class tradeogre extends Exchange {
         $request = array(
             'uuid' => $id,
         );
-        $response = $this->privateGetAccountOrderUuid (array_merge($request, $params));
+        $response = $this->privateGetAccountOrderUuid ($this->extend($request, $params));
         return $this->parse_order($response, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // {
@@ -564,12 +814,12 @@ class tradeogre extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
-            'amount' => $this->safe_string($order, 'quantity'),
+            'triggerPrice' => null,
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($order, 'fulfilled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($order, 'quantity'),
             'status' => null,
             'fee' => array(
                 'currency' => null,
@@ -600,7 +850,7 @@ class tradeogre extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }
