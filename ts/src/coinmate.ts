@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, Currencies, LedgerEntry } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositAddress, Currencies, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ export default class coinmate extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositsWithdrawals': true,
-                'fetchLedger': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -68,6 +67,7 @@ export default class coinmate extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
@@ -774,15 +774,16 @@ export default class coinmate extends Exchange {
      * @description fetch a specific transfer (deposit/withdrawal) by transaction id
      * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer/post
      * @param {string} id transaction id returned by the exchange
+     * @param {string} [code] not used by coinmate, but required for base class compatibility
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchTransfer (id: string, params = {}): Promise<Transaction> {
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const request: Dict = { 'transactionId': id };
         const response = await this.privatePostTransfer (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransaction (data);
+        return this.parseTransfer (data);
     }
 
     parseTransactionStatus (status: Str) {
@@ -800,6 +801,37 @@ export default class coinmate extends Exchange {
             'ERROR': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        // transfer payload from /transfer
+        // {
+        //   "id": 10061,
+        //   "fee": 0,
+        //   "transferType": "DEPOSIT",
+        //   "timestamp": 1541785057888,
+        //   "transferStatus": "COMPLETED",
+        //   "amount": 100,
+        //   "amountCurrency": "CZK",
+        //   "walletType": "BANK_WIRE",
+        //   "txid": null,
+        //   "destination": null,
+        //   "destinationTag": null
+        // }
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (transfer, 'amountCurrency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'transferStatus')),
+        } as TransferEntry;
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1521,26 +1553,6 @@ export default class coinmate extends Exchange {
 
     /**
      * @method
-     * @name coinmate#createTriggerOrder
-     * @description create a trigger stop order
-     * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order/post
-     * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order/post
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'limit' (market orders not supported for stop orders)
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
-     * @param {float} _triggerPrice the price to trigger the stop order, in units of the quote currency
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async createTriggerOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num, _triggerPrice: Num, params = {}): Promise<Order> {
-        // Disabled per docs
-        throw new NotSupported (this.id + ' createTriggerOrder() is not supported, stop orders are disabled by the exchange');
-    }
-
-    /**
-     * @method
      * @name coinmate#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
@@ -1589,10 +1601,12 @@ export default class coinmate extends Exchange {
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));
         const data = this.safeDict (response, 'data');
         const remainingString = this.safeString (data, 'remainingAmount');
+        const isCanceled = this.safeBool (data, 'success');
+        const status = isCanceled ? 'canceled' : undefined;
         return this.safeOrder ({
             'info': response,
             'id': id,
-            'status': (this.safeBool (data, 'success')) ? 'canceled' : undefined,
+            'status': status,
             'remaining': remainingString,
         });
     }
@@ -1618,7 +1632,7 @@ export default class coinmate extends Exchange {
         // response.data is a mapping of orderId -> remainingAmount
         const mapping = this.safeDict (response, 'data', {});
         const keys = Object.keys (mapping);
-        const result: Order[] = [] as unknown as Order[];
+        const result = [];
         for (let i = 0; i < keys.length; i++) {
             const orderId = keys[i];
             const remainingString = this.safeString (mapping, orderId);
@@ -1650,7 +1664,7 @@ export default class coinmate extends Exchange {
      * @param {bool} [params.hidden] if true, the order will be hidden from the order book (limit orders only)
      * @returns {Order} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = 'privatePostReplaceBy' + this.capitalize (side);
