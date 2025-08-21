@@ -1094,7 +1094,8 @@
         }
     },
     "gemini": {
-        "skipWs": "fixes needed",
+        "skipPhpAsync": "tmp",
+        "skipCSharp": "tmp",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
