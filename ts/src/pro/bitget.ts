@@ -2385,18 +2385,36 @@ export default class bitget extends bitgetRest {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
+        //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
         const type = (instType === 'spot') ? 'spot' : 'contract';
-        const instId = this.safeString (arg, 'instId');
-        const channel = this.safeString (arg, 'channel');
-        const interval = channel.replace ('candle', '');
+        const instId = this.safeString2 (arg, 'instId', 'symbol');
+        const channel = this.safeString2 (arg, 'channel', 'topic');
+        let interval = this.safeString (arg, 'interval');
+        let isUta = undefined;
+        if (interval === undefined) {
+            isUta = false;
+            interval = channel.replace ('candle', '');
+        } else {
+            isUta = true;
+        }
         const timeframes = this.safeValue (this.options, 'timeframes');
         const timeframe = this.findTimeframe (interval, timeframes);
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
-        const messageHash = 'unsubscribe:candles:' + timeframe + ':' + market['symbol'];
-        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        let messageHash = undefined;
+        let subMessageHash = undefined;
+        if (isUta) {
+            messageHash = 'unsubscribe:kline:' + symbol;
+            subMessageHash = 'kline:' + symbol;
+        } else {
+            messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol;
+            subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        }
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
