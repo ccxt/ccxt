@@ -62,7 +62,7 @@ const EXCHANGES_WS_FOLDER = './go/v4/pro/';
 const BASE_TESTS_FOLDER = './go/tests/base/';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
-const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
+const GENERATED_TESTS_FOLDER = './go/tests/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples/';
 const goComments: any = {};
@@ -2118,21 +2118,21 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return [finalName, file];
     }
 
-    async transpileExchangeTestsToGo() {
-        const inputDir = './ts/src/test/exchange/';
-        const outDir = GENERATED_TESTS_FOLDER;
-        const ignore = [
-            // 'exportTests.ts',
-            // 'test.fetchLedger.ts',
-            'test.throttler.ts',
-            // 'test.fetchOrderBooks.ts', // uses spread operator
-        ]
+    // async transpileExchangeTestsToGo() {
+    //     const inputDir = './ts/src/test/exchange/';
+    //     const outDir = GENERATED_TESTS_FOLDER;
+    //     const ignore = [
+    //         // 'exportTests.ts',
+    //         // 'test.fetchLedger.ts',
+    //         'test.throttler.ts',
+    //         // 'test.fetchOrderBooks.ts', // uses spread operator
+    //     ]
 
-        const inputFiles = fs.readdirSync('./ts/src/test/exchange');
-        const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
-        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.go', file[1])))
-    }
+    //     const inputFiles = fs.readdirSync('./ts/src/test/exchange');
+    //     const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
+    //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
+    //     await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.go', file[1])))
+    // }
 
     transpileBaseTestsToGo () {
         const outDir = BASE_TESTS_FOLDER;
@@ -2228,7 +2228,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileExchangeTests(){
-        
         // remove above later debug only
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
@@ -2275,7 +2274,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
-            go: GENERATED_TESTS_FOLDER + 'Pro/',
+            go: GENERATED_TESTS_FOLDER + 'base/',
         };
 
         const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2330,7 +2329,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const imports = 'import "github.com/ccxt/ccxt/go/v4"';
             const fileHeaders = [
-                namespace, 
+                namespace,
                 imports,
                 '',
                 this.createGeneratedHeader().join('\n'),
@@ -2366,7 +2365,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         this.transpileBaseTestsToGo();
         this.transpileExchangeTests();
         this.createFunctionsMapFile();
-        // this.transpileWsExchangeTests();
+        this.transpileWsExchangeTests();
     }
 
     createFunctionsMapFile() {
