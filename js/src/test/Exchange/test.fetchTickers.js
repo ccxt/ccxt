@@ -10,7 +10,9 @@ import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchTickers(exchange, skippedProperties, symbol) {
     const withoutSymbol = testFetchTickersHelper(exchange, skippedProperties, undefined);
     const withSymbol = testFetchTickersHelper(exchange, skippedProperties, [symbol]);
-    await Promise.all([withSymbol, withoutSymbol]);
+    const results = await Promise.all([withoutSymbol, withSymbol]);
+    testFetchTickersAmounts(exchange, skippedProperties, results[0]);
+    return results;
 }
 async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
@@ -26,6 +28,26 @@ async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, a
         // todo: symbol check here
         const ticker = values[i];
         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+    }
+    return response;
+}
+function testFetchTickersAmounts(exchange, skippedProperties, tickers) {
+    const tickersValues = Object.values(tickers);
+    if (!('checkActiveSymbols' in skippedProperties)) {
+        //
+        // ensure all "active" symbols have tickers
+        //
+        const nonInactiveMarkets = testSharedMethods.getActiveMarkets(exchange);
+        const notInactiveSymbolsLength = nonInactiveMarkets.length;
+        const obtainedTickersLength = tickersValues.length;
+        const toleranceCoefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
+        assert(obtainedTickersLength >= notInactiveSymbolsLength * (1.0 - toleranceCoefficient), exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + obtainedTickersLength.toString() + ' tickers, ' + notInactiveSymbolsLength.toString() + ' active markets');
+        //
+        // ensure tickers length is less than markets length
+        //
+        const allMarkets = exchange.markets;
+        const allMarketsLength = Object.keys(allMarkets).length;
+        assert(obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength.toString() + ' tickers, ' + allMarketsLength.toString() + ' markets');
     }
 }
 export default testFetchTickers;

@@ -7,31 +7,8 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can aso read [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-- Search for similar issues first to avoid duplicates.
-- If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
-  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
-  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-  - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-  - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
-  - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the **full verbose output** of the failing method without your keys
-  - the verbose output should include the request and response from the exchange (not just an error callstack)
-  - write your language **and version**
-  - write ccxt library version
-  - which exchange it is
-  - which method you're trying to call
 
 ### Reporting Vulnerabilities And Critical Issues
 
@@ -155,12 +132,12 @@ This way you can keep the build tools and processes isolated, not having to work
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
     - Ubuntu Linux: `apt-get install tox`
-- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 8.1+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+  - gmp
 - [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
@@ -536,7 +513,7 @@ The `safeValue` function is used for objects inside objects, arrays inside objec
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
 ```javascript
-const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
+const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], defaultValue)
 ```
 For every safe method listed above, there is the correspondent `safeMethodN` too.
 
@@ -923,6 +900,40 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
+### Offline tests
+CCXT has various offline tests that help ensure we don't introduce regressions upon adding a new feature or patching a bug. They are effortless and fast to run (since they don't require access to the exchanges), so they should be part of our development flow at CCXT.
+
+
+They include the base tests (precision, crypto, orderbook, etc) and static (request/response) tests.
+
+These tests are located in the folder `ts/src/test/base/functions/`; most of their content is automatically transpilable to every language; therefore, the same code conventions apply.
+
+You can run them by doing: `npm run test-base` and `npm run-test-ws`
+
+Static tests are also offline but they work differently because they emulate a unified ccxt call (createOrder/fetchTickers/etc)  and they mock the server's response and/or assert the validity of the generated HTTP request.
+
+**Request-static**:
+- They emulate the HTTP request, stop it before it tries to connect and assert that the url/body are properly formed.
+
+Folder: `ts/src/test/static/request/`
+
+You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
+
+```shell
+node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+````
+
+
+**Response-static**
+- Emulate a mocked response from the server and assert the CCXT parses the raw HTTP response correctly.
+
+Folder: `ts/src/test/static/response/binance.json`
+
+You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
+
+```shell
+node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+````
 #### Adding Exchange Credentials
 
 CCXT has tests for both the public API and the private authenticated API. By default, CCXT's built-in tests will only test the public APIs, because the code repository does not include the [API keys](https://github.com/ccxt/ccxt/wiki/Manual#authentication) that are required for the private API tests. Also, the included private tests will not alter the balance of the account in any way, all tests are non-intrusive. In order to enable private API testing, one must configure the API keys. That can be done either in `keys.local.json` or with the `env` variables.
@@ -933,7 +944,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```javascript
+```json
 {
     "ftx": {
         "apiKey": "XXX",
@@ -1038,7 +1049,7 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 Follow this steps to add a test:
 
 - Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
-- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/test.ts](ts/src/test/test.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/test.ts](ts/src/pro/test/test.ts#L121)
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
 - run `npm run transpile` to generate the test file in javascript, python and php.
 - Call tests `node run-tests`
 

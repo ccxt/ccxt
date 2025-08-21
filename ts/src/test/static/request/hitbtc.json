@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.hitbtc.com/api/3/public/currency",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -828,6 +837,28 @@
                 "url": "https://api.hitbtc.com/api/3/public/futures/info/BTCUSDT_PERP",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.hitbtc.com/api/3/public/futures/info/BTCUSDT_PERP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "linear swap fetch open interests with a symbols argument",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hitbtc.com/api/3/public/futures/info?symbols=BTCUSDT_PERP",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
                 ]
             }
         ]

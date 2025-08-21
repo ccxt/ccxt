@@ -1,0 +1,632 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "PERP_BTC_USDC",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": 10
+            },
+            "price": {
+                "min": 0,
+                "max": 200000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1698307630011,
+        "info": {
+            "symbol": "PERP_BTC_USDC",
+            "quote_min": "0",
+            "quote_max": "200000",
+            "quote_tick": "0.1",
+            "base_min": "0.00001",
+            "base_max": "10",
+            "base_tick": "0.00001",
+            "min_notional": "10",
+            "price_range": "0.01",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.006",
+            "liquidator_fee": "0.003",
+            "claim_insurance_fund_discount": "0.003",
+            "funding_period": "8",
+            "cap_funding": "0.003",
+            "floor_funding": "-0.003",
+            "interest_rate": "0.0001",
+            "created_time": "1698307630011",
+            "updated_time": "1748246408912",
+            "liquidation_tier": "1",
+            "cap_ir": "0.0004",
+            "floor_ir": "-0.0004",
+            "mark_index_price_deviation_floor": "0.97",
+            "mark_index_price_deviation_cap": "1.03",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.006",
+            "base_imr": "0.01",
+            "imr_factor": "0.000000375",
+            "deviation_factor": "10"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ETH/USDC:USDC": {
+        "id": "PERP_ETH_USDC",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 320
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1698307630011,
+        "info": {
+            "symbol": "PERP_ETH_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.01",
+            "base_min": "0.0001",
+            "base_max": "320",
+            "base_tick": "0.0001",
+            "min_notional": "10",
+            "price_range": "0.01",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.006",
+            "liquidator_fee": "0.003",
+            "claim_insurance_fund_discount": "0.003",
+            "funding_period": "8",
+            "cap_funding": "0.003",
+            "floor_funding": "-0.003",
+            "interest_rate": "0.0001",
+            "created_time": "1698307630011",
+            "updated_time": "1748246408912",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0004",
+            "floor_ir": "-0.0004",
+            "mark_index_price_deviation_floor": "0.976",
+            "mark_index_price_deviation_cap": "1.024",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.006",
+            "base_imr": "0.01",
+            "imr_factor": "0.0000003846",
+            "deviation_factor": "8"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "LTC/USDC:USDC": {
+        "id": "PERP_LTC_USDC",
+        "lowercaseId": null,
+        "symbol": "LTC/USDC:USDC",
+        "base": "LTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "LTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 1500
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1741075262745,
+        "info": {
+            "symbol": "PERP_LTC_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.01",
+            "base_min": "0.01",
+            "base_max": "1500",
+            "base_tick": "0.01",
+            "min_notional": "10",
+            "price_range": "0.03",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.012",
+            "liquidator_fee": "0.006",
+            "claim_insurance_fund_discount": "0.006",
+            "funding_period": "8",
+            "cap_funding": "0.00375",
+            "floor_funding": "-0.00375",
+            "interest_rate": "0.0001",
+            "created_time": "1741075262745",
+            "updated_time": "1744783752544",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0001",
+            "floor_ir": "-0.0001",
+            "mark_index_price_deviation_floor": "0.9475",
+            "mark_index_price_deviation_cap": "1.0525",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.05",
+            "base_imr": "0.1",
+            "imr_factor": "0.0000022222",
+            "deviation_factor": "14"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "ADA/USDC:USDC": {
+        "id": "PERP_ADA_USDC",
+        "lowercaseId": null,
+        "symbol": "ADA/USDC:USDC",
+        "base": "ADA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ADA",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 250000
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1736926220445,
+        "info": {
+            "symbol": "PERP_ADA_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.0001",
+            "base_min": "1",
+            "base_max": "250000",
+            "base_tick": "1",
+            "min_notional": "10",
+            "price_range": "0.03",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.012",
+            "liquidator_fee": "0.006",
+            "claim_insurance_fund_discount": "0.006",
+            "funding_period": "8",
+            "cap_funding": "0.00375",
+            "floor_funding": "-0.00375",
+            "interest_rate": "0.0001",
+            "created_time": "1736926220445",
+            "updated_time": "1748510491880",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0001",
+            "floor_ir": "-0.0001",
+            "mark_index_price_deviation_floor": "0.9475",
+            "mark_index_price_deviation_cap": "1.0525",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.025",
+            "base_imr": "0.05",
+            "imr_factor": "0.0000022222",
+            "deviation_factor": "14"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "XRP/USDC:USDC": {
+        "id": "PERP_XRP_USDC",
+        "lowercaseId": null,
+        "symbol": "XRP/USDC:USDC",
+        "base": "XRP",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 200000
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1709704850200,
+        "info": {
+            "symbol": "PERP_XRP_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.0001",
+            "base_min": "1",
+            "base_max": "200000",
+            "base_tick": "1",
+            "min_notional": "10",
+            "price_range": "0.03",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.012",
+            "liquidator_fee": "0.006",
+            "claim_insurance_fund_discount": "0.006",
+            "funding_period": "8",
+            "cap_funding": "0.00375",
+            "floor_funding": "-0.00375",
+            "interest_rate": "0.0001",
+            "created_time": "1709704850200",
+            "updated_time": "1744783752544",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0001",
+            "floor_ir": "-0.0001",
+            "mark_index_price_deviation_floor": "0.9475",
+            "mark_index_price_deviation_cap": "1.0525",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.025",
+            "base_imr": "0.05",
+            "imr_factor": "0.0000016949",
+            "deviation_factor": "14"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "DOGE/USDC:USDC": {
+        "id": "PERP_DOGE_USDC",
+        "lowercaseId": null,
+        "symbol": "DOGE/USDC:USDC",
+        "base": "DOGE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "DOGE",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 950000
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1709704850352,
+        "info": {
+            "symbol": "PERP_DOGE_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.00001",
+            "base_min": "1",
+            "base_max": "950000",
+            "base_tick": "1",
+            "min_notional": "10",
+            "price_range": "0.03",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.012",
+            "liquidator_fee": "0.006",
+            "claim_insurance_fund_discount": "0.006",
+            "funding_period": "8",
+            "cap_funding": "0.00375",
+            "floor_funding": "-0.00375",
+            "interest_rate": "0.0001",
+            "created_time": "1709704850352",
+            "updated_time": "1744783752544",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0001",
+            "floor_ir": "-0.0001",
+            "mark_index_price_deviation_floor": "0.9475",
+            "mark_index_price_deviation_cap": "1.0525",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.025",
+            "base_imr": "0.05",
+            "imr_factor": "0.000002253",
+            "deviation_factor": "14"
+        },
+        "tierBased": true,
+        "percentage": true
+    },
+    "TRX/USDC:USDC": {
+        "id": "PERP_TRX_USDC",
+        "lowercaseId": null,
+        "symbol": "TRX/USDC:USDC",
+        "base": "TRX",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "TRX",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": 650000
+            },
+            "price": {
+                "min": 0,
+                "max": 100000
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1724391011454,
+        "info": {
+            "symbol": "PERP_TRX_USDC",
+            "quote_min": "0",
+            "quote_max": "100000",
+            "quote_tick": "0.00001",
+            "base_min": "1",
+            "base_max": "650000",
+            "base_tick": "1",
+            "min_notional": "10",
+            "price_range": "0.03",
+            "price_scope": "0.6",
+            "std_liquidation_fee": "0.012",
+            "liquidator_fee": "0.006",
+            "claim_insurance_fund_discount": "0.006",
+            "funding_period": "8",
+            "cap_funding": "0.004875",
+            "floor_funding": "-0.004875",
+            "interest_rate": "0.0001",
+            "created_time": "1724391011454",
+            "updated_time": "1748510491880",
+            "liquidation_tier": "2",
+            "cap_ir": "0.0001",
+            "floor_ir": "-0.0001",
+            "mark_index_price_deviation_floor": "0.94750112",
+            "mark_index_price_deviation_cap": "1.05249887",
+            "global_max_oi_cap": "1000000000.00000000",
+            "base_mmr": "0.025",
+            "base_imr": "0.05",
+            "imr_factor": "0.00000281",
+            "deviation_factor": "10.769"
+        },
+        "tierBased": true,
+        "percentage": true
+    }
+}

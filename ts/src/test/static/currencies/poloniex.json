@@ -1,46 +1,165 @@
 {
     "BTC": {
+        "info": {
+            "id": 28,
+            "name": "Bitcoin",
+            "description": "BTC Clone",
+            "type": "address",
+            "withdrawalFee": "0.00100000",
+            "minConf": 2,
+            "depositAddress": null,
+            "blockchain": "BTC",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": true,
+            "supportBorrow": true,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": [
+                "BTCB",
+                "BTCTRON",
+                "WBTCETH"
+            ]
+        },
         "id": "BTC",
+        "numericId": 28,
         "code": "BTC",
-        "info": [
-            {
-                "BTC": {
-                    "id": 28,
-                    "name": "Bitcoin",
-                    "description": "BTC Clone",
+        "precision": null,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.00002,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "id": 581,
+                    "name": "Binance-Peg BTCB Token",
+                    "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.00100000",
-                    "minConf": 2,
+                    "withdrawalFee": "0.00003000",
+                    "minConf": 15,
                     "depositAddress": null,
-                    "blockchain": "BTC",
+                    "blockchain": "BSC",
                     "delisted": false,
-                    "tradingState": "NORMAL",
+                    "tradingState": "OFFLINE",
                     "walletState": "DISABLED",
                     "walletDepositState": "DISABLED",
                     "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": true,
+                    "supportCollateral": false,
                     "supportBorrow": false,
-                    "parentChain": null,
+                    "parentChain": "BTC",
                     "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": [
-                        "BTCB",
-                        "BTCTRON"
-                    ]
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "BTCB",
+                "numericId": 581,
+                "network": "BEP20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.00003,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
-            }
-        ],
-        "name": "Bitcoin",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.001,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
+            },
+            "TRC20": {
+                "info": {
+                    "id": 445,
+                    "name": "BTC on TRON",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "0.00004000",
+                    "minConf": 0,
+                    "depositAddress": null,
+                    "blockchain": "TRX",
+                    "delisted": false,
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": "BTC",
+                    "isMultiChain": true,
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "BTCTRON",
+                "numericId": 445,
+                "network": "TRC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.00004,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "id": 2207,
+                    "name": "Wrapped BTC",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "0.00002000",
+                    "minConf": 64,
+                    "depositAddress": null,
+                    "blockchain": "ETH",
+                    "delisted": false,
+                    "tradingState": "NORMAL",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "DISABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": "BTC",
+                    "isMultiChain": true,
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "WBTCETH",
+                "numericId": 2207,
+                "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.00002,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
             "BTC": {
                 "info": {
                     "id": 28,
@@ -53,79 +172,190 @@
                     "blockchain": "BTC",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": true,
-                    "supportBorrow": false,
+                    "supportBorrow": true,
                     "parentChain": null,
                     "isMultiChain": true,
                     "isChildChain": false,
                     "childChains": [
                         "BTCB",
-                        "BTCTRON"
+                        "BTCTRON",
+                        "WBTCETH"
                     ]
                 },
                 "id": "BTC",
-                "network": "BTC",
-                "currencyId": "BTC",
                 "numericId": 28,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
+                "network": "BTC",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
                 "fee": 0.001,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "USDT": {
+        "info": {
+            "id": 214,
+            "name": "Tether USD",
+            "description": "Sweep to Main Account",
+            "type": "address",
+            "withdrawalFee": "0.00000000",
+            "minConf": 2,
+            "depositAddress": null,
+            "blockchain": "OMNI",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "DISABLED",
+            "walletDepositState": "DISABLED",
+            "walletWithdrawalState": "DISABLED",
+            "supportCollateral": true,
+            "supportBorrow": true,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": [
+                "USDTBSC",
+                "USDTETH",
+                "USDTSOL",
+                "USDTTRON"
+            ]
+        },
         "id": "USDT",
+        "numericId": 214,
         "code": "USDT",
-        "info": [
-            {
-                "USDT": {
-                    "id": 214,
-                    "name": "Tether USD",
+        "precision": null,
+        "type": "crypto",
+        "name": "Tether USD",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "id": 582,
+                    "name": "Binance-Peg BSC-USD",
                     "description": "Sweep to Main Account",
                     "type": "address",
                     "withdrawalFee": "0.00000000",
-                    "minConf": 2,
+                    "minConf": 15,
                     "depositAddress": null,
-                    "blockchain": "OMNI",
+                    "blockchain": "BSC",
                     "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
                     "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": true,
+                    "supportCollateral": false,
                     "supportBorrow": false,
-                    "parentChain": null,
+                    "parentChain": "USDT",
                     "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": [
-                        "USDTETH",
-                        "USDTTRON"
-                    ]
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "USDTBSC",
+                "numericId": 582,
+                "network": "BEP20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             },
-            {
-                "USDTETH": {
+            "ERC20": {
+                "info": {
                     "id": 318,
                     "name": "USDT on ETH",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "8.28909293",
+                    "withdrawalFee": "1.15250200",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": "USDT",
+                    "isMultiChain": true,
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "USDTETH",
+                "numericId": 318,
+                "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 1.152502,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "id": 1936,
+                    "name": "USDT",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "0.91000000",
+                    "minConf": 300,
+                    "depositAddress": null,
+                    "blockchain": "SOL",
+                    "delisted": false,
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
                     "walletWithdrawalState": "DISABLED",
                     "supportCollateral": false,
                     "supportBorrow": false,
@@ -133,43 +363,67 @@
                     "isMultiChain": true,
                     "isChildChain": true,
                     "childChains": []
+                },
+                "id": "USDTSOL",
+                "numericId": 1936,
+                "network": "SOL",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.91,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             },
-            {
-                "USDTTRON": {
+            "TRC20": {
+                "info": {
                     "id": 316,
                     "name": "USDT on TRON",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "1.00000000",
+                    "withdrawalFee": "1.20000000",
                     "minConf": 0,
                     "depositAddress": null,
                     "blockchain": "TRX",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": false,
                     "supportBorrow": false,
                     "parentChain": "USDT",
                     "isMultiChain": true,
                     "isChildChain": true,
                     "childChains": []
+                },
+                "id": "USDTTRON",
+                "numericId": 316,
+                "network": "TRC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 1.2,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
-            }
-        ],
-        "name": "Tether USD",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
+            },
             "OMNI": {
                 "info": {
                     "id": 214,
@@ -186,159 +440,144 @@
                     "walletDepositState": "DISABLED",
                     "walletWithdrawalState": "DISABLED",
                     "supportCollateral": true,
-                    "supportBorrow": false,
+                    "supportBorrow": true,
                     "parentChain": null,
                     "isMultiChain": true,
                     "isChildChain": false,
                     "childChains": [
+                        "USDTBSC",
                         "USDTETH",
+                        "USDTSOL",
                         "USDTTRON"
                     ]
                 },
-                "id": "OMNI",
-                "network": "OMNI",
-                "currencyId": "USDT",
+                "id": "USDT",
                 "numericId": 214,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
+                "network": "OMNI",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
                 "fee": 0,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
             },
-            "ERC20": {
-                "info": {
-                    "id": 318,
-                    "name": "USDT on ETH",
-                    "description": "Sweep to Main Account",
-                    "type": "address",
-                    "withdrawalFee": "8.28909293",
-                    "minConf": 64,
-                    "depositAddress": null,
-                    "blockchain": "ETH",
-                    "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": false,
-                    "supportBorrow": false,
-                    "parentChain": "USDT",
-                    "isMultiChain": true,
-                    "isChildChain": true,
-                    "childChains": []
-                },
-                "id": "ETH",
-                "network": "ERC20",
-                "currencyId": "USDTETH",
-                "numericId": 318,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 8.28909293,
-                "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
-                }
+            "withdraw": {
+                "min": null,
+                "max": null
             },
-            "TRX": {
-                "info": {
-                    "id": 316,
-                    "name": "USDT on TRON",
-                    "description": "Sweep to Main Account",
-                    "type": "address",
-                    "withdrawalFee": "1.00000000",
-                    "minConf": 0,
-                    "depositAddress": null,
-                    "blockchain": "TRX",
-                    "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": false,
-                    "supportBorrow": false,
-                    "parentChain": "USDT",
-                    "isMultiChain": true,
-                    "isChildChain": true,
-                    "childChains": []
-                },
-                "id": "TRX",
-                "network": "TRX",
-                "currencyId": "USDTTRON",
-                "numericId": 316,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 1,
-                "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
-                }
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "LTC": {
+        "info": {
+            "id": 125,
+            "name": "Litecoin",
+            "description": "BTC Clone",
+            "type": "address",
+            "withdrawalFee": "0.01000000",
+            "minConf": 4,
+            "depositAddress": null,
+            "blockchain": "LTC",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": true,
+            "supportBorrow": false,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": [
+                "LTCTRON"
+            ]
+        },
         "id": "LTC",
+        "numericId": 125,
         "code": "LTC",
-        "info": [
-            {
-                "LTC": {
-                    "id": 125,
-                    "name": "Litecoin",
-                    "description": "BTC Clone",
+        "precision": null,
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.01,
+        "fees": {},
+        "networks": {
+            "TRC20": {
+                "info": {
+                    "id": 494,
+                    "name": "LTC on TRON",
+                    "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.00100000",
-                    "minConf": 4,
+                    "withdrawalFee": "0.02000000",
+                    "minConf": 0,
                     "depositAddress": null,
-                    "blockchain": "LTC",
+                    "blockchain": "TRX",
                     "delisted": false,
-                    "tradingState": "NORMAL",
+                    "tradingState": "OFFLINE",
                     "walletState": "DISABLED",
                     "walletDepositState": "DISABLED",
                     "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": true,
+                    "supportCollateral": false,
                     "supportBorrow": false,
-                    "parentChain": null,
+                    "parentChain": "LTC",
                     "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": [
-                        "LTCTRON"
-                    ]
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "LTCTRON",
+                "numericId": 494,
+                "network": "TRC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.02,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
-            }
-        ],
-        "name": "Litecoin",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.001,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
+            },
             "LTC": {
                 "info": {
                     "id": 125,
                     "name": "Litecoin",
                     "description": "BTC Clone",
                     "type": "address",
-                    "withdrawalFee": "0.00100000",
+                    "withdrawalFee": "0.01000000",
                     "minConf": 4,
                     "depositAddress": null,
                     "blockchain": "LTC",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": true,
                     "supportBorrow": false,
                     "parentChain": null,
@@ -349,63 +588,128 @@
                     ]
                 },
                 "id": "LTC",
-                "network": "LTC",
-                "currencyId": "LTC",
                 "numericId": 125,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 0.001,
+                "network": "LTC",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.01,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "ETH": {
+        "info": {
+            "id": 267,
+            "name": "Ethereum",
+            "description": "Sweep to Main Account",
+            "type": "address",
+            "withdrawalFee": "0.00014328",
+            "minConf": 64,
+            "depositAddress": null,
+            "blockchain": "ETH",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": true,
+            "supportBorrow": true,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": [
+                "ETHBLAST",
+                "ETHBSC"
+            ]
+        },
         "id": "ETH",
+        "numericId": 267,
         "code": "ETH",
-        "info": [
-            {
-                "ETH": {
-                    "id": 267,
-                    "name": "Ethereum",
+        "precision": null,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "ETHBLAST": {
+                "info": {
+                    "id": 1690,
+                    "name": "Blast Network",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.00969213",
+                    "withdrawalFee": "0.00000000",
                     "minConf": 64,
                     "depositAddress": null,
-                    "blockchain": "ETH",
+                    "blockchain": "ETHBLAST",
                     "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
                     "walletDepositState": "DISABLED",
                     "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": true,
+                    "supportCollateral": false,
                     "supportBorrow": false,
-                    "parentChain": null,
+                    "parentChain": "ETH",
                     "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": [
-                        "ETHARB",
-                        "ETHBSC",
-                        "ETHOP",
-                        "ETHTRON"
-                    ]
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "ETHBLAST",
+                "numericId": 1690,
+                "network": "ETHBLAST",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             },
-            {
-                "ETHTRON": {
-                    "id": 458,
-                    "name": "ETH on TRON",
+            "BEP20": {
+                "info": {
+                    "id": 580,
+                    "name": "Binance-Peg Ethereum Token",
                     "description": "Sweep to Main Account",
                     "type": "address",
                     "withdrawalFee": "0.00060000",
-                    "minConf": 0,
+                    "minConf": 15,
                     "depositAddress": null,
-                    "blockchain": "TRX",
+                    "blockchain": "BSC",
                     "delisted": false,
                     "tradingState": "OFFLINE",
                     "walletState": "DISABLED",
@@ -417,137 +721,119 @@
                     "isMultiChain": true,
                     "isChildChain": true,
                     "childChains": []
+                },
+                "id": "ETHBSC",
+                "numericId": 580,
+                "network": "BEP20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.0006,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
-            }
-        ],
-        "name": "Ethereum",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.0006,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
+            },
             "ETH": {
                 "info": {
                     "id": 267,
                     "name": "Ethereum",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.00969213",
+                    "withdrawalFee": "0.00014328",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": true,
-                    "supportBorrow": false,
+                    "supportBorrow": true,
                     "parentChain": null,
                     "isMultiChain": true,
                     "isChildChain": false,
                     "childChains": [
-                        "ETHARB",
-                        "ETHBSC",
-                        "ETHOP",
-                        "ETHTRON"
+                        "ETHBLAST",
+                        "ETHBSC"
                     ]
                 },
                 "id": "ETH",
-                "network": "ETH",
-                "currencyId": "ETH",
                 "numericId": 267,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 0.00969213,
+                "network": "ETH",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.00014328,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
             },
-            "TRX": {
-                "info": {
-                    "id": 458,
-                    "name": "ETH on TRON",
-                    "description": "Sweep to Main Account",
-                    "type": "address",
-                    "withdrawalFee": "0.00060000",
-                    "minConf": 0,
-                    "depositAddress": null,
-                    "blockchain": "TRX",
-                    "delisted": false,
-                    "tradingState": "OFFLINE",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": false,
-                    "supportBorrow": false,
-                    "parentChain": "ETH",
-                    "isMultiChain": true,
-                    "isChildChain": true,
-                    "childChains": []
-                },
-                "id": "TRX",
-                "network": "TRX",
-                "currencyId": "ETHTRON",
-                "numericId": 458,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 0.0006,
-                "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
-                }
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "ADA": {
-        "id": "ADA",
-        "code": "ADA",
-        "info": [
-            {
-                "ADA": {
-                    "id": 668,
-                    "name": "Cardano",
-                    "description": "BTC Clone",
-                    "type": "address",
-                    "withdrawalFee": "3.00000000",
-                    "minConf": 30,
-                    "depositAddress": null,
-                    "blockchain": "ADA",
-                    "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": false,
-                    "supportBorrow": false,
-                    "parentChain": null,
-                    "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": []
-                }
-            }
-        ],
-        "name": "Cardano",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 3,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
+        "info": {
+            "id": 668,
+            "name": "Cardano",
+            "description": "BTC Clone",
+            "type": "address",
+            "withdrawalFee": "3.00000000",
+            "minConf": 30,
+            "depositAddress": null,
+            "blockchain": "ADA",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": false,
+            "supportBorrow": false,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": []
         },
+        "id": "ADA",
+        "numericId": 668,
+        "code": "ADA",
+        "precision": null,
+        "type": "crypto",
+        "name": "Cardano",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 3,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
@@ -561,9 +847,9 @@
                     "blockchain": "ADA",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": false,
                     "supportBorrow": false,
                     "parentChain": null,
@@ -572,59 +858,73 @@
                     "childChains": []
                 },
                 "id": "ADA",
-                "network": "ADA",
-                "currencyId": "ADA",
                 "numericId": 668,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
+                "network": "ADA",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
                 "fee": 3,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "XRP": {
-        "id": "XRP",
-        "code": "XRP",
-        "info": [
-            {
-                "XRP": {
-                    "id": 243,
-                    "name": "XRP",
-                    "description": "Payment ID",
-                    "type": "address-payment-id",
-                    "withdrawalFee": "0.20000000",
-                    "minConf": 2,
-                    "depositAddress": "rwU8rAiE2eyEPz3sikfbHuqCuiAtdXqa2v",
-                    "blockchain": "XRP",
-                    "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
-                    "supportCollateral": true,
-                    "supportBorrow": false,
-                    "parentChain": null,
-                    "isMultiChain": false,
-                    "isChildChain": false,
-                    "childChains": []
-                }
-            }
-        ],
-        "name": "XRP",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.2,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
+        "info": {
+            "id": 243,
+            "name": "XRP",
+            "description": "Payment ID",
+            "type": "address-payment-id",
+            "withdrawalFee": "0.20000000",
+            "minConf": 2,
+            "depositAddress": "rwJXYKC1VMzGYc6RHnhnbe38syj5EE34cS",
+            "blockchain": "XRP",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": true,
+            "supportBorrow": true,
+            "parentChain": null,
+            "isMultiChain": false,
+            "isChildChain": false,
+            "childChains": []
         },
+        "id": "XRP",
+        "numericId": 243,
+        "code": "XRP",
+        "precision": null,
+        "type": "crypto",
+        "name": "XRP",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.2,
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
@@ -634,114 +934,274 @@
                     "type": "address-payment-id",
                     "withdrawalFee": "0.20000000",
                     "minConf": 2,
-                    "depositAddress": "rwU8rAiE2eyEPz3sikfbHuqCuiAtdXqa2v",
+                    "depositAddress": "rwJXYKC1VMzGYc6RHnhnbe38syj5EE34cS",
                     "blockchain": "XRP",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": true,
-                    "supportBorrow": false,
+                    "supportBorrow": true,
                     "parentChain": null,
                     "isMultiChain": false,
                     "isChildChain": false,
                     "childChains": []
                 },
                 "id": "XRP",
-                "network": "XRP",
-                "currencyId": "XRP",
                 "numericId": 243,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
+                "network": "XRP",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
                 "fee": 0.2,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     },
     "USDC": {
+        "info": {
+            "id": 299,
+            "name": "USD Coin",
+            "description": "Sweep to Main Account",
+            "type": "address",
+            "withdrawalFee": "1.81125600",
+            "minConf": 64,
+            "depositAddress": null,
+            "blockchain": "ETH",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": false,
+            "supportBorrow": false,
+            "parentChain": null,
+            "isMultiChain": true,
+            "isChildChain": false,
+            "childChains": [
+                "USDCBSC",
+                "USDCSOL",
+                "USDCTRON"
+            ]
+        },
         "id": "USDC",
+        "numericId": 299,
         "code": "USDC",
-        "info": [
-            {
-                "USDC": {
-                    "id": 299,
+        "precision": null,
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": 0.3,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "id": 583,
+                    "name": "Binance-Peg USD Coin",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "0.30000000",
+                    "minConf": 15,
+                    "depositAddress": null,
+                    "blockchain": "BSC",
+                    "delisted": false,
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "DISABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": "USDC",
+                    "isMultiChain": true,
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "USDCBSC",
+                "numericId": 583,
+                "network": "BEP20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.3,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "id": 1696,
+                    "name": "USDCSOL",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "0.81000000",
+                    "minConf": 300,
+                    "depositAddress": null,
+                    "blockchain": "SOL",
+                    "delisted": false,
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "DISABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": "USDC",
+                    "isMultiChain": true,
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "USDCSOL",
+                "numericId": 1696,
+                "network": "SOL",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 0.81,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "id": 1952,
                     "name": "USD Coin",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "13.02571746",
-                    "minConf": 64,
+                    "withdrawalFee": "2.00000000",
+                    "minConf": 0,
                     "depositAddress": null,
-                    "blockchain": "ETH",
+                    "blockchain": "TRX",
                     "delisted": false,
-                    "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
+                    "tradingState": "OFFLINE",
+                    "walletState": "ENABLED",
                     "walletDepositState": "DISABLED",
                     "walletWithdrawalState": "DISABLED",
                     "supportCollateral": false,
                     "supportBorrow": false,
-                    "parentChain": null,
+                    "parentChain": "USDC",
                     "isMultiChain": true,
-                    "isChildChain": false,
-                    "childChains": [
-                        "USDCTRON"
-                    ]
+                    "isChildChain": true,
+                    "childChains": []
+                },
+                "id": "USDCTRON",
+                "numericId": 1952,
+                "network": "TRC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 2,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
-            }
-        ],
-        "name": "USD Coin",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 13.02571746,
-        "limits": {
-            "amount": {},
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
+            },
             "ERC20": {
                 "info": {
                     "id": 299,
                     "name": "USD Coin",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "13.02571746",
+                    "withdrawalFee": "1.81125600",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
                     "delisted": false,
                     "tradingState": "NORMAL",
-                    "walletState": "DISABLED",
-                    "walletDepositState": "DISABLED",
-                    "walletWithdrawalState": "DISABLED",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
                     "supportCollateral": false,
                     "supportBorrow": false,
                     "parentChain": null,
                     "isMultiChain": true,
                     "isChildChain": false,
                     "childChains": [
+                        "USDCBSC",
+                        "USDCSOL",
                         "USDCTRON"
                     ]
                 },
-                "id": "ETH",
-                "network": "ERC20",
-                "currencyId": "USDC",
+                "id": "USDC",
                 "numericId": 299,
-                "deposit": false,
-                "withdraw": false,
-                "active": false,
-                "fee": 13.02571746,
+                "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": 1.811256,
+                "precision": null,
                 "limits": {
-                    "amount": {},
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
             }
         }
     }

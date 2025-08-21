@@ -13,10 +13,11 @@ var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
 exports.isWebWorker = platform.isWebWorker;
@@ -38,6 +39,7 @@ exports.merge = generic.merge;
 exports.omit = generic.omit;
 exports.ordered = generic.ordered;
 exports.pluck = generic.pluck;
+exports.sort = generic.sort;
 exports.sortBy = generic.sortBy;
 exports.sortBy2 = generic.sortBy2;
 exports.sum = generic.sum;
@@ -155,4 +157,5 @@ exports.extractParams = misc.extractParams;
 exports.implodeParams = misc.implodeParams;
 exports.parseTimeframe = misc.parseTimeframe;
 exports.roundTimeframe = misc.roundTimeframe;
+exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;

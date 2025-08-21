@@ -20,3 +20,8 @@ class ImplicitAPI:
     private_post_order_delete = privatePostOrderDelete = Entry('order/delete', 'private', 'POST', {})
     private_post_order_delete_multi = privatePostOrderDeleteMulti = Entry('order/delete/multi', 'private', 'POST', {})
     private_post_orders_clear = privatePostOrdersClear = Entry('orders/clear', 'private', 'POST', {})
+    private_post_withdraws_special_new = privatePostWithdrawsSpecialNew = Entry('/withdraws/special/new', 'private', 'POST', {})
+    private_post_deposit_address = privatePostDepositAddress = Entry('/deposit_address', 'private', 'POST', {})
+    private_post_deposit_addresses = privatePostDepositAddresses = Entry('/deposit_addresses', 'private', 'POST', {})
+    private_post_deposit_history = privatePostDepositHistory = Entry('/deposit_history', 'private', 'POST', {})
+    private_post_withdraw_history = privatePostWithdrawHistory = Entry('/withdraw_history', 'private', 'POST', {})

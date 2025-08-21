@@ -1,4 +1,3 @@
-version: '2.1'
 services:
 
   # Runs a CCXT build & test environment with all the required dependencies installed:
@@ -11,6 +10,7 @@ services:
     volumes:
       - .:/ccxt
       - /ccxt/node_modules/ # Prevents exposing container's node_modules to the host filesystem
+      - /ccxt/vendor/ # Prevents exposing container's vendor to the host filesystem
     entrypoint: /bin/bash
     stdin_open: true
     tty: true

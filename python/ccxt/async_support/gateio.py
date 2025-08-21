@@ -5,11 +5,12 @@
 
 from ccxt.async_support.gate import gate
 from ccxt.abstract.gateio import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class gateio(gate, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'alias': True,

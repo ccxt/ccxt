@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class hollaex extends \ccxt\async\hollaex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -24,6 +24,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'watchTicker' => false,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -59,6 +60,9 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://apidocs.hollaex.com/#sending-receiving-messages
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -118,6 +122,9 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
+             * @see https://apidocs.hollaex.com/#sending-receiving-messages
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -176,11 +183,14 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
+             * @see https://apidocs.hollaex.com/#sending-receiving-messages
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'usertrade';
@@ -258,6 +268,9 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
+             * @see https://apidocs.hollaex.com/#sending-receiving-messages
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -380,6 +393,9 @@ class hollaex extends \ccxt\async\hollaex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://apidocs.hollaex.com/#sending-receiving-messages
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -434,7 +450,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'op' => 'subscribe',
                 'args' => array( $messageHash ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -464,12 +480,12 @@ class hollaex extends \ccxt\async\hollaex {
                 'op' => 'subscribe',
                 'args' => array( $messageHash ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     array( $error => "Bearer or HMAC authentication required" )
         //     array( $error => "Error => wrong input" )
@@ -596,7 +612,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }
@@ -608,11 +624,11 @@ class hollaex extends \ccxt\async\hollaex {
 
     public function on_error(Client $client, $error) {
         $this->options['ws-expires'] = null;
-        $this->on_error($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close(Client $client, $error) {
         $this->options['ws-expires'] = null;
-        $this->on_close($client, $error);
+        parent::on_close($client, $error);
     }
 }

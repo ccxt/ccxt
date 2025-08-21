@@ -10,7 +10,7 @@ use ccxt\abstract\hitbtc as Exchange;
 
 class hitbtc extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc',
             'name' => 'HitBTC',
@@ -26,7 +26,7 @@ class hitbtc extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => false,
-                'option' => null,
+                'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -48,6 +48,8 @@ class hitbtc extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -56,6 +58,7 @@ class hitbtc extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -68,12 +71,16 @@ class hitbtc extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
@@ -82,14 +89,17 @@ class hitbtc extends Exchange {
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -279,6 +289,109 @@ class hitbtc extends Exchange {
                             array( $this->parse_number('50000'), $this->parse_number('0.0003') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0002') ),
                         ),
+                    ),
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => true,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                        'marketType' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
                     ),
                 ),
             ),
@@ -614,6 +727,7 @@ class hitbtc extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
+                    'swap' => 'derivatives',
                     'future' => 'derivatives',
                 ),
                 'withdraw' => array(
@@ -652,7 +766,9 @@ class hitbtc extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for hitbtc
+         *
          * @see https://api.hitbtc.com/#symbols
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -794,35 +910,54 @@ class hitbtc extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
+         *
          * @see https://api.hitbtc.com/#$currencies
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
         $response = $this->publicGetPublicCurrency ($params);
         //
-        //     {
-        //       "WEALTH" => {
-        //         "full_name" => "ConnectWealth",
-        //         "payin_enabled" => false,
-        //         "payout_enabled" => false,
-        //         "transfer_enabled" => true,
-        //         "precision_transfer" => "0.001",
-        //         "networks" => array(
-        //           {
-        //             "network" => "ETH",
-        //             "protocol" => "ERC20",
-        //             "default" => true,
-        //             "payin_enabled" => false,
-        //             "payout_enabled" => false,
-        //             "precision_payout" => "0.001",
-        //             "payout_fee" => "0.016800000000",
-        //             "payout_is_payment_id" => false,
-        //             "payin_payment_id" => false,
-        //             "payin_confirmations" => "2"
-        //           }
-        //         )
-        //       }
-        //     }
+        //    {
+        //        "DFC" => {
+        //            "full_name" => "DeFiScale",
+        //            "crypto" => true,
+        //            "payin_enabled" => false,
+        //            "payout_enabled" => true,
+        //            "transfer_enabled" => false,
+        //            "transfer_to_wallet_enabled" => true,
+        //            "transfer_to_exchange_enabled" => false,
+        //            "sign" => "D",
+        //            "crypto_payment_id_name" => "",
+        //            "crypto_explorer" => "https://etherscan.io/tx/{tx}",
+        //            "precision_transfer" => "0.00000001",
+        //            "delisted" => false,
+        //            "networks" => array(
+        //                {
+        //                    "code" => "ETH",
+        //                    "network_name" => "Ethereum",
+        //                    "network" => "ETH",
+        //                    "protocol" => "ERC-20",
+        //                    "default" => true,
+        //                    "is_ens_available" => true,
+        //                    "payin_enabled" => true,
+        //                    "payout_enabled" => true,
+        //                    "precision_payout" => "0.000000000000000001",
+        //                    "payout_fee" => "277000.0000000000",
+        //                    "payout_is_payment_id" => false,
+        //                    "payin_payment_id" => false,
+        //                    "payin_confirmations" => "2",
+        //                    "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        //                    "crypto_payment_id_name" => "",
+        //                    "crypto_explorer" => "https://etherscan.io/tx/{tx}",
+        //                    "is_multichain" => true,
+        //                    "asset_id" => array(
+        //                        "contract_address" => "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        //                    }
+        //                }
+        //            )
+        //        ),
+        //    }
         //
         $result = array();
         $currencies = is_array($response) ? array_keys($response) : array();
@@ -830,45 +965,22 @@ class hitbtc extends Exchange {
             $currencyId = $currencies[$i];
             $code = $this->safe_currency_code($currencyId);
             $entry = $response[$currencyId];
-            $name = $this->safe_string($entry, 'full_name');
-            $precision = $this->safe_number($entry, 'precision_transfer');
-            $payinEnabled = $this->safe_bool($entry, 'payin_enabled', false);
-            $payoutEnabled = $this->safe_bool($entry, 'payout_enabled', false);
-            $transferEnabled = $this->safe_bool($entry, 'transfer_enabled', false);
-            $active = $payinEnabled && $payoutEnabled && $transferEnabled;
-            $rawNetworks = $this->safe_value($entry, 'networks', array());
+            $rawNetworks = $this->safe_list($entry, 'networks', array());
             $networks = array();
-            $fee = null;
-            $depositEnabled = null;
-            $withdrawEnabled = null;
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
                 $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-                $network = $this->safe_network($networkId);
-                $fee = $this->safe_number($rawNetwork, 'payout_fee');
-                $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                $payinEnabledNetwork = $this->safe_bool($entry, 'payin_enabled', false);
-                $payoutEnabledNetwork = $this->safe_bool($entry, 'payout_enabled', false);
-                $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
-                if ($payinEnabledNetwork && !$depositEnabled) {
-                    $depositEnabled = true;
-                } elseif (!$payinEnabledNetwork) {
-                    $depositEnabled = false;
-                }
-                if ($payoutEnabledNetwork && !$withdrawEnabled) {
-                    $withdrawEnabled = true;
-                } elseif (!$payoutEnabledNetwork) {
-                    $withdrawEnabled = false;
-                }
-                $networks[$network] = array(
+                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
+                $networks[$networkCode] = array(
                     'info' => $rawNetwork,
                     'id' => $networkId,
-                    'network' => $network,
-                    'fee' => $fee,
-                    'active' => $activeNetwork,
-                    'deposit' => $payinEnabledNetwork,
-                    'withdraw' => $payoutEnabledNetwork,
-                    'precision' => $networkPrecision,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                    'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                    'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
                     'limits' => array(
                         'withdraw' => array(
                             'min' => null,
@@ -877,42 +989,35 @@ class hitbtc extends Exchange {
                     ),
                 );
             }
-            $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($networksKeys);
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
-                'precision' => $precision,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
+                'precision' => $this->safe_number($entry, 'precision_transfer'),
+                'name' => $this->safe_string($entry, 'full_name'),
+                'active' => !$this->safe_bool($entry, 'delisted'),
+                'deposit' => $this->safe_bool($entry, 'payin_enabled'),
+                'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
                 'networks' => $networks,
-                'fee' => ($networksLength <= 1) ? $fee : null,
+                'fee' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
-            );
+                'type' => null, // 'crypto' field emits incorrect values
+            ));
         }
         return $result;
     }
 
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        } else {
-            return strtoupper($networkId);
-        }
-    }
-
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit address
+         *
          * @see https://api.hitbtc.com/#generate-deposit-crypto-address
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -931,7 +1036,7 @@ class hitbtc extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privatePostWalletCryptoAddress (array_merge($request, $params));
+        $response = $this->privatePostWalletCryptoAddress ($this->extend($request, $params));
         //
         //  array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")
         //
@@ -945,10 +1050,12 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         *
          * @see https://api.hitbtc.com/#get-deposit-crypto-$address
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -967,7 +1074,7 @@ class hitbtc extends Exchange {
             }
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetWalletCryptoAddress (array_merge($request, $params));
+        $response = $this->privateGetWalletCryptoAddress ($this->extend($request, $params));
         //
         //  [array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")]
         //
@@ -978,11 +1085,10 @@ class hitbtc extends Exchange {
         $parsedCode = $this->safe_currency_code($currencyId);
         return array(
             'info' => $response,
-            'address' => $address,
-            'tag' => $tag,
-            'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
             'currency' => $parsedCode,
             'network' => null,
+            'address' => $address,
+            'tag' => $tag,
         );
     }
 
@@ -1003,9 +1109,11 @@ class hitbtc extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://api.hitbtc.com/#wallet-balance
          * @see https://api.hitbtc.com/#get-spot-trading-balance
          * @see https://api.hitbtc.com/#get-trading-balance
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -1041,7 +1149,9 @@ class hitbtc extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://api.hitbtc.com/#tickers
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1051,7 +1161,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicTickerSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicTickerSymbol ($this->extend($request, $params));
         //
         //     {
         //         "ask" => "0.020572",
@@ -1071,7 +1181,9 @@ class hitbtc extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://api.hitbtc.com/#tickers
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1084,7 +1196,7 @@ class hitbtc extends Exchange {
             $delimited = implode(',', $marketIds);
             $request['symbols'] = $delimited;
         }
-        $response = $this->publicGetPublicTicker (array_merge($request, $params));
+        $response = $this->publicGetPublicTicker ($this->extend($request, $params));
         //
         //     {
         //       "BTCUSDT" => {
@@ -1112,7 +1224,7 @@ class hitbtc extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //       "ask" => "62756.01",
@@ -1159,7 +1271,9 @@ class hitbtc extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
+         *
          * @see https://api.hitbtc.com/#$trades
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1179,9 +1293,9 @@ class hitbtc extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = $this->publicGetPublicTradesSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicTradesSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetPublicTrades (array_merge($request, $params));
+            $response = $this->publicGetPublicTrades ($this->extend($request, $params));
         }
         if ($symbol !== null) {
             return $this->parse_trades($response, $market);
@@ -1201,9 +1315,11 @@ class hitbtc extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         *
          * @see https://api.hitbtc.com/#spot-trades-history
          * @see https://api.hitbtc.com/#futures-trades-history
          * @see https://api.hitbtc.com/#margin-trades-history
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1232,14 +1348,14 @@ class hitbtc extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchMyTrades() not support this $market type');
             }
@@ -1247,7 +1363,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // createOrder ($market)
         //
@@ -1311,7 +1427,6 @@ class hitbtc extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_value($trade, 'taker');
-        $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
         } else {
@@ -1367,7 +1482,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWalletTransactions (array_merge($request, $params));
+        $response = $this->privateGetWalletTransactions ($this->extend($request, $params));
         //
         //     array(
         //       {
@@ -1395,10 +1510,12 @@ class hitbtc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
+            'CREATED' => 'pending',
             'PENDING' => 'pending',
             'FAILED' => 'failed',
+            'ROLLED_BACK' => 'failed',
             'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1412,7 +1529,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // $transaction
         //
@@ -1501,7 +1618,9 @@ class hitbtc extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         *
          * @see https://api.hitbtc.com/#get-transactions-history
+         *
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1514,7 +1633,9 @@ class hitbtc extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://api.hitbtc.com/#get-transactions-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1527,7 +1648,9 @@ class hitbtc extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://api.hitbtc.com/#get-transactions-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1537,11 +1660,13 @@ class hitbtc extends Exchange {
         return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
     }
 
-    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         *
          * @see https://api.hitbtc.com/#order-books
-         * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int} [$limit] max number of entries per $orderbook to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
@@ -1555,7 +1680,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetPublicOrderbook (array_merge($request, $params));
+        $response = $this->publicGetPublicOrderbook ($this->extend($request, $params));
         $result = array();
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1571,7 +1696,9 @@ class hitbtc extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://api.hitbtc.com/#order-books
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1585,12 +1712,12 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetPublicOrderbookSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicOrderbookSymbol ($this->extend($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
         return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask');
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1615,8 +1742,10 @@ class hitbtc extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
+         *
          * @see https://api.hitbtc.com/#get-trading-commission
          * @see https://api.hitbtc.com/#get-trading-commission-2
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1628,9 +1757,9 @@ class hitbtc extends Exchange {
         );
         $response = null;
         if ($market['type'] === 'spot') {
-            $response = $this->privateGetSpotFeeSymbol (array_merge($request, $params));
+            $response = $this->privateGetSpotFeeSymbol ($this->extend($request, $params));
         } elseif ($market['type'] === 'swap') {
-            $response = $this->privateGetFuturesFeeSymbol (array_merge($request, $params));
+            $response = $this->privateGetFuturesFeeSymbol ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() not support this $market type');
         }
@@ -1646,8 +1775,10 @@ class hitbtc extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
+         *
          * @see https://api.hitbtc.com/#get-all-trading-commissions
          * @see https://api.hitbtc.com/#get-all-trading-commissions-2
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
@@ -1682,10 +1813,12 @@ class hitbtc extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         *
          * @see https://api.hitbtc.com/#candles
          * @see https://api.hitbtc.com/#futures-index-$price-candles
          * @see https://api.hitbtc.com/#futures-mark-$price-candles
          * @see https://api.hitbtc.com/#futures-premium-index-candles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1717,13 +1850,13 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, 'price');
         $response = null;
         if ($price === 'mark') {
-            $response = $this->publicGetPublicFuturesCandlesMarkPriceSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesMarkPriceSymbol ($this->extend($request, $params));
         } elseif ($price === 'index') {
-            $response = $this->publicGetPublicFuturesCandlesIndexPriceSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesIndexPriceSymbol ($this->extend($request, $params));
         } elseif ($price === 'premiumIndex') {
-            $response = $this->publicGetPublicFuturesCandlesPremiumIndexSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicFuturesCandlesPremiumIndexSymbol ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetPublicCandlesSymbol (array_merge($request, $params));
+            $response = $this->publicGetPublicCandlesSymbol ($this->extend($request, $params));
         }
         //
         // Spot and Swap
@@ -1792,9 +1925,11 @@ class hitbtc extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://api.hitbtc.com/#spot-orders-history
          * @see https://api.hitbtc.com/#futures-orders-history
          * @see https://api.hitbtc.com/#margin-orders-history
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1823,14 +1958,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchClosedOrders() not support this $market type');
             }
@@ -1842,9 +1977,12 @@ class hitbtc extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         *
          * @see https://api.hitbtc.com/#spot-orders-history
          * @see https://api.hitbtc.com/#futures-orders-history
          * @see https://api.hitbtc.com/#margin-orders-history
+         *
+         * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -1866,14 +2004,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOrder() not support this $market type');
             }
@@ -1904,9 +2042,11 @@ class hitbtc extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         *
          * @see https://api.hitbtc.com/#spot-trades-history
          * @see https://api.hitbtc.com/#futures-trades-history
          * @see https://api.hitbtc.com/#margin-trades-history
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1931,14 +2071,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+            $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetSpotHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetFuturesHistoryTrade ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginHistoryTrade (array_merge($request, $params));
+                $response = $this->privateGetMarginHistoryTrade ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOrderTrades() not support this $market type');
             }
@@ -1987,9 +2127,11 @@ class hitbtc extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://api.hitbtc.com/#get-all-active-spot-orders
          * @see https://api.hitbtc.com/#get-active-futures-orders
          * @see https://api.hitbtc.com/#get-active-margin-orders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2012,14 +2154,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginOrder (array_merge($request, $params));
+            $response = $this->privateGetMarginOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotOrder (array_merge($request, $params));
+                $response = $this->privateGetSpotOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesOrder (array_merge($request, $params));
+                $response = $this->privateGetFuturesOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginOrder (array_merge($request, $params));
+                $response = $this->privateGetMarginOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders() not support this $market type');
             }
@@ -2049,9 +2191,11 @@ class hitbtc extends Exchange {
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
+         *
          * @see https://api.hitbtc.com/#get-active-spot-order
          * @see https://api.hitbtc.com/#get-active-futures-order
          * @see https://api.hitbtc.com/#get-active-margin-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2074,14 +2218,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privateGetMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateGetSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateGetFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateGetMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrder() not support this $market type');
             }
@@ -2092,9 +2236,11 @@ class hitbtc extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         *
          * @see https://api.hitbtc.com/#cancel-all-spot-orders
          * @see https://api.hitbtc.com/#cancel-futures-orders
          * @see https://api.hitbtc.com/#cancel-all-margin-orders
+         *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -2115,14 +2261,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateDeleteMarginOrder (array_merge($request, $params));
+            $response = $this->privateDeleteMarginOrder ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateDeleteSpotOrder (array_merge($request, $params));
+                $response = $this->privateDeleteSpotOrder ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateDeleteFuturesOrder (array_merge($request, $params));
+                $response = $this->privateDeleteFuturesOrder ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateDeleteMarginOrder (array_merge($request, $params));
+                $response = $this->privateDeleteMarginOrder ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' cancelAllOrders() not support this $market type');
             }
@@ -2133,9 +2279,11 @@ class hitbtc extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://api.hitbtc.com/#cancel-spot-order
          * @see https://api.hitbtc.com/#cancel-futures-order
          * @see https://api.hitbtc.com/#cancel-margin-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2158,14 +2306,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateDeleteMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privateDeleteMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privateDeleteSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privateDeleteFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateDeleteMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privateDeleteMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' cancelOrder() not support this $market type');
             }
@@ -2196,14 +2344,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privatePatchMarginOrderClientOrderId (array_merge($request, $params));
+            $response = $this->privatePatchMarginOrderClientOrderId ($this->extend($request, $params));
         } else {
             if ($marketType === 'spot') {
-                $response = $this->privatePatchSpotOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchSpotOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'swap') {
-                $response = $this->privatePatchFuturesOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchFuturesOrderClientOrderId ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privatePatchMarginOrderClientOrderId (array_merge($request, $params));
+                $response = $this->privatePatchMarginOrderClientOrderId ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' editOrder() not support this $market type');
             }
@@ -2214,14 +2362,16 @@ class hitbtc extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://api.hitbtc.com/#create-new-spot-order
          * @see https://api.hitbtc.com/#create-margin-order
          * @see https://api.hitbtc.com/#create-futures-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [$params->margin] true for creating a margin order
@@ -2240,11 +2390,11 @@ class hitbtc extends Exchange {
         list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->privatePostFuturesOrder (array_merge($request, $params));
+            $response = $this->privatePostFuturesOrder ($this->extend($request, $params));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
-            $response = $this->privatePostMarginOrder (array_merge($request, $params));
+            $response = $this->privatePostMarginOrder ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostSpotOrder (array_merge($request, $params));
+            $response = $this->privatePostSpotOrder ($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
@@ -2306,7 +2456,7 @@ class hitbtc extends Exchange {
                 $request['type'] = 'stopMarket';
             }
         } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
-            throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ExchangeError($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
         }
         $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
         if ($marketType === 'swap') {
@@ -2319,7 +2469,7 @@ class hitbtc extends Exchange {
         return array( $request, $params );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',
@@ -2331,7 +2481,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // limit
         //     {
@@ -2421,7 +2571,6 @@ class hitbtc extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_value($order, 'trades');
-        $stopPrice = $this->safe_string($order, 'stop_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2445,8 +2594,7 @@ class hitbtc extends Exchange {
             'average' => $average,
             'trades' => $rawTrades,
             'fee' => null,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
         ), $market);
@@ -2455,9 +2603,11 @@ class hitbtc extends Exchange {
     public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
         /**
          * fetches margin mode of the user
+         *
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters
-         * @param {string} symbol unified symbol of the $market the order was made in
+         *
+         * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
          */
@@ -2515,7 +2665,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -2527,7 +2677,9 @@ class hitbtc extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -2553,7 +2705,7 @@ class hitbtc extends Exchange {
             'source' => $fromId,
             'destination' => $toId,
         );
-        $response = $this->privatePostWalletTransfer (array_merge($request, $params));
+        $response = $this->privatePostWalletTransfer ($this->extend($request, $params));
         //
         //     array(
         //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
@@ -2562,7 +2714,7 @@ class hitbtc extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // $transfer
         //
@@ -2605,17 +2757,19 @@ class hitbtc extends Exchange {
             'to_currency' => $toNetwork,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostWalletConvert (array_merge($request, $params));
+        $response = $this->privatePostWalletConvert ($this->extend($request, $params));
         // array("result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"])
         return array(
             'info' => $response,
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://api.hitbtc.com/#withdraw-crypto
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2649,7 +2803,7 @@ class hitbtc extends Exchange {
         if ($includeFee) {
             $request['include_fee'] = true;
         }
-        $response = $this->privatePostWalletCryptoWithdraw (array_merge($request, $params));
+        $response = $this->privatePostWalletCryptoWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
@@ -2658,13 +2812,15 @@ class hitbtc extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetches funding rates for multiple markets
+         *
          * @see https://api.hitbtc.com/#futures-info
+         *
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $market = null;
@@ -2680,7 +2836,7 @@ class hitbtc extends Exchange {
         if ($type !== 'swap') {
             throw new NotSupported($this->id . ' fetchFundingRates() does not support ' . $type . ' markets');
         }
-        $response = $this->publicGetPublicFuturesInfo (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfo ($this->extend($request, $params));
         //
         //     {
         //         "BTCUSDT_PERP" => {
@@ -2713,7 +2869,9 @@ class hitbtc extends Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://api.hitbtc.com/#funding-history
+         *
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
@@ -2751,7 +2909,7 @@ class hitbtc extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetPublicFuturesHistoryFunding (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesHistoryFunding ($this->extend($request, $params));
         //
         //    {
         //        "BTCUSDT_PERP" => array(
@@ -2791,11 +2949,13 @@ class hitbtc extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
+         *
          * @see https://api.hitbtc.com/#get-futures-margin-accounts
          * @see https://api.hitbtc.com/#get-all-margin-accounts
+         *
          * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -2814,12 +2974,12 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccount (array_merge($request, $params));
+            $response = $this->privateGetMarginAccount ($this->extend($request, $params));
         } else {
             if ($marketType === 'swap') {
-                $response = $this->privateGetFuturesAccount (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccount ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginAccount (array_merge($request, $params));
+                $response = $this->privateGetMarginAccount ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchPositions() not support this market type');
             }
@@ -2866,8 +3026,10 @@ class hitbtc extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade position
+         *
          * @see https://api.hitbtc.com/#get-futures-margin-account
          * @see https://api.hitbtc.com/#get-isolated-margin-account
+         *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -2886,12 +3048,12 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             if ($marketType === 'swap') {
-                $response = $this->privateGetFuturesAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($marketType === 'margin') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchPosition() not support this $market type');
             }
@@ -2931,7 +3093,7 @@ class hitbtc extends Exchange {
         return $this->parse_position($response, $market);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     array(
         //         {
@@ -3037,7 +3199,7 @@ class hitbtc extends Exchange {
         $datetime = $this->safe_string($interest, 'timestamp');
         $value = $this->safe_number($interest, 'open_interest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $this->parse8601($datetime),
@@ -3046,10 +3208,58 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://api.hitbtc.com/#futures-info
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $symbols = $this->market_symbols($symbols);
+        $marketIds = null;
+        if ($symbols !== null) {
+            $marketIds = $this->market_ids($symbols);
+            $request['symbols'] = implode(',', $marketIds);
+        }
+        $response = $this->publicGetPublicFuturesInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "BTCUSDT_PERP" => {
+        //             "contract_type" => "perpetual",
+        //             "mark_price" => "97291.83",
+        //             "index_price" => "97298.61",
+        //             "funding_rate" => "-0.000183473092423284",
+        //             "open_interest" => "94.1503",
+        //             "next_funding_time" => "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate" => "-0.00027495203277752",
+        //             "premium_index" => "-0.000789474900583786",
+        //             "avg_premium_index" => "-0.000683473092423284",
+        //             "interest_rate" => "0.0001",
+        //             "timestamp" => "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        $results = array();
+        $markets = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $marketId = $markets[$i];
+            $marketInner = $this->safe_market($marketId);
+            $results[] = $this->parse_open_interest($response[$marketId], $marketInner);
+        }
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function fetch_open_interest(string $symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a derivative trading pair
+         *
          * @see https://api.hitbtc.com/#futures-info
+         *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
@@ -3062,7 +3272,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicFuturesInfoSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfoSymbol ($this->extend($request, $params));
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3081,10 +3291,12 @@ class hitbtc extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://api.hitbtc.com/#futures-info
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -3097,7 +3309,7 @@ class hitbtc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetPublicFuturesInfoSymbol (array_merge($request, $params));
+        $response = $this->publicGetPublicFuturesInfoSymbol ($this->extend($request, $params));
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3116,7 +3328,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3152,6 +3364,7 @@ class hitbtc extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -3185,9 +3398,9 @@ class hitbtc extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('modifyMarginHelper', $params);
         $response = null;
         if ($marketType === 'swap') {
-            $response = $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privatePutFuturesAccountIsolatedSymbol ($this->extend($request, $params));
         } elseif (($marketType === 'margin') || ($marketType === 'spot') || ($marginMode === 'isolated')) {
-            $response = $this->privatePutMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privatePutMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' modifyMarginHelper() not support this $market type');
         }
@@ -3209,13 +3422,13 @@ class hitbtc extends Exchange {
         //         "positions" => null
         //     }
         //
-        return array_merge($this->parse_margin_modification($response, $market), array(
+        return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
@@ -3256,8 +3469,10 @@ class hitbtc extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         *
          * @see https://api.hitbtc.com/#create-update-margin-account-2
          * @see https://api.hitbtc.com/#create-update-margin-account
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3274,8 +3489,10 @@ class hitbtc extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         *
          * @see https://api.hitbtc.com/#create-update-margin-account-2
          * @see https://api.hitbtc.com/#create-update-margin-account
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3289,8 +3506,10 @@ class hitbtc extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
+         *
          * @see https://api.hitbtc.com/#get-futures-margin-account
          * @see https://api.hitbtc.com/#get-isolated-margin-account
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
@@ -3307,14 +3526,14 @@ class hitbtc extends Exchange {
         $params = $this->omit($params, array( 'marginMode', 'margin' ));
         $response = null;
         if ($marginMode !== null) {
-            $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+            $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
         } else {
             if ($market['type'] === 'spot') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($market['type'] === 'swap') {
-                $response = $this->privateGetFuturesAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetFuturesAccountIsolatedSymbol ($this->extend($request, $params));
             } elseif ($market['type'] === 'margin') {
-                $response = $this->privateGetMarginAccountIsolatedSymbol (array_merge($request, $params));
+                $response = $this->privateGetMarginAccountIsolatedSymbol ($this->extend($request, $params));
             } else {
                 throw new NotSupported($this->id . ' fetchLeverage() not support this $market type');
             }
@@ -3352,7 +3571,7 @@ class hitbtc extends Exchange {
         return $this->parse_leverage($response, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         return array(
@@ -3364,10 +3583,12 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://api.hitbtc.com/#create-update-margin-account-2
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3395,13 +3616,15 @@ class hitbtc extends Exchange {
             'margin_balance' => $this->amount_to_precision($symbol, $amount),
             // 'strict_validate' => false,
         );
-        return $this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params));
+        return $this->privatePutFuturesAccountIsolatedSymbol ($this->extend($request, $params));
     }
 
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
+         *
          * @see https://api.hitbtc.com/#currencies
+         *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
@@ -3466,6 +3689,7 @@ class hitbtc extends Exchange {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_value($networkEntry, 'default');
             $withdrawResult = array(
@@ -3489,7 +3713,11 @@ class hitbtc extends Exchange {
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
         /**
          * closes open positions for a $market
+         *
          * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+         *
+         * @param {string} $symbol unified ccxt $market $symbol
+         * @param {string} $side 'buy' or 'sell'
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->symbol] *required* unified $market $symbol
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
@@ -3503,7 +3731,7 @@ class hitbtc extends Exchange {
             'symbol' => $market['id'],
             'margin_mode' => $marginMode,
         );
-        $response = $this->privateDeleteFuturesPositionMarginModeSymbol (array_merge($request, $params));
+        $response = $this->privateDeleteFuturesPositionMarginModeSymbol ($this->extend($request, $params));
         //
         // {
         //     "id":"202471640",
@@ -3541,7 +3769,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //     {
         //       "error" => {

@@ -121,6 +121,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("v2GetPublicProducts",parameters);
     }
 
+    public async Task<object> v2GetPublicProductsPlus (object parameters = null)
+    {
+        return await this.callAsync ("v2GetPublicProductsPlus",parameters);
+    }
+
     public async Task<object> v2GetMdV2Orderbook (object parameters = null)
     {
         return await this.callAsync ("v2GetMdV2Orderbook",parameters);
@@ -504,6 +509,11 @@ public partial class phemex : Exchange
     public async Task<object> privatePutGOrdersReplace (object parameters = null)
     {
         return await this.callAsync ("privatePutGOrdersReplace",parameters);
+    }
+
+    public async Task<object> privatePutGOrdersCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePutGOrdersCreate",parameters);
     }
 
     public async Task<object> privatePutPositionsLeverage (object parameters = null)
