@@ -1718,7 +1718,8 @@
                 "deposit": "undefined",
                 "networks": "networks key is missing",
                 "precision": "not provided",
-                "type": "todo"
+                "type": "todo",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
