@@ -324,10 +324,6 @@ public partial class Exchange
         var httpStatusCode = statusCode;
         var httpStatusText = response?.ReasonPhrase;
 
-result = "The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.";
-httpStatusCode = 501;
-httpStatusText = "fail";
-
         if (this.verbose)
         {
             this.log("handleRestResponse:\n" + this.id + " " + method + " " + url + " " + httpStatusCode + " " + httpStatusText + "\nResponseHeaders:\n" + this.stringifyObject(responseHeaders) + "\nResponseBody:\n" + result + "\n");
