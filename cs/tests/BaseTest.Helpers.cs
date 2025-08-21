@@ -293,7 +293,8 @@ public partial class testMainClass : BaseTest
         //         message += innerExc.Message + '\n';
         //     }
         // }
-        return "[" + e.GetType().Name + "] " + message.Substring(0, LOG_CHARS_LENGTH);
+        // "[" + e.GetType().Name + "] " + message
+        return e?.ToString().Substring(0, LOG_CHARS_LENGTH) ?? "Exception occurred, but no message available.";
     }
 
     public Exchange setFetchResponse(object exchange2, object response)
