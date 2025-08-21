@@ -1269,6 +1269,7 @@ export default class dydx extends Exchange {
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
         const orderSide = side.toUpperCase ();
+        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1290,17 +1291,16 @@ export default class dydx extends Exchange {
         let conditionalOrderTriggerSubticks = '0';
         let orderFlag = undefined;
         let timeInForceNumber = undefined;
+        if (timeInForce === 'FOK') {
+            throw new Error(this.id + ' timeInForce fok has been deprecated');
+        }
         if (orderType === 'MARKET') {
             // short-term
             orderFlag = 0;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce !== undefined) {
-                if (timeInForce === 'FOK') {
-                    timeInForceNumber = 3
-                } else {
-                    // default is ioc
-                    timeInForceNumber = 1;
-                }
+                // default is ioc
+                timeInForceNumber = 1;
             }
         } else if (orderType === 'LIMIT') {
             if (timeInForce === undefined) {
@@ -1316,9 +1316,7 @@ export default class dydx extends Exchange {
                 }
             } else {
                 orderFlag = 0;
-                if (timeInForce === 'FOK') {
-                    timeInForceNumber = 3;
-                } else if (timeInForce === 'IOC') {
+                if (timeInForce === 'IOC') {
                     timeInForceNumber = 1;
                 } else {
                     throw new Error('unexpected code path: timeInForce');
@@ -1328,7 +1326,6 @@ export default class dydx extends Exchange {
         if (isConditional) {
             // conditional
             orderFlag = 32;
-            // TODO: change timeInForceNumber
             if (stopLossPrice !== undefined) {
                 conditionalType = 1;
                 conditionalOrderTriggerSubticks = this.priceToPrecision (symbol, stopLossPrice);
@@ -1357,11 +1354,11 @@ export default class dydx extends Exchange {
                 'orderId': {
                     'subaccountId': {
                         'owner': this.walletAddress,
-                        'number': 0
+                        'number': subaccountId,
                     },
                     'clientId': clientOrderId,
                     'orderFlags': orderFlag,
-                    'clobPairId': market['info']['clobPairId']
+                    'clobPairId': marketInfo['clobPairId'],
                 },
                 'side': sideNumber,
                 'quantums': this.toLong (quantums),
@@ -1379,8 +1376,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
         }
-        console.log(this.json (signingPayload))
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'goodTillBlock', 'goodTillBlockTime', 'subaccountId' ]);
         return this.extend (signingPayload, params);
     }
 
