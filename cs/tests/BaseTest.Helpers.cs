@@ -281,7 +281,7 @@ public partial class testMainClass : BaseTest
     public string exceptionMessage(object exc)
     {
         var e = exc as Exception;
-        return e.Message;
+        return e != null ? $"{e.Message}\n{e.StackTrace}" : "Not an exception";
     }
 
     public System.Exception getRootException(Exception exc)
