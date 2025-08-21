@@ -1114,7 +1114,7 @@ public partial class okx : Exchange
                     { "FUTURES", "FUTURES" },
                     { "OPTION", "OPTION" },
                 } },
-                { "brokerId", "e847386590ce4dBC" },
+                { "brokerId", "6b9ad766b55dBCDE" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -6601,7 +6601,7 @@ public partial class okx : Exchange
             // inject id in implicit api call
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isTrue(isEqual(path, "trade/batch-orders")) || isTrue(isEqual(path, "trade/order-algo"))) || isTrue(isEqual(path, "trade/order"))))))
             {
-                object brokerId = this.safeString(this.options, "brokerId", "e847386590ce4dBC");
+                object brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
                 if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     for (object i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
