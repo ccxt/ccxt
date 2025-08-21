@@ -1410,7 +1410,93 @@ export default class dydx extends Exchange {
         const request = {
             'tx': signedOrder,
         };
-        console.log(request)
+        console.log (this.json (orderRequest));
+        // nodeRpcGetBroadcastTxAsync
+        const response = await this.nodeRpcGetBroadcastTxSync (request);
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result');
+        return result;
+    }
+
+    /**
+     * @method
+     * @name dydx#cancelOrder
+     * @see 
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        if (!isTrigger && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        const goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
+        const defaultOrderFlags = (isTrigger) ? 32 : undefined;
+        const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
+        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
+        params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'subaccountId' ]);
+        if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
+            throw new Error (this.id + ' invalid orderFlags (0, 64, 32).');
+        }
+        if (orderFlags > 0) {
+            if (goodTillBlockTime === undefined) {
+                throw new ArgumentsRequired(this.id + ' goodTillBlockTime is required for long term or conditional order.');
+            }
+            if (goodTillBlock !== undefined) {
+                throw new Error(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
+            }
+        } else {
+            if (goodTillBlock === undefined) {
+                throw new ArgumentsRequired(this.id + ' goodTillBlock is required for short term order.');
+            }
+        }
+        const wallet = await this.recoverLocalWallet ();
+        const account = await this.fetchDydxAccount ();
+        const cancelPayload = {
+            'orderId': {
+                'subaccountId': {
+                    'owner': this.walletAddress,
+                    'number': subaccountId,
+                },
+                'clientId': clientOrderId,
+                'orderFlags': orderFlags,
+                'clobPairId': market['info']['clobPairId'],
+            },
+            // 'goodTilBlock': (goodTillBlock === 0) ? undefined : goodTillBlock,
+            // 'goodTilBlockTime': (goodTillBlock === 0) ? goodTillBlockTime : undefined,
+            'goodTilBlock': goodTillBlock,
+            'goodTilBlockTime': goodTillBlockTime,
+        }
+        const signingPayload = {
+            'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
+            'value': cancelPayload,
+        }
+        const signedCancel = await this.signDydxOrder (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
+        const request = {
+            'tx': signedCancel,
+        };
+        console.log (this.json (signingPayload));
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
         //
