@@ -98,6 +98,15 @@
                 "input": [],
                 "output": null
             }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch Markets",
+                "method": "fetchMarkets",
+                "url": "https://app.ellipx.com/_rest/Market",
+                "input": [],
+                "output": null
+            }
         ]
     }
 }
