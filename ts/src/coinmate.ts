@@ -768,6 +768,23 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinmate#fetchTransfer
+     * @description fetch a specific transfer (deposit/withdrawal) by transaction id
+     * @see https://coinmate.docs.apiary.io/#reference/transfers/get-transfer/post
+     * @param {string} id transaction id returned by the exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchTransfer (id: string, params = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        const request: Dict = { 'transactionId': id };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTransaction (data);
+    }
+
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETED': 'ok',
