@@ -7,1382 +7,1382 @@
 
 package ccxt
 
-func (this *myokx) PublicGetMarketBooksFull (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBooksFull", args...)
+func (this *myokx) PublicGetMarketBooksFull(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
 }
 
-func (this *myokx) PublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTickers", args...)
+func (this *myokx) PublicGetMarketTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *myokx) PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTicker", args...)
+func (this *myokx) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *myokx) PublicGetMarketIndexTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
+func (this *myokx) PublicGetMarketIndexTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexTickers", args...)
 }
 
-func (this *myokx) PublicGetMarketBooks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBooks", args...)
+func (this *myokx) PublicGetMarketBooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *myokx) PublicGetMarketBooksLite (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBooksLite", args...)
+func (this *myokx) PublicGetMarketBooksLite(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBooksLite", args...)
 }
 
-func (this *myokx) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *myokx) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketHistoryCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
+func (this *myokx) PublicGetMarketHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketIndexCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
+func (this *myokx) PublicGetMarketIndexCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketHistoryIndexCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
+func (this *myokx) PublicGetMarketHistoryIndexCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryIndexCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketMarkPriceCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
+func (this *myokx) PublicGetMarketMarkPriceCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketHistoryMarkPriceCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
+func (this *myokx) PublicGetMarketHistoryMarkPriceCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryMarkPriceCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTrades", args...)
+func (this *myokx) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *myokx) PublicGetMarketHistoryTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
+func (this *myokx) PublicGetMarketHistoryTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistoryTrades", args...)
 }
 
-func (this *myokx) PublicGetMarketOptionInstrumentFamilyTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
+func (this *myokx) PublicGetMarketOptionInstrumentFamilyTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOptionInstrumentFamilyTrades", args...)
 }
 
-func (this *myokx) PublicGetMarketPlatform24Volume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
+func (this *myokx) PublicGetMarketPlatform24Volume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketPlatform24Volume", args...)
 }
 
-func (this *myokx) PublicGetMarketOpenOracle (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
+func (this *myokx) PublicGetMarketOpenOracle(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOpenOracle", args...)
 }
 
-func (this *myokx) PublicGetMarketExchangeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
+func (this *myokx) PublicGetMarketExchangeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketExchangeRate", args...)
 }
 
-func (this *myokx) PublicGetMarketIndexComponents (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
+func (this *myokx) PublicGetMarketIndexComponents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
 }
 
-func (this *myokx) PublicGetPublicEconomicCalendar (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
+func (this *myokx) PublicGetPublicEconomicCalendar(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
 }
 
-func (this *myokx) PublicGetMarketBlockTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
+func (this *myokx) PublicGetMarketBlockTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBlockTickers", args...)
 }
 
-func (this *myokx) PublicGetMarketBlockTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
+func (this *myokx) PublicGetMarketBlockTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketBlockTicker", args...)
 }
 
-func (this *myokx) PublicGetPublicBlockTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
+func (this *myokx) PublicGetPublicBlockTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicBlockTrades", args...)
 }
 
-func (this *myokx) PublicGetPublicInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicInstruments", args...)
+func (this *myokx) PublicGetPublicInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInstruments", args...)
 }
 
-func (this *myokx) PublicGetPublicDeliveryExerciseHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
+func (this *myokx) PublicGetPublicDeliveryExerciseHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicDeliveryExerciseHistory", args...)
 }
 
-func (this *myokx) PublicGetPublicOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
+func (this *myokx) PublicGetPublicOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOpenInterest", args...)
 }
 
-func (this *myokx) PublicGetPublicFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFundingRate", args...)
+func (this *myokx) PublicGetPublicFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFundingRate", args...)
 }
 
-func (this *myokx) PublicGetPublicFundingRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
+func (this *myokx) PublicGetPublicFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFundingRateHistory", args...)
 }
 
-func (this *myokx) PublicGetPublicPriceLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
+func (this *myokx) PublicGetPublicPriceLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceLimit", args...)
 }
 
-func (this *myokx) PublicGetPublicOptSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOptSummary", args...)
+func (this *myokx) PublicGetPublicOptSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOptSummary", args...)
 }
 
-func (this *myokx) PublicGetPublicEstimatedPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
+func (this *myokx) PublicGetPublicEstimatedPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicEstimatedPrice", args...)
 }
 
-func (this *myokx) PublicGetPublicDiscountRateInterestFreeQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
+func (this *myokx) PublicGetPublicDiscountRateInterestFreeQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicDiscountRateInterestFreeQuota", args...)
 }
 
-func (this *myokx) PublicGetPublicTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTime", args...)
+func (this *myokx) PublicGetPublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTime", args...)
 }
 
-func (this *myokx) PublicGetPublicMarkPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
+func (this *myokx) PublicGetPublicMarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicMarkPrice", args...)
 }
 
-func (this *myokx) PublicGetPublicPositionTiers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
+func (this *myokx) PublicGetPublicPositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPositionTiers", args...)
 }
 
-func (this *myokx) PublicGetPublicInterestRateLoanQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
+func (this *myokx) PublicGetPublicInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInterestRateLoanQuota", args...)
 }
 
-func (this *myokx) PublicGetPublicVipInterestRateLoanQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
+func (this *myokx) PublicGetPublicVipInterestRateLoanQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
 }
 
-func (this *myokx) PublicGetPublicUnderlying (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicUnderlying", args...)
+func (this *myokx) PublicGetPublicUnderlying(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicUnderlying", args...)
 }
 
-func (this *myokx) PublicGetPublicInsuranceFund (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
+func (this *myokx) PublicGetPublicInsuranceFund(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInsuranceFund", args...)
 }
 
-func (this *myokx) PublicGetPublicConvertContractCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
+func (this *myokx) PublicGetPublicConvertContractCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertContractCoin", args...)
 }
 
-func (this *myokx) PublicGetPublicOptionTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
+func (this *myokx) PublicGetPublicOptionTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOptionTrades", args...)
 }
 
-func (this *myokx) PublicGetPublicInstrumentTickBands (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
+func (this *myokx) PublicGetPublicInstrumentTickBands(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicInstrumentTickBands", args...)
 }
 
-func (this *myokx) PublicGetRubikStatTradingDataSupportCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
+func (this *myokx) PublicGetRubikStatTradingDataSupportCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
 }
 
-func (this *myokx) PublicGetRubikStatTakerVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
+func (this *myokx) PublicGetRubikStatTakerVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatTakerVolume", args...)
 }
 
-func (this *myokx) PublicGetRubikStatMarginLoanRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
+func (this *myokx) PublicGetRubikStatMarginLoanRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatMarginLoanRatio", args...)
 }
 
-func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
+func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatio", args...)
 }
 
-func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatioContract (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
+func (this *myokx) PublicGetRubikStatContractsLongShortAccountRatioContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsLongShortAccountRatioContract", args...)
 }
 
-func (this *myokx) PublicGetRubikStatContractsOpenInterestVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
+func (this *myokx) PublicGetRubikStatContractsOpenInterestVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatContractsOpenInterestVolume", args...)
 }
 
-func (this *myokx) PublicGetRubikStatOptionOpenInterestVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
+func (this *myokx) PublicGetRubikStatOptionOpenInterestVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolume", args...)
 }
 
-func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
+func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeRatio(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeRatio", args...)
 }
 
-func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeExpiry (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
+func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeExpiry(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeExpiry", args...)
 }
 
-func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeStrike (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
+func (this *myokx) PublicGetRubikStatOptionOpenInterestVolumeStrike(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionOpenInterestVolumeStrike", args...)
 }
 
-func (this *myokx) PublicGetRubikStatOptionTakerBlockVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
+func (this *myokx) PublicGetRubikStatOptionTakerBlockVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRubikStatOptionTakerBlockVolume", args...)
 }
 
-func (this *myokx) PublicGetSystemStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSystemStatus", args...)
+func (this *myokx) PublicGetSystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSystemStatus", args...)
 }
 
-func (this *myokx) PublicGetSprdSpreads (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSprdSpreads", args...)
+func (this *myokx) PublicGetSprdSpreads(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdSpreads", args...)
 }
 
-func (this *myokx) PublicGetSprdBooks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSprdBooks", args...)
+func (this *myokx) PublicGetSprdBooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdBooks", args...)
 }
 
-func (this *myokx) PublicGetSprdTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSprdTicker", args...)
+func (this *myokx) PublicGetSprdTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdTicker", args...)
 }
 
-func (this *myokx) PublicGetSprdPublicTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
+func (this *myokx) PublicGetSprdPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSprdPublicTrades", args...)
 }
 
-func (this *myokx) PublicGetMarketSprdTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
+func (this *myokx) PublicGetMarketSprdTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketSprdTicker", args...)
 }
 
-func (this *myokx) PublicGetMarketSprdCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
+func (this *myokx) PublicGetMarketSprdCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketSprdCandles", args...)
 }
 
-func (this *myokx) PublicGetMarketSprdHistoryCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
+func (this *myokx) PublicGetMarketSprdHistoryCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketSprdHistoryCandles", args...)
 }
 
-func (this *myokx) PublicGetTradingBotGridAiParam (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
+func (this *myokx) PublicGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradingBotGridAiParam", args...)
 }
 
-func (this *myokx) PublicGetTradingBotGridMinInvestment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
+func (this *myokx) PublicGetTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradingBotGridMinInvestment", args...)
 }
 
-func (this *myokx) PublicGetTradingBotPublicRsiBackTesting (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
+func (this *myokx) PublicGetTradingBotPublicRsiBackTesting(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTradingBotPublicRsiBackTesting", args...)
 }
 
-func (this *myokx) PublicGetAssetExchangeList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetExchangeList", args...)
+func (this *myokx) PublicGetAssetExchangeList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetExchangeList", args...)
 }
 
-func (this *myokx) PublicGetFinanceStakingDefiEthApyHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
+func (this *myokx) PublicGetFinanceStakingDefiEthApyHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceStakingDefiEthApyHistory", args...)
 }
 
-func (this *myokx) PublicGetFinanceStakingDefiSolApyHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
+func (this *myokx) PublicGetFinanceStakingDefiSolApyHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceStakingDefiSolApyHistory", args...)
 }
 
-func (this *myokx) PublicGetFinanceSavingsLendingRateSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
+func (this *myokx) PublicGetFinanceSavingsLendingRateSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateSummary", args...)
 }
 
-func (this *myokx) PublicGetFinanceSavingsLendingRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
+func (this *myokx) PublicGetFinanceSavingsLendingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceSavingsLendingRateHistory", args...)
 }
 
-func (this *myokx) PublicGetFinanceFixedLoanLendingOffers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
+func (this *myokx) PublicGetFinanceFixedLoanLendingOffers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingOffers", args...)
 }
 
-func (this *myokx) PublicGetFinanceFixedLoanLendingApyHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
+func (this *myokx) PublicGetFinanceFixedLoanLendingApyHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceFixedLoanLendingApyHistory", args...)
 }
 
-func (this *myokx) PublicGetFinanceFixedLoanPendingLendingVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
+func (this *myokx) PublicGetFinanceFixedLoanPendingLendingVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceFixedLoanPendingLendingVolume", args...)
 }
 
-func (this *myokx) PublicGetFinanceSfpDcdProducts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
+func (this *myokx) PublicGetFinanceSfpDcdProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFinanceSfpDcdProducts", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicLeadTraders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
+func (this *myokx) PublicGetCopytradingPublicLeadTraders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicLeadTraders", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicWeeklyPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
+func (this *myokx) PublicGetCopytradingPublicWeeklyPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicWeeklyPnl", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
+func (this *myokx) PublicGetCopytradingPublicStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicStats", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicPreferenceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
+func (this *myokx) PublicGetCopytradingPublicPreferenceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicPreferenceCurrency", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicCurrentSubpositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
+func (this *myokx) PublicGetCopytradingPublicCurrentSubpositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicCurrentSubpositions", args...)
 }
 
-func (this *myokx) PublicGetCopytradingPublicSubpositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
+func (this *myokx) PublicGetCopytradingPublicSubpositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCopytradingPublicSubpositionsHistory", args...)
 }
 
-func (this *myokx) PublicGetSupportAnnouncementsTypes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
+func (this *myokx) PublicGetSupportAnnouncementsTypes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSupportAnnouncementsTypes", args...)
 }
 
-func (this *myokx) PrivateGetRfqCounterparties (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqCounterparties", args...)
+func (this *myokx) PrivateGetRfqCounterparties(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqCounterparties", args...)
 }
 
-func (this *myokx) PrivateGetRfqMakerInstrumentSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
+func (this *myokx) PrivateGetRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqMakerInstrumentSettings", args...)
 }
 
-func (this *myokx) PrivateGetRfqMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
+func (this *myokx) PrivateGetRfqMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqMmpConfig", args...)
 }
 
-func (this *myokx) PrivateGetRfqRfqs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqRfqs", args...)
+func (this *myokx) PrivateGetRfqRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqRfqs", args...)
 }
 
-func (this *myokx) PrivateGetRfqQuotes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqQuotes", args...)
+func (this *myokx) PrivateGetRfqQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqQuotes", args...)
 }
 
-func (this *myokx) PrivateGetRfqTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqTrades", args...)
+func (this *myokx) PrivateGetRfqTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqTrades", args...)
 }
 
-func (this *myokx) PrivateGetRfqPublicTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
+func (this *myokx) PrivateGetRfqPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRfqPublicTrades", args...)
 }
 
-func (this *myokx) PrivateGetSprdOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSprdOrder", args...)
+func (this *myokx) PrivateGetSprdOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSprdOrder", args...)
 }
 
-func (this *myokx) PrivateGetSprdOrdersPending (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
+func (this *myokx) PrivateGetSprdOrdersPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSprdOrdersPending", args...)
 }
 
-func (this *myokx) PrivateGetSprdOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
+func (this *myokx) PrivateGetSprdOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSprdOrdersHistory", args...)
 }
 
-func (this *myokx) PrivateGetSprdOrdersHistoryArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
+func (this *myokx) PrivateGetSprdOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSprdOrdersHistoryArchive", args...)
 }
 
-func (this *myokx) PrivateGetSprdTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSprdTrades", args...)
+func (this *myokx) PrivateGetSprdTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSprdTrades", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrder", args...)
+func (this *myokx) PrivateGetTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrder", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrdersPending (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
+func (this *myokx) PrivateGetTradeOrdersPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
+func (this *myokx) PrivateGetTradeOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrdersHistoryArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
+func (this *myokx) PrivateGetTradeOrdersHistoryArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersHistoryArchive", args...)
 }
 
-func (this *myokx) PrivateGetTradeFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeFills", args...)
+func (this *myokx) PrivateGetTradeFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFills", args...)
 }
 
-func (this *myokx) PrivateGetTradeFillsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
+func (this *myokx) PrivateGetTradeFillsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradeFillsArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
+func (this *myokx) PrivateGetTradeFillsArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFillsArchive", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
+func (this *myokx) PrivateGetTradeOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrderAlgo", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
+func (this *myokx) PrivateGetTradeOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
-func (this *myokx) PrivateGetTradeOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
+func (this *myokx) PrivateGetTradeOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradeEasyConvertCurrencyList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
+func (this *myokx) PrivateGetTradeEasyConvertCurrencyList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeEasyConvertCurrencyList", args...)
 }
 
-func (this *myokx) PrivateGetTradeEasyConvertHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
+func (this *myokx) PrivateGetTradeEasyConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeEasyConvertHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradeOneClickRepayCurrencyList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
+func (this *myokx) PrivateGetTradeOneClickRepayCurrencyList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyList", args...)
 }
 
-func (this *myokx) PrivateGetTradeOneClickRepayCurrencyListV2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
+func (this *myokx) PrivateGetTradeOneClickRepayCurrencyListV2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOneClickRepayCurrencyListV2", args...)
 }
 
-func (this *myokx) PrivateGetTradeOneClickRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
+func (this *myokx) PrivateGetTradeOneClickRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOneClickRepayHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradeOneClickRepayHistoryV2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
+func (this *myokx) PrivateGetTradeOneClickRepayHistoryV2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeOneClickRepayHistoryV2", args...)
 }
 
-func (this *myokx) PrivateGetTradeAccountRateLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
+func (this *myokx) PrivateGetTradeAccountRateLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeAccountRateLimit", args...)
 }
 
-func (this *myokx) PrivateGetAssetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetCurrencies", args...)
+func (this *myokx) PrivateGetAssetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
-func (this *myokx) PrivateGetAssetBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetBalances", args...)
+func (this *myokx) PrivateGetAssetBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *myokx) PrivateGetAssetNonTradableAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
+func (this *myokx) PrivateGetAssetNonTradableAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetNonTradableAssets", args...)
 }
 
-func (this *myokx) PrivateGetAssetAssetValuation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
+func (this *myokx) PrivateGetAssetAssetValuation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetAssetValuation", args...)
 }
 
-func (this *myokx) PrivateGetAssetTransferState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetTransferState", args...)
+func (this *myokx) PrivateGetAssetTransferState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetTransferState", args...)
 }
 
-func (this *myokx) PrivateGetAssetBills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetBills", args...)
+func (this *myokx) PrivateGetAssetBills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *myokx) PrivateGetAssetDepositLightning (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
+func (this *myokx) PrivateGetAssetDepositLightning(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetDepositLightning", args...)
 }
 
-func (this *myokx) PrivateGetAssetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
+func (this *myokx) PrivateGetAssetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
-func (this *myokx) PrivateGetAssetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
+func (this *myokx) PrivateGetAssetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
-func (this *myokx) PrivateGetAssetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
+func (this *myokx) PrivateGetAssetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
-func (this *myokx) PrivateGetAssetDepositWithdrawStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
+func (this *myokx) PrivateGetAssetDepositWithdrawStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetDepositWithdrawStatus", args...)
 }
 
-func (this *myokx) PrivateGetAssetConvertCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
+func (this *myokx) PrivateGetAssetConvertCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertCurrencies", args...)
 }
 
-func (this *myokx) PrivateGetAssetConvertCurrencyPair (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
+func (this *myokx) PrivateGetAssetConvertCurrencyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertCurrencyPair", args...)
 }
 
-func (this *myokx) PrivateGetAssetConvertHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
+func (this *myokx) PrivateGetAssetConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetConvertHistory", args...)
 }
 
-func (this *myokx) PrivateGetAssetMonthlyStatement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
+func (this *myokx) PrivateGetAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetMonthlyStatement", args...)
 }
 
-func (this *myokx) PrivateGetAccountInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInstruments", args...)
+func (this *myokx) PrivateGetAccountInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInstruments", args...)
 }
 
-func (this *myokx) PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountBalance", args...)
+func (this *myokx) PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *myokx) PrivateGetAccountPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountPositions", args...)
+func (this *myokx) PrivateGetAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
-func (this *myokx) PrivateGetAccountPositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
+func (this *myokx) PrivateGetAccountPositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
-func (this *myokx) PrivateGetAccountAccountPositionRisk (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
+func (this *myokx) PrivateGetAccountAccountPositionRisk(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountAccountPositionRisk", args...)
 }
 
-func (this *myokx) PrivateGetAccountBills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountBills", args...)
+func (this *myokx) PrivateGetAccountBills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBills", args...)
 }
 
-func (this *myokx) PrivateGetAccountBillsArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
+func (this *myokx) PrivateGetAccountBillsArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBillsArchive", args...)
 }
 
-func (this *myokx) PrivateGetAccountBillsHistoryArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
+func (this *myokx) PrivateGetAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBillsHistoryArchive", args...)
 }
 
-func (this *myokx) PrivateGetAccountConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountConfig", args...)
+func (this *myokx) PrivateGetAccountConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountConfig", args...)
 }
 
-func (this *myokx) PrivateGetAccountMaxSize (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMaxSize", args...)
+func (this *myokx) PrivateGetAccountMaxSize(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMaxSize", args...)
 }
 
-func (this *myokx) PrivateGetAccountMaxAvailSize (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
+func (this *myokx) PrivateGetAccountMaxAvailSize(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMaxAvailSize", args...)
 }
 
-func (this *myokx) PrivateGetAccountLeverageInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
+func (this *myokx) PrivateGetAccountLeverageInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
 }
 
-func (this *myokx) PrivateGetAccountAdjustLeverageInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
+func (this *myokx) PrivateGetAccountAdjustLeverageInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountAdjustLeverageInfo", args...)
 }
 
-func (this *myokx) PrivateGetAccountMaxLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
+func (this *myokx) PrivateGetAccountMaxLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMaxLoan", args...)
 }
 
-func (this *myokx) PrivateGetAccountTradeFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountTradeFee", args...)
+func (this *myokx) PrivateGetAccountTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountTradeFee", args...)
 }
 
-func (this *myokx) PrivateGetAccountInterestAccrued (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
+func (this *myokx) PrivateGetAccountInterestAccrued(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInterestAccrued", args...)
 }
 
-func (this *myokx) PrivateGetAccountInterestRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInterestRate", args...)
+func (this *myokx) PrivateGetAccountInterestRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInterestRate", args...)
 }
 
-func (this *myokx) PrivateGetAccountMaxWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
+func (this *myokx) PrivateGetAccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMaxWithdrawal", args...)
 }
 
-func (this *myokx) PrivateGetAccountRiskState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountRiskState", args...)
+func (this *myokx) PrivateGetAccountRiskState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountRiskState", args...)
 }
 
-func (this *myokx) PrivateGetAccountQuickMarginBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
+func (this *myokx) PrivateGetAccountQuickMarginBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountQuickMarginBorrowRepayHistory", args...)
 }
 
-func (this *myokx) PrivateGetAccountBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
+func (this *myokx) PrivateGetAccountBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBorrowRepayHistory", args...)
 }
 
-func (this *myokx) PrivateGetAccountVipInterestAccrued (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
+func (this *myokx) PrivateGetAccountVipInterestAccrued(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipInterestAccrued", args...)
 }
 
-func (this *myokx) PrivateGetAccountVipInterestDeducted (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
+func (this *myokx) PrivateGetAccountVipInterestDeducted(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipInterestDeducted", args...)
 }
 
-func (this *myokx) PrivateGetAccountVipLoanOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
+func (this *myokx) PrivateGetAccountVipLoanOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipLoanOrderList", args...)
 }
 
-func (this *myokx) PrivateGetAccountVipLoanOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
+func (this *myokx) PrivateGetAccountVipLoanOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountVipLoanOrderDetail", args...)
 }
 
-func (this *myokx) PrivateGetAccountInterestLimits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
+func (this *myokx) PrivateGetAccountInterestLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInterestLimits", args...)
 }
 
-func (this *myokx) PrivateGetAccountGreeks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountGreeks", args...)
+func (this *myokx) PrivateGetAccountGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountGreeks", args...)
 }
 
-func (this *myokx) PrivateGetAccountPositionTiers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
+func (this *myokx) PrivateGetAccountPositionTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountPositionTiers", args...)
 }
 
-func (this *myokx) PrivateGetAccountMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
+func (this *myokx) PrivateGetAccountMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMmpConfig", args...)
 }
 
-func (this *myokx) PrivateGetAccountFixedLoanBorrowingLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
+func (this *myokx) PrivateGetAccountFixedLoanBorrowingLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingLimit", args...)
 }
 
-func (this *myokx) PrivateGetAccountFixedLoanBorrowingQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
+func (this *myokx) PrivateGetAccountFixedLoanBorrowingQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingQuote", args...)
 }
 
-func (this *myokx) PrivateGetAccountFixedLoanBorrowingOrdersList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
+func (this *myokx) PrivateGetAccountFixedLoanBorrowingOrdersList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFixedLoanBorrowingOrdersList", args...)
 }
 
-func (this *myokx) PrivateGetAccountSpotManualBorrowRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
+func (this *myokx) PrivateGetAccountSpotManualBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSpotManualBorrowRepay", args...)
 }
 
-func (this *myokx) PrivateGetAccountSetAutoRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
+func (this *myokx) PrivateGetAccountSetAutoRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSetAutoRepay", args...)
 }
 
-func (this *myokx) PrivateGetAccountSpotBorrowRepayHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
+func (this *myokx) PrivateGetAccountSpotBorrowRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSpotBorrowRepayHistory", args...)
 }
 
-func (this *myokx) PrivateGetAccountMovePositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
+func (this *myokx) PrivateGetAccountMovePositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMovePositionsHistory", args...)
 }
 
-func (this *myokx) PrivateGetUsersSubaccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
+func (this *myokx) PrivateGetUsersSubaccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersSubaccountList", args...)
 }
 
-func (this *myokx) PrivateGetAccountSubaccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
+func (this *myokx) PrivateGetAccountSubaccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubaccountBalances", args...)
 }
 
-func (this *myokx) PrivateGetAssetSubaccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
+func (this *myokx) PrivateGetAssetSubaccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetSubaccountBalances", args...)
 }
 
-func (this *myokx) PrivateGetAccountSubaccountMaxWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
+func (this *myokx) PrivateGetAccountSubaccountMaxWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubaccountMaxWithdrawal", args...)
 }
 
-func (this *myokx) PrivateGetAssetSubaccountBills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
+func (this *myokx) PrivateGetAssetSubaccountBills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetSubaccountBills", args...)
 }
 
-func (this *myokx) PrivateGetAssetSubaccountManagedSubaccountBills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
+func (this *myokx) PrivateGetAssetSubaccountManagedSubaccountBills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetSubaccountManagedSubaccountBills", args...)
 }
 
-func (this *myokx) PrivateGetUsersEntrustSubaccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
+func (this *myokx) PrivateGetUsersEntrustSubaccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersEntrustSubaccountList", args...)
 }
 
-func (this *myokx) PrivateGetAccountSubaccountInterestLimits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
+func (this *myokx) PrivateGetAccountSubaccountInterestLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountSubaccountInterestLimits", args...)
 }
 
-func (this *myokx) PrivateGetUsersSubaccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
+func (this *myokx) PrivateGetUsersSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersSubaccountApikey", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
+func (this *myokx) PrivateGetTradingBotGridOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoPending", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
+func (this *myokx) PrivateGetTradingBotGridOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
+func (this *myokx) PrivateGetTradingBotGridOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridOrdersAlgoDetails", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridSubOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
+func (this *myokx) PrivateGetTradingBotGridSubOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridSubOrders", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
+func (this *myokx) PrivateGetTradingBotGridPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridPositions", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotGridAiParam (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
+func (this *myokx) PrivateGetTradingBotGridAiParam(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotGridAiParam", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalSignals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
+func (this *myokx) PrivateGetTradingBotSignalSignals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalSignals", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
+func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoDetails", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
+func (this *myokx) PrivateGetTradingBotSignalOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalOrdersAlgoHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
+func (this *myokx) PrivateGetTradingBotSignalPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalPositions", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalPositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
+func (this *myokx) PrivateGetTradingBotSignalPositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalPositionsHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalSubOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
+func (this *myokx) PrivateGetTradingBotSignalSubOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalSubOrders", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotSignalEventHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
+func (this *myokx) PrivateGetTradingBotSignalEventHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotSignalEventHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoPending (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
+func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoPending(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoPending", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
+func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoHistory", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
+func (this *myokx) PrivateGetTradingBotRecurringOrdersAlgoDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotRecurringOrdersAlgoDetails", args...)
 }
 
-func (this *myokx) PrivateGetTradingBotRecurringSubOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
+func (this *myokx) PrivateGetTradingBotRecurringSubOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradingBotRecurringSubOrders", args...)
 }
 
-func (this *myokx) PrivateGetFinanceSavingsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
+func (this *myokx) PrivateGetFinanceSavingsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSavingsBalance", args...)
 }
 
-func (this *myokx) PrivateGetFinanceSavingsLendingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
+func (this *myokx) PrivateGetFinanceSavingsLendingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSavingsLendingHistory", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiOffers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiOffers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiOffers", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiOrdersActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersActive", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiOrdersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiOrdersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiOrdersHistory", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiEthBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiEthBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiEthBalance", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiEthPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiEthPurchaseRedeemHistory", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiEthProductInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiEthProductInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiEthProductInfo", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiSolBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiSolBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiSolBalance", args...)
 }
 
-func (this *myokx) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
+func (this *myokx) PrivateGetFinanceStakingDefiSolPurchaseRedeemHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceStakingDefiSolPurchaseRedeemHistory", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingCurrentSubpositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
+func (this *myokx) PrivateGetCopytradingCurrentSubpositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingSubpositionsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
+func (this *myokx) PrivateGetCopytradingSubpositionsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingSubpositionsHistory", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
+func (this *myokx) PrivateGetCopytradingInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingProfitSharingDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
+func (this *myokx) PrivateGetCopytradingProfitSharingDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingProfitSharingDetails", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingTotalProfitSharing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
+func (this *myokx) PrivateGetCopytradingTotalProfitSharing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingTotalProfitSharing", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingUnrealizedProfitSharingDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
+func (this *myokx) PrivateGetCopytradingUnrealizedProfitSharingDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingUnrealizedProfitSharingDetails", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingCopySettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
+func (this *myokx) PrivateGetCopytradingCopySettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingCopySettings", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingBatchLeverageInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
+func (this *myokx) PrivateGetCopytradingBatchLeverageInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingBatchLeverageInfo", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingCurrentLeadTraders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
+func (this *myokx) PrivateGetCopytradingCurrentLeadTraders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingCurrentLeadTraders", args...)
 }
 
-func (this *myokx) PrivateGetCopytradingLeadTradersHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
+func (this *myokx) PrivateGetCopytradingLeadTradersHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCopytradingLeadTradersHistory", args...)
 }
 
-func (this *myokx) PrivateGetBrokerNdInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
+func (this *myokx) PrivateGetBrokerNdInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdInfo", args...)
 }
 
-func (this *myokx) PrivateGetBrokerNdSubaccountInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
+func (this *myokx) PrivateGetBrokerNdSubaccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdSubaccountInfo", args...)
 }
 
-func (this *myokx) PrivateGetBrokerNdSubaccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
+func (this *myokx) PrivateGetBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdSubaccountApikey", args...)
 }
 
-func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
+func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
+func (this *myokx) PrivateGetAssetBrokerNdSubaccountDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountDepositHistory", args...)
 }
 
-func (this *myokx) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
+func (this *myokx) PrivateGetAssetBrokerNdSubaccountWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetBrokerNdSubaccountWithdrawalHistory", args...)
 }
 
-func (this *myokx) PrivateGetBrokerNdRebateDaily (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
+func (this *myokx) PrivateGetBrokerNdRebateDaily(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdRebateDaily", args...)
 }
 
-func (this *myokx) PrivateGetBrokerNdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
+func (this *myokx) PrivateGetBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerNdRebatePerOrders", args...)
 }
 
-func (this *myokx) PrivateGetFinanceSfpDcdOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
+func (this *myokx) PrivateGetFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSfpDcdOrder", args...)
 }
 
-func (this *myokx) PrivateGetFinanceSfpDcdOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
+func (this *myokx) PrivateGetFinanceSfpDcdOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFinanceSfpDcdOrders", args...)
 }
 
-func (this *myokx) PrivateGetBrokerFdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
+func (this *myokx) PrivateGetBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerFdRebatePerOrders", args...)
 }
 
-func (this *myokx) PrivateGetBrokerFdIfRebate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
+func (this *myokx) PrivateGetBrokerFdIfRebate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerFdIfRebate", args...)
 }
 
-func (this *myokx) PrivateGetAffiliateInviteeDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
+func (this *myokx) PrivateGetAffiliateInviteeDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
 }
 
-func (this *myokx) PrivateGetUsersPartnerIfRebate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
+func (this *myokx) PrivateGetUsersPartnerIfRebate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUsersPartnerIfRebate", args...)
 }
 
-func (this *myokx) PrivateGetSupportAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
+func (this *myokx) PrivateGetSupportAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSupportAnnouncements", args...)
 }
 
-func (this *myokx) PrivatePostRfqCreateRfq (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
+func (this *myokx) PrivatePostRfqCreateRfq(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCreateRfq", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelRfq (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
+func (this *myokx) PrivatePostRfqCancelRfq(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelRfq", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelBatchRfqs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
+func (this *myokx) PrivatePostRfqCancelBatchRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelBatchRfqs", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelAllRfqs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
+func (this *myokx) PrivatePostRfqCancelAllRfqs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelAllRfqs", args...)
 }
 
-func (this *myokx) PrivatePostRfqExecuteQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
+func (this *myokx) PrivatePostRfqExecuteQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqExecuteQuote", args...)
 }
 
-func (this *myokx) PrivatePostRfqMakerInstrumentSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
+func (this *myokx) PrivatePostRfqMakerInstrumentSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqMakerInstrumentSettings", args...)
 }
 
-func (this *myokx) PrivatePostRfqMmpReset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqMmpReset", args...)
+func (this *myokx) PrivatePostRfqMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqMmpReset", args...)
 }
 
-func (this *myokx) PrivatePostRfqMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
+func (this *myokx) PrivatePostRfqMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqMmpConfig", args...)
 }
 
-func (this *myokx) PrivatePostRfqCreateQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
+func (this *myokx) PrivatePostRfqCreateQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCreateQuote", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
+func (this *myokx) PrivatePostRfqCancelQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelQuote", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelBatchQuotes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
+func (this *myokx) PrivatePostRfqCancelBatchQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelBatchQuotes", args...)
 }
 
-func (this *myokx) PrivatePostRfqCancelAllQuotes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
+func (this *myokx) PrivatePostRfqCancelAllQuotes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRfqCancelAllQuotes", args...)
 }
 
-func (this *myokx) PrivatePostSprdOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSprdOrder", args...)
+func (this *myokx) PrivatePostSprdOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSprdOrder", args...)
 }
 
-func (this *myokx) PrivatePostSprdCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
+func (this *myokx) PrivatePostSprdCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSprdCancelOrder", args...)
 }
 
-func (this *myokx) PrivatePostSprdMassCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSprdMassCancel", args...)
+func (this *myokx) PrivatePostSprdMassCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSprdMassCancel", args...)
 }
 
-func (this *myokx) PrivatePostSprdAmendOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
+func (this *myokx) PrivatePostSprdAmendOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSprdAmendOrder", args...)
 }
 
-func (this *myokx) PrivatePostSprdCancelAllAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
+func (this *myokx) PrivatePostSprdCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSprdCancelAllAfter", args...)
 }
 
-func (this *myokx) PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeOrder", args...)
+func (this *myokx) PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
+func (this *myokx) PrivatePostTradeBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
 }
 
-func (this *myokx) PrivatePostTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
+func (this *myokx) PrivatePostTradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradeCancelBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
+func (this *myokx) PrivatePostTradeCancelBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
 }
 
-func (this *myokx) PrivatePostTradeAmendOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
+func (this *myokx) PrivatePostTradeAmendOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradeAmendBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
+func (this *myokx) PrivatePostTradeAmendBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
 }
 
-func (this *myokx) PrivatePostTradeClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+func (this *myokx) PrivatePostTradeClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
 }
 
-func (this *myokx) PrivatePostTradeFillsArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
+func (this *myokx) PrivatePostTradeFillsArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeFillsArchive", args...)
 }
 
-func (this *myokx) PrivatePostTradeOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+func (this *myokx) PrivatePostTradeOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradeCancelAlgos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
+func (this *myokx) PrivatePostTradeCancelAlgos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelAlgos", args...)
 }
 
-func (this *myokx) PrivatePostTradeAmendAlgos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
+func (this *myokx) PrivatePostTradeAmendAlgos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeAmendAlgos", args...)
 }
 
-func (this *myokx) PrivatePostTradeCancelAdvanceAlgos (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
+func (this *myokx) PrivatePostTradeCancelAdvanceAlgos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelAdvanceAlgos", args...)
 }
 
-func (this *myokx) PrivatePostTradeEasyConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
+func (this *myokx) PrivatePostTradeEasyConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeEasyConvert", args...)
 }
 
-func (this *myokx) PrivatePostTradeOneClickRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
+func (this *myokx) PrivatePostTradeOneClickRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOneClickRepay", args...)
 }
 
-func (this *myokx) PrivatePostTradeOneClickRepayV2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
+func (this *myokx) PrivatePostTradeOneClickRepayV2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeOneClickRepayV2", args...)
 }
 
-func (this *myokx) PrivatePostTradeMassCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeMassCancel", args...)
+func (this *myokx) PrivatePostTradeMassCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeMassCancel", args...)
 }
 
-func (this *myokx) PrivatePostTradeCancelAllAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
+func (this *myokx) PrivatePostTradeCancelAllAfter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradeCancelAllAfter", args...)
 }
 
-func (this *myokx) PrivatePostAssetTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetTransfer", args...)
+func (this *myokx) PrivatePostAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetTransfer", args...)
 }
 
-func (this *myokx) PrivatePostAssetWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
+func (this *myokx) PrivatePostAssetWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetWithdrawal", args...)
 }
 
-func (this *myokx) PrivatePostAssetWithdrawalLightning (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
+func (this *myokx) PrivatePostAssetWithdrawalLightning(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetWithdrawalLightning", args...)
 }
 
-func (this *myokx) PrivatePostAssetCancelWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
+func (this *myokx) PrivatePostAssetCancelWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...)
 }
 
-func (this *myokx) PrivatePostAssetConvertDustAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
+func (this *myokx) PrivatePostAssetConvertDustAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetConvertDustAssets", args...)
 }
 
-func (this *myokx) PrivatePostAssetConvertEstimateQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
+func (this *myokx) PrivatePostAssetConvertEstimateQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetConvertEstimateQuote", args...)
 }
 
-func (this *myokx) PrivatePostAssetConvertTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
+func (this *myokx) PrivatePostAssetConvertTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetConvertTrade", args...)
 }
 
-func (this *myokx) PrivatePostAssetMonthlyStatement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
+func (this *myokx) PrivatePostAssetMonthlyStatement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetMonthlyStatement", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetPositionMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+func (this *myokx) PrivatePostAccountSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+func (this *myokx) PrivatePostAccountSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
 }
 
-func (this *myokx) PrivatePostAccountPositionMarginBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
+func (this *myokx) PrivatePostAccountPositionMarginBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountPositionMarginBalance", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetGreeks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
+func (this *myokx) PrivatePostAccountSetGreeks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetGreeks", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetIsolatedMode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
+func (this *myokx) PrivatePostAccountSetIsolatedMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetIsolatedMode", args...)
 }
 
-func (this *myokx) PrivatePostAccountQuickMarginBorrowRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
+func (this *myokx) PrivatePostAccountQuickMarginBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountQuickMarginBorrowRepay", args...)
 }
 
-func (this *myokx) PrivatePostAccountBorrowRepay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
+func (this *myokx) PrivatePostAccountBorrowRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBorrowRepay", args...)
 }
 
-func (this *myokx) PrivatePostAccountSimulatedMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
+func (this *myokx) PrivatePostAccountSimulatedMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSimulatedMargin", args...)
 }
 
-func (this *myokx) PrivatePostAccountPositionBuilder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
+func (this *myokx) PrivatePostAccountPositionBuilder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountPositionBuilder", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetRiskOffsetType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
+func (this *myokx) PrivatePostAccountSetRiskOffsetType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetRiskOffsetType", args...)
 }
 
-func (this *myokx) PrivatePostAccountActivateOption (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountActivateOption", args...)
+func (this *myokx) PrivatePostAccountActivateOption(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountActivateOption", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetAutoLoan (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
+func (this *myokx) PrivatePostAccountSetAutoLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAutoLoan", args...)
 }
 
-func (this *myokx) PrivatePostAccountSetAccountLevel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
+func (this *myokx) PrivatePostAccountSetAccountLevel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetAccountLevel", args...)
 }
 
-func (this *myokx) PrivatePostAccountMmpReset (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMmpReset", args...)
+func (this *myokx) PrivatePostAccountMmpReset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMmpReset", args...)
 }
 
-func (this *myokx) PrivatePostAccountMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
+func (this *myokx) PrivatePostAccountMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMmpConfig", args...)
 }
 
-func (this *myokx) PrivatePostAccountFixedLoanBorrowingOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
+func (this *myokx) PrivatePostAccountFixedLoanBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanBorrowingOrder", args...)
 }
 
-func (this *myokx) PrivatePostAccountFixedLoanAmendBorrowingOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
+func (this *myokx) PrivatePostAccountFixedLoanAmendBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanAmendBorrowingOrder", args...)
 }
 
-func (this *myokx) PrivatePostAccountFixedLoanManualReborrow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
+func (this *myokx) PrivatePostAccountFixedLoanManualReborrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanManualReborrow", args...)
 }
 
-func (this *myokx) PrivatePostAccountFixedLoanRepayBorrowingOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
+func (this *myokx) PrivatePostAccountFixedLoanRepayBorrowingOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountFixedLoanRepayBorrowingOrder", args...)
 }
 
-func (this *myokx) PrivatePostAccountBillsHistoryArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
+func (this *myokx) PrivatePostAccountBillsHistoryArchive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBillsHistoryArchive", args...)
 }
 
-func (this *myokx) PrivatePostAccountMovePositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountMovePositions", args...)
+func (this *myokx) PrivatePostAccountMovePositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
 }
 
-func (this *myokx) PrivatePostUsersSubaccountModifyApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
+func (this *myokx) PrivatePostUsersSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
 }
 
-func (this *myokx) PrivatePostAssetSubaccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
+func (this *myokx) PrivatePostAssetSubaccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }
 
-func (this *myokx) PrivatePostUsersSubaccountSetTransferOut (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
+func (this *myokx) PrivatePostUsersSubaccountSetTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountSetTransferOut", args...)
 }
 
-func (this *myokx) PrivatePostAccountSubaccountSetLoanAllocation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
+func (this *myokx) PrivatePostAccountSubaccountSetLoanAllocation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSubaccountSetLoanAllocation", args...)
 }
 
-func (this *myokx) PrivatePostUsersSubaccountCreateSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
+func (this *myokx) PrivatePostUsersSubaccountCreateSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountCreateSubaccount", args...)
 }
 
-func (this *myokx) PrivatePostUsersSubaccountSubaccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
+func (this *myokx) PrivatePostUsersSubaccountSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountSubaccountApikey", args...)
 }
 
-func (this *myokx) PrivatePostUsersSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
+func (this *myokx) PrivatePostUsersSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUsersSubaccountDeleteApikey", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotGridOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridAmendOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotGridAmendOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridAmendOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotGridStopOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridStopOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
+func (this *myokx) PrivatePostTradingBotGridClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridClosePosition", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridCancelCloseOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
+func (this *myokx) PrivatePostTradingBotGridCancelCloseOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridCancelCloseOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridOrderInstantTrigger (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
+func (this *myokx) PrivatePostTradingBotGridOrderInstantTrigger(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridOrderInstantTrigger", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridWithdrawIncome (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
+func (this *myokx) PrivatePostTradingBotGridWithdrawIncome(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridWithdrawIncome", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridComputeMarginBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
+func (this *myokx) PrivatePostTradingBotGridComputeMarginBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridComputeMarginBalance", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridMarginBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
+func (this *myokx) PrivatePostTradingBotGridMarginBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridMarginBalance", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridMinInvestment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
+func (this *myokx) PrivatePostTradingBotGridMinInvestment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridMinInvestment", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotGridAdjustInvestment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
+func (this *myokx) PrivatePostTradingBotGridAdjustInvestment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotGridAdjustInvestment", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalCreateSignal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
+func (this *myokx) PrivatePostTradingBotSignalCreateSignal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalCreateSignal", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotSignalOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotSignalStopOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalStopOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalMarginBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
+func (this *myokx) PrivatePostTradingBotSignalMarginBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalMarginBalance", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalAmendTPSL (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
+func (this *myokx) PrivatePostTradingBotSignalAmendTPSL(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalAmendTPSL", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalSetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
+func (this *myokx) PrivatePostTradingBotSignalSetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalSetInstruments", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
+func (this *myokx) PrivatePostTradingBotSignalClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalClosePosition", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalSubOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
+func (this *myokx) PrivatePostTradingBotSignalSubOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalSubOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotSignalCancelSubOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
+func (this *myokx) PrivatePostTradingBotSignalCancelSubOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotSignalCancelSubOrder", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotRecurringOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotRecurringOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotRecurringOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotRecurringAmendOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotRecurringAmendOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotRecurringAmendOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostTradingBotRecurringStopOrderAlgo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
+func (this *myokx) PrivatePostTradingBotRecurringStopOrderAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTradingBotRecurringStopOrderAlgo", args...)
 }
 
-func (this *myokx) PrivatePostFinanceSavingsPurchaseRedempt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
+func (this *myokx) PrivatePostFinanceSavingsPurchaseRedempt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceSavingsPurchaseRedempt", args...)
 }
 
-func (this *myokx) PrivatePostFinanceSavingsSetLendingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
+func (this *myokx) PrivatePostFinanceSavingsSetLendingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceSavingsSetLendingRate", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiPurchase", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiRedeem", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiCancel", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiEthPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiEthPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiEthPurchase", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiEthRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiEthRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiEthRedeem", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiSolPurchase (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiSolPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiSolPurchase", args...)
 }
 
-func (this *myokx) PrivatePostFinanceStakingDefiSolRedeem (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
+func (this *myokx) PrivatePostFinanceStakingDefiSolRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceStakingDefiSolRedeem", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingAlgoOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
+func (this *myokx) PrivatePostCopytradingAlgoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingAlgoOrder", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingCloseSubposition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
+func (this *myokx) PrivatePostCopytradingCloseSubposition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingCloseSubposition", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingSetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
+func (this *myokx) PrivatePostCopytradingSetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingSetInstruments", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingFirstCopySettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
+func (this *myokx) PrivatePostCopytradingFirstCopySettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingFirstCopySettings", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingAmendCopySettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
+func (this *myokx) PrivatePostCopytradingAmendCopySettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingAmendCopySettings", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingStopCopyTrading (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
+func (this *myokx) PrivatePostCopytradingStopCopyTrading(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingStopCopyTrading", args...)
 }
 
-func (this *myokx) PrivatePostCopytradingBatchSetLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
+func (this *myokx) PrivatePostCopytradingBatchSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCopytradingBatchSetLeverage", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdCreateSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
+func (this *myokx) PrivatePostBrokerNdCreateSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdCreateSubaccount", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdDeleteSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
+func (this *myokx) PrivatePostBrokerNdDeleteSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdDeleteSubaccount", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSubaccountApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
+func (this *myokx) PrivatePostBrokerNdSubaccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSubaccountApikey", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSubaccountModifyApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
+func (this *myokx) PrivatePostBrokerNdSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSubaccountModifyApikey", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
+func (this *myokx) PrivatePostBrokerNdSubaccountDeleteApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSubaccountDeleteApikey", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSetSubaccountLevel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
+func (this *myokx) PrivatePostBrokerNdSetSubaccountLevel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountLevel", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSetSubaccountFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
+func (this *myokx) PrivatePostBrokerNdSetSubaccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountFeeRate", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdSetSubaccountAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
+func (this *myokx) PrivatePostBrokerNdSetSubaccountAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdSetSubaccountAssets", args...)
 }
 
-func (this *myokx) PrivatePostAssetBrokerNdSubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
+func (this *myokx) PrivatePostAssetBrokerNdSubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetBrokerNdSubaccountDepositAddress", args...)
 }
 
-func (this *myokx) PrivatePostAssetBrokerNdModifySubaccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
+func (this *myokx) PrivatePostAssetBrokerNdModifySubaccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssetBrokerNdModifySubaccountDepositAddress", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
+func (this *myokx) PrivatePostBrokerNdRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdRebatePerOrders", args...)
 }
 
-func (this *myokx) PrivatePostFinanceSfpDcdQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
+func (this *myokx) PrivatePostFinanceSfpDcdQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceSfpDcdQuote", args...)
 }
 
-func (this *myokx) PrivatePostFinanceSfpDcdOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
+func (this *myokx) PrivatePostFinanceSfpDcdOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFinanceSfpDcdOrder", args...)
 }
 
-func (this *myokx) PrivatePostBrokerNdReportSubaccountIp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
+func (this *myokx) PrivatePostBrokerNdReportSubaccountIp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerNdReportSubaccountIp", args...)
 }
 
-func (this *myokx) PrivatePostBrokerFdRebatePerOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
+func (this *myokx) PrivatePostBrokerFdRebatePerOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBrokerFdRebatePerOrders", args...)
 }
