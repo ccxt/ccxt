@@ -17,6 +17,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
     const ends = now + 15000;
     while (now < ends) {
         let response: Tickers = undefined;
+        let success = true;
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
         } catch (e) {
@@ -32,21 +33,25 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
-        const values = Object.values (response);
-        let checkedSymbol = undefined;
-        if (argSymbols !== undefined && argSymbols.length === 1) {
-            checkedSymbol = argSymbols[0];
+        if (success === true) {
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            const values = Object.values (response);
+            let checkedSymbol = undefined;
+            if (argSymbols !== undefined && argSymbols.length === 1) {
+                checkedSymbol = argSymbols[0];
+            }
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
+            for (let i = 0; i < values.length; i++) {
+                const ticker = values[i];
+                testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+            }
+            now = exchange.milliseconds ();
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
-        for (let i = 0; i < values.length; i++) {
-            const ticker = values[i];
-            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
-        }
-        now = exchange.milliseconds ();
     }
+    return true;
 }
 
 export default testWatchTickers;
