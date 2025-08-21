@@ -650,10 +650,12 @@ export default class bitget extends bitgetRest {
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         const channel = this.safeString2 (arg, 'channel', 'topic');
         let interval = this.safeString (arg, 'interval');
-        let isUta: boolean = true;
+        let isUta = undefined;
         if (interval === undefined) {
             isUta = false;
             interval = channel.replace ('candle', '');
+        } else {
+            isUta = true;
         }
         const timeframes = this.safeValue (this.options, 'timeframes');
         const timeframe = this.findTimeframe (interval, timeframes);
