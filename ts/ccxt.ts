@@ -143,7 +143,6 @@ import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
-import vertex from  './src/vertex.js'
 import wavesexchange from  './src/wavesexchange.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
@@ -223,7 +222,6 @@ import poloniexPro from  './src/pro/poloniex.js'
 import probitPro from  './src/pro/probit.js'
 import tradeogrePro from  './src/pro/tradeogre.js'
 import upbitPro from  './src/pro/upbit.js'
-import vertexPro from  './src/pro/vertex.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
@@ -327,7 +325,6 @@ const exchanges = {
     'tokocrypto':             tokocrypto,
     'tradeogre':              tradeogre,
     'upbit':                  upbit,
-    'vertex':                 vertex,
     'wavesexchange':          wavesexchange,
     'whitebit':               whitebit,
     'woo':                    woo,
@@ -407,7 +404,6 @@ const pro = {
     'probit':                 probitPro,
     'tradeogre':              tradeogrePro,
     'upbit':                  upbitPro,
-    'vertex':                 vertexPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'woofipro':               woofiproPro,
@@ -653,7 +649,6 @@ export {
     tokocrypto,
     tradeogre,
     upbit,
-    vertex,
     wavesexchange,
     whitebit,
     woo,
