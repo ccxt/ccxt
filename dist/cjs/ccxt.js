@@ -65,7 +65,6 @@ var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
-var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -251,7 +250,6 @@ const exchanges = {
     'deribit': deribit["default"],
     'derive': derive["default"],
     'digifinex': digifinex["default"],
-    'ellipx': ellipx["default"],
     'exmo': exmo["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -485,7 +483,6 @@ exports.delta = delta["default"];
 exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
-exports.ellipx = ellipx["default"];
 exports.exmo = exmo["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];

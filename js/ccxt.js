@@ -94,7 +94,6 @@ import delta from './src/delta.js';
 import deribit from './src/deribit.js';
 import derive from './src/derive.js';
 import digifinex from './src/digifinex.js';
-import ellipx from './src/ellipx.js';
 import exmo from './src/exmo.js';
 import fmfwio from './src/fmfwio.js';
 import foxbit from './src/foxbit.js';
@@ -276,7 +275,6 @@ const exchanges = {
     'deribit': deribit,
     'derive': derive,
     'digifinex': digifinex,
-    'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
     'foxbit': foxbit,
@@ -418,6 +416,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, defx, delta, deribit, derive, digifinex, ellipx, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, luno, mercado, mexc, modetrade, myokx, ndax, novadax, oceanex, okcoin, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alpaca, apex, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, defx, delta, deribit, derive, digifinex, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, luno, mercado, mexc, modetrade, myokx, ndax, novadax, oceanex, okcoin, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------
