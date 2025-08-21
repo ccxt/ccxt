@@ -89,7 +89,6 @@ declare class testMainClass {
     testWoofiPro(): Promise<boolean>;
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
-    testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
     testCoincatch(): Promise<boolean>;

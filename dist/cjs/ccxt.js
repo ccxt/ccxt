@@ -109,7 +109,6 @@ var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
-var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
@@ -186,7 +185,6 @@ var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
 var tradeogre$1 = require('./src/pro/tradeogre.js');
 var upbit$1 = require('./src/pro/upbit.js');
-var vertex$1 = require('./src/pro/vertex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
@@ -294,7 +292,6 @@ const exchanges = {
     'tokocrypto': tokocrypto["default"],
     'tradeogre': tradeogre["default"],
     'upbit': upbit["default"],
-    'vertex': vertex["default"],
     'wavesexchange': wavesexchange["default"],
     'whitebit': whitebit["default"],
     'woo': woo["default"],
@@ -373,7 +370,6 @@ const pro = {
     'probit': probit$1["default"],
     'tradeogre': tradeogre$1["default"],
     'upbit': upbit$1["default"],
-    'vertex': vertex$1["default"],
     'whitebit': whitebit$1["default"],
     'woo': woo$1["default"],
     'woofipro': woofipro$1["default"],
@@ -527,7 +523,6 @@ exports.timex = timex["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.tradeogre = tradeogre["default"];
 exports.upbit = upbit["default"];
-exports.vertex = vertex["default"];
 exports.wavesexchange = wavesexchange["default"];
 exports.whitebit = whitebit["default"];
 exports.woo = woo["default"];
