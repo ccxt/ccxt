@@ -1831,7 +1831,7 @@ public partial class testMainClass
     public async virtual Task<object> testOkx()
     {
         Exchange exchange = this.initOfflineExchange("okx");
-        object id = "e847386590ce4dBC";
+        object id = "6b9ad766b55dBCDE";
         object spotOrderRequest = null;
         try
         {

@@ -1657,7 +1657,7 @@ class testMainClass {
 
     async testOkx () {
         const exchange = this.initOfflineExchange ('okx');
-        const id = 'e847386590ce4dBC';
+        const id = '6b9ad766b55dBCDE';
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);

@@ -2052,7 +2052,7 @@ func (this *testMainClass) TestOkx() <-chan interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var exchange ccxt.ICoreExchange = this.InitOfflineExchange("okx")
-		var id interface{} = "e847386590ce4dBC"
+		var id interface{} = "6b9ad766b55dBCDE"
 		var spotOrderRequest interface{} = nil
 
 		{

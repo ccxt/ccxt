@@ -1225,7 +1225,7 @@ class okx extends Exchange {
                     'FUTURES' => 'FUTURES',
                     'OPTION' => 'OPTION',
                 ),
-                'brokerId' => 'e847386590ce4dBC',
+                'brokerId' => '6b9ad766b55dBCDE',
             ),
             'features' => array(
                 'default' => array(
@@ -6395,7 +6395,7 @@ class okx extends Exchange {
             $this->check_required_credentials();
             // inject id in implicit $api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
-                $brokerId = $this->safe_string($this->options, 'brokerId', 'e847386590ce4dBC');
+                $brokerId = $this->safe_string($this->options, 'brokerId', '6b9ad766b55dBCDE');
                 if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
                     for ($i = 0; $i < count($params); $i++) {
                         $entry = $params[$i];
