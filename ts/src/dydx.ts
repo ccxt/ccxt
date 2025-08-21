@@ -1251,6 +1251,19 @@ export default class dydx extends Exchange {
         return r;
     }
 
+    toLong (numStr: string): object {
+        // see: https://github.com/dcodeIO/long.js/blob/main/index.js
+        // TODO: change to Precise 4294967296
+        const TWO_PWR_16_DBL = 1 << 16;
+        const TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+        const value = this.parseToInt (numStr);
+        return {
+            low: value % TWO_PWR_32_DBL | 0,
+            high: (value / TWO_PWR_32_DBL) | 0,
+            unsigned: false
+        }
+    }
+
     // calculateQuantums (size: string, atomicResolution: string, stepBaseQuantums: string): string {
     //     const amount = Precise.stringMul (size, this.pow ('10', Precise.stringAbs (atomicResolution)));
     //     return Precise.stringMax (amount, stepBaseQuantums);
@@ -1276,7 +1289,10 @@ export default class dydx extends Exchange {
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info');
-        const quantums = Precise.stringMul (amountStr, this.pow ('10', Precise.stringAbs (marketInfo['atomicResolution'])));
+        const atomicResolution = Precise.stringNeg (marketInfo['atomicResolution']);
+        const quantums = Precise.stringMul (amountStr, this.pow ('10', atomicResolution));
+        const quantumConversionExponent = marketInfo['quantumConversionExponent'];
+        const subticks = Precise.stringMul (priceStr, this.pow ('10', Precise.stringAdd (atomicResolution, Precise.stringAdd (quantumConversionExponent, '6'))));
         let clientMetadata = 0;
         let conditionalType = 0;
         let orderFlag = undefined;
@@ -1414,16 +1430,8 @@ export default class dydx extends Exchange {
                     'clobPairId': market['info']['clobPairId']
                 },
                 'side': sideNumber,
-                'quantums': {
-                    'low': quantums,
-                    'high': 0,
-                    'unsigned': false
-                },
-                'subticks': {
-                    'low': 1345294336,
-                    'high': 9,
-                    'unsigned': false
-                },
+                'quantums': this.toLong (quantums),
+                'subticks': this.toLong (subticks),
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
@@ -1468,14 +1476,9 @@ export default class dydx extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         const signedOrder = await this.signDydxOrder (wallet, orderRequest, 'dydx-testnet-4', undefined, account);
         const request = {
             'tx': signedOrder,
@@ -1483,15 +1486,21 @@ export default class dydx extends Exchange {
         console.log(request)
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
-        // //
-        // //
-        // console.log(response)
-        // const data = this.safeDict (response, 'data');
-        // data['timestamp'] = this.safeInteger (response, 'timestamp');
-        // const order = this.parseOrder (data, market);
-        // order['type'] = type;
-        // return order;
-        return {};
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result');
+        return result;
     }
 
     /**
