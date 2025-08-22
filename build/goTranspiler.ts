@@ -1990,7 +1990,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileWsOrderbookTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const goFile = `${outDir}/cache/Orderbook.go`;
+        const goFile = `${outDir}/cache/orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -2000,6 +2000,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         splitParts.shift();
         content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
+            [/var (\w+) interface{} = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
+            [/var (\w+) interface{} = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
             [/assert/g, 'Assert'],
         ]).trim ()
 
@@ -2022,7 +2024,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileWsCacheTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const goFile = `${outDir}/cache/Cache.go`;
+        const goFile = `${outDir}/cache/cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -2131,8 +2133,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToGo(outDir);
-        this.transpileWsCacheTestsToGo(outDir);
         this.transpileWsOrderbookTestsToGo(outDir);
+        this.transpileWsCacheTestsToGo(outDir);
     }
 
     transpileBaseTests (outDir: string) {

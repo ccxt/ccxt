@@ -13,6 +13,10 @@ func Assert(a interface{}) {
 	base.Assert(a)
 }
 
+func Add(a interface{}, b interface{}) interface{} {
+	return base.Add(a, b)
+}
+
 func GetValue(collection interface{}, key interface{}) interface{} {
 	return base.GetValue(collection, key)
 }
@@ -41,10 +45,33 @@ func GetArrayLength(value interface{}) int {
 	return base.GetArrayLength(value)
 }
 
-func NewOrderBook(ob interface{}) ccxt.OrderBook {
-	return ccxt.NewOrderBook(ob)
+func NewOrderBook(ob interface{}, params ...interface{}) *ccxt.WsOrderBook {
+	depth := ccxt.GetArg(params, 0, nil)
+	return ccxt.NewWsOrderBook(ob, depth)
 }
 
-func NewIndexedOrderBook(ob interface{}) ccxt.IndexedOrderBook {
-	return ccxt.NewIndexedOrderBook(ob)
+func NewIndexedOrderBook(ob interface{}, params ...interface{}) *ccxt.IndexedOrderBook {
+	depth := ccxt.GetArg(params, 0, nil)
+	return ccxt.NewIndexedOrderBook(ob, depth)
+}
+
+func NewCountedOrderBook(ob interface{}, params ...interface{}) *ccxt.CountedOrderBook {
+	depth := ccxt.GetArg(params, 0, nil)
+	return ccxt.NewCountedOrderBook(ob, depth)
+}
+
+func NewArrayCacheBySymbolById(params ...interface{}) *ccxt.ArrayCacheBySymbolById {
+	return ccxt.NewArrayCacheBySymbolById(params...)
+}
+
+func NewArrayCache(size interface{}) *ccxt.ArrayCache {
+	return ccxt.NewArrayCache(size)
+}
+
+func NewArrayCacheByTimestamp() *ccxt.ArrayCacheByTimestamp {
+	return ccxt.NewArrayCacheByTimestamp(nil)
+}
+
+func NewArrayCacheBySymbolBySide() *ccxt.ArrayCacheBySymbolBySide {
+	return ccxt.NewArrayCacheBySymbolBySide()
 }

@@ -68,46 +68,46 @@ func TestWsOrderBook()  {
         "nonce": 69,
         "symbol": nil,
     }
-    var incrementalIndexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{11.1, 27, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var incrementalIndexedOrderBookDeletedTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{11.1, 27, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var limitedIncrementalIndexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 10, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}},
-        "asks": []interface{}{[]interface{}{11.1, 27, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var storedIncrementalIndexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 13, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{11.1, 27, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var anotherStoredIncrementalIndexedOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10.2, 13, "1234"}, []interface{}{9.1, 11, "1235"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}},
-        "asks": []interface{}{[]interface{}{11.1, 27, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
+    // const incrementalIndexedOrderBookTarget = {
+    //     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+    //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const incrementalIndexedOrderBookDeletedTarget = {
+    //     'bids': [ [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+    //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const limitedIncrementalIndexedOrderBookTarget = {
+    //     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ] ],
+    //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const storedIncrementalIndexedOrderBookTarget = {
+    //     'bids': [ [ 10.0, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+    //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const anotherStoredIncrementalIndexedOrderBookTarget = {
+    //     'bids': [ [ 10.2, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+    //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
     var overwrite1234 interface{} = map[string]interface{} {
         "bids": []interface{}{[]interface{}{9.1, 11, "1235"}, []interface{}{9, 3, "1231"}, []interface{}{9, 1, "1232"}, []interface{}{8.2, 12, "1236"}, []interface{}{7.3, 13, "1237"}, []interface{}{6.4, 14, "1238"}, []interface{}{4.5, 13, "1239"}, []interface{}{4, 2, "12399"}},
         "asks": []interface{}{[]interface{}{11.1, 13, "1244"}, []interface{}{13.3, 13, "1243"}, []interface{}{14.4, 12, "1242"}, []interface{}{15.5, 11, "1241"}, []interface{}{16.6, 10, "1240"}},
@@ -155,53 +155,53 @@ func TestWsOrderBook()  {
         "nonce": 69,
         "symbol": nil,
     }
-    var incrementalOrderBookInput interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 1}, []interface{}{10, 2}, []interface{}{9.1, 0}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}},
-        "asks": []interface{}{[]interface{}{11.1, 5}, []interface{}{11.1, OpNeg(6)}, []interface{}{11.1, 2}, []interface{}{12.2, 10}, []interface{}{12.2, OpNeg(9.875)}, []interface{}{12.2, 0}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{15.5, 1}, []interface{}{16.6, 3}},
-        "timestamp": 1574827239000,
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var incremetalOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 3}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}},
-        "asks": []interface{}{[]interface{}{11.1, 2}, []interface{}{12.2, 0.125}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{15.5, 1}, []interface{}{16.6, 3}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var limitedIncremetalOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 3}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}},
-        "asks": []interface{}{[]interface{}{11.1, 2}, []interface{}{12.2, 0.125}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{15.5, 1}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var storedIncremetalOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 3}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}, []interface{}{3, 3}},
-        "asks": []interface{}{[]interface{}{11.1, 2}, []interface{}{12.2, 0.125}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{15.5, 1}, []interface{}{16.6, 3}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var doubleStoredIncremetalOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 3}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}, []interface{}{3, 10}},
-        "asks": []interface{}{[]interface{}{11.1, 2}, []interface{}{12.2, 0.125}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{15.5, 1}, []interface{}{16.6, 3}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
-    var negativeStoredIncremetalOrderBookTarget interface{} = map[string]interface{} {
-        "bids": []interface{}{[]interface{}{10, 3}, []interface{}{8.2, 1}, []interface{}{7.3, 1}, []interface{}{6.4, 1}},
-        "asks": []interface{}{[]interface{}{11.1, 2}, []interface{}{12.2, 0.125}, []interface{}{13.3, 3}, []interface{}{14.4, 4}, []interface{}{16.6, 3}},
-        "timestamp": 1574827239000,
-        "datetime": "2019-11-27T04:00:39.000Z",
-        "nonce": 69,
-        "symbol": nil,
-    }
+    // const incrementalOrderBookInput = {
+    //     'bids': [ [ 10.0, 1 ], [ 10.0, 2 ], [ 9.1, 0 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+    //     'asks': [ [ 11.1, 5 ], [ 11.1, -6 ], [ 11.1, 2 ], [ 12.2, 10 ], [ 12.2, -9.875 ], [ 12.2, 0 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+    //     'timestamp': 1574827239000,
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const incremetalOrderBookTarget = {
+    //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+    //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const limitedIncremetalOrderBookTarget = {
+    //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+    //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const storedIncremetalOrderBookTarget = {
+    //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ], [ 3, 3 ] ],
+    //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const doubleStoredIncremetalOrderBookTarget = {
+    //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ], [ 3, 10 ] ],
+    //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
+    // const negativeStoredIncremetalOrderBookTarget = {
+    //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+    //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 16.6, 3 ] ],
+    //     'timestamp': 1574827239000,
+    //     'datetime': '2019-11-27T04:00:39.000Z',
+    //     'nonce': 69,
+    //     'symbol': undefined,
+    // };
     
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ func TestWsOrderBook()  {
     Assert(Equals(limited, limitedOrderBookTarget))
     orderBook.Limit()
     Assert(Equals(orderBook, orderBookTarget))
-    var bids interface{} = GetValue(orderBook, "bids")
+    bids := orderBook.Bids
     bids.Store(1000, 0)
     orderBook.Limit()
     Assert(Equals(orderBook, orderBookTarget))
@@ -223,7 +223,7 @@ func TestWsOrderBook()  {
     bids.Store(3, 0)
     orderBook.Limit()
     Assert(Equals(orderBook, orderBookTarget))
-    var asks interface{} = GetValue(limited, "asks")
+    asks := limited.Asks
     asks.Store(15.5, 0)
     limited.Limit()
     Assert(Equals(limited, limitedDeletedOrderBookTarget))
@@ -238,7 +238,7 @@ func TestWsOrderBook()  {
     Assert(Equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget))
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, indexedOrderBookTarget))
-    var indexedBids interface{} = GetValue(indexedOrderBook, "bids")
+    indexedBids := indexedOrderBook.Bids
     indexedBids.StoreArray([]interface{}{1000, 0, "12345"})
     Assert(Equals(indexedOrderBook, indexedOrderBookTarget))
     indexedBids.StoreArray([]interface{}{10, 0, "1234"})
@@ -251,7 +251,7 @@ func TestWsOrderBook()  {
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, overwrite1234))
     indexedOrderBook = NewIndexedOrderBook(indexedOrderBookInput)
-    var indexedAsks interface{} = GetValue(indexedOrderBook, "asks")
+    indexedAsks := indexedOrderBook.Asks
     indexedAsks.StoreArray([]interface{}{13.5, 13, "1244"})
     indexedOrderBook.Limit()
     Assert(Equals(indexedOrderBook, overwrite1244))
@@ -266,7 +266,7 @@ func TestWsOrderBook()  {
     Assert(Equals(limitedCountedOrderBook, limitedCountedOrderBookTarget))
     countedOrderBook.Limit()
     Assert(Equals(countedOrderBook, countedOrderBookTarget))
-    var countedBids interface{} = GetValue(countedOrderBook, "bids")
+    countedBids := countedOrderBook.Bids
     countedBids.StoreArray([]interface{}{5, 0, 6})
     countedOrderBook.Limit()
     Assert(Equals(countedOrderBook, countedOrderBookTarget))
