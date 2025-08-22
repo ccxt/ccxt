@@ -487,6 +487,7 @@ public partial class mexc : Exchange
                     { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
                     { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
                     { "BNB Smart Chain(BEP20)", "BSC" },
+                    { "Ethereum(ERC20)", "ERC20" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },

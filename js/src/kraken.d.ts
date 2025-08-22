@@ -17,7 +17,6 @@ export default class kraken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
     /**
      * @method
      * @name kraken#fetchStatus

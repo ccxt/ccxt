@@ -903,6 +903,9 @@ func (this *Okcoin) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
 
 // missing typed methods from base
 // nolint
+func (this *Okcoin) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Okcoin) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

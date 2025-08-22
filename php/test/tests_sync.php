@@ -1516,7 +1516,7 @@ class testMainClass {
 
     public function test_okx() {
         $exchange = $this->init_offline_exchange('okx');
-        $id = 'e847386590ce4dBC';
+        $id = '6b9ad766b55dBCDE';
         $spot_order_request = null;
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);

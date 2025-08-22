@@ -859,6 +859,9 @@ func (this *Bitstamp) Transfer(code string, amount float64, fromAccount string, 
 
 // missing typed methods from base
 // nolint
+func (this *Bitstamp) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitstamp) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

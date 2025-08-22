@@ -258,7 +258,7 @@ class gemini extends Exchange {
                 'fetchMarketFromWebRetries' => 10,
                 'fetchMarketsFromAPI' => array(
                     'fetchDetailsForAllSymbols' => false,
-                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL' ),
+                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ),
                 ),
                 'fetchMarkets' => array(
                     'webApiEnable' => true, // fetches from WEB

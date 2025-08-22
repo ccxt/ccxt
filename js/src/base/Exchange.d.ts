@@ -422,6 +422,7 @@ export default class Exchange {
     handleDelta(bookside: any, delta: any): void;
     handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
+    arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: any): string;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
     urlEncoderForProxyUrl(targetUrl: string): string;

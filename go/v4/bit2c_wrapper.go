@@ -379,6 +379,9 @@ func (this *Bit2c) FetchDepositAddress(code string, options ...FetchDepositAddre
 
 // missing typed methods from base
 // nolint
+func (this *Bit2c) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bit2c) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

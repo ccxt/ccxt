@@ -28,5 +28,6 @@ public partial class BaseTest
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
+            testArraysConcat();
         }
 }

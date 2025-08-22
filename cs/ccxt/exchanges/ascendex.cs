@@ -1704,7 +1704,7 @@ public partial class ascendex : Exchange
         //         "code": "0",
         //         "data": {
         //           "domain": "spot",
-        //           "userUID": "U1479576458",
+        //           "userUID": "U1479576457",
         //           "vipLevel": "0",
         //           "fees": [
         //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: "0.001" } },

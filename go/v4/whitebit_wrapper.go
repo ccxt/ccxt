@@ -1493,6 +1493,9 @@ func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBor
 
 // missing typed methods from base
 // nolint
+func (this *Whitebit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Whitebit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

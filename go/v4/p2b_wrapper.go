@@ -505,6 +505,9 @@ func (this *P2b) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
 
 // missing typed methods from base
 // nolint
+func (this *P2b) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *P2b) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -560,6 +560,9 @@ func (this *Zonda) Withdraw(code string, amount float64, address string, options
 
 // missing typed methods from base
 // nolint
+func (this *Zonda) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Zonda) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
