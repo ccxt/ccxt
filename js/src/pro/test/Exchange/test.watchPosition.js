@@ -13,6 +13,7 @@ async function testWatchPosition(exchange, skippedProperties, symbol) {
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchPosition(symbol);
         }
@@ -21,11 +22,15 @@ async function testWatchPosition(exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds();
-            continue;
+            // continue;
+            success = false;
         }
-        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
-        now = exchange.milliseconds();
-        testPosition(exchange, skippedProperties, method, response, undefined, now);
+        if (success === true) {
+            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+            now = exchange.milliseconds();
+            testPosition(exchange, skippedProperties, method, response, undefined, now);
+        }
     }
+    return true;
 }
 export default testWatchPosition;

@@ -79,7 +79,7 @@ export default class gemini extends geminiRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
-    helperForWatchMultipleConstruct(itemHashName: string, symbols: string[], params?: {}): Promise<any>;
+    helperForWatchMultipleConstruct(itemHashName: string, symbols?: string[], params?: {}): Promise<any>;
     handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
     handleL2Updates(client: Client, message: any): void;
     /**
