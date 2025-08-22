@@ -3,6 +3,7 @@
 namespace ccxt\pro;
 
 use Ratchet\Client\Connector;
+use Ratchet\Client\WebSocket;
 use React;
 use React\EventLoop\Loop;
 use React\Promise\Timer;
@@ -18,6 +19,7 @@ use Ratchet\RFC6455\Messaging\Message;
 use Exception;
 use RuntimeException;
 
+
 class NoOriginHeaderConnector extends Connector {
     public function generateRequest($url, array $subProtocols, array $headers) {
         return parent::generateRequest($url, $subProtocols, $headers)->withoutHeader('Origin');
@@ -30,8 +32,6 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
-    public $message_queue = array();
-    public $useMessageQueue = false;
     public $options = array();
 
     public $on_message_callback;
@@ -40,11 +40,11 @@ class Client {
     public $on_connected_callback;
 
     public $error;
-    public $connectionStarted;
-    public $connectionEstablished;
+    public $connecting;
     // public $connection_timer; // ?
     public $connectionTimeout = 30000;
     public $pingInterval;
+    public $connectionInterval;
     public $keepAlive = 30000;
     public $maxPingPongMisses = 2.0;
     public $lastPong = null;
@@ -56,14 +56,16 @@ class Client {
     public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
-    public $isConnected = false;
+    public $closed = false;
     public $noOriginHeader = true;
     public $log = null;
     public $heartbeat = null;
-    public $cost = 1;
+    public int $cost = 1;
     public $timeframes = null;
     public $watchTradesForSymbols = null;
     public $watchOrderBookForSymbols = null;
+
+    public $decompressBinary = true;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
@@ -79,15 +81,6 @@ class Client {
         if (array_key_exists($message_hash, $this->rejections)) {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
-            unset($this->message_queue[$message_hash]);
-            return $future;
-        }
-        if ($this->useMessageQueue && array_key_exists($message_hash, $this->message_queue)) {
-            $queue = $this->message_queue[$message_hash];
-            if (count($queue) > 0) {
-                $future->resolve(array_shift($queue));
-                unset($this->futures[$message_hash]);
-            }
         }
         return $future;
     }
@@ -96,26 +89,10 @@ class Client {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
-        if ($this->useMessageQueue) {
-            if (!array_key_exists($message_hash, $this->message_queue)) {
-                $this->message_queue[$message_hash] = array();
-            }
-            $queue = $this->message_queue[$message_hash];
-            array_push($queue, $result);
-            while (count($queue) > 10) {
-                array_shift($queue);
-            }
-            if (array_key_exists($message_hash, $this->futures)) {
-                $promise = $this->futures[$message_hash];
-                $promise->resolve(array_shift($queue));
-                unset($this->futures[$message_hash]);
-            }
-        } else {
-            if (array_key_exists($message_hash, $this->futures)) {
-                $promise = $this->futures[$message_hash];
-                $promise->resolve($result);
-                unset($this->futures[$message_hash]);
-            }
+        if (array_key_exists($message_hash, $this->futures)) {
+            $promise = $this->futures[$message_hash];
+            $promise->resolve($result);
+            unset($this->futures[$message_hash]);
         }
         return $result;
     }
@@ -163,7 +140,6 @@ class Client {
                     array_replace_recursive($this->{$key}, $value) :
                     $value;
         }
-
         $this->connected = new Future();
     }
 
@@ -194,7 +170,7 @@ class Client {
             $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
             $promise = call_user_func($this->connector, $this->url, [], $headers);
             Timer\timeout($promise, $timeout, Loop::get())->then(
-                function($connection) {
+                function(WebSocket $connection) {
                     if ($this->verbose) {
                         echo date('c'), " connected\n";
                     }
@@ -203,8 +179,6 @@ class Client {
                     $this->connection->on('close', array($this, 'on_close'));
                     $this->connection->on('error', array($this, 'on_error'));
                     $this->connection->on('pong', array($this, 'on_pong'));
-                    $this->isConnected = true;
-                    $this->connectionEstablished = $this->milliseconds();
                     $this->connected->resolve($this->url);
                     $this->set_ping_interval();
                     $on_connected_callback = $this->on_connected_callback;
@@ -227,8 +201,8 @@ class Client {
     }
 
     public function connect($backoff_delay = 0) {
-        if (!$this->connection) {
-            $this->connection = true;
+        if (($this->connection == null) && !$this->connecting) {
+            $this->connecting = true;
             if ($backoff_delay) {
                 if ($this->verbose) {
                     echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
@@ -256,7 +230,14 @@ class Client {
     }
 
     public function close() {
-        $this->connection->close();
+        foreach ($this->futures as $future) {
+            $future->cancel();
+        }
+        $this->clear_ping_interval();
+        if ($this->connection !== null) {
+            $this->connection->removeListener('close', array($this, 'on_close'));
+            $this->connection->close();
+        }
     }
 
     public function on_pong($message) {
@@ -284,14 +265,14 @@ class Client {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
-        if ($this->error) {
-            $this->reset($this->error);
-        }
     }
 
     public function on_message(Message $message) {
-        if (preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0) { // only decompress if the message is a binary
-            if ($this->gunzip) {
+        $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
+        if ($is_binary) { // only decompress if the message is a binary
+            if (!$this->decompressBinary) {
+                // do nothing, we need it as is
+            } else if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {
                 $message = \ccxt\pro\inflate($message);
@@ -300,6 +281,11 @@ class Client {
 
         try {
             $message = (string) $message;
+            // if (!$is_binary) {
+            //     $message = (string) $message;
+            // } else {
+            //     $message = $message->getContents();
+            // }
             if ($this->verbose) {
                 echo date('c'), ' on_message ', $message, "\n";
             }
@@ -320,7 +306,6 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
-        $this->message_queue = array();
         $this->reject($error);
     }
 
@@ -343,7 +328,7 @@ class Client {
     }
 
     public function on_ping_interval() {
-        if ($this->keepAlive && $this->isConnected) {
+        if ($this->keepAlive && !$this->closed) {
             $now = $this->milliseconds();
             $this->lastPong = isset ($this->lastPong) ? $this->lastPong : $now;
             if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {

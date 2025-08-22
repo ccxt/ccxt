@@ -5228,7 +5228,7 @@ class htx extends Exchange {
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          * @param {string} $symbol unified $symbol of the market to create an order in
@@ -6644,7 +6644,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6679,7 +6679,7 @@ class htx extends Exchange {
             $fee = $this->safe_number($params, 'fee');
             if ($fee === null) {
                 $currencies = $this->fetch_currencies();
-                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
                 $targetNetwork = $this->safe_value($currency['networks'], $networkCode, array());
                 $fee = $this->safe_number($targetNetwork, 'fee');
                 if ($fee === null) {
@@ -6928,13 +6928,18 @@ class htx extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page_index', 'current_page', 1, 50);
+            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50);
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'contract_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        } else {
+            $request['page_size'] = 50; // max
+        }
         $response = null;
         if ($market['inverse']) {
             $response = $this->contractPublicGetSwapApiV1SwapHistoricalFundingRate ($this->extend($request, $params));
@@ -7529,7 +7534,7 @@ class htx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -9325,6 +9330,7 @@ class htx extends Exchange {
             'contracts' => $this->safe_number($liquidation, 'volume'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'direction'),
             'baseValue' => $this->safe_number($liquidation, 'amount'),
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,

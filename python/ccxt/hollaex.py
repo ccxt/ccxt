@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -262,6 +263,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'broad': {
+                    'API request is expired': InvalidNonce,
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
@@ -796,7 +798,8 @@ class hollaex(Exchange, ImplicitAPI):
         #      "price":0.147411,
         #      "timestamp":"2022-01-26T17:53:34.650Z",
         #      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        #      "fee":0.01031877,"fee_coin":"usdt"
+        #      "fee":0.01031877,
+        #      "fee_coin":"usdt"
         #  }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -809,11 +812,12 @@ class hollaex(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         feeCostString = self.safe_string(trade, 'fee')
+        feeCoin = self.safe_string(trade, 'fee_coin')
         fee = None
         if feeCostString is not None:
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(feeCoin),
             }
         return self.safe_trade({
             'info': trade,
@@ -899,7 +903,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -910,16 +914,24 @@ class hollaex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        paginate = False
+        maxLimit = 500
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', paginate)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         until = self.safe_integer(params, 'until')
-        end = self.seconds()
-        if until is not None:
-            end = self.parse_to_int(until / 1000)
-        defaultSpan = 2592000  # 30 days
-        if since is not None:
-            request['from'] = self.parse_to_int(since / 1000)
-        else:
-            request['from'] = end - defaultSpan
-        request['to'] = end
+        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
+        start = since
+        now = self.milliseconds()
+        if until is None and start is None:
+            until = now
+            start = until - timeDelta
+        elif until is None:
+            until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        elif start is None:
+            start = until - timeDelta
+        request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
+        request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
         params = self.omit(params, 'until')
         response = self.publicGetChart(self.extend(request, params))
         #
@@ -1277,11 +1289,10 @@ class hollaex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request: dict = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(convertedAmount),
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such
@@ -1292,10 +1303,9 @@ class hollaex(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
         if not isMarketOrder:
-            convertedPrice = float(self.price_to_precision(symbol, price))
-            request['price'] = self.normalize_number_if_needed(convertedPrice)
+            request['price'] = self.price_to_precision(symbol, price)
         if triggerPrice is not None:
-            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, triggerPrice)))
+            request['stop'] = self.price_to_precision(symbol, triggerPrice)
         if postOnly:
             request['meta'] = {'post_only': True}
         params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
@@ -1788,7 +1798,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1942,11 +1952,6 @@ class hollaex(Exchange, ImplicitAPI):
         #
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
-
-    def normalize_number_if_needed(self, number):
-        if self.is_round_number(number):
-            number = int(number)
-        return number
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

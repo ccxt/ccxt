@@ -257,7 +257,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     /**
      * @method
@@ -687,7 +687,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;

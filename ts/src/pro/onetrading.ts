@@ -4,7 +4,7 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -1224,7 +1224,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "error": "MALFORMED_JSON",

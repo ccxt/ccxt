@@ -65,7 +65,7 @@ export BINANCE_SECRET=your_secret
 
 ### Config files
 
-Inside `$CACHE/ccxt/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
+Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
 
 ```Json
 {
@@ -204,6 +204,7 @@ If you don't want to provide a value for an optional argument, you should still 
 
 ## 📝 Tips
 
+- CLI supports automatic conversions from ISO8601 datetime to milliseconds, users can specify datetimes in command-line arguments in ISO8601 format in quotes like `"2025-05-01T01:23:45Z"` (where a method argument requires milliseconds)
 - Use `--verbose` flag to inspect raw request/response data.
 - Use `--sandbox` to place the request using the testnet/sandbox environment
 - Always test with small amounts when placing orders.

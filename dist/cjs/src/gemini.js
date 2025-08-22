@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class gemini
  * @augments Exchange
  */
-class gemini extends gemini$1 {
+class gemini extends gemini$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',
@@ -261,7 +263,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -2002,4 +2004,4 @@ class gemini extends gemini$1 {
     }
 }
 
-module.exports = gemini;
+exports["default"] = gemini;

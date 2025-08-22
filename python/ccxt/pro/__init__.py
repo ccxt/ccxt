@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.88'
+__version__ = '4.5.1'
 
 # ----------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -55,140 +56,6 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
@@ -258,7 +125,6 @@ from ccxt.pro.poloniex import poloniex                                    # noqa
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
-from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.woofipro import woofipro                                    # noqa: F401
@@ -333,7 +199,6 @@ exchanges = [
     'probit',
     'tradeogre',
     'upbit',
-    'vertex',
     'whitebit',
     'woo',
     'woofipro',

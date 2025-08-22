@@ -2064,6 +2064,21 @@
         ],
         "fetchTickers": [
             {
+                "description": "rolling tickers",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/api/v3/ticker?symbols=%5B%22BTCUSDT%22%2C%22ETHUSDT%22%5D",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ],
+                    {
+                        "rolling": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "spot fetch tickers with symbols",
                 "method": "fetchTickers",
                 "url": "https://testnet.binance.vision/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%2C%22LTCUSDT%22%5D",
@@ -3626,6 +3641,36 @@
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
+            },
+            {
+                "description": "withdraw using custom precision 1",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "BSC"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10.34&network=BSC&recvWindow=10000&signature=signature"
+            },
+            {
+                "description": "withdraw using custom precision 2",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "CHZ"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [
@@ -3774,6 +3819,18 @@
                 "url": "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?period=1d&symbol=BTCUSDT",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks with a single symbol",
+                "method": "fetchAllGreeks",
+                "url": "https://eapi.binance.com/eapi/v1/mark?symbol=ETH-231229-800-C",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-231229-800-C"
+                    ]
                 ]
             }
         ]

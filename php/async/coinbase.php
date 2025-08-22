@@ -45,6 +45,9 @@ class coinbase extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
@@ -59,6 +62,8 @@ class coinbase extends Exchange {
                 'createMarketSellOrder' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -69,8 +74,12 @@ class coinbase extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchConvertQuote' => true,
@@ -88,42 +97,69 @@ class coinbase extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
                 'fetchMyBuys' => true,
+                'fetchMyLiquidations' => false,
                 'fetchMySells' => true,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => 'emulated',
                 'fetchTradingFees' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'withdraw' => true,
@@ -327,12 +363,14 @@ class coinbase extends Exchange {
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
-                    'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
+                    'INSUFFICIENT_FUND' => '\\ccxt\\InsufficientFunds',
                     'PERMISSION_DENIED' => '\\ccxt\\PermissionDenied',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
                     'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE' => '\\ccxt\\InvalidOrder',
+                    'PREVIEW_INSUFFICIENT_FUND' => '\\ccxt\\InsufficientFunds',
                 ),
                 'broad' => array(
+                    'Insufficient balance in source account' => '\\ccxt\\InsufficientFunds',
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
                     'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // array("error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found")
                 ),
@@ -2276,34 +2314,44 @@ class coinbase extends Exchange {
         // fetchTickersV3
         //
         //     array(
-        //         array(
-        //             "product_id" => "TONE-USD",
-        //             "price" => "0.01523",
-        //             "price_percentage_change_24h" => "1.94109772423025",
-        //             "volume_24h" => "19773129",
-        //             "volume_percentage_change_24h" => "437.0170530929949",
-        //             "base_increment" => "1",
-        //             "quote_increment" => "0.00001",
-        //             "quote_min_size" => "1",
-        //             "quote_max_size" => "10000000",
-        //             "base_min_size" => "26.7187147229469674",
-        //             "base_max_size" => "267187147.2294696735908216",
-        //             "base_name" => "TE-FOOD",
-        //             "quote_name" => "US Dollar",
-        //             "watched" => false,
-        //             "is_disabled" => false,
-        //             "new" => false,
-        //             "status" => "online",
-        //             "cancel_only" => false,
-        //             "limit_only" => false,
-        //             "post_only" => false,
-        //             "trading_disabled" => false,
-        //             "auction_mode" => false,
-        //             "product_type" => "SPOT",
-        //             "quote_currency_id" => "USD",
-        //             "base_currency_id" => "TONE",
-        //             "fcm_trading_session_details" => null,
-        //             "mid_market_price" => ""
+        //        array(
+        //            "product_id" => "ETH-USD",
+        //            "price" => "4471.59",
+        //            "price_percentage_change_24h" => "0.14243387238731",
+        //            "volume_24h" => "87329.92990204",
+        //            "volume_percentage_change_24h" => "-60.7789801794578",
+        //            "base_increment" => "0.00000001",
+        //            "quote_increment" => "0.01",
+        //            "quote_min_size" => "1",
+        //            "quote_max_size" => "150000000",
+        //            "base_min_size" => "0.00000001",
+        //            "base_max_size" => "42000",
+        //            "base_name" => "Ethereum",
+        //            "quote_name" => "US Dollar",
+        //            "watched" => false,
+        //            "is_disabled" => false,
+        //            "new" => false,
+        //            "status" => "online",
+        //            "cancel_only" => false,
+        //            "limit_only" => false,
+        //            "post_only" => false,
+        //            "trading_disabled" => false,
+        //            "auction_mode" => false,
+        //            "product_type" => "SPOT",
+        //            "quote_currency_id" => "USD",
+        //            "base_currency_id" => "ETH",
+        //            "fcm_trading_session_details" => null,
+        //            "mid_market_price" => "",
+        //            "alias" => "",
+        //            "alias_to" => array( "ETH-USDC" ),
+        //            "base_display_symbol" => "ETH",
+        //            "quote_display_symbol" => "USD",
+        //            "view_only" => false,
+        //            "price_increment" => "0.01",
+        //            "display_name" => "ETH-USD",
+        //            "product_venue" => "CBE",
+        //            "approximate_quote_24h_volume" => "390503641.25",
+        //            "new_at" => "2023-01-01T00:00:00Z"
         //         ),
         //         ...
         //     )
@@ -2334,10 +2382,12 @@ class coinbase extends Exchange {
         if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
             $bids = $this->safe_list($ticker, 'bids', array());
             $asks = $this->safe_list($ticker, 'asks', array());
-            $bid = $this->safe_number($bids[0], 'price');
-            $bidVolume = $this->safe_number($bids[0], 'size');
-            $ask = $this->safe_number($asks[0], 'price');
-            $askVolume = $this->safe_number($asks[0], 'size');
+            $firstBid = $this->safe_dict($bids, 0, array());
+            $firstAsk = $this->safe_dict($asks, 0, array());
+            $bid = $this->safe_number($firstBid, 'price');
+            $bidVolume = $this->safe_number($firstBid, 'size');
+            $ask = $this->safe_number($firstAsk, 'price');
+            $askVolume = $this->safe_number($firstAsk, 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
         $market = $this->safe_market($marketId, $market);
@@ -2361,8 +2411,8 @@ class coinbase extends Exchange {
             'change' => null,
             'percentage' => $this->safe_number($ticker, 'price_percentage_change_24h'),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
+            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'approximate_quote_24h_volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -4144,7 +4194,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4737,7 +4787,7 @@ class coinbase extends Exchange {
             /**
              * *futures only* closes open positions for a $market
              *
-             * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+             * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by coinbase
@@ -4748,9 +4798,6 @@ class coinbase extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['future']) {
-                throw new NotSupported($this->id . ' closePosition() only supported for futures markets');
-            }
             $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
             $params = $this->omit($params, 'clientOrderId');
             $request = array(

@@ -33,19 +33,29 @@ export default class bitvavo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -56,21 +66,39 @@ export default class bitvavo extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -82,6 +110,7 @@ export default class bitvavo extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -90,9 +119,14 @@ export default class bitvavo extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -622,7 +656,7 @@ export default class bitvavo extends Exchange {
             });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
     /**
@@ -1194,6 +1228,9 @@ export default class bitvavo extends Exchange {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         return this.extend(request, params);
     }
     /**
@@ -1298,6 +1335,9 @@ export default class bitvavo extends Exchange {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1338,6 +1378,9 @@ export default class bitvavo extends Exchange {
         [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         return this.extend(request, params);
     }

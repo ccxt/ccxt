@@ -253,6 +253,7 @@ export default class phemex extends Exchange {
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -382,7 +383,7 @@ export default class phemex extends Exchange {
      * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name phemex#transfer
@@ -439,7 +440,7 @@ export default class phemex extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name phemex#fetchOpenInterest

@@ -9541,6 +9541,35 @@
                   }
                 ]
             }
+        ],
+        "fetchDepositAddress":[
+            {
+                "description": "fetch the USDT deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {"code":0,"msg":"OK","data":{"address":"0xb25d80a50beb7264d2b626a4141ab7f65f020dd6","tag":"","notice":false,"accountType":1,"contractName":null,"chainTokenUrl":null,"sign":null}}, 
+                "parsedResponse": {
+                    "info": {
+                    "code": 0,
+                    "msg": "OK",
+                    "data": {
+                        "address": "0xb25d80a50beb7264d2b626a4141ab7f65f020dd6",
+                        "tag": "",
+                        "notice": false,
+                        "accountType": 1,
+                        "contractName": null,
+                        "chainTokenUrl": null,
+                        "sign": null
+                    }
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0xb25d80a50beb7264d2b626a4141ab7f65f020dd6",
+                    "tag": null
+                }
+            }
         ]
     }
 }

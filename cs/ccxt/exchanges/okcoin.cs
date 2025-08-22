@@ -1785,7 +1785,7 @@ public partial class okcoin : Exchange
         if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -2677,7 +2677,7 @@ public partial class okcoin : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(getArrayLength(tag), 0)))))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(((string)tag).Length, 0)))))
         {
             address = add(add(address, ":"), tag);
         }

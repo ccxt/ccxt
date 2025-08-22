@@ -297,7 +297,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseIds(ids: any): any;
     /**
      * @method
@@ -488,7 +488,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name okx#fetchDeposits
@@ -678,7 +678,7 @@ export default class okx extends Exchange {
      * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name okx#fetchPositionMode
@@ -807,7 +807,7 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#fetchBorrowInterest
-     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @description fetch the interest owed b the user for borrowing currency for margin trading
      * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
      * @param {string} code the unified currency code for the currency of the interest
      * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
@@ -959,6 +959,18 @@ export default class okx extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
      */
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    /**
+     * @method
+     * @name okx#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.uly Underlying, either uly or instFamily is required
+     * @param {string} params.instFamily Instrument family, either uly or instFamily is required
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     /**
      * @method

@@ -2703,21 +2703,21 @@ export default class deribit extends Exchange {
         const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
         const notionalString = this.safeString (position, 'size_currency');
+        const notionalStringAbs = Precise.stringAbs (notionalString);
         const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
-        const currentTime = this.milliseconds ();
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
-            'initialMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
-            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': this.safeNumber (position, 'average_price'),
-            'notional': this.parseNumber (notionalString),
+            'notional': this.parseNumber (notionalStringAbs),
             'leverage': this.safeInteger (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'contracts': undefined,
@@ -3070,7 +3070,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

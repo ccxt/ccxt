@@ -2,6 +2,191 @@
     "exchange": "hollaex",
     "skipKeys": [],
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades for sandbox",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "count": 2,
+                    "data": [
+                        {
+                            "side": "buy",
+                            "symbol": "btc-usdt",
+                            "size": "0.0002",
+                            "price": "102000",
+                            "timestamp": "2025-06-17T12:12:36.304Z",
+                            "order_id": "3d4147c3-8319-4800-b740-ca826b83099e",
+                            "fee": "7e-7",
+                            "fee_coin": "btc"
+                        },
+                        {
+                            "side": "sell",
+                            "symbol": "xht-usdt",
+                            "size": "2",
+                            "price": "0.22",
+                            "timestamp": "2022-05-16T11:32:55.814Z",
+                            "order_id": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                            "fee": "0.00044",
+                            "fee_coin": "usdt"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "side": "sell",
+                            "symbol": "xht-usdt",
+                            "size": "2",
+                            "price": "0.22",
+                            "timestamp": "2022-05-16T11:32:55.814Z",
+                            "order_id": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                            "fee": "0.00044",
+                            "fee_coin": "usdt"
+                        },
+                        "id": null,
+                        "timestamp": 1652700775814,
+                        "datetime": "2022-05-16T11:32:55.814Z",
+                        "symbol": "XHT/USDT",
+                        "order": "e94b9d8f-8a6d-42c0-994b-36948ffc7176",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 0.22,
+                        "amount": 2,
+                        "cost": 0.44,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00044
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00044
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "side": "buy",
+                            "symbol": "btc-usdt",
+                            "size": "0.0002",
+                            "price": "102000",
+                            "timestamp": "2025-06-17T12:12:36.304Z",
+                            "order_id": "3d4147c3-8319-4800-b740-ca826b83099e",
+                            "fee": "7e-7",
+                            "fee_coin": "btc"
+                        },
+                        "id": null,
+                        "timestamp": 1750162356304,
+                        "datetime": "2025-06-17T12:12:36.304Z",
+                        "symbol": "BTC/USDT",
+                        "order": "3d4147c3-8319-4800-b740-ca826b83099e",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 102000,
+                        "amount": 0.0002,
+                        "cost": 20.4,
+                        "fee": {
+                            "currency": "BTC",
+                            "cost": 7e-7
+                        },
+                        "fees": [
+                            {
+                                "currency": "BTC",
+                                "cost": 7e-7
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create a limit test order",
+                "method": "createOrder",
+                "input": [
+                    "SHIB/USDT",
+                    "limit",
+                    "buy",
+                    1000,
+                    0.000001
+                ],
+                "httpResponse": {
+                    "fee": "0",
+                    "meta": {},
+                    "symbol": "shib-usdt",
+                    "side": "buy",
+                    "size": "1000",
+                    "type": "limit",
+                    "price": "0.000001",
+                    "fee_structure": {
+                        "maker": "0.35",
+                        "taker": "0.35"
+                    },
+                    "fee_coin": "shib",
+                    "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                    "created_by": "1388",
+                    "filled": "0",
+                    "average": "0.000001",
+                    "status": "new",
+                    "updated_at": "2025-06-17T12:36:27.279Z",
+                    "created_at": "2025-06-17T12:36:27.279Z",
+                    "stop": null
+                },
+                "parsedResponse": {
+                    "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                    "clientOrderId": null,
+                    "timestamp": 1750163787279,
+                    "datetime": "2025-06-17T12:36:27.279Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "SHIB/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 0.000001,
+                    "triggerPrice": null,
+                    "amount": 1000,
+                    "filled": 0,
+                    "remaining": 1000,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "fee": "0",
+                        "meta": {},
+                        "symbol": "shib-usdt",
+                        "side": "buy",
+                        "size": "1000",
+                        "type": "limit",
+                        "price": "0.000001",
+                        "fee_structure": {
+                            "maker": "0.35",
+                            "taker": "0.35"
+                        },
+                        "fee_coin": "shib",
+                        "id": "c83ab943-eb87-4434-88a3-2d355b374c56",
+                        "created_by": "1388",
+                        "filled": "0",
+                        "average": "0.000001",
+                        "status": "new",
+                        "updated_at": "2025-06-17T12:36:27.279Z",
+                        "created_at": "2025-06-17T12:36:27.279Z",
+                        "stop": null
+                    },
+                    "average": null,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

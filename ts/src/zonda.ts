@@ -29,6 +29,9 @@ export default class zonda extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -37,6 +40,7 @@ export default class zonda extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -67,12 +71,15 @@ export default class zonda extends Exchange {
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
@@ -80,6 +87,7 @@ export default class zonda extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -87,8 +95,11 @@ export default class zonda extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -109,6 +120,7 @@ export default class zonda extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1828,7 +1840,7 @@ export default class zonda extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

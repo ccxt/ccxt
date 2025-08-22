@@ -164,6 +164,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
+        await this.loadMarkets();
         const name = 'ticker';
         return await this.subscribe(name, false, symbol, params);
     }
@@ -177,6 +178,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
         if (symbols === undefined) {
             symbols = this.symbols;
         }

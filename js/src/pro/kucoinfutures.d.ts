@@ -1,5 +1,5 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
@@ -199,7 +199,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         type: string;
     };
     handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class cryptocom
  * @augments Exchange
  */
-class cryptocom extends cryptocom$1 {
+class cryptocom extends cryptocom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptocom',
@@ -42,6 +44,7 @@ class cryptocom extends cryptocom$1 {
                 'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -60,7 +63,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
@@ -134,6 +137,7 @@ class cryptocom extends cryptocom$1 {
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -151,6 +155,13 @@ class cryptocom extends cryptocom$1 {
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1, // no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -177,6 +188,7 @@ class cryptocom extends cryptocom$1 {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -452,6 +464,7 @@ class cryptocom extends cryptocom$1 {
             'exceptions': {
                 'exact': {
                     '219': errors.InvalidOrder,
+                    '306': errors.InsufficientFunds,
                     '314': errors.InvalidOrder,
                     '325': errors.InvalidOrder,
                     '415': errors.InvalidOrder,
@@ -521,7 +534,26 @@ class cryptocom extends cryptocom$1 {
         if (!this.checkRequiredCredentials(false)) {
             return undefined;
         }
-        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        let skipFetchCurrencies = false;
+        [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if (skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return undefined;
+        }
+        let response = {};
+        try {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        }
+        catch (e) {
+            if (e instanceof errors.ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return undefined;
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id": "1747502328559",
@@ -546,7 +578,7 @@ class cryptocom extends cryptocom$1 {
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },
@@ -1117,7 +1149,7 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
         };
         if (limit) {
-            request['depth'] = limit;
+            request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
         //
@@ -1635,6 +1667,50 @@ class cryptocom extends cryptocom$1 {
     }
     /**
      * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.editOrderRequest(id, symbol, amount, price, params);
+        const response = await this.v1PrivatePostPrivateAmendOrder(request);
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result);
+    }
+    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+        const request = {};
+        if (id !== undefined) {
+            request['order_id'] = id;
+        }
+        else {
+            const originalClientOrderId = this.safeString2(params, 'orig_client_oid', 'clientOrderId');
+            if (originalClientOrderId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument or orig_client_oid parameter');
+            }
+            else {
+                request['orig_client_oid'] = originalClientOrderId;
+                params = this.omit(params, ['orig_client_oid', 'clientOrderId']);
+            }
+        }
+        if ((amount === undefined) || (price === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
+        }
+        request['new_quantity'] = this.amountToPrecision(symbol, amount);
+        request['new_price'] = this.priceToPrecision(symbol, price);
+        return this.extend(request, params);
+    }
+    /**
+     * @method
      * @name cryptocom#cancelAllOrders
      * @description cancel all open orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
@@ -1650,7 +1726,8 @@ class cryptocom extends cryptocom$1 {
             market = this.market(symbol);
             request['instrument_name'] = market['id'];
         }
-        return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, params));
+        const response = await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, params));
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2919,6 +2996,81 @@ class cryptocom extends cryptocom$1 {
     }
     /**
      * @method
+     * @name cryptocom#fetchFundingRate
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'valuation_type': 'estimated_funding_rate',
+            'count': 1,
+        };
+        const response = await this.v1PublicGetPublicGetValuations(this.extend(request, params));
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-valuations",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //             ],
+        //             "instrument_name": "BTCUSD-PERP"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'data', []);
+        const entry = this.safeDict(data, 0, {});
+        return this.parseFundingRate(entry, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //                 {
+        //                     "v": "-0.000001884",
+        //                     "t": 1687892400000
+        //                 },
+        //
+        const timestamp = this.safeInteger(contract, 't');
+        let fundingTimestamp = undefined;
+        if (timestamp !== undefined) {
+            fundingTimestamp = Math.ceil(timestamp / 3600000) * 3600000; // end of the next hour
+        }
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 'v'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
+        };
+    }
+    /**
+     * @method
      * @name cryptocom#fetchFundingRateHistory
      * @description fetches historical funding rates
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
@@ -3395,4 +3547,4 @@ class cryptocom extends cryptocom$1 {
     }
 }
 
-module.exports = cryptocom;
+exports["default"] = cryptocom;

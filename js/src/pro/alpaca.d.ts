@@ -1,5 +1,5 @@
 import alpacaRest from '../alpaca.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
     describe(): any;
@@ -85,7 +85,7 @@ export default class alpaca extends alpacaRest {
     handleMyTrade(client: Client, message: any): void;
     parseMyTrade(trade: any, market?: any): Trade;
     authenticate(url: any, params?: {}): Promise<any>;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleConnected(client: Client, message: any): any;
     handleCryptoMessage(client: Client, message: any): void;
     handleTradingMessage(client: Client, message: any): void;

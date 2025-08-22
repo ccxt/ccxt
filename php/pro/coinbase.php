@@ -175,6 +175,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $name = 'ticker';
             return Async\await($this->subscribe($name, false, $symbol, $params));
         }) ();
@@ -191,6 +192,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
+            Async\await($this->load_markets());
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }

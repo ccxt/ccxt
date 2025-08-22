@@ -456,6 +456,8 @@ export default class digifinex extends Exchange {
                     'BSC': 'BEP20',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
+                    'Polygon': 'POLYGON',
+                    'Crypto.com': 'CRONOS',
                 },
             },
             'commonCurrencies': {
@@ -518,70 +520,45 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
+        const groupedById = this.groupBy (data, 'currency');
+        const keys = Object.keys (groupedById);
         const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const networkEntry = data[i];
-            const id = this.safeString (networkEntry, 'currency');
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const networkEntries = groupedById[id];
             const code = this.safeCurrencyCode (id);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': [],
-                    'type': undefined,
-                    'name': undefined,
+            const networks = {};
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString (networkEntry, 'chain');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
+                    'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
                             'max': undefined,
                         },
                     },
-                    'networks': {},
+                    'info': networkEntry,
                 };
             }
-            const networkId = this.safeString (networkEntry, 'chain');
-            const networkCode = this.networkIdToCode (networkId);
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': this.safeInteger (networkEntry, 'deposit_status') === 1,
-                'deposit': this.safeInteger (networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger (networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber (networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
-            const infos = this.safeList (result[code], 'info', []);
-            infos.push (networkEntry);
-            result[code]['info'] = infos;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys (result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'code': code,
+                'info': networkEntries,
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -2000,7 +1977,7 @@ export default class digifinex extends Exchange {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
             const orders = this.parseCancelOrders (response);
-            return this.safeDict (orders, 0);
+            return this.safeDict (orders, 0) as Order;
         } else {
             return this.safeOrder ({
                 'info': response,
@@ -3109,7 +3086,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -3828,7 +3805,7 @@ export default class digifinex extends Exchange {
      * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

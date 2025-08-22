@@ -585,9 +585,9 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch USDT deposit address",
+                "description": "fetch the USDT deposit address",
                 "method": "fetchDepositAddress",
-                "url": "https://api.phemex.com/phemex-user/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
+                "url": "https://testnet-api.phemex.com/exchange/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
                 "input": [
                     "USDT"
                 ]

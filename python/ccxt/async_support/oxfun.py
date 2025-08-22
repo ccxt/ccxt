@@ -2024,7 +2024,7 @@ class oxfun(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2585,7 +2585,8 @@ class oxfun(Exchange, ImplicitAPI):
         #         "data": {"notice": "No working orders found"}
         #     }
         #
-        return await self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        response = await self.privateDeleteV3OrdersCancelAll(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """

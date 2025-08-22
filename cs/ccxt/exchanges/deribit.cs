@@ -2835,21 +2835,21 @@ public partial class deribit : Exchange
         object unrealizedPnl = this.safeString(position, "floating_profit_loss");
         object initialMarginString = this.safeString(position, "initial_margin");
         object notionalString = this.safeString(position, "size_currency");
+        object notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginString = this.safeString(position, "maintenance_margin");
-        object currentTime = this.milliseconds();
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
-            { "timestamp", currentTime },
-            { "datetime", this.iso8601(currentTime) },
+            { "timestamp", null },
+            { "datetime", null },
             { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMarginString) },
-            { "initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalString), "100")) },
+            { "initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalStringAbs), "100")) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
-            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalString), "100")) },
+            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(maintenanceMarginString, notionalStringAbs), "100")) },
             { "entryPrice", this.safeNumber(position, "average_price") },
-            { "notional", this.parseNumber(notionalString) },
+            { "notional", this.parseNumber(notionalStringAbs) },
             { "leverage", this.safeInteger(position, "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
             { "contracts", null },

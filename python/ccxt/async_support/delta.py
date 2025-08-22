@@ -906,9 +906,9 @@ class delta(Exchange, ImplicitAPI):
                 'inverse': None if spot else not linear,
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': None if spot else contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': self.iso8601(expiry),  # do not use raw expiry string
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
@@ -2938,7 +2938,7 @@ class delta(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

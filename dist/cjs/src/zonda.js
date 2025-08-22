@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var zonda$1 = require('./abstract/zonda.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class zonda
  * @augments Exchange
  */
-class zonda extends zonda$1 {
+class zonda extends zonda$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zonda',
@@ -27,6 +29,9 @@ class zonda extends zonda$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -35,6 +40,7 @@ class zonda extends zonda$1 {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -65,12 +71,15 @@ class zonda extends zonda$1 {
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
@@ -78,6 +87,7 @@ class zonda extends zonda$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -85,8 +95,11 @@ class zonda extends zonda$1 {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -107,6 +120,7 @@ class zonda extends zonda$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -1980,4 +1994,4 @@ class zonda extends zonda$1 {
     }
 }
 
-module.exports = zonda;
+exports["default"] = zonda;

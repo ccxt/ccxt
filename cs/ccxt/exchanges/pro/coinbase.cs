@@ -176,6 +176,7 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object name = "ticker";
         return await this.subscribe(name, false, symbol, parameters);
     }
@@ -192,6 +193,7 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;

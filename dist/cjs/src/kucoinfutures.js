@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
  * @class kucoinfutures
  * @augments Exchange
  */
-class kucoinfutures extends kucoinfutures$1 {
+class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoinfutures',
@@ -1768,7 +1770,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method
@@ -1867,7 +1869,8 @@ class kucoinfutures extends kucoinfutures$1 {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
+        return [this.safeOrder({ 'info': data })];
     }
     /**
      * @method
@@ -2490,6 +2493,7 @@ class kucoinfutures extends kucoinfutures$1 {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -3375,4 +3379,4 @@ class kucoinfutures extends kucoinfutures$1 {
     }
 }
 
-module.exports = kucoinfutures;
+exports["default"] = kucoinfutures;

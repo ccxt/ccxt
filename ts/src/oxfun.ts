@@ -2113,7 +2113,7 @@ export default class oxfun extends Exchange {
      * @param {string} [params.code] 2FA code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2681,7 +2681,8 @@ export default class oxfun extends Exchange {
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        return await this.privateDeleteV3OrdersCancelAll (this.extend (request, params));
+        const response = await this.privateDeleteV3OrdersCancelAll (this.extend (request, params));
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
