@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchPositions";
         object now = exchange.milliseconds();
@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = await exchange.watchPositions(new List<object>() {symbol});
@@ -26,19 +27,24 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-            now = exchange.milliseconds();
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success, true)))
             {
-                testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
+                testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
+                now = exchange.milliseconds();
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
+                }
+                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             }
-            testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
             //
             // Test with specific symbol
             //
             object positionsForSymbols = null;
+            object success2 = true;
             try
             {
                 positionsForSymbols = await exchange.watchPositions(new List<object>() {symbol});
@@ -49,18 +55,23 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success2 = false;
             }
-            assert(((positionsForSymbols is IList<object>) || (positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
-            // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-            assert(isLessThanOrEqual(getArrayLength(positionsForSymbols), 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
-            now = exchange.milliseconds();
-            for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success2, true)))
             {
-                testPosition(exchange, skippedProperties, method, getValue(positionsForSymbols, i), symbol, now);
+                assert(((positionsForSymbols is IList<object>) || (positionsForSymbols.GetType().IsGenericType && positionsForSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbols)));
+                // max theoretical 4 positions: two for one-way-mode and two for two-way mode
+                assert(isLessThanOrEqual(getArrayLength(positionsForSymbols), 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
+                now = exchange.milliseconds();
+                for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
+                {
+                    testPosition(exchange, skippedProperties, method, getValue(positionsForSymbols, i), symbol, now);
+                }
+                testSharedMethods.assertTimestampOrder(exchange, method, symbol, positionsForSymbols);
             }
-            testSharedMethods.assertTimestampOrder(exchange, method, symbol, positionsForSymbols);
         }
+        return true;
     }
 
 }
