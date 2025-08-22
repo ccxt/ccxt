@@ -5,7 +5,7 @@ import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange: Exchange, skippedProperties: object, symbol: string) => {
+async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     const method = 'watchLiquidationsForSymbols';
 
@@ -57,4 +57,6 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     }
 
     return response;
-};
+}
+
+export default testWatchLiquidationsForSymbols;
