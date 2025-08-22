@@ -178,7 +178,7 @@
     "test-base-ws-cs": "npm run ti-cs  -- --baseTests --ws",
     "test-base-ws-go": "npm run ti-go  -- --baseTests --ws",
     "test-base-rest": "npm run test-base-rest-js && npm run test-base-rest-py && npm run test-base-rest-php && npm run test-base-rest-cs",
-    "test-base-ws": "npm run test-base-ws-js   && npm run test-base-ws-py   && npm run test-base-ws-php   && npm run test-base-ws-cs",
+    "test-base-ws": "npm run test-base-ws-js   && npm run test-base-ws-py   && npm run test-base-ws-php   && npm run test-base-ws-cs && npm run test-base-ws-go",
     "test": "npm run build && npm run commonjs-test && npm run id-tests && npm run request-tests && npm run response-tests && npm run live-tests",
     "commonjs-test": "node ./utils/test-commonjs.cjs",
     "package-test": "./utils/package-test.sh",
