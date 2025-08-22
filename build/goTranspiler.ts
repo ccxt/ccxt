@@ -1990,7 +1990,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileWsOrderbookTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const goFile = `${outDir}/Orderbook.go`;
+        const goFile = `${outDir}/cache/Orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -2000,25 +2000,17 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         splitParts.shift();
         content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
-            [/typeof\((\w+)\)/g,'$1'], // tmp fix
-            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g,'var $1 = $2.$3;'], // tmp fix
-            [ /object  = functions;/g, '' ], // tmp fix
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
         ]).trim ()
 
         const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+        const contentIdented = contentLines.map (line => line).join ('\n');
 
         const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
+            'package cache',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
             contentIdented,
-            '}',
         ].join('\n')
 
         log.magenta ('→', (goFile as any).yellow)
@@ -2030,7 +2022,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileWsCacheTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const goFile = `${outDir}/Cache.go`;
+        const goFile = `${outDir}/cache/Cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -2040,25 +2032,17 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         splitParts.shift();
         content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
-            [/typeof\((\w+)\)/g,'$1'], // tmp fix
-            [/typeof\(timestampCache\)/g,'timestampCache'], // tmp fix
-            [ /object  = functions;/g, '' ], // tmp fix
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
         ]).trim ()
 
         const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+        const contentIdented = contentLines.map (line =>  line).join ('\n');
 
         const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
+            'package cache',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
             contentIdented,
-            '}',
         ].join('\n')
 
         log.magenta ('→', (goFile as any).yellow)
@@ -2147,8 +2131,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToGo(outDir);
-        // this.transpileWsCacheTestsToGo(outDir);
-        // this.transpileWsOrderbookTestsToGo(outDir);
+        this.transpileWsCacheTestsToGo(outDir);
+        this.transpileWsOrderbookTestsToGo(outDir);
     }
 
     transpileBaseTests (outDir: string) {
