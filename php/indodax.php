@@ -192,6 +192,16 @@ class indodax extends Exchange {
                     'Minimum order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
+            'timeframes' => array(
+                '1m' => '1',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '4h' => '240',
+                '1d' => '1D',
+                '3d' => '3D',
+                '1w' => '1W',
+            ),
             // exchange-specific options
             'options' => array(
                 'recvWindow' => 5 * 1000, // default 5 sec
@@ -214,16 +224,6 @@ class indodax extends Exchange {
                     // 'ZRC2' => 'zrc2'
                     // 'ETH' => 'eth'
                     // 'BASE' => 'base'
-                ),
-                'timeframes' => array(
-                    '1m' => '1',
-                    '15m' => '15',
-                    '30m' => '30',
-                    '1h' => '60',
-                    '4h' => '240',
-                    '1d' => '1D',
-                    '3d' => '3D',
-                    '1w' => '1W',
                 ),
             ),
             'features' => array(
@@ -693,8 +693,7 @@ class indodax extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $timeframes = $this->options['timeframes'];
-        $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $selectedTimeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
         $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
