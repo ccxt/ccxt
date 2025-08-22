@@ -1267,7 +1267,7 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = `func (this *${this.capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`
+            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`
             missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
