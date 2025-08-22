@@ -204,6 +204,16 @@ class indodax(Exchange, ImplicitAPI):
                     'Minimum order': InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             # exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000,  # default 5 sec
@@ -226,16 +236,6 @@ class indodax(Exchange, ImplicitAPI):
                     # 'ZRC2': 'zrc2'
                     # 'ETH': 'eth'
                     # 'BASE': 'base'
-                },
-                'timeframes': {
-                    '1m': '1',
-                    '15m': '15',
-                    '30m': '30',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
                 },
             },
             'features': {
@@ -690,8 +690,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        timeframes = self.options['timeframes']
-        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        selectedTimeframe = self.safe_string(self.timeframes, timeframe, timeframe)
         now = self.seconds()
         until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
