@@ -700,8 +700,7 @@ export default class indodax extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const timeframes = this.options['timeframes'];
-        const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const selectedTimeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const now = this.seconds ();
         const until = this.safeInteger (params, 'until', now);
         params = this.omit (params, [ 'until' ]);
