@@ -58,6 +58,14 @@ func InvalidNonce(v ...interface{}) error {
 	return ccxt.InvalidNonce(v)
 }
 
+func Error(v ...interface{}) error {
+	return ccxt.NewError(v)
+}
+
+func NetworkError(v ...interface{}) error {
+	return ccxt.NetworkError(v)
+}
+
 func SetFetchResponse(exchange ccxt.ICoreExchange, response interface{}) ccxt.ICoreExchange {
 	exchange.SetFetchResponse(response)
 	return exchange

@@ -2316,6 +2316,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
+                [/Spawn\(createOrderAfterDelay/g, 'Spawn(CreateOrderAfterDelay'],
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''] // remove equals
 
 
@@ -2336,7 +2337,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
             const namespace = 'package base';
-            const imports = 'import "github.com/ccxt/ccxt/go/v4"';
+            let imports = 'import "github.com/ccxt/ccxt/go/v4"';
+            const fmtImport = contentIndentend.indexOf('fmt.Println') > -1 ? 'import "fmt"' : '';
+            imports = [imports, fmtImport].filter(x => x).join('\n');
             const fileHeaders = [
                 namespace,
                 imports,
