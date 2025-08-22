@@ -197,6 +197,16 @@ export default class indodax extends Exchange {
                     'Minimum order': InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             // exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000, // default 5 sec
@@ -219,16 +229,6 @@ export default class indodax extends Exchange {
                     // 'ZRC2': 'zrc2'
                     // 'ETH': 'eth'
                     // 'BASE': 'base'
-                },
-                'timeframes': {
-                    '1m': '1',
-                    '15m': '15',
-                    '30m': '30',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
                 },
             },
             'features': {
