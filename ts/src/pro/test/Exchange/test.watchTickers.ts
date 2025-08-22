@@ -18,6 +18,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
     while (now < ends) {
         let response: Tickers = undefined;
         let success = true;
+        let shouldReturn = false;
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
         } catch (e) {
@@ -27,7 +28,9 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             // mark tests as failed, but just skip them
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
-                return;
+                // return;
+                // return false;
+                shouldReturn = true;
             }
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -35,6 +38,9 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             now = exchange.milliseconds ();
             // continue;
             success = false;
+        }
+        if (shouldReturn) {
+            return false;
         }
         if (success === true) {
             assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));

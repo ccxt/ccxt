@@ -18,6 +18,7 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
     const ends = now + 15000;
     while (now < ends) {
         let success = true;
+        let shouldReturn = false;
         let response = undefined;
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
@@ -27,7 +28,8 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             // because tests will make a second call of this method with symbols array
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
-                return false;
+                // return false;
+                shouldReturn = true;
             }
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -35,6 +37,9 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             now = exchange.milliseconds ();
             // continue;
             success = false;
+        }
+        if (shouldReturn) {
+            return false;
         }
         if (success === true) {
             assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));

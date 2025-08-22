@@ -16,12 +16,12 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
 
     if (skippedExchanges.includes (exchange.id)) {
         console.log (exchange.id, method + '() test skipped');
-        return;
+        return false;
     }
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
-        return;
+        return false;
     }
 
     let response = undefined;
