@@ -19,6 +19,7 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_ticker($symbol));
             } catch(\Throwable $e) {
@@ -26,11 +27,15 @@ function test_watch_ticker($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
-            $now = $exchange->milliseconds();
-            test_ticker($exchange, $skipped_properties, $method, $response, $symbol);
+            if ($success === true) {
+                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+                $now = $exchange->milliseconds();
+                test_ticker($exchange, $skipped_properties, $method, $response, $symbol);
+            }
         }
+        return true;
     }) ();
 }

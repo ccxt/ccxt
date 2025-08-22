@@ -35,7 +35,8 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "type": "todo",
                 "withdraw": "not provided for empty chains",
-                "deposit": "not provided for empty chains"
+                "deposit": "not provided for empty chains",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:214"
@@ -1093,7 +1094,8 @@
         }
     },
     "gemini": {
-        "skipWs": "fixes needed",
+        "skipPhpAsync": "tmp",
+        "skipCSharp": "tmp",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1718,7 +1720,8 @@
                 "deposit": "undefined",
                 "networks": "networks key is missing",
                 "precision": "not provided",
-                "type": "todo"
+                "type": "todo",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"

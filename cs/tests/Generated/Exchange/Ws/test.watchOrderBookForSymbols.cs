@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
         object method = "watchOrderBookForSymbols";
         object now = exchange.milliseconds();
@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
@@ -27,14 +28,19 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-            now = exchange.milliseconds();
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-            testOrderBook(exchange, skippedProperties, method, response, null);
+            if (isTrue(isEqual(success, true)))
+            {
+                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
+                now = exchange.milliseconds();
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
+                testOrderBook(exchange, skippedProperties, method, response, null);
+            }
         }
+        return true;
     }
 
 }

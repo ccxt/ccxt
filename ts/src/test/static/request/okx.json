@@ -108,7 +108,7 @@
                         "takeProfitPrice": 90
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"tpTriggerPx\":\"90\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC4cde85f3b4698b8e\",\"tag\":\"e847386590ce4dBC\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"tpTriggerPx\":\"90\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE4cde85f3b4698b8e\",\"tag\":\"6b9ad766b55dBCDE\"}"
             },
             {
                 "description": "spot stopLossPrice buy order",
@@ -124,7 +124,7 @@
                         "stopLossPrice": 120
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC375c9606140aa425\",\"tag\":\"e847386590ce4dBC\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE375c9606140aa425\",\"tag\":\"6b9ad766b55dBCDE\"}"
             },
             {
                 "description": "spot stopLossPrice sell order",
@@ -140,7 +140,7 @@
                         "stopLossPrice": 90
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"0.1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"90\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCcc2d5dddb4cf99b1\",\"tag\":\"e847386590ce4dBC\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"0.1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"90\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDEcc2d5dddb4cf99b1\",\"tag\":\"6b9ad766b55dBCDE\"}"
             },
             {
                 "description": "sell order with stopLoss",
@@ -171,7 +171,7 @@
                     2,
                     50
                 ],
-                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"2\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"e847386590ce4dBCbc180f9bc47b8d2b\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"2\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"6b9ad766b55dBCDEbc180f9bc47b8d2b\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             },
             {
                 "description": "Spot market buy order",
@@ -183,7 +183,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"clOrdId\":\"e847386590ce4dBCb5b084423460a131\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"clOrdId\":\"6b9ad766b55dBCDEb5b084423460a131\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             },
             {
                 "description": "Swap market buy with posSide = long",
@@ -199,7 +199,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBC3301800ce435865e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"6b9ad766b55dBCDE3301800ce435865e\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}]"
             },
             {
                 "description": "Swap limit buy with stopPrice and posSide = long.",
@@ -216,7 +216,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"55\",\"orderPx\":\"50\",\"clOrdId\":\"e847386590ce4dBCf7eca4f2a4d4ba1d\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"55\",\"orderPx\":\"50\",\"clOrdId\":\"6b9ad766b55dBCDEf7eca4f2a4d4ba1d\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             },
             {
                 "description": "Swap limit sell with takeProfitPrice and posSide = long.",
@@ -233,7 +233,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"105\",\"tpOrdPx\":\"100\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC9b57d34d045f95f1\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"105\",\"tpOrdPx\":\"100\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE9b57d34d045f95f1\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             },
             {
                 "description": "Swap limit sell with stopLossPrice and posSide = long.",
@@ -250,7 +250,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"49\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC1a8839ce945a9b70\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"50\",\"slOrdPx\":\"49\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE1a8839ce945a9b70\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             },
             {
                 "description": "Opening position with tp + sl attached (type 3)",
@@ -288,7 +288,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"ccy\":\"USDT\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC6df0e66db47f8d29\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"ccy\":\"USDT\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"6b9ad766b55dBCDE6df0e66db47f8d29\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             },
             {
                 "description": "Swap inverse market long order",
@@ -304,7 +304,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCe6a4f3b1d4f5ac60\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"6b9ad766b55dBCDEe6a4f3b1d4f5ac60\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}]"
             },
             {
                 "description": "Close an inverse swap position with a market reduceOnly order",
@@ -321,7 +321,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBCa2c3414b74678559\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\",\"reduceOnly\":true}]"
+                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"6b9ad766b55dBCDEa2c3414b74678559\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\",\"reduceOnly\":true}]"
             },
             {
                 "description": "Create a one-way-mode order with position side set to net",
@@ -337,7 +337,7 @@
                         "posSide": "net"
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC9febcde144e6b64b\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"net\"}]"
+                "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"6b9ad766b55dBCDE9febcde144e6b64b\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"net\"}]"
             },
             {
                 "description": "Create a swap postOnly limit order with tp + sl attached (type 3)",
@@ -377,7 +377,7 @@
                         "tgtCcy": "quote_ccy"
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBCdbc74f1714de86ed\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"6b9ad766b55dBCDEdbc74f1714de86ed\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             },
             {
                 "description": "Swap trailingPercent order",
@@ -395,7 +395,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"move_order_stop\",\"sz\":\"1\",\"tdMode\":\"cross\",\"callbackRatio\":\"0.05\",\"clOrdId\":\"e847386590ce4dBC5328f747a43e97d9\",\"tag\":\"e847386590ce4dBC\",\"reduceOnly\":true,\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"move_order_stop\",\"sz\":\"1\",\"tdMode\":\"cross\",\"callbackRatio\":\"0.05\",\"clOrdId\":\"6b9ad766b55dBCDE5328f747a43e97d9\",\"tag\":\"6b9ad766b55dBCDE\",\"reduceOnly\":true,\"posSide\":\"long\"}"
             },
             {
                 "description": "spot order with clientOrderid",
@@ -457,7 +457,7 @@
                     "LTC/USDT",
                     10
                 ],
-                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC8ce3873ff4a2839e\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"6b9ad766b55dBCDE8ce3873ff4a2839e\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             }
         ],
         "createMarketSellOrderWithCost": [
@@ -469,7 +469,7 @@
                     "LTC/USDT",
                     10
                 ],
-                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"e847386590ce4dBC7b6fec7f0455b533\",\"tag\":\"e847386590ce4dBC\",\"createMarketBuyOrderRequiresPrice\":false}]"
+                "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"10\",\"tdMode\":\"cash\",\"tgtCcy\":\"quote_ccy\",\"clOrdId\":\"6b9ad766b55dBCDE7b6fec7f0455b533\",\"tag\":\"6b9ad766b55dBCDE\",\"createMarketBuyOrderRequiresPrice\":false}]"
             }
         ],
         "createOrders": [
@@ -495,7 +495,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC1bfb3daac4a18656\",\"tag\":\"e847386590ce4dBC\"},{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC6790e61a14bca5ec\",\"tag\":\"e847386590ce4dBC\"}]"
+                "output": "[{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"25000\",\"clOrdId\":\"6b9ad766b55dBCDE1bfb3daac4a18656\",\"tag\":\"6b9ad766b55dBCDE\"},{\"instId\":\"BTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"0.0001\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"27000\",\"clOrdId\":\"6b9ad766b55dBCDE6790e61a14bca5ec\",\"tag\":\"6b9ad766b55dBCDE\"}]"
             },
             {
                 "description": "Create multiple swap orders at the same time",
@@ -522,7 +522,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC44a5b3b804059d11\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"},{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"27000\",\"clOrdId\":\"e847386590ce4dBC9585ce40c4ddab20\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+                "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"6b9ad766b55dBCDE44a5b3b804059d11\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"},{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"27000\",\"clOrdId\":\"6b9ad766b55dBCDE9585ce40c4ddab20\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}]"
             }
         ],
         "editOrder": [
@@ -1260,7 +1260,7 @@
                         "triggerPrice": 49000
                     }
                 ],
-                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"49000\",\"orderPx\":\"50000\",\"clOrdId\":\"e847386590ce4dBC7eba5daba4bc902c\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"49000\",\"orderPx\":\"50000\",\"clOrdId\":\"6b9ad766b55dBCDE7eba5daba4bc902c\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             }
         ],
         "createTakeProfitOrder": [
@@ -1280,7 +1280,7 @@
                         "takeProfitPrice": 49000
                     }
                 ],
-                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"49000\",\"tpOrdPx\":\"50000\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC8a51e4172402892a\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"tpTriggerPx\":\"49000\",\"tpOrdPx\":\"50000\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE8a51e4172402892a\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             }
         ],
         "createStopLossOrder": [
@@ -1300,7 +1300,7 @@
                         "stopLossPrice": 30000
                     }
                 ],
-                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"30000\",\"slOrdPx\":\"31000\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC062a009804dcb58e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"30000\",\"slOrdPx\":\"31000\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"6b9ad766b55dBCDE062a009804dcb58e\",\"tag\":\"6b9ad766b55dBCDE\",\"posSide\":\"long\"}"
             }
         ],
         "createOrderWithTakeProfitAndStopLoss": [

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.0'
+__version__ = '4.5.1'
 
 # -----------------------------------------------------------------------------
 
@@ -117,7 +117,6 @@ from ccxt.async_support.delta import delta                                      
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
-from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
@@ -162,7 +161,6 @@ from ccxt.async_support.timex import timex                                      
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
-from ccxt.async_support.vertex import vertex                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
@@ -226,7 +224,6 @@ exchanges = [
     'deribit',
     'derive',
     'digifinex',
-    'ellipx',
     'exmo',
     'fmfwio',
     'foxbit',
@@ -271,7 +268,6 @@ exchanges = [
     'tokocrypto',
     'tradeogre',
     'upbit',
-    'vertex',
     'wavesexchange',
     'whitebit',
     'woo',

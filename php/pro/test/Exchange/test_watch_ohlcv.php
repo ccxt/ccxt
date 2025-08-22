@@ -29,6 +29,7 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit));
             } catch(\Throwable $e) {
@@ -36,13 +37,17 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-            $now = $exchange->milliseconds();
-            for ($i = 0; $i < count($response); $i++) {
-                test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+            if ($success === true) {
+                assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
+                $now = $exchange->milliseconds();
+                for ($i = 0; $i < count($response); $i++) {
+                    test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                }
             }
         }
+        return true;
     }) ();
 }
