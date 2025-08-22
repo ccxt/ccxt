@@ -209,16 +209,17 @@ class luno extends \ccxt\async\luno {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
-        $orderbook = $this->orderbooks[$symbol];
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            $orderbook->reset ($snapshot);
+            $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
         } else {
-            $this->handle_delta($orderbook, $message);
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $ob = $this->orderbooks[$symbol];
+            $this->handle_delta($ob, $message);
+            $ob['timestamp'] = $timestamp;
+            $ob['datetime'] = $this->iso8601($timestamp);
         }
+        $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($message, 'sequence');
         $orderbook['nonce'] = $nonce;
         $client->resolve ($orderbook, $messageHash);

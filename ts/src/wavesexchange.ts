@@ -2341,11 +2341,22 @@ export default class wavesexchange extends Exchange {
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
         let order = undefined;
-        // order2 arrived after order1
+        // at first, detect if response is from `fetch_my_trades`
         if (this.safeString (order1, 'senderPublicKey') === this.apiKey) {
             order = order1;
-        } else {
+        } else if (this.safeString (order2, 'senderPublicKey') === this.apiKey) {
             order = order2;
+        } else {
+            // response is from `fetch_trades`, so find only taker order
+            const date1 = this.safeString (order1, 'timestamp');
+            const date2 = this.safeString (order2, 'timestamp');
+            const ts1 = this.parse8601 (date1);
+            const ts2 = this.parse8601 (date2);
+            if (ts1 > ts2) {
+                order = order1;
+            } else {
+                order = order2;
+            }
         }
         let symbol = undefined;
         const assetPair = this.safeValue (order, 'assetPair');
@@ -2557,7 +2568,7 @@ export default class wavesexchange extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {

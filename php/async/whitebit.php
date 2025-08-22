@@ -566,7 +566,7 @@ class whitebit extends Exchange {
             //     taker_fee => "0.1",
             //     min_deposit => "0.0001",
             //     max_deposit => "0",
-            //     networks => array(
+            //     $networks => array(
             //         deposits => array( "BTC", ),
             //         withdraws => array( "BTC", ),
             //         default => "BTC",
@@ -596,7 +596,7 @@ class whitebit extends Exchange {
             //         taker_fee => "0.1",
             //         min_deposit => "10",
             //         max_deposit => "10000",
-            //         networks => array(
+            //         $networks => array(
             //           deposits => array( "USD", ),
             //           withdraws => array( "USD", ),
             //           default => "USD",
@@ -623,25 +623,52 @@ class whitebit extends Exchange {
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
                 $currency = $response[$id];
-                // breaks down in Python due to utf8 encoding issues on the exchange side
-                // $name = $this->safe_string($currency, 'name');
-                $canDeposit = $this->safe_bool($currency, 'can_deposit', true);
-                $canWithdraw = $this->safe_bool($currency, 'can_withdraw', true);
-                $active = $canDeposit && $canWithdraw;
+                // $name = $this->safe_string($currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
                 $code = $this->safe_currency_code($id);
                 $hasProvider = (is_array($currency) && array_key_exists('providers', $currency));
-                $result[$code] = array(
+                $networks = array();
+                $rawNetworks = $this->safe_dict($currency, 'networks', array());
+                $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
+                $withdrawsNetworks = $this->safe_list($rawNetworks, 'withdraws', array());
+                $networkLimits = $this->safe_dict($currency, 'limits', array());
+                $depositLimits = $this->safe_dict($networkLimits, 'deposit', array());
+                $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
+                $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
+                for ($j = 0; $j < count($allNetworks); $j++) {
+                    $networkId = $allNetworks[$j];
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => $this->in_array($networkId, $depositsNetworks),
+                        'withdraw' => $this->in_array($networkId, $withdrawsNetworks),
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => $this->safe_number($depositLimits, 'min', null),
+                                'max' => $this->safe_number($depositLimits, 'max', null),
+                            ),
+                            'withdraw' => array(
+                                'min' => $this->safe_number($withdrawLimits, 'min', null),
+                                'max' => $this->safe_number($withdrawLimits, 'max', null),
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency, // the original payload
                     'name' => null, // see the comment above
-                    'active' => $active,
-                    'deposit' => $canDeposit,
-                    'withdraw' => $canWithdraw,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($currency, 'can_deposit'),
+                    'withdraw' => $this->safe_bool($currency, 'can_withdraw'),
                     'fee' => null,
                     'networks' => null, // todo
                     'type' => $hasProvider ? 'fiat' : 'crypto',
-                    'precision' => null,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'currency_precision'))),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -651,8 +678,12 @@ class whitebit extends Exchange {
                             'min' => $this->safe_number($currency, 'min_withdraw'),
                             'max' => $this->safe_number($currency, 'max_withdraw'),
                         ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($currency, 'min_deposit'),
+                            'max' => $this->safe_number($currency, 'max_deposit'),
+                        ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2264,7 +2295,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -2344,7 +2375,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

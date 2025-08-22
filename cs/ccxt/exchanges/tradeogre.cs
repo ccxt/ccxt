@@ -431,13 +431,13 @@ public partial class tradeogre : Exchange
             { "vwap", null },
             { "open", this.safeString(ticker, "initialprice") },
             { "close", this.safeString(ticker, "price") },
-            { "last", null },
+            { "last", this.safeString(ticker, "price") },
             { "previousClose", null },
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", this.safeString(ticker, "volume") },
+            { "baseVolume", this.safeString(ticker, "volume") },
+            { "quoteVolume", null },
             { "info", ticker },
         }, market);
     }

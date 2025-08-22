@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var number = require('./base/functions/number.js');
  * @class wavesexchange
  * @augments Exchange
  */
-class wavesexchange extends wavesexchange$1 {
+class wavesexchange extends wavesexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wavesexchange',
@@ -2319,12 +2321,25 @@ class wavesexchange extends wavesexchange$1 {
         const order1 = this.safeValue(data, 'order1');
         const order2 = this.safeValue(data, 'order2');
         let order = undefined;
-        // order2 arrived after order1
+        // at first, detect if response is from `fetch_my_trades`
         if (this.safeString(order1, 'senderPublicKey') === this.apiKey) {
             order = order1;
         }
-        else {
+        else if (this.safeString(order2, 'senderPublicKey') === this.apiKey) {
             order = order2;
+        }
+        else {
+            // response is from `fetch_trades`, so find only taker order
+            const date1 = this.safeString(order1, 'timestamp');
+            const date2 = this.safeString(order2, 'timestamp');
+            const ts1 = this.parse8601(date1);
+            const ts2 = this.parse8601(date2);
+            if (ts1 > ts2) {
+                order = order1;
+            }
+            else {
+                order = order2;
+            }
         }
         let symbol = undefined;
         const assetPair = this.safeValue(order, 'assetPair');
@@ -2730,4 +2745,4 @@ class wavesexchange extends wavesexchange$1 {
     }
 }
 
-module.exports = wavesexchange;
+exports["default"] = wavesexchange;

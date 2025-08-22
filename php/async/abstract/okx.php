@@ -484,6 +484,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_account_spot_borrow_repay_history($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_account_move_positions_history($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -852,6 +855,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_post_account_bills_history_archive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
+    }
+    public function private_post_account_move_positions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -1513,6 +1519,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetAccountMovePositionsHistory($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1881,6 +1890,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountBillsHistoryArchive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
+    }
+    public function privatePostAccountMovePositions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

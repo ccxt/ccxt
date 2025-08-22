@@ -989,7 +989,7 @@ class vertex extends \ccxt\async\vertex {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         // {
         //     result => null,

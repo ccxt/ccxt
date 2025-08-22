@@ -1345,7 +1345,8 @@ class NewTranspiler {
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
                 [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
-                [ /void function/g, 'void']
+                [ /void function/g, 'void'],
+                [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
             ];
 
             if (isWs) {
@@ -1431,6 +1432,5 @@ async function runMain () {
 }
 
 if (isMainEntry(metaUrl)) {
-    // @ts-expect-error
     await runMain();
 }

@@ -426,13 +426,13 @@ export default class tradeogre extends Exchange {
             'vwap': undefined,
             'open': this.safeString(ticker, 'initialprice'),
             'close': this.safeString(ticker, 'price'),
-            'last': undefined,
+            'last': this.safeString(ticker, 'price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString(ticker, 'volume'),
+            'baseVolume': this.safeString(ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }

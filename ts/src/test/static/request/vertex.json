@@ -273,7 +273,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "currencies",
+                "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://gateway.prod.vertexprotocol.com/v2/assets",
                 "input": []

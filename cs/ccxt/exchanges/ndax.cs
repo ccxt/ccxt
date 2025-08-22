@@ -21,6 +21,9 @@ public partial class ndax : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
@@ -33,6 +36,7 @@ public partial class ndax : Exchange
                 { "createStopOrder", true },
                 { "editOrder", true },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -63,12 +67,15 @@ public partial class ndax : Exchange
                 { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
                 { "fetchMarkPrices", false },
                 { "fetchMyLiquidations", false },
                 { "fetchMySettlementHistory", false },
@@ -76,6 +83,7 @@ public partial class ndax : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -448,27 +456,30 @@ public partial class ndax : Exchange
         };
         object response = await this.publicGetGetProducts(this.extend(request, parameters));
         //
-        //     [
-        //         {
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         },
-        //     ]
+        //    [
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
+        //        ...
         //
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object currency = getValue(response, i);
             object id = this.safeString(currency, "ProductId");
-            object name = this.safeString(currency, "ProductFullName");
+            object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
             object ProductType = this.safeString(currency, "ProductType");
             object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
             if (isTrue(isEqual(ProductType, "Unknown")))
@@ -476,19 +487,16 @@ public partial class ndax : Exchange
                 // such currency is just a blanket entry
                 type = "other";
             }
-            object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
-            object isDisabled = this.safeValue(currency, "IsDisabled");
-            object active = !isTrue(isDisabled);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "name", name },
+                { "name", this.safeString(currency, "ProductFullName") },
                 { "code", code },
                 { "type", type },
                 { "precision", this.safeNumber(currency, "TickSize") },
                 { "info", currency },
-                { "active", active },
-                { "deposit", null },
-                { "withdraw", null },
+                { "active", !isTrue(this.safeBool(currency, "IsDisabled")) },
+                { "deposit", this.safeBool(currency, "DepositEnabled") },
+                { "withdraw", this.safeBool(currency, "WithdrawEnabled") },
                 { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -501,7 +509,8 @@ public partial class ndax : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+                { "margin", this.safeBool(currency, "MarginEnabled") },
+            });
         }
         return result;
     }

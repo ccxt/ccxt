@@ -1510,6 +1510,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
         :param float [params.cost]: the cost of the order in units of USDT
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'isolated'
  ----------------- Exchange Specific Parameters -----------------
         :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
@@ -1607,6 +1608,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'type': type,  # limit or market
             'leverage': 1,
         }
+        marginModeUpper = self.safe_string_upper(params, 'marginMode')
+        if marginModeUpper is not None:
+            params = self.omit(params, 'marginMode')
+            request['marginMode'] = marginModeUpper
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         if cost is not None:
@@ -1714,7 +1719,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        return self.safe_order({'info': response})
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -1806,7 +1811,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #       },
         #   }
         #
-        return self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
+        return [self.safe_order({'info': data})]
 
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
@@ -2410,6 +2416,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.code]: the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -3211,7 +3218,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'marginMode': marginMode,
         })
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

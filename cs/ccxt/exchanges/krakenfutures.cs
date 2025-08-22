@@ -159,6 +159,7 @@ public partial class krakenfutures : Exchange
                             { "executions", "private" },
                             { "triggers", "private" },
                             { "accountlogcsv", "private" },
+                            { "account-log", "private" },
                         } },
                     } },
                 } },
@@ -468,7 +469,7 @@ public partial class krakenfutures : Exchange
                 { "precision", null },
             });
         }
-        this.currencies = this.deepExtend(currencies, this.currencies);
+        this.currencies = this.mapToSafeMap(this.deepExtend(currencies, this.currencies));
         return result;
     }
 

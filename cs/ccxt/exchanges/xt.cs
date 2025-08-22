@@ -841,53 +841,31 @@ public partial class xt : Exchange
             object entry = getValue(currenciesData, i);
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object minPrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision")));
             object networkEntry = this.safeValue(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
             object rawNetworks = this.safeValue(networkEntry, "supportChains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            object minWithdrawString = null;
-            object minWithdrawFeeString = null;
-            object active = false;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString(rawNetwork, "chain");
-                object network = this.networkIdToCode(networkId);
-                object depositEnabled = this.safeValue(rawNetwork, "depositEnabled");
-                deposit = ((bool) isTrue((depositEnabled))) ? depositEnabled : deposit;
-                object withdrawEnabled = this.safeValue(rawNetwork, "withdrawEnabled");
-                withdraw = ((bool) isTrue((withdrawEnabled))) ? withdrawEnabled : withdraw;
-                object networkActive = isTrue(depositEnabled) && isTrue(withdrawEnabled);
-                active = ((bool) isTrue((networkActive))) ? networkActive : active;
-                object withdrawFeeString = this.safeString(rawNetwork, "withdrawFeeAmount");
-                if (isTrue(!isEqual(withdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                object minNetworkWithdrawString = this.safeString(rawNetwork, "withdrawMinAmount");
-                if (isTrue(!isEqual(minNetworkWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(networkId, code);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", networkId },
-                    { "network", network },
+                    { "network", networkCode },
                     { "name", null },
-                    { "active", networkActive },
-                    { "fee", this.parseNumber(withdrawFeeString) },
-                    { "precision", minPrecision },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
+                    { "precision", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkWithdrawString) },
+                            { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
@@ -906,16 +884,16 @@ public partial class xt : Exchange
             {
                 type = "other";
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "id", currencyId },
                 { "code", code },
                 { "name", this.safeString(entry, "fullName") },
-                { "active", active },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", null },
+                { "fee", null },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
+                { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
+                { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
                 { "networks", networks },
                 { "type", type },
                 { "limits", new Dictionary<string, object>() {
@@ -924,7 +902,7 @@ public partial class xt : Exchange
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -932,7 +910,7 @@ public partial class xt : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }
@@ -3089,6 +3067,14 @@ public partial class xt : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
         object type = null;
         object subType = null;
         object response = null;
@@ -3098,16 +3084,16 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue(parameters, "stop");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         if (isTrue(isEqual(status, "open")))
         {
             if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
-            } else if (isTrue(!isEqual(subType, null)))
+            } else if (isTrue(isEqual(type, "swap")))
             {
-                ((IDictionary<string,object>)request)["state"] = "NEW";
+                ((IDictionary<string,object>)request)["state"] = "UNFINISHED"; // NEW & PARTIALLY_FILLED
             }
         } else if (isTrue(isEqual(status, "closed")))
         {
@@ -3144,7 +3130,7 @@ public partial class xt : Exchange
         }
         if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, parameters));
@@ -3187,6 +3173,7 @@ public partial class xt : Exchange
                 }
                 if (isTrue(!isEqual(limit, null)))
                 {
+                    request = this.omit(request, "size");
                     ((IDictionary<string,object>)request)["limit"] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder(this.extend(request, parameters));
@@ -3373,9 +3360,15 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object isSpotOpenOrders = (isTrue((isEqual(status, "open"))) && isTrue((isEqual(subType, null))));
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = ((bool) isTrue(isSpotOpenOrders)) ? this.safeValue(response, "result", new List<object>() {}) : this.safeValue(data, "items", new List<object>() {});
+        object orders = new List<object>() {};
+        object resultDict = this.safeDict(response, "result");
+        if (isTrue(!isEqual(resultDict, null)))
+        {
+            orders = this.safeList(resultDict, "items", new List<object>() {});
+        } else
+        {
+            orders = this.safeList(response, "result");
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 

@@ -78,7 +78,7 @@ class coinex extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => true,
-                'fetchDepositWithdrawFees' => false,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingInterval' => true,
                 'fetchFundingIntervals' => false,
@@ -663,6 +663,7 @@ class coinex extends Exchange {
                 'broad' => array(
                     'ip not allow visit' => '\\ccxt\\PermissionDenied',
                     'service too busy' => '\\ccxt\\ExchangeNotAvailable',
+                    'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
         ));
@@ -733,6 +734,7 @@ class coinex extends Exchange {
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
+                    $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($networkId === null) {
                         continue;
                     }
@@ -744,7 +746,7 @@ class coinex extends Exchange {
                     $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
                     $network = array(
                         'id' => $networkId,
-                        'network' => $networkId,
+                        'network' => $networkCode,
                         'name' => null,
                         'active' => $canDepositChain && $canWithdrawChain,
                         'deposit' => $canDepositChain,
@@ -767,7 +769,7 @@ class coinex extends Exchange {
                         ),
                         'info' => $chain,
                     );
-                    $networks[$networkId] = $network;
+                    $networks[$networkCode] = $network;
                 }
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $currencyId,
@@ -792,7 +794,7 @@ class coinex extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
+                    'networks' => $networks,
                     'type' => 'crypto',
                     'info' => $coin,
                 ));
@@ -830,18 +832,20 @@ class coinex extends Exchange {
             //     {
             //         "code" => 0,
             //         "data" => array(
-            //             array(
-            //                 "base_ccy" => "SORA",
-            //                 "base_ccy_precision" => 8,
-            //                 "is_amm_available" => true,
-            //                 "is_margin_available" => false,
-            //                 "maker_fee_rate" => "0.003",
-            //                 "market" => "SORAUSDT",
-            //                 "min_amount" => "500",
+            //             {
+            //                 "market" => "BTCUSDT",
+            //                 "taker_fee_rate" => "0.002",
+            //                 "maker_fee_rate" => "0.002",
+            //                 "min_amount" => "0.0005",
+            //                 "base_ccy" => "BTC",
             //                 "quote_ccy" => "USDT",
-            //                 "quote_ccy_precision" => 6,
-            //                 "taker_fee_rate" => "0.003"
-            //             ),
+            //                 "base_ccy_precision" => 8,
+            //                 "quote_ccy_precision" => 2,
+            //                 "is_amm_available" => true,
+            //                 "is_margin_available" => true,
+            //                 "is_pre_trading_available" => true,
+            //                 "is_api_trading_available" => true
+            //             }
             //         ),
             //         "message" => "OK"
             //     }
@@ -867,11 +871,11 @@ class coinex extends Exchange {
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => null,
+                    'margin' => $this->safe_bool($market, 'is_margin_available'),
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => null,
+                    'active' => $this->safe_bool($market, 'is_api_trading_available'),
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -4350,7 +4354,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              *
@@ -4870,7 +4874,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4880,7 +4884,7 @@ class coinex extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
+             * @param {string} [$tag] memo
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] unified network $code
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
@@ -5729,6 +5733,72 @@ class coinex extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_withdraw_fee($data, $currency);
+        }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch the fees for deposits and withdrawals
+             *
+             * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+             *
+             * @param $codes
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v2PublicGetAssetsAllDepositWithdrawConfig ($params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "asset" => array(
+            //                     "ccy" => "CET",
+            //                     "deposit_enabled" => true,
+            //                     "withdraw_enabled" => true,
+            //                     "inter_transfer_enabled" => true,
+            //                     "is_st" => false
+            //                 ),
+            //                 "chains" => array(
+            //                     array(
+            //                         "chain" => "CSC",
+            //                         "min_deposit_amount" => "0.8",
+            //                         "min_withdraw_amount" => "8",
+            //                         "deposit_enabled" => true,
+            //                         "withdraw_enabled" => true,
+            //                         "deposit_delay_minutes" => 0,
+            //                         "safe_confirmations" => 10,
+            //                         "irreversible_confirmations" => 20,
+            //                         "deflation_rate" => "0",
+            //                         "withdrawal_fee" => "0.026",
+            //                         "withdrawal_precision" => 8,
+            //                         "memo" => "",
+            //                         "is_memo_required_for_deposit" => false,
+            //                         "explorer_asset_url" => ""
+            //                     ),
+            //                 )
+            //             }
+            //         ),
+            //         "message" => "OK"
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $item = $data[$i];
+                $asset = $this->safe_dict($item, 'asset', array());
+                $currencyId = $this->safe_string($asset, 'ccy');
+                if ($currencyId === null) {
+                    continue;
+                }
+                $code = $this->safe_currency_code($currencyId);
+                if ($codes === null || $this->in_array($code, $codes)) {
+                    $result[$code] = $this->parse_deposit_withdraw_fee($item);
+                }
+            }
+            return $result;
         }) ();
     }
 

@@ -145,7 +145,7 @@ func (this *Exchange) Yyyymmdd(ts interface{}, args ...interface{}) string {
 func (this *Exchange) Yymmdd(ts interface{}, args ...interface{}) string {
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
-		infix = "-"
+		infix = ""
 	}
 	if ts == nil {
 		return ""

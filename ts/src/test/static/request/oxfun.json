@@ -210,6 +210,13 @@
         ],
         "fetchCurrencies": [
             {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.ox.fun/v3/assets",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Fetch all currencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.ox.fun/v3/assets",

@@ -331,7 +331,7 @@ func StringLt(a, b interface{}) bool {
 
 func StringAbs(a interface{}) string {
 	if a == nil {
-		return ""
+		return "" // this might be a problem because in other langs this returns undefined/null and not "" todo: fix this behavior
 	}
 	return NewPrecise(a.(string)).Abs().String()
 }

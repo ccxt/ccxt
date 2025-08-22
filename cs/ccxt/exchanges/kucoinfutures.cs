@@ -1561,6 +1561,7 @@ public partial class kucoinfutures : kucoin
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1675,6 +1676,12 @@ public partial class kucoinfutures : kucoin
             { "type", type },
             { "leverage", 1 },
         };
+        object marginModeUpper = this.safeStringUpper(parameters, "marginMode");
+        if (isTrue(!isEqual(marginModeUpper, null)))
+        {
+            parameters = this.omit(parameters, "marginMode");
+            ((IDictionary<string,object>)request)["marginMode"] = marginModeUpper;
+        }
         object cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         if (isTrue(!isEqual(cost, null)))
@@ -1826,7 +1833,9 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1937,7 +1946,10 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     /**
@@ -2613,6 +2625,7 @@ public partial class kucoinfutures : kucoin
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -3460,7 +3473,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
     }
 
     /**

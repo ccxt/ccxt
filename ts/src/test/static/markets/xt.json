@@ -1,34 +1,62 @@
 {
   "BTC/USDT": {
     "id": "btc_usdt",
+    "lowercaseId": null,
     "symbol": "BTC/USDT",
     "base": "BTC",
     "quote": "USDT",
+    "settle": null,
     "baseId": "btc",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.01,
-      "amount": 0.00001
+      "amount": 0.00001,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "614",
       "symbol": "btc_usdt",
@@ -44,7 +72,7 @@
       "baseCurrency": "btc",
       "baseCurrencyPrecision": "10",
       "baseCurrencyId": "2",
-      "baseCurrencyLogo": "https://a.static-global.com/1/currency/btc.png",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/2766ded1-6427-4258-85ef-3179d183c404-1732260170319.png",
       "quoteCurrency": "usdt",
       "quoteCurrencyPrecision": "8",
       "quoteCurrencyId": "11",
@@ -60,7 +88,9 @@
       ],
       "displayWeight": "10001",
       "displayLevel": "FULL",
-      "plates": [],
+      "plates": [
+        282
+      ],
       "filters": [
         {
           "filter": "PROTECTION_LIMIT",
@@ -77,39 +107,71 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "LTC/USDT": {
     "id": "ltc_usdt",
+    "lowercaseId": null,
     "symbol": "LTC/USDT",
     "base": "LTC",
     "quote": "USDT",
+    "settle": null,
     "baseId": "ltc",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.01,
-      "amount": 0.001
+      "amount": 0.001,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "618",
       "symbol": "ltc_usdt",
@@ -158,39 +220,71 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "ADA/USDT": {
     "id": "ada_usdt",
+    "lowercaseId": null,
     "symbol": "ADA/USDT",
     "base": "ADA",
     "quote": "USDT",
+    "settle": null,
     "baseId": "ada",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.0001,
-      "amount": 0.1
+      "amount": 0.1,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "619",
       "symbol": "ada_usdt",
@@ -220,9 +314,11 @@
         "GTC",
         "IOC"
       ],
-      "displayWeight": "9992",
+      "displayWeight": "9995",
       "displayLevel": "FULL",
-      "plates": [],
+      "plates": [
+        282
+      ],
       "filters": [
         {
           "filter": "PROTECTION_LIMIT",
@@ -239,39 +335,71 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "XRP/USDT": {
     "id": "xrp_usdt",
+    "lowercaseId": null,
     "symbol": "XRP/USDT",
     "base": "XRP",
     "quote": "USDT",
+    "settle": null,
     "baseId": "xrp",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.0001,
-      "amount": 1
+      "amount": 1,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "621",
       "symbol": "xrp_usdt",
@@ -301,7 +429,7 @@
         "GTC",
         "IOC"
       ],
-      "displayWeight": "9995",
+      "displayWeight": "9998",
       "displayLevel": "FULL",
       "plates": [],
       "filters": [
@@ -320,39 +448,71 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "SOL/USDT": {
     "id": "sol_usdt",
+    "lowercaseId": null,
     "symbol": "SOL/USDT",
     "base": "SOL",
     "quote": "USDT",
+    "settle": null,
     "baseId": "sol",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.01,
-      "amount": 0.001
+      "amount": 0.001,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "7487",
       "symbol": "sol_usdt",
@@ -382,10 +542,11 @@
         "GTC",
         "IOC"
       ],
-      "displayWeight": "9997",
+      "displayWeight": "9996",
       "displayLevel": "FULL",
       "plates": [
-        251
+        251,
+        282
       ],
       "filters": [
         {
@@ -403,39 +564,71 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "TRX/USDT": {
     "id": "trx_usdt",
+    "lowercaseId": null,
     "symbol": "TRX/USDT",
     "base": "TRX",
     "quote": "USDT",
+    "settle": null,
     "baseId": "trx",
     "quoteId": "usdt",
+    "settleId": null,
     "type": "spot",
     "spot": true,
+    "margin": null,
     "swap": false,
     "future": false,
     "option": false,
     "index": false,
     "active": true,
     "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": null,
+    "maker": null,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.0001,
-      "amount": 0.1
+      "amount": 0.1,
+      "base": null,
+      "quote": null
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "amount": {},
-      "price": {},
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
-        "min": 5
+        "min": 5,
+        "max": null
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "970",
       "symbol": "trx_usdt",
@@ -465,7 +658,7 @@
         "GTC",
         "IOC"
       ],
-      "displayWeight": "9989",
+      "displayWeight": "9991",
       "displayLevel": "FULL",
       "plates": [],
       "filters": [
@@ -484,11 +677,16 @@
           "filter": "QUOTE_QTY",
           "min": "5"
         }
-      ]
-    }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002"
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "LTC/USDT:USDT": {
     "id": "ltc_usdt",
+    "lowercaseId": null,
     "symbol": "LTC/USDT:USDT",
     "base": "LTC",
     "quote": "USDT",
@@ -498,9 +696,11 @@
     "settleId": "ltc",
     "type": "swap",
     "spot": false,
+    "margin": null,
     "swap": true,
     "future": false,
     "option": false,
+    "index": null,
     "active": true,
     "contract": true,
     "linear": true,
@@ -509,6 +709,10 @@
     "taker": 0.0006,
     "maker": 0.0004,
     "contractSize": 0.1,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.01,
       "amount": 1,
@@ -517,18 +721,27 @@
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
       "amount": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "price": {},
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
         "min": 5,
         "max": 15000000
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "18",
       "symbol": "ltc_usdt",
@@ -546,7 +759,7 @@
       "isDisplay": true,
       "isOpenApi": true,
       "state": "0",
-      "initLeverage": "20",
+      "initLeverage": "10",
       "initPositionType": "CROSSED",
       "baseCoin": "ltc",
       "spotCoin": "ltc",
@@ -571,7 +784,7 @@
       "makerFee": "0.0004",
       "takerFee": "0.0006",
       "liquidationFee": "0.0125",
-      "marketTakeBound": "0.05",
+      "marketTakeBound": "0.03",
       "depthPrecisionMerge": "5",
       "labels": [],
       "onboardDate": "1656057600000",
@@ -595,11 +808,17 @@
       "fastTrackCallbackRate2": "0.02",
       "minTrackCallbackRate": "0.001",
       "maxTrackCallbackRate": "0.1",
-      "latestPriceDeviation": "0.0100"
-    }
+      "latestPriceDeviation": "0.0100",
+      "marketOpenTakeBound": "0.030000000000000000",
+      "marketCloseTakeBound": "0.050000000000000000",
+      "offTime": null
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "BTC/USDT:USDT": {
     "id": "btc_usdt",
+    "lowercaseId": null,
     "symbol": "BTC/USDT:USDT",
     "base": "BTC",
     "quote": "USDT",
@@ -609,9 +828,11 @@
     "settleId": "btc",
     "type": "swap",
     "spot": false,
+    "margin": null,
     "swap": true,
     "future": false,
     "option": false,
+    "index": null,
     "active": true,
     "contract": true,
     "linear": true,
@@ -620,6 +841,10 @@
     "taker": 0.0006,
     "maker": 0.0004,
     "contractSize": 0.0001,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.1,
       "amount": 1,
@@ -628,18 +853,27 @@
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
       "amount": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "price": {},
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
         "min": 10,
         "max": 25000000
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "8",
       "symbol": "btc_usdt",
@@ -657,7 +891,7 @@
       "isDisplay": true,
       "isOpenApi": true,
       "state": "0",
-      "initLeverage": "50",
+      "initLeverage": "10",
       "initPositionType": "CROSSED",
       "baseCoin": "btc",
       "spotCoin": "btc",
@@ -682,7 +916,7 @@
       "makerFee": "0.0004",
       "takerFee": "0.0006",
       "liquidationFee": "0.0125",
-      "marketTakeBound": "0.05",
+      "marketTakeBound": "0.03",
       "depthPrecisionMerge": "5",
       "labels": [
         "HOT"
@@ -708,11 +942,17 @@
       "fastTrackCallbackRate2": "0.02",
       "minTrackCallbackRate": "0.001",
       "maxTrackCallbackRate": "0.1",
-      "latestPriceDeviation": "0.0100"
-    }
+      "latestPriceDeviation": "0.0100",
+      "marketOpenTakeBound": "0.030000000000000000",
+      "marketCloseTakeBound": "0.050000000000000000",
+      "offTime": null
+    },
+    "tierBased": null,
+    "percentage": null
   },
   "ADA/USDT:USDT": {
     "id": "ada_usdt",
+    "lowercaseId": null,
     "symbol": "ADA/USDT:USDT",
     "base": "ADA",
     "quote": "USDT",
@@ -722,9 +962,11 @@
     "settleId": "ada",
     "type": "swap",
     "spot": false,
+    "margin": null,
     "swap": true,
     "future": false,
     "option": false,
+    "index": null,
     "active": true,
     "contract": true,
     "linear": true,
@@ -733,6 +975,10 @@
     "taker": 0.0006,
     "maker": 0.0004,
     "contractSize": 10,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
     "precision": {
       "price": 0.0001,
       "amount": 1,
@@ -741,18 +987,27 @@
     },
     "limits": {
       "leverage": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
       "amount": {
-        "min": 1
+        "min": 1,
+        "max": null
       },
-      "price": {},
+      "price": {
+        "min": null,
+        "max": null
+      },
       "cost": {
         "min": 5,
         "max": 10000000
       }
     },
-    "marginModes": {},
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
     "info": {
       "id": "27",
       "symbol": "ada_usdt",
@@ -770,7 +1025,7 @@
       "isDisplay": true,
       "isOpenApi": true,
       "state": "0",
-      "initLeverage": "20",
+      "initLeverage": "10",
       "initPositionType": "CROSSED",
       "baseCoin": "ada",
       "spotCoin": "ada",
@@ -795,9 +1050,11 @@
       "makerFee": "0.0004",
       "takerFee": "0.0006",
       "liquidationFee": "0.0125",
-      "marketTakeBound": "0.05",
+      "marketTakeBound": "0.08",
       "depthPrecisionMerge": "5",
-      "labels": [],
+      "labels": [
+        "HOT"
+      ],
       "onboardDate": "1656489600000",
       "enName": "ADAUSDT ",
       "cnName": "ADAUSDT",
@@ -819,7 +1076,12 @@
       "fastTrackCallbackRate2": "0.02",
       "minTrackCallbackRate": "0.001",
       "maxTrackCallbackRate": "0.1",
-      "latestPriceDeviation": "0.0100"
-    }
+      "latestPriceDeviation": "0.0100",
+      "marketOpenTakeBound": "0.050000000000000000",
+      "marketCloseTakeBound": "0.080000000000000000",
+      "offTime": null
+    },
+    "tierBased": null,
+    "percentage": null
   }
 }

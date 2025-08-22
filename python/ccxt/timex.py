@@ -1393,11 +1393,6 @@ class timex(Exchange, ImplicitAPI):
         #
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
-        name = self.safe_string(currency, 'name')
-        depositEnabled = self.safe_value(currency, 'depositEnabled')
-        withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
-        isActive = self.safe_value(currency, 'active')
-        active = depositEnabled and withdrawEnabled and isActive
         # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
@@ -1419,14 +1414,14 @@ class timex(Exchange, ImplicitAPI):
             'code': code,
             'info': currency,
             'type': None,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': self.safe_string(currency, 'name'),
+            'active': self.safe_bool(currency, 'active'),
+            'deposit': self.safe_bool(currency, 'depositEnabled'),
+            'withdraw': self.safe_bool(currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
-                'withdraw': {'min': fee, 'max': None},
+                'withdraw': {'min': None, 'max': None},
                 'amount': {'min': None, 'max': None},
             },
             'networks': {},

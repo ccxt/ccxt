@@ -454,11 +454,10 @@ export default class vertex extends Exchange {
             if ((tickerId !== undefined) && (tickerId.indexOf('PERP') > 0)) {
                 continue;
             }
-            const id = this.safeString(data, 'product_id');
             const name = this.safeString(data, 'symbol');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
-                'id': id,
+            result[code] = this.safeCurrencyStructure({
+                'id': this.safeString(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': undefined,
@@ -478,7 +477,7 @@ export default class vertex extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -2425,7 +2424,7 @@ export default class vertex extends Exchange {
             // }
             //
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2439,7 +2438,8 @@ export default class vertex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        return await this.cancelOrders([id], symbol, params);
+        const order = await this.cancelOrders([id], symbol, params);
+        return this.safeOrder({ 'info': order });
     }
     /**
      * @method

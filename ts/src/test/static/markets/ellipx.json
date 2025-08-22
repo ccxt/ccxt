@@ -1,11 +1,14 @@
 {
     "BTC/USDC": {
         "id": "BTC_USDC",
+        "lowercaseId": null,
         "symbol": "BTC/USDC",
         "base": "BTC",
         "quote": "USDC",
+        "settle": null,
         "baseId": "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
         "quoteId": "crtok-ptabkh-ra4r-anbd-cqra-bqfbtnba",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -15,19 +18,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.003,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1728113809000,
         "info": {
             "Market__": "mkt-lrnp2e-eaor-eobj-ua73-75j6sjxe",
@@ -36,7 +62,13 @@
             "Primary_Step": null,
             "Secondary_Step": null,
             "Status": "active",
-            "Default_Scale": "5",
+            "Default_Scale": "60",
+            "Visibility": "visible",
+            "Price": {
+                "v": "106240410000",
+                "e": "6",
+                "f": "106240.41"
+            },
             "Priority": "100",
             "Created": {
                 "unix": "1728113809",
@@ -98,6 +130,10 @@
                     "full": "1694859829000000",
                     "unixms": "1694859829000"
                 }
+            },
+            "Likes": {
+                "Like_Count": "22",
+                "Liked": null
             }
         },
         "tierBased": true,
@@ -184,11 +220,14 @@
     },
     "DOGE/USDC": {
         "id": "DOGE_USDC",
+        "lowercaseId": null,
         "symbol": "DOGE/USDC",
         "base": "DOGE",
         "quote": "USDC",
+        "settle": null,
         "baseId": "crtok-dnehz4-wbgv-bunf-iyd3-m7gtsz2q",
         "quoteId": "crtok-ptabkh-ra4r-anbd-cqra-bqfbtnba",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -198,19 +237,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.003,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1730343755000,
         "info": {
             "Market__": "mkt-xrkg5l-akjz-cxxl-3a2e-mul5gfo4",
@@ -219,7 +281,13 @@
             "Primary_Step": null,
             "Secondary_Step": null,
             "Status": "active",
-            "Default_Scale": "5",
+            "Default_Scale": "60",
+            "Visibility": "visible",
+            "Price": {
+                "v": "226860",
+                "e": "6",
+                "f": "0.22686"
+            },
             "Priority": "65",
             "Created": {
                 "unix": "1730343755",
@@ -281,6 +349,10 @@
                     "full": "1694859829000000",
                     "unixms": "1694859829000"
                 }
+            },
+            "Likes": {
+                "Like_Count": "13",
+                "Liked": null
             }
         },
         "tierBased": true,
@@ -367,11 +439,14 @@
     },
     "ETH/USDC": {
         "id": "ETH_USDC",
+        "lowercaseId": null,
         "symbol": "ETH/USDC",
         "base": "ETH",
         "quote": "USDC",
+        "settle": null,
         "baseId": "crtok-safr5w-lmqb-azxf-ptrk-gsm4rdmq",
         "quoteId": "crtok-ptabkh-ra4r-anbd-cqra-bqfbtnba",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -381,19 +456,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.003,
         "maker": 0.0025,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-18,
             "price": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1715857583000,
         "info": {
             "Market__": "mkt-l3jrdy-6aqv-cflf-2z5f-angul2d4",
@@ -402,7 +500,13 @@
             "Primary_Step": null,
             "Secondary_Step": null,
             "Status": "active",
-            "Default_Scale": "5",
+            "Default_Scale": "60",
+            "Visibility": "visible",
+            "Price": {
+                "v": "2566110000",
+                "e": "6",
+                "f": "2566.11"
+            },
             "Priority": "50",
             "Created": {
                 "unix": "1715857583",
@@ -464,6 +568,10 @@
                     "full": "1694859829000000",
                     "unixms": "1694859829000"
                 }
+            },
+            "Likes": {
+                "Like_Count": "19",
+                "Liked": null
             }
         },
         "tierBased": true,

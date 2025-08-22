@@ -1413,11 +1413,6 @@ public partial class timex : Exchange
         //
         object id = this.safeString(currency, "symbol");
         object code = this.safeCurrencyCode(id);
-        object name = this.safeString(currency, "name");
-        object depositEnabled = this.safeValue(currency, "depositEnabled");
-        object withdrawEnabled = this.safeValue(currency, "withdrawalEnabled");
-        object isActive = this.safeValue(currency, "active");
-        object active = isTrue(isTrue(depositEnabled) && isTrue(withdrawEnabled)) && isTrue(isActive);
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         object feeString = this.safeString(currency, "withdrawalFee");
         object tradeDecimals = this.safeInteger(currency, "tradeDecimals");
@@ -1446,15 +1441,15 @@ public partial class timex : Exchange
             { "code", code },
             { "info", currency },
             { "type", null },
-            { "name", name },
-            { "active", active },
-            { "deposit", depositEnabled },
-            { "withdraw", withdrawEnabled },
+            { "name", this.safeString(currency, "name") },
+            { "active", this.safeBool(currency, "active") },
+            { "deposit", this.safeBool(currency, "depositEnabled") },
+            { "withdraw", this.safeBool(currency, "withdrawalEnabled") },
             { "fee", fee },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
             { "limits", new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", fee },
+                    { "min", null },
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {

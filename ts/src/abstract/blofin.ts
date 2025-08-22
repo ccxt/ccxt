@@ -27,11 +27,14 @@ interface Exchange {
     privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
     privateGetAccountMarginMode (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountPositionMode (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBatchLeverageInfo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersTpslHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrderPriceRange (params?: {}): Promise<implicitReturnType>;
     privateGetUserQueryApikey (params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateBasic (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;
@@ -46,6 +49,8 @@ interface Exchange {
     privateGetCopytradingTradePositionHistoryByOrder (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingTradePendingTpslByOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;

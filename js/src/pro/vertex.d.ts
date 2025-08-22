@@ -1,5 +1,5 @@
 import vertexRest from '../vertex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class vertex extends vertexRest {
     describe(): any;
@@ -99,6 +99,6 @@ export default class vertex extends vertexRest {
     parseWsOrderStatus(status: any): any;
     parseWsOrder(order: any, market?: Market): Order;
     handleOrderUpdate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

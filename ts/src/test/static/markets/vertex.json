@@ -1,6 +1,7 @@
 {
     "ADA/USDC:USDC": {
         "id": "58",
+        "lowercaseId": null,
         "symbol": "ADA/USDC:USDC",
         "base": "ADA-PERP",
         "quote": "USDC",
@@ -10,9 +11,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -21,18 +24,37 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 40,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 800
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 800,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "58",
@@ -40,16 +62,20 @@
             "price_increment_x18": "10000000000000",
             "size_increment": "40000000000000000000",
             "min_size": "800000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_depth_x18": "5000000000000000000000",
+            "max_spread_rate_x18": "4000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "900000000000000000",
-            "long_weight_maintenance_x18": "950000000000000000"
-        }
+            "long_weight_maintenance_x18": "950000000000000000",
+            "max_open_interest_x18": "10000000000000000000000000"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDC:USDC": {
         "id": "2",
+        "lowercaseId": null,
         "symbol": "BTC/USDC:USDC",
         "base": "BTC-PERP",
         "quote": "USDC",
@@ -59,9 +85,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -70,35 +98,58 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 1
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.01
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.004,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "2",
             "symbol": "BTC-PERP",
             "price_increment_x18": "1000000000000000000",
             "size_increment": "1000000000000000",
-            "min_size": "10000000000000000",
-            "min_depth_x18": "5000000000000000000000",
-            "max_spread_rate_x18": "3000000000000000",
+            "min_size": "4000000000000000",
+            "min_depth_x18": "15000000000000000000000",
+            "max_spread_rate_x18": "2000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "950000000000000000",
-            "long_weight_maintenance_x18": "970000000000000000"
-        }
+            "long_weight_maintenance_x18": "970000000000000000",
+            "max_open_interest_x18": null
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDC:USDC": {
         "id": "4",
+        "lowercaseId": null,
         "symbol": "ETH/USDC:USDC",
         "base": "ETH-PERP",
         "quote": "USDC",
@@ -108,9 +159,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -119,35 +172,58 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.2
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "4",
             "symbol": "ETH-PERP",
             "price_increment_x18": "100000000000000000",
             "size_increment": "10000000000000000",
-            "min_size": "200000000000000000",
-            "min_depth_x18": "5000000000000000000000",
-            "max_spread_rate_x18": "3000000000000000",
+            "min_size": "100000000000000000",
+            "min_depth_x18": "15000000000000000000000",
+            "max_spread_rate_x18": "2000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "950000000000000000",
-            "long_weight_maintenance_x18": "970000000000000000"
-        }
+            "long_weight_maintenance_x18": "970000000000000000",
+            "max_open_interest_x18": null
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USDC:USDC": {
         "id": "10",
+        "lowercaseId": null,
         "symbol": "XRP/USDC:USDC",
         "base": "XRP-PERP",
         "quote": "USDC",
@@ -157,9 +233,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -168,35 +246,58 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 20,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 850
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 600,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "10",
             "symbol": "XRP-PERP",
             "price_increment_x18": "100000000000000",
             "size_increment": "20000000000000000000",
-            "min_size": "850000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_size": "600000000000000000000",
+            "min_depth_x18": "5000000000000000000000",
+            "max_spread_rate_x18": "4000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "900000000000000000",
-            "long_weight_maintenance_x18": "950000000000000000"
-        }
+            "long_weight_maintenance_x18": "950000000000000000",
+            "max_open_interest_x18": "25000000000000000000000000"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDC:USDC": {
         "id": "22",
+        "lowercaseId": null,
         "symbol": "LTC/USDC:USDC",
         "base": "LTC-PERP",
         "quote": "USDC",
@@ -206,9 +307,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -217,35 +320,58 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 6
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 4,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "22",
             "symbol": "LTC-PERP",
             "price_increment_x18": "10000000000000000",
             "size_increment": "100000000000000000",
-            "min_size": "6000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_size": "4000000000000000000",
+            "min_depth_x18": "5000000000000000000000",
+            "max_spread_rate_x18": "4000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "900000000000000000",
-            "long_weight_maintenance_x18": "950000000000000000"
-        }
+            "long_weight_maintenance_x18": "950000000000000000",
+            "max_open_interest_x18": "2500000000000000000000000"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "SOL/USDC:USDC": {
         "id": "12",
+        "lowercaseId": null,
         "symbol": "SOL/USDC:USDC",
         "base": "SOL-PERP",
         "quote": "USDC",
@@ -255,9 +381,11 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -266,66 +394,111 @@
         "taker": 0.0002,
         "maker": 0,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.5,
             "price": 0.001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 3
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 2,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "perp",
             "product_id": "12",
             "symbol": "SOL-PERP",
             "price_increment_x18": "1000000000000000",
             "size_increment": "500000000000000000",
-            "min_size": "3000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_size": "2000000000000000000",
+            "min_depth_x18": "15000000000000000000000",
+            "max_spread_rate_x18": "2000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "900000000000000000",
-            "long_weight_maintenance_x18": "950000000000000000"
-        }
+            "long_weight_maintenance_x18": "950000000000000000",
+            "max_open_interest_x18": "25000000000000000000000000"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "USDT/USDC": {
         "id": "31",
+        "lowercaseId": null,
         "symbol": "USDT/USDC",
         "base": "USDT",
         "quote": "USDC",
-        "settle": "USDC",
+        "settle": null,
         "baseId": "USDT",
         "quoteId": "USDC",
-        "settleId": "USDC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0002,
         "maker": 0,
-        "contractSize": 1,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 10,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 250
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 250,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "product_id": "31",
@@ -338,103 +511,158 @@
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "950000000000000000",
-            "long_weight_maintenance_x18": "970000000000000000"
-        }
+            "long_weight_maintenance_x18": "970000000000000000",
+            "max_open_interest_x18": null
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ARB/USDC": {
         "id": "5",
+        "lowercaseId": null,
         "symbol": "ARB/USDC",
         "base": "ARB",
         "quote": "USDC",
-        "settle": "USDC",
+        "settle": null,
         "baseId": "ARB",
         "quoteId": "USDC",
-        "settleId": "USDC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0002,
         "maker": 0,
-        "contractSize": 1,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 5,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 250
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 400,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "product_id": "5",
             "symbol": "ARB",
             "price_increment_x18": "100000000000000",
             "size_increment": "5000000000000000000",
-            "min_size": "250000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_size": "400000000000000000000",
+            "min_depth_x18": "5000000000000000000000",
+            "max_spread_rate_x18": "4000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "850000000000000000",
-            "long_weight_maintenance_x18": "925000000000000000"
-        }
+            "long_weight_maintenance_x18": "925000000000000000",
+            "max_open_interest_x18": null
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "VRTX/USDC": {
         "id": "41",
+        "lowercaseId": null,
         "symbol": "VRTX/USDC",
         "base": "VRTX",
         "quote": "USDC",
-        "settle": "USDC",
+        "settle": null,
         "baseId": "VRTX",
         "quoteId": "USDC",
-        "settleId": "USDC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.0002,
         "maker": 0,
-        "contractSize": 1,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 100,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 3000
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 2000,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "product_id": "41",
             "symbol": "VRTX",
             "price_increment_x18": "100000000000000",
             "size_increment": "100000000000000000000",
-            "min_size": "3000000000000000000000",
-            "min_depth_x18": "2500000000000000000000",
-            "max_spread_rate_x18": "5000000000000000",
+            "min_size": "2000000000000000000000",
+            "min_depth_x18": "5000000000000000000000",
+            "max_spread_rate_x18": "4000000000000000",
             "maker_fee_rate_x18": "0",
             "taker_fee_rate_x18": "200000000000000",
             "long_weight_initial_x18": "0",
-            "long_weight_maintenance_x18": "0"
-        }
+            "long_weight_maintenance_x18": "0",
+            "max_open_interest_x18": null
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }

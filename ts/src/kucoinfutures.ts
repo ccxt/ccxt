@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1543,6 +1543,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1646,6 +1647,11 @@ export default class kucoinfutures extends kucoin {
             'type': type, // limit or market
             'leverage': 1,
         };
+        const marginModeUpper = this.safeStringUpper (params, 'marginMode');
+        if (marginModeUpper !== undefined) {
+            params = this.omit (params, 'marginMode');
+            request['marginMode'] = marginModeUpper;
+        }
         const cost = this.safeString (params, 'cost');
         params = this.omit (params, 'cost');
         if (cost !== undefined) {
@@ -1769,7 +1775,7 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        return this.safeOrder ({ 'info': response });
     }
 
     /**
@@ -1869,7 +1875,8 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
+        return [ this.safeOrder ({ 'info': data }) ];
     }
 
     /**
@@ -2500,6 +2507,7 @@ export default class kucoinfutures extends kucoin {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -3316,7 +3324,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market);
+        return this.parseMarginMode (data, market) as any;
     }
 
     /**
@@ -3366,7 +3374,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
         if (marginMode !== 'cross') {

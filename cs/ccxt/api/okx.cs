@@ -806,6 +806,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
     }
 
+    public async Task<object> privateGetAccountMovePositionsHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountMovePositionsHistory",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);
@@ -1419,6 +1424,11 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountBillsHistoryArchive (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountBillsHistoryArchive",parameters);
+    }
+
+    public async Task<object> privatePostAccountMovePositions (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountMovePositions",parameters);
     }
 
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)

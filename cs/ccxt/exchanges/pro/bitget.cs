@@ -1724,7 +1724,7 @@ public partial class bitget : ccxt.bitget
         object instType = null;
         if (isTrue(isTrue(isEqual(market, null)) && isTrue(isEqual(type, "spot"))))
         {
-            instType = "SPOT";
+            instType = "spot";
         } else
         {
             var instTypeparametersVariable = this.getInstType(market, parameters);

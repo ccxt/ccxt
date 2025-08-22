@@ -1432,11 +1432,6 @@ class timex extends Exchange {
         //
         $id = $this->safe_string($currency, 'symbol');
         $code = $this->safe_currency_code($id);
-        $name = $this->safe_string($currency, 'name');
-        $depositEnabled = $this->safe_value($currency, 'depositEnabled');
-        $withdrawEnabled = $this->safe_value($currency, 'withdrawalEnabled');
-        $isActive = $this->safe_value($currency, 'active');
-        $active = $depositEnabled && $withdrawEnabled && $isActive;
         // $fee = $this->safe_number($currency, 'withdrawalFee');
         $feeString = $this->safe_string($currency, 'withdrawalFee');
         $tradeDecimals = $this->safe_integer($currency, 'tradeDecimals');
@@ -1461,14 +1456,14 @@ class timex extends Exchange {
             'code' => $code,
             'info' => $currency,
             'type' => null,
-            'name' => $name,
-            'active' => $active,
-            'deposit' => $depositEnabled,
-            'withdraw' => $withdrawEnabled,
+            'name' => $this->safe_string($currency, 'name'),
+            'active' => $this->safe_bool($currency, 'active'),
+            'deposit' => $this->safe_bool($currency, 'depositEnabled'),
+            'withdraw' => $this->safe_bool($currency, 'withdrawalEnabled'),
             'fee' => $fee,
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
-                'withdraw' => array( 'min' => $fee, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
             'networks' => array(),

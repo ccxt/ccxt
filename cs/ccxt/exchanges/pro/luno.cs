@@ -217,18 +217,19 @@ public partial class luno : ccxt.luno
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }
-        object orderbook = getValue(this.orderbooks, symbol);
         object asks = this.safeValue(message, "asks");
         if (isTrue(!isEqual(asks, null)))
         {
             object snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
-            (orderbook as IOrderBook).reset(snapshot);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(snapshot);
         } else
         {
-            this.handleDelta(orderbook, message);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            object ob = getValue(this.orderbooks, symbol);
+            this.handleDelta(ob, message);
+            ((IDictionary<string,object>)ob)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)ob)["datetime"] = this.iso8601(timestamp);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(message, "sequence");
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});

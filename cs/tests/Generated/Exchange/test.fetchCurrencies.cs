@@ -22,7 +22,8 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
             object currenciesLength = getArrayLength(values);
             // ensure exchange returns enough length of currencies
-            assert(isGreaterThan(currenciesLength, 5), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
+            object skipAmount = (inOp(skippedProperties, "amountOfCurrencies"));
+            assert(isTrue(skipAmount) || isTrue(isGreaterThan(currenciesLength, 5)), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
             // allow skipped exchanges
             object skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
             object skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
