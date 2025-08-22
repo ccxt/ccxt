@@ -125,7 +125,6 @@ from ccxt.pro.poloniex import poloniex                                    # noqa
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
-from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.woofipro import woofipro                                    # noqa: F401
@@ -200,7 +199,6 @@ exchanges = [
     'probit',
     'tradeogre',
     'upbit',
-    'vertex',
     'whitebit',
     'woo',
     'woofipro',
