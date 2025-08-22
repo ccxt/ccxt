@@ -13,7 +13,6 @@ export default class binance extends Exchange {
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     costToPrecision(symbol: any, cost: any): string;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     nonce(): number;
     /**
      * @method
