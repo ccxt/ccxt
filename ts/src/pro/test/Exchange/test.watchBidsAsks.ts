@@ -27,7 +27,7 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             // because tests will make a second call of this method with symbols array
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
-                return;
+                return false;
             }
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
