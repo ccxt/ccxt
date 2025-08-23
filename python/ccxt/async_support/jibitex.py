@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.jibitex import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class jibitex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(jibitex, self).describe(), {
             'id': 'jibitex',
             'name': 'Jibitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -118,7 +118,7 @@ class jibitex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for jibitex
         https://jibitex.co/

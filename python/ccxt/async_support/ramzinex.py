@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ramzinex import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class ramzinex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(ramzinex, self).describe(), {
             'id': 'ramzinex',
             'name': 'Ramzinex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -129,7 +129,7 @@ class ramzinex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ramzinex
         https://apidocs.ramzinex.ir/#6ae2dae4a2

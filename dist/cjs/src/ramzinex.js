@@ -16,7 +16,7 @@ class ramzinex extends ramzinex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'ramzinex',
             'name': 'Ramzinex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -130,7 +130,7 @@ class ramzinex extends ramzinex$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ramzinex#fetchMarkets

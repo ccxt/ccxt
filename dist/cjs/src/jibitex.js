@@ -16,7 +16,7 @@ class jibitex extends jibitex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'jibitex',
             'name': 'Jibitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -119,7 +119,7 @@ class jibitex extends jibitex$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name jibitex#fetchMarkets

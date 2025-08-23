@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class tabdeal extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'tabdeal',
             'name': 'Tabdeal',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -130,7 +130,7 @@ export default class tabdeal extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tabdeal#fetchMarkets

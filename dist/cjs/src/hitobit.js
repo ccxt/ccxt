@@ -16,7 +16,7 @@ class hitobit extends hitobit$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'hitobit',
             'name': 'Hitobit',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -124,7 +124,7 @@ class hitobit extends hitobit$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name hitobit#fetchMarkets

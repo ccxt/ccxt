@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.nobitex import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class nobitex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(nobitex, self).describe(), {
             'id': 'nobitex',
             'name': 'Nobitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -129,7 +129,7 @@ class nobitex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for nobitex
         https://apidocs.nobitex.ir/#6ae2dae4a2

@@ -12,11 +12,11 @@ use \React\Promise\PromiseInterface;
 
 class afratether extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'afratether',
             'name' => 'Afratether',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -115,8 +115,8 @@ class afratether extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for afratether
              * @see https://afratether.com/

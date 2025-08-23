@@ -16,7 +16,7 @@ class arzplus extends arzplus$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'arzplus',
             'name': 'Arzplus',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -117,7 +117,7 @@ class arzplus extends arzplus$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name arzplus#fetchMarkets

@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.arzplus import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class arzplus(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(arzplus, self).describe(), {
             'id': 'arzplus',
             'name': 'Arzplus',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -116,7 +116,7 @@ class arzplus(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for arzplus
         https://api.arzplus.net/

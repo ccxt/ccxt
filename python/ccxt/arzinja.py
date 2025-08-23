@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.arzinja import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class arzinja(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(arzinja, self).describe(), {
             'id': 'arzinja',
             'name': 'Arzinja',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -111,7 +111,7 @@ class arzinja(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for arzinja
         https://arzinja.app/prices

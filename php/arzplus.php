@@ -10,11 +10,11 @@ use ccxt\abstract\arzplus as Exchange;
 
 class arzplus extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'arzplus',
             'name' => 'Arzplus',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -116,7 +116,7 @@ class arzplus extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for arzplus
          * @see https://api.arzplus.net/

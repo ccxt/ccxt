@@ -17,7 +17,7 @@ export default class ompfinex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'ompfinex',
             'name': 'OMPFinex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -126,7 +126,7 @@ export default class ompfinex extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ompfinex#fetchMarkets

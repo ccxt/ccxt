@@ -17,7 +17,7 @@ export default class bitimen extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitimen',
             'name': 'Bitimen',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +122,7 @@ export default class bitimen extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name bitimen#fetchMarkets

@@ -17,7 +17,7 @@ export default class ubitex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'ubitex',
             'name': 'Ubitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +122,7 @@ export default class ubitex extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ubitex#fetchMarkets

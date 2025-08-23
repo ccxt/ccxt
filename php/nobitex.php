@@ -10,11 +10,11 @@ use ccxt\abstract\nobitex as Exchange;
 
 class nobitex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'nobitex',
             'name' => 'Nobitex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -129,7 +129,7 @@ class nobitex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for nobitex
          * @see https://apidocs.nobitex.ir/#6ae2dae4a2

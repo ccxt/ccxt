@@ -10,11 +10,11 @@ use ccxt\abstract\bitir as Exchange;
 
 class bitir extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitir',
             'name' => 'Bit.ir',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -126,7 +126,7 @@ class bitir extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitir
          * @see https://www.bit.ir/fa

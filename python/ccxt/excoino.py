@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.excoino import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class excoino(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(excoino, self).describe(), {
             'id': 'excoino',
             'name': 'Excoino',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -127,7 +127,7 @@ class excoino(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for excoino
         https://apidocs.excoino.ir/#6ae2dae4a2

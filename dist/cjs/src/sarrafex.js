@@ -16,7 +16,7 @@ class sarrafex extends sarrafex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'sarrafex',
             'name': 'Sarrafex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -131,7 +131,7 @@ class sarrafex extends sarrafex$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name sarrafex#fetchMarkets

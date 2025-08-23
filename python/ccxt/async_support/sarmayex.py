@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.sarmayex import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class sarmayex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(sarmayex, self).describe(), {
             'id': 'sarmayex',
             'name': 'Sarmayex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -111,7 +111,7 @@ class sarmayex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for sarmayex
         https://api.sarmayex.com/api/v1/public/currencies

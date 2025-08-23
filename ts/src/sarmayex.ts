@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class sarmayex extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'sarmayex',
             'name': 'Sarmayex',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class sarmayex extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name sarmayex#fetchMarkets

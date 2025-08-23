@@ -16,7 +16,7 @@ class sarmayex extends sarmayex$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'sarmayex',
             'name': 'Sarmayex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -112,7 +112,7 @@ class sarmayex extends sarmayex$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name sarmayex#fetchMarkets

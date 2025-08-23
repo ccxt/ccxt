@@ -16,7 +16,7 @@ class tabdeal extends tabdeal$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'tabdeal',
             'name': 'Tabdeal',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -129,7 +129,7 @@ class tabdeal extends tabdeal$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name tabdeal#fetchMarkets

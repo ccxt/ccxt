@@ -10,11 +10,11 @@ use ccxt\abstract\exir as Exchange;
 
 class exir extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'exir',
             'name' => 'Exir',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -120,7 +120,7 @@ class exir extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for exir
          * @see https://apidocs.exir.io/#tickers

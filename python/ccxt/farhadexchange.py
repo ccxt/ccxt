@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.farhadexchange import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class farhadexchange(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(farhadexchange, self).describe(), {
             'id': 'farhadexchange',
             'name': 'Farhad Exchange',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -113,7 +113,7 @@ class farhadexchange(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for farhadexchange
         https://apidocs.farhadexchange.ir/#6ae2dae4a2

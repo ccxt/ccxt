@@ -16,7 +16,7 @@ class farhadexchange extends farhadexchange$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'farhadexchange',
             'name': 'Farhad Exchange',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -114,7 +114,7 @@ class farhadexchange extends farhadexchange$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name farhadexchange#fetchMarkets

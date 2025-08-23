@@ -12,11 +12,11 @@ use \React\Promise\PromiseInterface;
 
 class arzinja extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'arzinja',
             'name' => 'Arzinja',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class arzinja extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for arzinja
              * @see https://arzinja.app/prices

@@ -17,7 +17,7 @@ export default class arzinja extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'arzinja',
             'name': 'Arzinja',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class arzinja extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name arzinja#fetchMarkets

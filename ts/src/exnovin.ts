@@ -12,11 +12,11 @@ import { Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.j
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class exnovin extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'exnovin',
             'name': 'Exnovin',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -116,7 +116,7 @@ export default class exnovin extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name exnovin#fetchMarkets

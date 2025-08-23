@@ -16,7 +16,7 @@ class exir extends exir$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'exir',
             'name': 'Exir',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -121,7 +121,7 @@ class exir extends exir$1["default"] {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name exir#fetchMarkets

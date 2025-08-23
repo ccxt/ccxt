@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wallex import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class wallex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(wallex, self).describe(), {
             'id': 'wallex',
             'name': 'Wallex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -125,7 +125,7 @@ class wallex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for wallex
         https://api-docs.wallex.ir/#be8d9c51a2
