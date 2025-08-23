@@ -56,6 +56,7 @@ type IBaseExchange interface {
 
 // Exchange interface based on the methods from binance.go
 type ICoreExchange interface {
+	Spawn(method interface{}, args ...interface{}) <-chan interface{}
 	SetRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
@@ -233,7 +234,7 @@ type ICoreExchange interface {
 	Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
 	// WS methods
 	CancelAllOrdersWs(optionalArgs ...interface{}) <-chan interface{}
-	CancelOrdersWs(ids interface{},optionalArgs ...interface{}) <-chan interface{}
+	CancelOrdersWs(ids interface{}, optionalArgs ...interface{}) <-chan interface{}
 	CancelOrderWs(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	CreateLimitBuyOrderWs(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{}
 	CreateLimitOrderWs(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -257,7 +258,7 @@ type ICoreExchange interface {
 	EditOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchBalanceWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchClosedOrdersWs(optionalArgs ...interface{}) <-chan interface{}
-    // FetchCurrenciesWs(optionalArgs ...interface{}) <-chan interface{}
+	// FetchCurrenciesWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchDepositsWs(optionalArgs ...interface{}) <-chan interface{}
 	// FetchMarketsWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTradesWs(optionalArgs ...interface{}) <-chan interface{}
@@ -265,7 +266,7 @@ type ICoreExchange interface {
 	FetchOpenOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBookWs(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
-	FetchOrderWs(id interface{},optionalArgs ...interface{}) <-chan interface{}
+	FetchOrderWs(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionsForSymbolWs(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionsWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionWs(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -274,22 +275,22 @@ type ICoreExchange interface {
 	FetchTradesWs(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchTradingFeesWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchWithdrawalsWs(optionalArgs ...interface{}) <-chan interface{}
-	UnWatchOrders(optionalArgs ...interface{}) <- chan interface{}
-	UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchTickers(optionalArgs ...interface{}) <- chan interface{}
-	UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
-	UnWatchPositions(optionalArgs ...interface{}) <- chan interface{}
+	UnWatchOrders(optionalArgs ...interface{}) <-chan interface{}
+	UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <-chan interface{}
+	UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	UnWatchTickers(optionalArgs ...interface{}) <-chan interface{}
+	UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	UnWatchPositions(optionalArgs ...interface{}) <-chan interface{}
 	WatchBalance(optionalArgs ...interface{}) <-chan interface{}
 	WatchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
 	WatchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	WatchLiquidationsForSymbols(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
+	WatchLiquidationsForSymbols(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchMyLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchMyTrades(optionalArgs ...interface{}) <-chan interface{}
-	WatchMyTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
+	WatchMyTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -370,13 +371,13 @@ type IDerivedExchange interface {
 	OnError(client interface{}, err interface{})
 	OnClose(client interface{}, err interface{})
 	OnConnected(client interface{}, err interface{})
-	CancelOrderWs(id interface{}, optionalArgs ...interface{}) <- chan interface{}
-	CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{}
-	WatchPositions(optionalArgs ...interface{}) <- chan interface{}
-	FetchTickersWs(optionalArgs ...interface{}) <- chan interface{}
-	WatchLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
-	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{}
-	FetchOrdersWs(optionalArgs ...interface{}) <- chan interface{}
+	CancelOrderWs(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchPositions(optionalArgs ...interface{}) <-chan interface{}
+	FetchTickersWs(optionalArgs ...interface{}) <-chan interface{}
+	WatchLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 }
 
 type Describer interface {

@@ -1,12 +1,53 @@
 package cache
 
 import (
+	"encoding/json"
+
 	ccxt "github.com/ccxt/ccxt/go/v4"
 	"github.com/ccxt/tests/base"
 )
 
 func Equals(a interface{}, b interface{}) bool {
-	return base.Equals(a, b)
+	// return base.Equals(a, b)
+	// should handle a being WsOrderBook or ArrayCache or any other variant
+	// and it should compare map[string]interface{} with the types above
+	if a == nil || b == nil {
+		return a == b
+	}
+	// if aCache, ok := a.(*ccxt.Base); ok {
+
+	// }
+	jsonA := []uint8{}
+	var errA error
+
+	switch a := a.(type) {
+	case *ccxt.ArrayCache:
+		jsonA, errA = json.Marshal(a.Data)
+	case *ccxt.ArrayCacheBySymbolById:
+		jsonA, errA = json.Marshal(a.Data)
+	case *ccxt.ArrayCacheBySymbolBySide:
+		jsonA, errA = json.Marshal(a.Data)
+	case *ccxt.ArrayCacheByTimestamp:
+		jsonA, errA = json.Marshal(a.Data)
+	case *ccxt.WsOrderBook:
+		jsonA, errA = json.Marshal(a)
+	case *ccxt.IndexedOrderBook:
+		jsonA, errA = json.Marshal(a)
+	case *ccxt.CountedOrderBook:
+		jsonA, errA = json.Marshal(a)
+	default:
+		jsonA, errA = json.Marshal(a)
+
+	}
+	jsonB, err2 := json.Marshal(b)
+
+	if errA != nil || err2 != nil {
+		return false
+	}
+	strA := string(jsonA)
+	strB := string(jsonB)
+	return strA == strB
+
 }
 
 func Assert(a interface{}) {

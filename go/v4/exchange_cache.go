@@ -18,18 +18,16 @@ import "sync"
 type Appender interface{ Append(interface{}) }
 
 type CacheType interface {
-    *ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]interface{}
+	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]interface{}
 
 	Append(interface{})
 }
 
 type BaseCache struct {
-
-	MaxSize int
-	Mu      sync.Mutex
-	Data    []interface{}
+	MaxSize int           `json:"-"`
+	Mu      sync.Mutex    `json:"-"`
+	Data    []interface{} `json:"data"`
 }
-
 
 func NewBaseCache(MaxSize int) *BaseCache {
 	return &BaseCache{MaxSize: MaxSize, Data: make([]interface{}, 0)}
@@ -57,12 +55,12 @@ func (c *BaseCache) AppendInternal(item interface{}) {
 type ArrayCache struct {
 	*BaseCache
 
-	Hashmap              map[string]map[string]interface{}
-	nestedNewUpdates     bool
-	newUpdatesBySymbol   map[string]int
-	clearUpdatesBySymbol map[string]bool
-	allNewUpdates        int
-	clearAllUpdates      bool
+	Hashmap              map[string]map[string]interface{} `json:"-"`
+	nestedNewUpdates     bool                              `json:"-"`
+	newUpdatesBySymbol   map[string]int                    `json:"-"`
+	clearUpdatesBySymbol map[string]bool                   `json:"-"`
+	allNewUpdates        int                               `json:"-"`
+	clearAllUpdates      bool                              `json:"-"`
 }
 
 func NewArrayCache(MaxSize interface{}) *ArrayCache {
@@ -145,9 +143,10 @@ func (c *ArrayCache) ToArray() []interface{} {
 }
 
 // GetLimit returns the effective limit according to CCXT logic:
-//   • if the caller provided an explicit limit (not nil) – use it;
-//   • otherwise, if symbol-specific length is known, use that length;
-//   • else fall back to the overall cache size.
+//   - if the caller provided an explicit limit (not nil) – use it;
+//   - otherwise, if symbol-specific length is known, use that length;
+//   - else fall back to the overall cache size.
+//
 // The function returns interface{} so the transpiled code that works with
 // loosely-typed limits continues to compile.
 func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{} {
@@ -170,7 +169,7 @@ type ArrayCacheByTimestamp struct {
 	Hashmap map[int64]interface{}
 }
 
-func NewArrayCacheByTimestamp(MaxSize interface{}) interface{} {
+func NewArrayCacheByTimestamp(MaxSize interface{}) *ArrayCacheByTimestamp {
 	size := 0
 	switch v := MaxSize.(type) {
 	case int:
