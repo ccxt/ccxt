@@ -698,8 +698,8 @@ export default class zonda extends Exchange {
         const timestamp = this.safeInteger (response, 'timestamp');
         return {
             'symbol': market['symbol'],
-            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
-            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
+            'bids': this.parseOrderBookBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseOrderBookBidsAsks (rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': this.safeInteger (response, 'seqNo'),
