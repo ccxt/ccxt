@@ -99,7 +99,7 @@ func (c *ArrayCache) Append(item interface{}) {
 	// Basic ring-buffer semantics
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-
+	shouldAppend := true
 	if symbol != "" && id != "" {
 		// keep reference for O(1) updates / de-dupe
 		byId := c.Hashmap[symbol]
@@ -118,12 +118,26 @@ func (c *ArrayCache) Append(item interface{}) {
 					item = om // keep the original reference in the array
 				}
 			}
+			shouldAppend = false
 		} else {
 			byId[id] = item
 		}
 	}
 
-	c.AppendInternal(item)
+	if shouldAppend {
+		c.AppendInternal(item)
+	} else {
+		// move to the end of the array to reflect recent update
+		for i, v := range c.Data {
+			if GetValue(v, "id") == GetValue(item, "id") {
+				// remove from current position
+				c.Data = append(c.Data[:i], c.Data[i+1:]...)
+				// append to the end
+				c.Data = append(c.Data, item)
+				break
+			}
+		}
+	}
 
 	// new-update counters (very simplified)
 	if symbol != "" {
@@ -131,6 +145,27 @@ func (c *ArrayCache) Append(item interface{}) {
 		c.allNewUpdates++
 	}
 }
+
+// func areArraysEqual(a interface{}, b interface{}) bool {
+// 	arrA, okA := a.([]interface{})
+// 	arrB, okB := b.([]interface{})
+// 	if !okA || !okB {
+// 		return false
+// 	}
+// 	if len(arrA) != len(arrB) {
+// 		return false
+// 	}
+// 	for i := range arrA {
+// 		// elems can be ints, or map[string]interface{} etc
+// 		if !IsEqual(arrA[i], arrB[i]) {
+// 			return false
+// 		}
+// 		// if arrA[i] != arrB[i] {
+// 		// 	return false
+// 		// }
+// 	}
+// 	return true
+// }
 
 // ToArray implements the ArrayCache interface (defined in exchange.go).
 func (c *ArrayCache) ToArray() []interface{} {
