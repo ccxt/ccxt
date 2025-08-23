@@ -9600,13 +9600,12 @@
         ],
         "setLeverage":[
             {
-                "description": "set the isolated hedged leverage",
+                "description": "set the hedged leverage",
                 "method": "setLeverage",
                 "input": [
                     10,
                     "BTC/USDT:USDT",
                     {
-                        "marginMode": "isolated",
                         "hedged": true
                     }
                 ],

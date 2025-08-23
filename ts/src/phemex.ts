@@ -4619,6 +4619,7 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const isHedged = this.safeBool (params, 'hedged', false);
+        params = this.omit (params, 'hedged');
         const longLeverageRr = this.safeInteger (params, 'longLeverageRr');
         const shortLeverageRr = this.safeInteger (params, 'shortLeverageRr');
         const market = this.market (symbol);
