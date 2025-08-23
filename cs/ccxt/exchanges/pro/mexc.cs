@@ -1511,7 +1511,7 @@ public partial class mexc : ccxt.mexc
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
-            { "clientOrderId", this.safeString(order, "clientOrderId") },
+            { "clientOrderId", this.safeString(order, "clientId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },

@@ -1279,6 +1279,7 @@ class binance extends Exchange {
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
@@ -2743,15 +2744,6 @@ class binance extends Exchange {
 
     public function cost_to_precision($symbol, $cost) {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        // info is available in currencies only if the user has configured his api keys
-        if ($this->safe_value($this->currencies[$code], 'precision') !== null) {
-            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
-        } else {
-            return $this->number_to_string($fee);
-        }
     }
 
     public function nonce() {
@@ -9279,7 +9271,6 @@ class binance extends Exchange {
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
-            'amount' => $this->currency_to_precision($code, $amount),
             // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
         );
@@ -9293,6 +9284,7 @@ class binance extends Exchange {
             $request['network'] = $network;
             $params = $this->omit($params, 'network');
         }
+        $request['amount'] = $this->currency_to_precision($code, $amount, $network);
         $response = $this->sapiPostCapitalWithdrawApply ($this->extend($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
         return $this->parse_transaction($response, $currency);

@@ -1027,6 +1027,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object id = this.safeString(message, "id");
+        if (isTrue(isEqual(id, null)))
+        {
+            id = this.safeString(data, "id");
+        }
         object response = this.safeDict(data, "response", new Dictionary<string, object>() {});
         object payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         object status = this.safeString(payload, "status");

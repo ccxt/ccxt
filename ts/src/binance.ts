@@ -1287,6 +1287,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
@@ -2751,15 +2752,6 @@ export default class binance extends Exchange {
 
     costToPrecision (symbol, cost) {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
-    }
-
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        } else {
-            return this.numberToString (fee);
-        }
     }
 
     nonce () {
@@ -9289,7 +9281,6 @@ export default class binance extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
         };
@@ -9303,6 +9294,7 @@ export default class binance extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
+        request['amount'] = this.currencyToPrecision (code, amount, network);
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);

@@ -1244,7 +1244,7 @@ class okx(Exchange, ImplicitAPI):
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
-                'brokerId': 'e847386590ce4dBC',
+                'brokerId': '6b9ad766b55dBCDE',
             },
             'features': {
                 'default': {
@@ -6009,7 +6009,7 @@ class okx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             # inject id in implicit api call
             if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
-                brokerId = self.safe_string(self.options, 'brokerId', 'e847386590ce4dBC')
+                brokerId = self.safe_string(self.options, 'brokerId', '6b9ad766b55dBCDE')
                 if isinstance(params, list):
                     for i in range(0, len(params)):
                         entry = params[i]

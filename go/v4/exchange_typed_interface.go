@@ -300,9 +300,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "digifinex":
 		itf := NewDigifinex(options)
 		return itf
-	case "ellipx":
-		itf := NewEllipx(options)
-		return itf
 	case "exmo":
 		itf := NewExmo(options)
 		return itf
@@ -434,9 +431,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "upbit":
 		itf := NewUpbit(options)
-		return itf
-	case "vertex":
-		itf := NewVertex(options)
 		return itf
 	case "wavesexchange":
 		itf := NewWavesexchange(options)

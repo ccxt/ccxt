@@ -986,6 +986,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $data = $this->safe_dict($message, 'data', array());
         $id = $this->safe_string($message, 'id');
+        if ($id === null) {
+            $id = $this->safe_string($data, 'id');
+        }
         $response = $this->safe_dict($data, 'response', array());
         $payload = $this->safe_dict($response, 'payload', array());
         $status = $this->safe_string($payload, 'status');
