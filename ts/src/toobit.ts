@@ -5,7 +5,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,9 +18,9 @@ export default class toobit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'toobit',
             'name': 'Toobit',
-            'countries': [ 'SC' ], // Seychelles
+            'countries': [ 'KY' ], // Cayman Islands
             'version': 'v1',
-            'rateLimit': 50, // 20 requests per second
+            'rateLimit': 20, // 50 requests per second
             'certified': false,
             'pro': false,
             'has': {
@@ -41,6 +41,8 @@ export default class toobit extends Exchange {
                 'fetchTickers': true,
                 'fetchLastPrices': true,
                 'fetchBidsAsks': true,
+                'fetchFundingRates': true,
+                'fetchFundingRateHistory': true,
             },
             'urls': {
                 'logo': '',
@@ -75,6 +77,7 @@ export default class toobit extends Exchange {
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
                         'api/v1/futures/fundingRate': 1,
+                        'api/v1/futures/historyFundingRate': 1,
                     },
                 },
                 'spot': {
@@ -837,6 +840,58 @@ export default class toobit extends Exchange {
             'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.commonGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "869931",
+        //            "symbol": "BTC-SWAP-USDT",
+        //            "settleTime": "1755936000000",
+        //            "settleRate": "0.0001"
+        //        }, ...
+        //
+        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        const timestamp = this.safeInteger (contract, 'settleTime');
+        const marketId = this.safeString (contract, 'symbol');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'settleRate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
