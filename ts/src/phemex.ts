@@ -4651,9 +4651,13 @@ export default class phemex extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': leverage,
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': symbol,
             'marginMode': undefined,
             'longLeverage': undefined,
             'shortLeverage': undefined,

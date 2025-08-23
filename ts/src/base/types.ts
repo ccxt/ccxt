@@ -553,10 +553,10 @@ export interface LastPrice {
 
 export interface Leverage {
     info: any;
-    symbol: string;
-    marginMode: 'isolated' | 'cross' | Str;
-    longLeverage: number;
-    shortLeverage: number;
+    symbol?: string;
+    marginMode?: string;
+    longLeverage?: number;
+    shortLeverage?: number;
 }
 
 export interface LongShortRatio {
