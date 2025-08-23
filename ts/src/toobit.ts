@@ -706,7 +706,30 @@ export default class toobit extends Exchange {
         //            "t": "1755936610506"
         //        }, ...
         //
-        return this.parseTickers (response, symbols);
+        return this.parseBidsAsksCustom (response, symbols);
+    }
+
+    parseBidsAsksCustom (tickers, symbols: Strings = undefined, params = {}): Tickers {
+        const results = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const parsedTicker = this.parseBidAskCustom (tickers[i]);
+            const ticker = this.extend (parsedTicker, params);
+            results.push (ticker);
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbols);
+    }
+
+    parseBidAskCustom (ticker) {
+        return {
+            'timestamp': this.safeString (ticker, 't'),
+            'symbol': this.safeString (ticker, 's'),
+            'bid': this.safeNumber (ticker, 'b'),
+            'bidVolume': this.safeNumber (ticker, 'bq'),
+            'ask': this.safeNumber (ticker, 'a'),
+            'askVolume': this.safeNumber (ticker, 'aq'),
+            'info': ticker,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
