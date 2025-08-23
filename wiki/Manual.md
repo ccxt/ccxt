@@ -1583,6 +1583,62 @@ var_dump($bitfinex->markets['XRP/BTC']);
 
 <!-- tabs:end -->
 
+### Caching the markets data
+
+Typically, after instantiating an exchange `loadMarkets()` might take several seconds. However, CCXT supports I/O caching of `loadMarkets` method (which is a "bootstrap" method for the instance), so you can load markets & currencies instantly from your preferred cache - `.json` file, `SQL` database, `Redis` or etc.
+
+You should pass your preferred callbacks in `marketsCache` property when instantiating an exchange. A simple example using a file-caching (by JSON stringify & parse):
+
+#### **Javascript**
+```javascript
+async function example () {
+    const kraken = new ccxt.kraken ({ 
+        marketsCache: {
+            mode: 'callback',
+            set: my_cache_setter,
+            get: my_cache_getter,
+        }
+    });
+
+    const startTime = Date.now();
+    await kraken.loadMarkets () // after calling once, it will load data from cache on next executions
+    console.log ('Loaded in ', Date.now() - startTime, ' milliseconds');
+}
+
+example ();
+
+
+// ######## callbacks ########
+
+async function my_cache_setter (key, marketsAndCurrencies) {
+    const fs = await import ('node:fs');
+    fs.writeFileSync (key, JSON.stringify (marketsAndCurrencies));
+}
+
+async function my_cache_getter (key) {
+    const fs = await import ('node:fs');
+    const expirationMinutes = 30; // half an hour
+    if (fs.existsSync (key)) {
+        const parsed = JSON.parse (fs.readFileSync (key, 'utf8'));
+        if ( Date.now() < parsed.timestamp + expirationMinutes * 60 * 1000 ) {
+            return parsed;
+        }
+    }
+}
+```
+#### **Python**
+```python
+
+```
+#### **PHP**
+```php
+
+```
+<!-- tabs:end -->
+
+
+
+
 # Implicit API
 
 - [API Methods / Endpoints](#api-methods--endpoints)

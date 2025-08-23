@@ -349,6 +349,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
+    marketsCache = {}
 
     limits: {
         amount?: MinMax,
@@ -1062,17 +1063,40 @@ export default class Exchange {
             }
             return this.markets
         }
-        let currencies = undefined
+        let currencies = undefined;
+        let markets = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
-            this.options['cachedCurrencies'] = currencies;
+        const cachingMode = this.safeString (this.marketsCache, 'mode');
+        if (cachingMode !== undefined) {
+            if (cachingMode === 'callback') {
+                const getCallback = this.marketsCache['get'];
+                const values = await getCallback('ccxt_' + this.id + '_markets_and_currencies');
+                if (values) {
+                    markets = values.markets;
+                    currencies = values.currencies;
+                }
+            }
         }
-        const markets = await this.fetchMarkets (params);
-        if ('cachedCurrencies' in this.options) {
-            delete this.options['cachedCurrencies'];
+        if (markets === undefined) {
+            if (this.has['fetchCurrencies'] === true) {
+                currencies = await this.fetchCurrencies ();
+                this.options['cachedCurrencies'] = currencies;
+            }
+            markets = await this.fetchMarkets (params);
+            if ('cachedCurrencies' in this.options) {
+                delete this.options['cachedCurrencies'];
+            }
+            // write new cache
+            if (cachingMode === 'callback') {
+                const setCallback = this.marketsCache['set'];
+                await setCallback ('ccxt_' + this.id + '_markets_and_currencies', {
+                    markets: markets,
+                    currencies: currencies,
+                    timestamp: this.milliseconds()
+                });
+            }
         }
-        return this.setMarkets (markets, currencies)
+        return this.setMarkets (markets, currencies);
     }
 
     /**
