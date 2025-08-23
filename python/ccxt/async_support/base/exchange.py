@@ -275,14 +275,14 @@ class Exchange(BaseExchange):
             self.socks_proxy_sessions = {}
         if (socksProxy not in self.socks_proxy_sessions):
             reverse_dns = socksProxy.startswith('socks5h://')
-            socks_url = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
+            socks_proxy_selected = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
             self.aiohttp_socks_connector = SocksProxyConnector.from_url(
-                socks_url,
+                socks_proxy_selected,
                 # extra args copied from self.open()
                 ssl=self.ssl_context,
                 loop=self.asyncio_loop,
                 enable_cleanup_closed=True,
-                rdns=reverse_dns if reverse_dns else None,
+                rdns=reverse_dns if reverse_dns else None
             )
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
