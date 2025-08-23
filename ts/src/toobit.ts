@@ -36,6 +36,8 @@ export default class toobit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchTickers': true,
+                'fetchLastPrices': true,
             },
             'urls': {
                 'logo': '',
@@ -67,6 +69,7 @@ export default class toobit extends Exchange {
                         'quote/v1/markPrice': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
+                        'quote/v1/ticker/price': 1,
                     },
                 },
                 'spot': {
@@ -631,6 +634,44 @@ export default class toobit extends Exchange {
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of lastprices structures
+     */
+    async fetchLastPrices (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.commonGetQuoteV1TickerPrice (params);
+        //
+        //    [
+        //        {
+        //            "s": "BNTUSDT",
+        //            "si": "BNTUSDT",
+        //            "p": "0.823"
+        //        },
+        //
+        return this.parseLastPrices (response, symbols);
+    }
+
+    parseLastPrice (entry, market: Market = undefined) {
+        const marketId = this.safeString (entry, 's');
+        market = this.safeMarket (marketId, market);
+        return {
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'price': this.safeNumberOmitZero (entry, 'price'),
+            'side': undefined,
+            'info': entry,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
