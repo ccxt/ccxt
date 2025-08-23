@@ -237,12 +237,12 @@ export default class luno extends lunoRest {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.customParseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
+            result.push (this.customOrderBookParseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    customOrderBookParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -301,7 +301,7 @@ export default class luno extends lunoRest {
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const bidAskArray = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
+            const bidAskArray = this.customOrderBookParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString (createUpdate, 'type');
             if (type === 'ASK') {
                 asksOrderSide.storeArray (bidAskArray);
