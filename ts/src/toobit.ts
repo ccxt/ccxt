@@ -38,6 +38,7 @@ export default class toobit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchLastPrices': true,
+                'fetchBidsAsks': true,
             },
             'urls': {
                 'logo': '',
@@ -70,6 +71,7 @@ export default class toobit extends Exchange {
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
                         'quote/v1/ticker/price': 1,
+                        'quote/v1/ticker/bookTicker': 1,
                     },
                 },
                 'spot': {
@@ -641,6 +643,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -672,6 +675,38 @@ export default class toobit extends Exchange {
             'side': undefined,
             'info': entry,
         };
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            request['product_ids'] = this.marketIds (symbols);
+        }
+        const response = await this.commonGetQuoteV1TickerBookTicker (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "s": "GRDRUSDT",
+        //            "b": "0",
+        //            "bq": "0",
+        //            "a": "0",
+        //            "aq": "0",
+        //            "t": "1755936610506"
+        //        }, ...
+        //
+        return this.parseTickers (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
