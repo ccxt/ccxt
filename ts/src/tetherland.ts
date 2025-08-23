@@ -132,7 +132,7 @@ export default class tetherland extends Exchange {
                     continue;
                 }
                 markets[i]['quote'] = quotes[key];
-                const market = await this.parseMarket (markets[i]);
+                const market = this.parseMarket (markets[i]);
                 result.push (market);
             }
         }

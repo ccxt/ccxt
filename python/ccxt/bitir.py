@@ -350,24 +350,24 @@ class bitir(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'id')
         marketinfo = self.market(marketId)
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        high = self.safe_float(ticker, 'max_price')
-        low = self.safe_float(ticker, 'min_price')
-        bid = self.safe_float(ticker, 'min_price')
-        ask = self.safe_float(ticker, 'max_price')
-        open = self.safe_float(ticker, 'last_price')
-        close = self.safe_float(ticker, 'last_price')
-        change = self.safe_float(ticker, 'day_change_percent')
-        last = self.safe_float(ticker, 'last_price')
-        quoteVolume = self.safe_float(ticker, 'last_volume')
+        high = self.safe_float(ticker, 'max_price', 0)
+        low = self.safe_float(ticker, 'min_price', 0)
+        bid = self.safe_float(ticker, 'min_price', 0)
+        ask = self.safe_float(ticker, 'max_price', 0)
+        open = self.safe_float(ticker, 'last_price', 0)
+        close = self.safe_float(ticker, 'last_price', 0)
+        change = self.safe_float(ticker, 'day_change_percent', 0)
+        last = self.safe_float(ticker, 'last_price', 0)
+        quoteVolume = self.safe_float(ticker, 'last_volume', 0)
         if marketinfo['quote'] == 'IRT':
-            high /= 10
-            low /= 10
-            bid /= 10
-            ask /= 10
-            open /= 10
-            close /= 10
-            last /= 10
-            quoteVolume /= 10
+            high = high / 10 if high else 0
+            low = low / 10 if low else 0
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            open = open / 10 if open else 0
+            close = close / 10 if close else 0
+            last = last / 10 if last else 0
+            quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -430,11 +430,11 @@ class bitir(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(openList)):
             if market['quote'] == 'IRT':
-                openList[i] /= 10
-                highList[i] /= 10
-                lowList[i] /= 10
-                closeList[i] /= 10
-                volumeList[i] /= 10
+                openList[i] = openList[i] / 10 if openList[i] else 0
+                highList[i] = highList[i] / 10 if highList[i] else 0
+                lowList[i] = lowList[i] / 10 if lowList[i] else 0
+                closeList[i] = closeList[i] / 10 if closeList[i] else 0
+                volumeList[i] = volumeList[i] / 10 if volumeList[i] else 0
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
@@ -464,15 +464,15 @@ class bitir(Exchange, ImplicitAPI):
         orberbook = {'asks': [], 'bids': []}
         for i in range(0, len(orderbookList)):
             orderType = self.safe_string(orderbookList[i], 'type')
-            price = self.safe_float(orderbookList[i], 'price')
-            amount = self.safe_float(orderbookList[i], 'amount')
+            price = self.safe_float(orderbookList[i], 'price', 0)
+            amount = self.safe_float(orderbookList[i], 'amount', 0)
             if orderType == 'sell':
                 if market['quote'] == 'IRT':
-                    price /= 10
+                    price = price / 10
                 orberbook['asks'].append([price, amount])
             if orderType == 'buy':
                 if market['quote'] == 'IRT':
-                    price /= 10
+                    price = price / 10
                 orberbook['bids'].append([price, amount])
         timestamp = Date.now()
         return self.parse_order_book(orberbook, symbol, timestamp)

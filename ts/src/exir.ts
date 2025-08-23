@@ -137,7 +137,7 @@ export default class exir extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const market = await this.parseMarket (response[symbol]);
+            const market = this.parseMarket (response[symbol]);
             result.push (market);
         }
         return result;

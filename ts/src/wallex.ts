@@ -143,7 +143,7 @@ export default class wallex extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (marketList[index]);
+            const market = this.parseMarket (marketList[index]);
             result.push (market);
         }
         return result;

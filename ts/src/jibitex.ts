@@ -133,7 +133,7 @@ export default class jibitex extends Exchange {
         const markets = this.safeList (response, 'content');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket (markets[i]);
+            const market = this.parseMarket (markets[i]);
             result.push (market);
         }
         return result;

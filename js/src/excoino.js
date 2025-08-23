@@ -292,18 +292,18 @@ export default class excoino extends Exchange {
         const marketId = this.safeValue(ticker, 'symbol');
         const marketinfo = this.market(marketId);
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        let high = this.safeFloat(ticker, 'high');
-        let low = this.safeFloat(ticker, 'low');
-        let open = this.safeFloat(ticker, 'open');
-        let close = this.safeFloat(ticker, 'close');
-        const change = this.safeFloat(ticker, 'chg');
-        let last = this.safeFloat(ticker, 'close');
-        let quoteVolume = this.safeFloat(ticker, 'twentyFourHourTurnover');
+        let high = this.safeFloat(ticker, 'high', 0);
+        let low = this.safeFloat(ticker, 'low', 0);
+        let open = this.safeFloat(ticker, 'open', 0);
+        let close = this.safeFloat(ticker, 'close', 0);
+        const change = this.safeFloat(ticker, 'chg', 0);
+        let last = this.safeFloat(ticker, 'close', 0);
+        let quoteVolume = this.safeFloat(ticker, 'twentyFourHourTurnover', 0);
         if (marketinfo['quote'] === 'IRT') {
-            open /= 10;
-            close /= 10;
             high /= 10;
             low /= 10;
+            open /= 10;
+            close /= 10;
             last /= 10;
             quoteVolume /= 10;
         }

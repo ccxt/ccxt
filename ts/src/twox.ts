@@ -135,7 +135,7 @@ export default class twox extends Exchange {
                 }
                 marketData['base'] = base;
                 marketData['quote'] = quote;
-                const market = await this.parseMarket (marketData);
+                const market = this.parseMarket (marketData);
                 result.push (market);
             }
         }

@@ -142,7 +142,7 @@ export default class tabdeal extends Exchange {
         const response = await this.publicGetPlotsMarketInformation (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;

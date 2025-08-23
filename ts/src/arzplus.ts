@@ -134,7 +134,7 @@ export default class arzplus extends Exchange {
         const response = await this.publicGetApiV1MarketSymbols (request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;

@@ -128,7 +128,7 @@ export default class eterex extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (markets[index]);
+            const market = this.parseMarket (markets[index]);
             result.push (market);
         }
         return result;

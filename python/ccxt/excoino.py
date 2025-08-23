@@ -281,18 +281,18 @@ class excoino(Exchange, ImplicitAPI):
         marketId = self.safe_value(ticker, 'symbol')
         marketinfo = self.market(marketId)
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        high = self.safe_float(ticker, 'high')
-        low = self.safe_float(ticker, 'low')
-        open = self.safe_float(ticker, 'open')
-        close = self.safe_float(ticker, 'close')
-        change = self.safe_float(ticker, 'chg')
-        last = self.safe_float(ticker, 'close')
-        quoteVolume = self.safe_float(ticker, 'twentyFourHourTurnover')
+        high = self.safe_float(ticker, 'high', 0)
+        low = self.safe_float(ticker, 'low', 0)
+        open = self.safe_float(ticker, 'open', 0)
+        close = self.safe_float(ticker, 'close', 0)
+        change = self.safe_float(ticker, 'chg', 0)
+        last = self.safe_float(ticker, 'close', 0)
+        quoteVolume = self.safe_float(ticker, 'twentyFourHourTurnover', 0)
         if marketinfo['quote'] == 'IRT':
-            open /= 10
-            close /= 10
             high /= 10
             low /= 10
+            open /= 10
+            close /= 10
             last /= 10
             quoteVolume /= 10
         return self.safe_ticker({

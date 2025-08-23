@@ -288,18 +288,18 @@ class excoino extends Exchange {
         $marketId = $this->safe_value($ticker, 'symbol');
         $marketinfo = $this->market($marketId);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $high = $this->safe_float($ticker, 'high');
-        $low = $this->safe_float($ticker, 'low');
-        $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
-        $change = $this->safe_float($ticker, 'chg');
-        $last = $this->safe_float($ticker, 'close');
-        $quoteVolume = $this->safe_float($ticker, 'twentyFourHourTurnover');
+        $high = $this->safe_float($ticker, 'high', 0);
+        $low = $this->safe_float($ticker, 'low', 0);
+        $open = $this->safe_float($ticker, 'open', 0);
+        $close = $this->safe_float($ticker, 'close', 0);
+        $change = $this->safe_float($ticker, 'chg', 0);
+        $last = $this->safe_float($ticker, 'close', 0);
+        $quoteVolume = $this->safe_float($ticker, 'twentyFourHourTurnover', 0);
         if ($marketinfo['quote'] === 'IRT') {
-            $open /= 10;
-            $close /= 10;
             $high /= 10;
             $low /= 10;
+            $open /= 10;
+            $close /= 10;
             $last /= 10;
             $quoteVolume /= 10;
         }

@@ -136,7 +136,7 @@ export default class bitimen extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (response[index]);
+            const market = this.parseMarket (response[index]);
             result.push (market);
         }
         return result;
