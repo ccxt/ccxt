@@ -46,7 +46,11 @@ func Equals(a interface{}, b interface{}) bool {
 	}
 	strA := string(jsonA)
 	strB := string(jsonB)
-	return strA == strB
+	res := strA == strB
+	if !res {
+		base.Print("[Error] Not equal: " + strA + " != " + strB)
+	}
+	return res
 
 }
 

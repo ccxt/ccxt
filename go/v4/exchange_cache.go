@@ -190,6 +190,8 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 	if arr, ok := item.([]interface{}); ok && len(arr) > 0 {
 		if v, okCast := arr[0].(int64); okCast {
 			ts = v
+		} else if vI, okI := arr[0].(int); okI {
+			ts = int64(vI)
 		} else if vF, okF := arr[0].(float64); okF {
 			ts = int64(vF)
 		}
@@ -199,10 +201,34 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 	defer c.Mu.Unlock()
 	if ts != 0 {
 		if _, exists := c.Hashmap[ts]; exists {
-			c.Hashmap[ts] = item // update existing
+			// c.Hashmap[ts] = item // update existing
+			// locate and update in Data as well
+			// to do use the reference in hashmap instead of searching
+			currItem := c.Hashmap[ts].([]interface{})
+			for i, _ := range currItem {
+				if arr, ok := item.([]interface{}); ok && len(arr) > 0 {
+					currItem[i] = arr[i]
+				}
+			}
+			// c.Hashmap[ts] = item
+			// for i, v := range c.Data {
+			// 	if arr, ok := v.([]interface{}); ok && len(arr) > 0 {
+			// 		var ets int64
+			// 		if v2, okCast := arr[0].(int64); okCast {
+			// 			ets = v2
+			// 		} else if vI, okI := arr[0].(int); okI {
+			// 			ets = int64(vI)
+			// 		}
+			// 		if ets == ts {
+			// 			c.Data[i] = item
+			// 			break
+			// 		}
+			// 	}
+			// }
 			return
+		} else {
+			c.Hashmap[ts] = item
 		}
-		c.Hashmap[ts] = item
 	}
 
 	c.AppendInternal(item)
