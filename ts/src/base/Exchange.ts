@@ -3294,22 +3294,43 @@ export default class Exchange {
         };
         if (market !== undefined) {
             const result = this.extend (cleanStructure, market);
-            // set undefined swap/future/etc
             if (result['spot']) {
-                if (result['contract'] === undefined) {
-                    result['contract'] = false;
+                result['contract'] = false;
+            } else if (result['contract']) {
+                result['spot'] = false;
+            }
+            //
+            // "type"
+            //
+            const marketTypes = [ 'spot', 'swap', 'future', 'option', 'index' ];
+            // set booleans
+            for (let j = 0; j < marketTypes.length; j++) {
+                const type = marketTypes[j];
+                result[type] = (this.safeString (result, 'type') === type);
+            }
+            // set string
+            for (let j = 0; j < marketTypes.length; j++) {
+                const type = marketTypes[j];
+                if (result[type]) {
+                    result['type'] = type;
                 }
-                if (result['swap'] === undefined) {
-                    result['swap'] = false;
+            }
+            //
+            // "subType"
+            //
+            const subTypes = [ 'linear', 'inverse' ];
+            // set booleans
+            for (let j = 0; j < subTypes.length; j++) {
+                const subType = subTypes[j];
+                if (result[subType] === undefined) {
+                    result[subType] = (this.safeString (result, 'subType') === subType);
                 }
-                if (result['future'] === undefined) {
-                    result['future'] = false;
-                }
-                if (result['option'] === undefined) {
-                    result['option'] = false;
-                }
-                if (result['index'] === undefined) {
-                    result['index'] = false;
+            }
+            // set string
+            for (let j = 0; j < subTypes.length; j++) {
+                const subType = subTypes[j];
+                if (result[subType]) {
+                    result['subType'] = subType;
                 }
             }
             return result;
@@ -3336,26 +3357,6 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
-            // auto-set type & subtype
-            const knownTypes = [ 'spot', 'swap', 'future', 'option', 'index' ];
-            for (let j = 0; j < knownTypes.length; j++) {
-                const type = knownTypes[j];
-                if (market[type]) {
-                    market['type'] = type;
-                }
-            }
-            // autoset booleans (if undefined)
-            for (let j = 0; j < knownTypes.length; j++) {
-                const type = knownTypes[j];
-                if (market[type] === undefined) {
-                    market[type] = false; // set each of them to false
-                    if (this.safeString (market, 'type') === type) {
-                        // only set the target 'type' to true
-                        market[type] = true;
-                    }
-                }
-            }
-            // subType
             if (market['linear']) {
                 market['subType'] = 'linear';
             } else if (market['inverse']) {
