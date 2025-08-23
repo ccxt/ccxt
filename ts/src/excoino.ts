@@ -246,7 +246,7 @@ export default class excoino extends Exchange {
         const response = await this.publicGetMarketSymbolThumbTrend ();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker (response[i]);
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

@@ -228,7 +228,7 @@ export default class bitpin extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const is_active = this.safeBool (markets[i], 'tradable');
             if (is_active === true) {
-                const ticker = await this.parseTicker (markets[i]);
+                const ticker = this.parseTicker (markets[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }

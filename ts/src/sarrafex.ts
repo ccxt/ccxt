@@ -290,7 +290,7 @@ export default class sarrafex extends Exchange {
         const markets = this.safeList (response, 'value');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker (markets[i]);
+            const ticker = this.parseTicker (markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -314,7 +314,7 @@ export default class sarrafex extends Exchange {
         };
         const response = await this.publicGetApiGatewayExchangerQueryMarket (request);
         const pair = this.safeList (response, 'value');
-        const ticker = await this.parseTicker (pair[0]);
+        const ticker = this.parseTicker (pair[0]);
         return ticker;
     }
 

@@ -259,9 +259,7 @@ func  (this *afratether) FetchTickers(optionalArgs ...interface{}) <- chan inter
             var markets interface{} = this.SafeList(response, "Items")
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        
-                ticker := this.ParseTicker(GetValue(markets, i))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }

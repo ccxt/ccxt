@@ -258,7 +258,7 @@ export default class arzplus extends Exchange {
                 'symbol': response[i]['name'],
             };
             const assetDetails = await this.publicGetApiV1MarketSymbols (request);
-            const ticker = await this.parseTicker (assetDetails);
+            const ticker = this.parseTicker (assetDetails);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -281,7 +281,7 @@ export default class arzplus extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketSymbols (request);
-        const ticker = await this.parseTicker (response);
+        const ticker = this.parseTicker (response);
         return ticker;
     }
 

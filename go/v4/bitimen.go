@@ -274,9 +274,7 @@ func  (this *bitimen) FetchTickers(optionalArgs ...interface{}) <- chan interfac
                 if IsTrue(IsEqual(GetValue(GetValue(response, index), "last"), "0")) {
                     continue
                 }
-        
-                ticker:= (<-this.ParseTicker(GetValue(response, index)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(response, index))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -310,9 +308,7 @@ func  (this *bitimen) FetchTicker(symbol interface{}, optionalArgs ...interface{
         
             response:= (<-this.PublicGetApiMarketStats(params))
             PanicOnError(response)
-        
-            ticker:= (<-this.ParseTicker(GetValue(response, GetValue(market, "id"))))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(response, GetValue(market, "id")))
         
             ch <- ticker
             return nil

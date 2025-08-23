@@ -237,7 +237,7 @@ export default class exir extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const ticker = await this.parseTicker (response[symbol]);
+            const ticker = this.parseTicker (response[symbol]);
             symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -262,7 +262,7 @@ export default class exir extends Exchange {
         const response = await this.publicGetV2Ticker (request);
         response['symbol'] = market['id'];
         response['time'] = response['timestamp'];
-        const ticker = await this.parseTicker (response);
+        const ticker = this.parseTicker (response);
         return ticker;
     }
 

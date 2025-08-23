@@ -247,9 +247,7 @@ func  (this *eterex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
                 var index interface{} = GetValue(marketKeys, i)
                 AddElementToObject(GetValue(markets, index), "symbol", index)
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, index)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, index))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -285,9 +283,7 @@ func  (this *eterex) FetchTicker(symbol interface{}, optionalArgs ...interface{}
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "markets")
             AddElementToObject(GetValue(markets, GetValue(market, "id")), "symbol", GetValue(market, "id"))
-        
-            ticker:= (<-this.ParseTicker(GetValue(markets, GetValue(market, "id"))))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(markets, GetValue(market, "id")))
         
             ch <- ticker
             return nil

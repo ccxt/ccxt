@@ -279,9 +279,7 @@ func  (this *twox) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
                     AddElementToObject(GetValue(response, i), "base", base)
                     AddElementToObject(GetValue(response, i), "quote", quote)
                     AddElementToObject(GetValue(response, i), "symbol", Add(base, quote))
-        
-                    ticker:= (<-this.ParseTicker(GetValue(response, i)))
-                    PanicOnError(ticker)
+                    var ticker interface{} = this.ParseTicker(GetValue(response, i))
                     var symbol interface{} = GetValue(ticker, "symbol")
                     AddElementToObject(result, symbol, ticker)
                 }

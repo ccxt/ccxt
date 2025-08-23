@@ -226,7 +226,7 @@ export default class arzinja extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
             markets[index]['symbol'] = index;
-            const ticker = await this.parseTicker (markets[index]);
+            const ticker = this.parseTicker (markets[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -248,7 +248,7 @@ export default class arzinja extends Exchange {
         const response = await this.publicGetPrices (params);
         const markets = this.safeDict (response, 'markets');
         markets[market['id']]['symbol'] = market['id'];
-        const ticker = await this.parseTicker (markets[market['id']]);
+        const ticker = this.parseTicker (markets[market['id']]);
         return ticker;
     }
 

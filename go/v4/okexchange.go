@@ -249,9 +249,7 @@ func  (this *okexchange) FetchTickers(optionalArgs ...interface{}) <- chan inter
             var markets interface{} = this.SafeValue(response, "tickers")
             var result interface{} = map[string]interface{} {}
             for index := 0; IsLessThan(index, GetArrayLength(markets)); index++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, index)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, index))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }

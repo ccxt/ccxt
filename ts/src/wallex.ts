@@ -276,7 +276,7 @@ export default class wallex extends Exchange {
         const result = {};
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const ticker = await this.parseTicker (marketList[index]);
+            const ticker = this.parseTicker (marketList[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -298,7 +298,7 @@ export default class wallex extends Exchange {
         const response = await this.publicGetV1Markets (params);
         const markets = this.safeDict (response, 'result');
         const marketList = this.safeDict (markets, 'symbols');
-        const ticker = await this.parseTicker (marketList[market['id']]);
+        const ticker = this.parseTicker (marketList[market['id']]);
         return ticker;
     }
 

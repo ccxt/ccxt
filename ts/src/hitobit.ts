@@ -248,7 +248,7 @@ export default class hitobit extends Exchange {
         const response = await this.publicGetHapiExchangeV1PublicAlltickers24hr (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker (response[i]);
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -271,7 +271,7 @@ export default class hitobit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetHapiExchangeV1PublicTicker24hr (request);
-        const ticker = await this.parseTicker (response);
+        const ticker = this.parseTicker (response);
         return ticker;
     }
 

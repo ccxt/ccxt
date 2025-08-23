@@ -299,9 +299,7 @@ func  (this *ramzinex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
                 if IsTrue(!IsTrue(GetValue(markets, i).Financial) || IsTrue(IsEqual(GetArrayLength(ObjectKeys(GetValue(markets, i).Financial)), 0))) {
                     continue
                 }
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -339,9 +337,7 @@ func  (this *ramzinex) FetchTicker(symbol interface{}, optionalArgs ...interface
             response:= (<-this.PublicGetExchangeApiV10ExchangePairs(request))
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "data")
-        
-            ticker:= (<-this.ParseTicker(markets))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(markets)
         
             ch <- ticker
             return nil

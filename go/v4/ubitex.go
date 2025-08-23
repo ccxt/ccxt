@@ -271,9 +271,7 @@ func  (this *ubitex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             PanicOnError(response)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(response, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(response, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -312,9 +310,7 @@ func  (this *ubitex) FetchTicker(symbol interface{}, optionalArgs ...interface{}
             response:= (<-this.PublicGetApiDashboardPairList(request))
             PanicOnError(response)
             var pair interface{} = this.SafeDict(response, 0)
-        
-            ticker:= (<-this.ParseTicker(pair))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(pair)
         
             ch <- ticker
             return nil

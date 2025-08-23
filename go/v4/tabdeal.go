@@ -259,9 +259,7 @@ func  (this *tabdeal) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        
-                market:= (<-this.ParseTicker(GetValue(response, i)))
-                PanicOnError(market)
+                var market interface{} = this.ParseTicker(GetValue(response, i))
                 var symbol interface{} = GetValue(market, "symbol")
                 AddElementToObject(result, symbol, market)
             }

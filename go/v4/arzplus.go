@@ -282,9 +282,7 @@ func  (this *arzplus) FetchTickers(optionalArgs ...interface{}) <- chan interfac
         
                 assetDetails:= (<-this.PublicGetApiV1MarketSymbols(request))
                 PanicOnError(assetDetails)
-        
-                ticker:= (<-this.ParseTicker(assetDetails))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(assetDetails)
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -321,9 +319,7 @@ func  (this *arzplus) FetchTicker(symbol interface{}, optionalArgs ...interface{
         
             response:= (<-this.PublicGetApiV1MarketSymbols(request))
             PanicOnError(response)
-        
-            ticker:= (<-this.ParseTicker(response))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(response)
         
             ch <- ticker
             return nil

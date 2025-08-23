@@ -277,7 +277,7 @@ export default class ramzinex extends Exchange {
             if (!markets[i].financial || Object.keys (markets[i].financial).length === 0) {
                 continue;
             }
-            const ticker = await this.parseTicker (markets[i]);
+            const ticker = this.parseTicker (markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -301,7 +301,7 @@ export default class ramzinex extends Exchange {
         };
         const response = await this.publicGetExchangeApiV10ExchangePairs (request);
         const markets = this.safeDict (response, 'data');
-        const ticker = await this.parseTicker (markets);
+        const ticker = this.parseTicker (markets);
         return ticker;
     }
 

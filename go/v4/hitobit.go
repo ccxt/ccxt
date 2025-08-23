@@ -270,9 +270,7 @@ func  (this *hitobit) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(response, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(response, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -309,9 +307,7 @@ func  (this *hitobit) FetchTicker(symbol interface{}, optionalArgs ...interface{
         
             response:= (<-this.PublicGetHapiExchangeV1PublicTicker24hr(request))
             PanicOnError(response)
-        
-            ticker:= (<-this.ParseTicker(response))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(response)
         
             ch <- ticker
             return nil

@@ -298,9 +298,7 @@ func  (this *wallex) FetchTickers(optionalArgs ...interface{}) <- chan interface
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
                 var index interface{} = GetValue(marketKeys, i)
-        
-                ticker:= (<-this.ParseTicker(GetValue(marketList, index)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(marketList, index))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -336,9 +334,7 @@ func  (this *wallex) FetchTicker(symbol interface{}, optionalArgs ...interface{}
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "result")
             var marketList interface{} = this.SafeDict(markets, "symbols")
-        
-            ticker:= (<-this.ParseTicker(GetValue(marketList, GetValue(market, "id"))))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(marketList, GetValue(market, "id")))
         
             ch <- ticker
             return nil

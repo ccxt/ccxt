@@ -270,9 +270,7 @@ func  (this *jibitex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             var markets interface{} = this.SafeList(response, "content")
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -312,9 +310,7 @@ func  (this *jibitex) FetchTicker(symbol interface{}, optionalArgs ...interface{
             response:= (<-this.PublicGetApi1Markets(request))
             PanicOnError(response)
             var marketData interface{} = this.SafeList(response, "content")
-        
-            ticker:= (<-this.ParseTicker(GetValue(marketData, 0)))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(marketData, 0))
         
             ch <- ticker
             return nil

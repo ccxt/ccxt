@@ -249,7 +249,7 @@ export default class ubitex extends Exchange {
         const response = await this.publicGetApiDashboardPairList (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker (response[i]);
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -274,7 +274,7 @@ export default class ubitex extends Exchange {
         };
         const response = await this.publicGetApiDashboardPairList (request);
         const pair = this.safeDict (response, 0);
-        const ticker = await this.parseTicker (pair);
+        const ticker = this.parseTicker (pair);
         return ticker;
     }
 

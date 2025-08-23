@@ -248,9 +248,7 @@ func  (this *arzinja) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
                 var index interface{} = GetValue(marketKeys, i)
                 AddElementToObject(GetValue(markets, index), "symbol", index)
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, index)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, index))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -286,9 +284,7 @@ func  (this *arzinja) FetchTicker(symbol interface{}, optionalArgs ...interface{
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "markets")
             AddElementToObject(GetValue(markets, GetValue(market, "id")), "symbol", GetValue(market, "id"))
-        
-            ticker:= (<-this.ParseTicker(GetValue(markets, GetValue(market, "id"))))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(markets, GetValue(market, "id")))
         
             ch <- ticker
             return nil

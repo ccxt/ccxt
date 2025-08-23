@@ -250,9 +250,7 @@ func  (this *bitpin) FetchTickers(optionalArgs ...interface{}) <- chan interface
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var is_active interface{} = this.SafeBool(GetValue(markets, i), "tradable")
                 if IsTrue(IsEqual(is_active, true)) {
-        
-                    ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                    PanicOnError(ticker)
+                    var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                     var symbol interface{} = GetValue(ticker, "symbol")
                     AddElementToObject(result, symbol, ticker)
                 }

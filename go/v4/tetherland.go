@@ -289,9 +289,7 @@ func  (this *tetherland) FetchTickers(optionalArgs ...interface{}) <- chan inter
                     }
                     AddElementToObject(GetValue(markets, i), "quote", GetValue(quotes, key))
                     AddElementToObject(GetValue(markets, i), "id", Add(Add(GetValue(GetValue(markets, i), "symbol"), "/"), GetValue(GetValue(markets, i), "quote")))
-        
-                    market:= (<-this.ParseTicker(GetValue(markets, i)))
-                    PanicOnError(market)
+                    var market interface{} = this.ParseTicker(GetValue(markets, i))
                     var symbol interface{} = GetValue(market, "symbol")
                     AddElementToObject(result, symbol, market)
                 }

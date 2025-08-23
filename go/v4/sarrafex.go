@@ -312,9 +312,7 @@ func  (this *sarrafex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             var markets interface{} = this.SafeList(response, "value")
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -352,9 +350,7 @@ func  (this *sarrafex) FetchTicker(symbol interface{}, optionalArgs ...interface
             response:= (<-this.PublicGetApiGatewayExchangerQueryMarket(request))
             PanicOnError(response)
             var pair interface{} = this.SafeList(response, "value")
-        
-            ticker:= (<-this.ParseTicker(GetValue(pair, 0)))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(GetValue(pair, 0))
         
             ch <- ticker
             return nil

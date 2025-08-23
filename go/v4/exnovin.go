@@ -266,9 +266,7 @@ func  (this *exnovin) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(response, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(response, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }

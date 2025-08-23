@@ -252,7 +252,7 @@ export default class bitimen extends Exchange {
             if (response[index]['last'] === '0') {
                 continue;
             }
-            const ticker = await this.parseTicker (response[index]);
+            const ticker = this.parseTicker (response[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -272,7 +272,7 @@ export default class bitimen extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.publicGetApiMarketStats (params);
-        const ticker = await this.parseTicker (response[market['id']]);
+        const ticker = this.parseTicker (response[market['id']]);
         return ticker;
     }
 

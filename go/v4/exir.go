@@ -261,9 +261,7 @@ func  (this *exir) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
                 var symbol interface{} = GetValue(marketKeys, i)
                 AddElementToObject(GetValue(response, symbol), "symbol", symbol)
-        
-                ticker:= (<-this.ParseTicker(GetValue(response, symbol)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(response, symbol))
                 symbol = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -302,9 +300,7 @@ func  (this *exir) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
             PanicOnError(response)
             AddElementToObject(response, "symbol", GetValue(market, "id"))
             AddElementToObject(response, "time", GetValue(response, "timestamp"))
-        
-            ticker:= (<-this.ParseTicker(response))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(response)
         
             ch <- ticker
             return nil

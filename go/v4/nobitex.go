@@ -277,9 +277,7 @@ func  (this *nobitex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
                     continue
                 }
                 AddElementToObject(GetValue(markets, symbol), "symbol", symbol)
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, symbol)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, symbol))
                 symbol = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }

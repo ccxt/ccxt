@@ -301,9 +301,7 @@ func  (this *bitir) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             var markets interface{} = this.SafeList(response, "data")
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        
-                ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                PanicOnError(ticker)
+                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -341,9 +339,7 @@ func  (this *bitir) FetchTicker(symbol interface{}, optionalArgs ...interface{})
             response:= (<-this.PublicGetV1Market(request))
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "data")
-        
-            ticker:= (<-this.ParseTicker(markets))
-            PanicOnError(ticker)
+            var ticker interface{} = this.ParseTicker(markets)
         
             ch <- ticker
             return nil

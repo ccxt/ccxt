@@ -253,7 +253,7 @@ export default class nobitex extends Exchange {
                 continue;
             }
             markets[symbol]['symbol'] = symbol;
-            const ticker = await this.parseTicker (markets[symbol]);
+            const ticker = this.parseTicker (markets[symbol]);
             symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

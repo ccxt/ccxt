@@ -294,9 +294,7 @@ func  (this *sarmayex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
                     AddElementToObject(GetValue(markets, i), "base", base)
                     AddElementToObject(GetValue(markets, i), "quote", quote)
                     AddElementToObject(GetValue(markets, i), "symbol", Add(base, quote))
-        
-                    ticker:= (<-this.ParseTicker(GetValue(markets, i)))
-                    PanicOnError(ticker)
+                    var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                     var symbol interface{} = GetValue(ticker, "symbol")
                     AddElementToObject(result, symbol, ticker)
                 }
