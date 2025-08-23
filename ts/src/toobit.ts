@@ -36,6 +36,8 @@ export default class toobit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchMarkOHLCV': true,
+                'fetchIndexOHLCV': true,
                 'fetchTickers': true,
                 'fetchLastPrices': true,
                 'fetchBidsAsks': true,
@@ -532,35 +534,88 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.commonGetQuoteV1Klines (this.extend (request, params));
-        //
-        //    [
-        //        [
-        //            1755540660000,
-        //            "116399.99",
-        //            "116399.99",
-        //            "116360.09",
-        //            "116360.1",
-        //            "2.236869",
-        //            0,
-        //            "260303.79722607",
-        //            22,
-        //            "2.221061",
-        //            "258464.10338267"
-        //        ],
-        //        ...
-        //
+        let response = undefined;
+        let endpoint = undefined;
+        [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
+        if (endpoint === 'index') {
+            response = await this.commonGetApiQuoteV1IndexKlines (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": [
+            //             {
+            //                 "t": 1669155300000,//time
+            //                 "s": "ETHUSDT",// symbol
+            //                 "sn": "ETHUSDT",//symbol name
+            //                 "c": "1127.1",//Close price
+            //                 "h": "1130.81",//High price
+            //                 "l": "1126.17",//Low price
+            //                 "o": "1130.8",//Open price
+            //                 "v": "0"//Volume
+            //             },
+            //             {
+            //                 "t": 1669156200000,
+            //                 "s": "ETHUSDT",
+            //                 "sn": "ETHUSDT",
+            //                 "c": "1129.44",
+            //                 "h": "1129.54",
+            //                 "l": "1127.1",
+            //                 "o": "1127.1",
+            //                 "v": "0"
+            //             }
+            //         ]
+            //     }
+            //
+        } else if (endpoint === 'mark') {
+            response = await this.commonGetApiQuoteV1MarkPriceKlines (this.extend (request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",// Symbol
+            //                 "time": 1670157900000,// time
+            //                 "low": "16991.14096",//Low price
+            //                 "open": "16991.78288",//Open price
+            //                 "high": "16996.30641",// High prce
+            //                 "close": "16996.30641",// Close price
+            //                 "volume": "0",// Volume
+            //                 "curId": 1670157900000
+            //             }
+            //         ]
+            //     }
+            //
+        } else {
+            response = await this.commonGetQuoteV1Klines (this.extend (request, params));
+            //
+            //    [
+            //        [
+            //            1755540660000,
+            //            "116399.99",
+            //            "116399.99",
+            //            "116360.09",
+            //            "116360.1",
+            //            "2.236869",
+            //            0,
+            //            "260303.79722607",
+            //            22,
+            //            "2.221061",
+            //            "258464.10338267"
+            //        ],
+            //        ...
+            //
+        }
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeIntegerN (ohlcv, [ 0, 'time', 't' ]),
+            this.safeNumberN (ohlcv, [ 1, 'open', 'o' ]),
+            this.safeNumberN (ohlcv, [ 2, 'high', 'h' ]),
+            this.safeNumberN (ohlcv, [ 3, 'low', 'l' ]),
+            this.safeNumberN (ohlcv, [ 4, 'close', 'c' ]),
+            this.safeNumberN (ohlcv, [ 5, 'volume', 'v' ]),
         ];
     }
 
