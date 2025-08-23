@@ -111,7 +111,7 @@ class abantether extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($symbols = null, $params = array ()): array {
         /**
          * retrieves data on all markets for abantether
          * @see https://abantether.com/management/all-coins/?format=json
