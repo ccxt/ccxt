@@ -349,6 +349,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
+    marketsCache = {}
 
     limits: {
         amount?: MinMax,
@@ -1055,6 +1056,69 @@ export default class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
+    // ######## cache ########
+    fsImported = undefined;
+    osImported = undefined;
+
+    async loadModulesForCache () {
+        if (this.fsImported === undefined) {
+            try {
+                this.fsImported = await import (/* webpackIgnore: true */'node:fs');
+            } catch (e) {
+                throw new NotSupported (this.id + ' - markets cache is supported only in backend apps like node/deno/etc but not in browser apps');
+            }
+        }
+        if (this.osImported === undefined) {
+            try {
+                this.osImported = await import (/* webpackIgnore: true */'node:os');
+            } catch (e) {
+                throw new NotSupported (this.id + ' - markets cache is supported only in backend apps like node/deno/etc but not in browser apps');
+            }
+        }
+    }
+
+    marketsCacheFilePath () {
+        const location = this.safeString (this.marketsCache, 'path', this.osImported.tmpdir() + '/ccxt_' + this.id + '_loaded_markets_cache.json');
+        return location;
+    }
+
+    async marketsCacheGet () {
+        const expiration = this.safeInteger (this.marketsCache, 'expiration', 0); // seconds
+        // only check if user has enabled caching
+        if (expiration) {
+            await this.loadModulesForCache ();
+            const cacheFile = this.marketsCacheFilePath();
+            if (this.fsImported.existsSync (cacheFile)) {
+                const content = await this.fsImported.readFileSync (cacheFile, 'utf8');
+                if (content) {
+                    const values = JSON.parse(content);
+                    if (values) {
+                        if ((this.milliseconds () - values.timestamp) <= expiration * 1000) {
+                            return [ values.markets, values.currencies ];
+                        }
+                    }
+                }
+            }
+        }
+        return [ undefined, undefined ];
+    }
+
+    async marketsCacheSave (markets, currencies, params = {}) {
+        const expiration = this.safeInteger (this.marketsCache, 'expiration', 0); // seconds
+        // only write if user has enabled caching
+        if (expiration) {
+            await this.loadModulesForCache ();
+            const cacheFile = this.marketsCacheFilePath();
+            const values = {
+                'timestamp': this.milliseconds (),
+                'markets': markets,
+                'currencies': currencies,
+            };
+            // write cache file
+            await this.fsImported.writeFileSync (cacheFile, JSON.stringify (values), 'utf8');
+        }
+    }
+
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
@@ -1062,17 +1126,22 @@ export default class Exchange {
             }
             return this.markets
         }
-        let currencies = undefined
+        let [ markets,currencies ] = await this.marketsCacheGet ();
+        if (markets !== undefined) {
+            return this.setMarkets (markets, currencies);
+        }
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            currencies = await this.fetchCurrencies ();
             this.options['cachedCurrencies'] = currencies;
         }
-        const markets = await this.fetchMarkets (params);
+        markets = await this.fetchMarkets (params);
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
-        return this.setMarkets (markets, currencies)
+        // write new cache
+        await this.marketsCacheSave (markets, currencies, params);
+        return this.setMarkets (markets, currencies);
     }
 
     /**
