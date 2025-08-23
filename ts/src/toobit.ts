@@ -5,7 +5,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ export default class toobit extends Exchange {
                         'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
+                        'api/v1/futures/fundingRate': 1,
                     },
                 },
                 'spot': {
@@ -785,6 +786,57 @@ export default class toobit extends Exchange {
             'askVolume': this.safeNumber (ticker, 'aq'),
             'info': ticker,
         };
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.commonGetApiV1FuturesFundingRate (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "BTC-SWAP-USDT",
+        //            "rate": "0.0001071148112848",
+        //            "nextFundingTime": "1755964800000"
+        //        },...
+        //
+        return this.parseFundingRates (response, symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const nextFundingRate = this.safeNumber (contract, 'rate');
+        const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'previousFundingRate': undefined,
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'interval': undefined,
+        } as FundingRate;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
