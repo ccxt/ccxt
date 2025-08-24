@@ -1,0 +1,26 @@
+{
+    "exchange": "binanceusdm",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "cancelOrders": [
+            {
+                "description": "cancelOrders with clientOrderIds",
+                "method": "cancelOrders",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1756029958875&symbol=ETHUSDT&recvWindow=10000&origclientorderidlist=%5B%22id1%22%2C%22id2%22%5D&signature=6a3b8cc049c6a824c4c6b839ec465b67c619496a33833176d7c04210d3a5335b",
+                "input": [
+                    [],
+                    "ETH/USDT:USDT",
+                    {
+                        "clientOrderIds": [
+                            "id1",
+                            "id2"
+                        ]
+                    }
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
