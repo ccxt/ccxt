@@ -7,10 +7,11 @@ import { ecdsa, crc32, eddsa,  hash, hmac  } from '../../base/functions/crypto.j
 import { encode } from '../../base/functions/encode.js';
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { rsa, jwt } from '../../base/functions/rsa.js';
+import { inArray, safeInteger, safeString } from '../../base/functions.js';
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 
-function verify (signature, algorithm = 'secp256k1') {
+function verify (signature) {
     /**
      * Verify an ECDSA signature. Since coincurve produces non-deterministic signatures,
      * we verify that the signature is valid rather than checking for exact matches.
@@ -18,21 +19,17 @@ function verify (signature, algorithm = 'secp256k1') {
     try {
         // For now, we'll just check that the signature has the expected structure
         // and that r, s are valid hex strings of appropriate length
-        if (!signature || typeof signature !== 'object') {
+        if (!signature) {
             return false;
         }
-        if (!('r' in signature) || !('s' in signature) || !('v' in signature)) {
-            return false;
-        }
-        const r = signature['r'];
-        const s = signature['s'];
-        const v = signature['v'];
-        // Check that r and s are valid hex strings
-        if (typeof r !== 'string' || typeof s !== 'string') {
+        const r = safeString (signature, 'r');
+        const s = safeString (signature, 's');
+        const v = safeInteger (signature, 'v');
+        if ((r === undefined) || (s === undefined) || (v === undefined)) {
             return false;
         }
         // Check that r and s are 64 characters long (32 bytes in hex)
-        if (r.length !== 64 || s.length !== 64) {
+        if ((r.length !== 64) || (s.length !== 64)) {
             return false;
         }
         // Check that r and s contain only valid hex characters
@@ -42,12 +39,8 @@ function verify (signature, algorithm = 'secp256k1') {
         } catch (e) {
             return false;
         }
-        // Check that v is a number
-        if (typeof v !== 'number') {
-            return false;
-        }
         // For secp256k1, v should typically be 0, 1, 27, or 28
-        if (algorithm === 'secp256k1' && ![ 0, 1, 27, 28 ].includes (v)) {
+        if (!(inArray (v, [ 0, 1, 27, 28 ]))) {
             return false;
         }
         return true;
@@ -76,10 +69,10 @@ function testCryptography () {
     // Test ECDSA with signature verification instead of exact matching
     // since coincurve produces non-deterministic signatures
     const signature1 = ecdsa ('1a', privateKey, secp256k1, sha256);
-    assert (verify (signature1, 'secp256k1'), 'Invalid signature');
+    assert (verify (signature1), 'Invalid signature');
 
     const signature2 = ecdsa (privateKey, privateKey, secp256k1, undefined);
-    assert (verify (signature2, 'secp256k1'), 'Invalid signature');
+    assert (verify (signature2), 'Invalid signature');
 
     const pemKeyArray = [
         '-----BEGIN RSA PRIVATE KEY-----',
