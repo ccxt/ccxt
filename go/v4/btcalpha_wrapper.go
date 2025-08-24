@@ -609,6 +609,9 @@ func (this *Btcalpha) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 
 // missing typed methods from base
 // nolint
+func (this *Btcalpha) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Btcalpha) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

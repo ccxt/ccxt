@@ -2859,6 +2859,9 @@ func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHist
 
 // missing typed methods from base
 // nolint
+func (this *Bybit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bybit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.CreateDepositAddress(code, options...)
 }

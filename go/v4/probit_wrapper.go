@@ -772,6 +772,9 @@ func (this *Probit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 
 // missing typed methods from base
 // nolint
+func (this *Probit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Probit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -655,6 +655,9 @@ func (this *Bitflyer) FetchFundingRate(symbol string, options ...FetchFundingRat
 
 // missing typed methods from base
 // nolint
+func (this *Bitflyer) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitflyer) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

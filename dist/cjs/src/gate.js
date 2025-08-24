@@ -749,6 +749,9 @@ class gate extends gate$1["default"] {
                     'option': 'options',
                     'options': 'options',
                 },
+                'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'option'],
+                },
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
@@ -1226,22 +1229,30 @@ class gate extends gate$1["default"] {
         if (this.checkRequiredCredentials(false)) {
             await this.loadUnifiedStatus();
         }
+        const rawPromises = [];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        let rawPromises = [
-            this.fetchContractMarkets(params),
-            this.fetchOptionMarkets(params),
-        ];
-        if (!sandboxMode) {
-            // gate doesn't have a sandbox for spot markets
-            const mainnetOnly = [this.fetchSpotMarkets(params)];
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        const types = this.safeList(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option']);
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'spot') {
+                if (!sandboxMode) {
+                    // gate doesn't have a sandbox for spot markets
+                    rawPromises.push(this.fetchSpotMarkets(params));
+                }
+            }
+            else if (marketType === 'swap') {
+                rawPromises.push(this.fetchSwapMarkets(params));
+            }
+            else if (marketType === 'future') {
+                rawPromises.push(this.fetchFutureMarkets(params));
+            }
+            else if (marketType === 'option') {
+                rawPromises.push(this.fetchOptionMarkets(params));
+            }
         }
-        const promises = await Promise.all(rawPromises);
-        const spotMarkets = this.safeValue(promises, 0, []);
-        const contractMarkets = this.safeValue(promises, 1, []);
-        const optionMarkets = this.safeValue(promises, 2, []);
-        const markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        const results = await Promise.all(rawPromises);
+        return this.arraysConcat(results);
     }
     async fetchSpotMarkets(params = {}) {
         const marginPromise = this.publicMarginGetCurrencyPairs(params);
@@ -1357,10 +1368,9 @@ class gate extends gate$1["default"] {
         }
         return result;
     }
-    async fetchContractMarkets(params = {}) {
+    async fetchSwapMarkets(params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies('swap', 'fetchMarkets');
-        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
             const request = {
@@ -1372,6 +1382,11 @@ class gate extends gate$1["default"] {
                 result.push(parsedMarket);
             }
         }
+        return result;
+    }
+    async fetchFutureMarkets(params = {}) {
+        const result = [];
+        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
             const request = {

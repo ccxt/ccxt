@@ -58,6 +58,9 @@ func (this *Binanceusdm) TransferOut(code string, amount interface{}, options ..
 
 // missing typed methods from base
 // nolint
+func (this *Binanceusdm) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Binanceusdm) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -587,6 +587,9 @@ func (this *Indodax) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 
 // missing typed methods from base
 // nolint
+func (this *Indodax) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Indodax) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

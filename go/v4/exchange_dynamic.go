@@ -221,10 +221,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		digifinexItf := &digifinex{}
 		digifinexItf.Init(exchangeArgs)
 		return digifinexItf, true
-	case "ellipx":
-		ellipxItf := &ellipx{}
-		ellipxItf.Init(exchangeArgs)
-		return ellipxItf, true
 	case "exmo":
 		exmoItf := &exmo{}
 		exmoItf.Init(exchangeArgs)
@@ -401,10 +397,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		upbitItf := &upbit{}
 		upbitItf.Init(exchangeArgs)
 		return upbitItf, true
-	case "vertex":
-		vertexItf := &vertex{}
-		vertexItf.Init(exchangeArgs)
-		return vertexItf, true
 	case "wavesexchange":
 		wavesexchangeItf := &wavesexchange{}
 		wavesexchangeItf.Init(exchangeArgs)

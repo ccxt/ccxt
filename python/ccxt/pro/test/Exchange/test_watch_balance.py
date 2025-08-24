@@ -21,12 +21,16 @@ async def test_watch_balance(exchange, skipped_properties, code):
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
         try:
             response = await exchange.watch_balance()
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
+            # continue;
+            success = False
+        if success is False:
             continue
         test_balance(exchange, skipped_properties, method, response)
         now = exchange.milliseconds()
