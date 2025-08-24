@@ -7700,7 +7700,7 @@ export default class binance extends Exchange {
             params = this.omit (params, [ 'clientOrderIds' ]);
             request['origClientOrderIdList'] = origClientOrderIdList;
         } else {
-            request['orderIdList'] = ids;
+            request['orderidlist'] = ids;
         }
         let response = undefined;
         if (market['linear']) {
