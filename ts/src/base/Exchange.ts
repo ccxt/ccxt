@@ -3413,13 +3413,12 @@ export default class Exchange {
     /**
      * @method
      * @name Exchange#setMarketsFromExchange
-     * @description Shares market data from another exchange instance for memory efficiency
+     * @description Shares market data from another exchange instance for memory efficiency.
+     * This method enables memory-efficient market sharing between exchange instances of the same type.
+     * All market-related data is copied by reference, allowing multiple instances to share the same market objects.
+     * This eliminates redundant API calls and reduces memory usage when using multiple exchange instances.
      * @param {Exchange} sourceExchange - The exchange instance to share markets from
      * @returns {Dictionary} markets - Dictionary of exchange.markets
-     * @throws An error if the exchanges are of different types or if source markets are not loaded
-     * @remarks This method enables memory-efficient market sharing between exchange instances of the same type.
-     *          All market-related data is copied by reference, allowing multiple instances to share the same market objects.
-     *          This eliminates redundant API calls and reduces memory usage when using multiple exchange instances.
      */
     setMarketsFromExchange (sourceExchange: Exchange): Dictionary<MarketInterface> {
         // Validate that both exchanges are of the same type

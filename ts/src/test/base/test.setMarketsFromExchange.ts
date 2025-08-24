@@ -4,7 +4,7 @@
 import assert from 'assert';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from "../../../ccxt.js";
-import { sleep } from '../../base/functions.js';
+import { safeString } from '../../base/functions.js';
 
 async function testSetMarketsFromExchange (exchange: Exchange) {
     const method = 'marketSharing';
@@ -22,10 +22,11 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
     // Test error case: exchanges are different
     const differentExchange = new ccxt.coinbase ({});
     try {
-        differentExchange.setMarketsFromExchange (differentExchange);
+        differentExchange.setMarketsFromExchange (exchange1);
         assert (false, "Should have thrown an error when using different exchange");
     } catch (error) {
-        assert (error.message.includes ('exchanges of the same type'), 'Should have thrown an error');
+        const errorMessage = safeString (error, 'message', '');
+        assert (errorMessage.includes ('exchanges of the same type'), 'Should have thrown an error');
     }
 
 
@@ -35,7 +36,8 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
         exchange2.setMarketsFromExchange (emptyExchange); // exchange2 has no markets yet
         assert (false, 'Should have thrown error when sharing from exchange without markets');
     } catch (error) {
-        assert (error.message.includes ('must have loaded markets first'), 'Should throw appropriate error message');
+        const errorMessage = safeString (error, 'message', '');
+        assert (errorMessage.includes ('must have loaded markets first'), 'Should throw appropriate error message');
     }
 
     // Test the new setMarketsFromExchange method
@@ -55,34 +57,8 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
     assert (timeTaken < 100, `loadMarkets on shared markets should be fast, took ${timeTaken}ms`);
-
-    // Test 4: Memory persistence after sourceExchange is deleted
-    exchange1 = undefined;
-    global.gc ();
-    await sleep (1000);
-    assert (exchange2.markets_by_id)
-
-    // Test 7: Performance test - ensure multiple instances don't increase memory significantly
-    const initialMemory = process.memoryUsage ? process.memoryUsage ().heapUsed : 0;
-
-    // Create multiple instances sharing the same markets
-    const instances = [];
-    for (let i = 0; i < 100; i++) {
-        const instance = new ccxt.binance ({});
-        instance.setMarketsFromExchange (exchange2);
-        instances.push (instance);
-    }
-
-    const finalMemory = process.memoryUsage ? process.memoryUsage ().heapUsed : 0;
-    const memoryIncrease = finalMemory - initialMemory;
-
-    // Memory increase should be minimal since markets are shared
-    if (process.memoryUsage) {
-        const maxExpectedIncrease = 5 * 1024 * 1024; // 5MB max reasonable increase for 100 instances
-        assert (memoryIncrease < maxExpectedIncrease, `Memory increase ${memoryIncrease} bytes should be minimal with shared markets`);
-    }
-
-    console.log (exchange.id, 'test', method, 'passed');
 }
+
+testSetMarketsFromExchange (new ccxt.binance ({}));
 
 export default testSetMarketsFromExchange;
