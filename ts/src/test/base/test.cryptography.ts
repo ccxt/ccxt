@@ -5,9 +5,7 @@ import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js';
 import { md5 } from '../../static_dependencies/noble-hashes/md5.js';
 import { ecdsa, crc32, eddsa,  hash, hmac  } from '../../base/functions/crypto.js';
 import { encode } from '../../base/functions/encode.js';
-import { Exchange } from '../../base/Exchange.js';
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
-import { ed25519 } from '../../static_dependencies/noble-curves/ed25519.js';
 import { rsa, jwt } from '../../base/functions/rsa.js';
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
@@ -26,9 +24,9 @@ function verify (signature, algorithm = 'secp256k1') {
         if (!('r' in signature) || !('s' in signature) || !('v' in signature)) {
             return false;
         }
-        const r = signature.r;
-        const s = signature.s;
-        const v = signature.v;
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = signature['v'];
         // Check that r and s are valid hex strings
         if (typeof r !== 'string' || typeof s !== 'string') {
             return false;
