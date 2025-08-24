@@ -7821,6 +7821,7 @@ class binance extends binance$1["default"] {
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7838,8 +7839,16 @@ class binance extends binance$1["default"] {
         }
         const request = {
             'symbol': market['id'],
-            'orderidlist': ids,
+            // 'orderidlist': ids,
         };
+        const origClientOrderIdList = this.safeList2(params, 'origClientOrderIdList', 'clientOrderIds');
+        if (origClientOrderIdList !== undefined) {
+            params = this.omit(params, ['clientOrderIds']);
+            request['origClientOrderIdList'] = origClientOrderIdList;
+        }
+        else {
+            request['orderidlist'] = ids;
+        }
         let response = undefined;
         if (market['linear']) {
             response = await this.fapiPrivateDeleteBatchOrders(this.extend(request, params));
@@ -12055,8 +12064,8 @@ class binance extends binance$1["default"] {
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0) || (path.indexOf('simple-earn') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
                     const orderidlist = this.safeList(extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeList(extendedParams, 'origclientorderidlist', []);
-                    extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
+                    const origclientorderidlist = this.safeList2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
+                    extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList']);
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;
@@ -12064,7 +12073,12 @@ class binance extends binance$1["default"] {
                         query = query + '&' + 'orderidlist=%5B' + orderidlist.join('%2C') + '%5D';
                     }
                     if (origclientorderidlistLength > 0) {
-                        query = query + '&' + 'origclientorderidlist=%5B' + origclientorderidlist.join('%2C') + '%5D';
+                        // wrap clientOrderids around ""
+                        const newClientOrderIds = [];
+                        for (let i = 0; i < origclientorderidlistLength; i++) {
+                            newClientOrderIds.push('%22' + origclientorderidlist[i] + '%22');
+                        }
+                        query = query + '&' + 'origclientorderidlist=%5B' + newClientOrderIds.join('%2C') + '%5D';
                     }
                 }
                 else {
