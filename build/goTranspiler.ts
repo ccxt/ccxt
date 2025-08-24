@@ -2035,6 +2035,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
             [/assert/g, 'Assert'],
+            [/GetValue\(cacheSymbolSide4/g, 'GetValue(cacheSymbolSide4.ToArray()' ],
+            [/GetArrayLength\(cacheSymbolSide4\)/g  , 'GetArrayLength(cacheSymbolSide4.ToArray())']
         ]).trim ()
 
         const contentLines = content.split ('\n');

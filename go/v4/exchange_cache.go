@@ -24,9 +24,11 @@ type CacheType interface {
 }
 
 type BaseCache struct {
-	MaxSize int           `json:"-"`
-	Mu      sync.Mutex    `json:"-"`
-	Data    []interface{} `json:"data"`
+	MaxSize         int           `json:"-"`
+	Mu              sync.Mutex    `json:"-"`
+	Data            []interface{} `json:"data"`
+	allNewUpdates   int           `json:"-"`
+	clearAllUpdates bool          `json:"-"`
 }
 
 func NewBaseCache(MaxSize int) *BaseCache {
@@ -55,12 +57,11 @@ func (c *BaseCache) AppendInternal(item interface{}) {
 type ArrayCache struct {
 	*BaseCache
 
-	Hashmap              map[string]map[string]interface{} `json:"-"`
-	nestedNewUpdates     bool                              `json:"-"`
-	newUpdatesBySymbol   map[string]int                    `json:"-"`
-	clearUpdatesBySymbol map[string]bool                   `json:"-"`
-	allNewUpdates        int                               `json:"-"`
-	clearAllUpdates      bool                              `json:"-"`
+	Hashmap                  map[string]map[string]interface{} `json:"-"`
+	nestedNewUpdates         bool                              `json:"-"`
+	newUpdatesBySymbol       map[string]Set                    `json:"-"`
+	clearUpdatesBySymbol     map[string]bool                   `json:"-"`
+	nestedNewUpdatesBySymbol bool                              `json:"-"`
 }
 
 func NewArrayCache(MaxSize interface{}) *ArrayCache {
@@ -74,10 +75,11 @@ func NewArrayCache(MaxSize interface{}) *ArrayCache {
 		size = int(v)
 	}
 	return &ArrayCache{
-		BaseCache:            NewBaseCache(size),
-		Hashmap:              make(map[string]map[string]interface{}),
-		newUpdatesBySymbol:   make(map[string]int),
-		clearUpdatesBySymbol: make(map[string]bool),
+		BaseCache:                NewBaseCache(size),
+		Hashmap:                  make(map[string]map[string]interface{}),
+		newUpdatesBySymbol:       make(map[string]Set),
+		clearUpdatesBySymbol:     make(map[string]bool),
+		nestedNewUpdatesBySymbol: false,
 	}
 }
 
@@ -124,6 +126,28 @@ func (c *ArrayCache) Append(item interface{}) {
 		}
 	}
 
+	if c.MaxSize != 0 && c.MaxSize == len(c.Data) && shouldAppend {
+		// remove first elem from data
+		removed := c.Data[0]
+		removedMap, ok := removed.(map[string]interface{})
+		if ok {
+			removedSymbol, okSym := removedMap["symbol"].(string)
+			removedId, okId := removedMap["id"].(string)
+			if okSym && okId {
+				byId := c.Hashmap[removedSymbol]
+				if byId != nil {
+					delete(byId, removedId)
+					if len(byId) == 0 {
+						delete(c.Hashmap, removedSymbol)
+					}
+				}
+			}
+		}
+		c.Data = append(c.Data[:0], c.Data[1:]...)
+		// delete from c.hashMap as well
+
+	}
+
 	if shouldAppend {
 		c.AppendInternal(item)
 	} else {
@@ -139,11 +163,27 @@ func (c *ArrayCache) Append(item interface{}) {
 		}
 	}
 
-	// new-update counters (very simplified)
-	if symbol != "" {
-		c.newUpdatesBySymbol[symbol]++
-		c.allNewUpdates++
+	if c.clearAllUpdates {
+		c.clearAllUpdates = false
+		c.clearUpdatesBySymbol = make(map[string]bool)
+		c.allNewUpdates = 0
+		c.newUpdatesBySymbol = make(map[string]Set)
 	}
+
+	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
+		c.newUpdatesBySymbol[symbol] = *NewSet()
+	}
+
+	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
+		c.clearUpdatesBySymbol[symbol] = false
+		c.newUpdatesBySymbol[symbol] = *NewSet()
+	}
+
+	idSet := c.newUpdatesBySymbol[symbol]
+	beforeSize := idSet.Size()
+	idSet.Add(id)
+	afterSize := idSet.Size()
+	c.allNewUpdates += (afterSize - beforeSize)
 }
 
 // func areArraysEqual(a interface{}, b interface{}) bool {
@@ -177,23 +217,38 @@ func (c *ArrayCache) ToArray() []interface{} {
 	return out
 }
 
-// GetLimit returns the effective limit according to CCXT logic:
-//   - if the caller provided an explicit limit (not nil) – use it;
-//   - otherwise, if symbol-specific length is known, use that length;
-//   - else fall back to the overall cache size.
-//
 // The function returns interface{} so the transpiled code that works with
 // loosely-typed limits continues to compile.
 func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{} {
-	if limit != nil {
-		return limit
-	}
-	if symbolStr, ok := symbol.(string); ok && symbolStr != "" {
-		if byId, exists := c.Hashmap[symbolStr]; exists {
-			return len(byId)
+	// if limit != nil {
+	// 	return limit
+	// }
+	// if symbolStr, ok := symbol.(string); ok && symbolStr != "" {
+	// 	if byId, exists := c.Hashmap[symbolStr]; exists {
+	// 		return len(byId)
+	// 	}
+	// }
+	// return len(c.ToArray())
+	var newUpdatesValue interface{} = nil
+
+	if symbol == nil {
+		newUpdatesValue = c.allNewUpdates
+		c.clearAllUpdates = true
+	} else {
+		tempNewUpdates, found := c.newUpdatesBySymbol[ToString(symbol)]
+		if found && c.nestedNewUpdatesBySymbol {
+			newUpdatesValue = tempNewUpdates.Size()
 		}
+		c.clearUpdatesBySymbol[ToString(symbol)] = true
 	}
-	return len(c.ToArray())
+
+	if newUpdatesValue == nil {
+		return limit
+	} else if limit != nil {
+		return MathMin(newUpdatesValue, limit)
+	} else {
+		return newUpdatesValue
+	}
 }
 
 // ArrayCacheByTimestamp keeps the most recent N entries identified by their
@@ -201,7 +256,10 @@ func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{}
 
 type ArrayCacheByTimestamp struct {
 	*BaseCache
-	Hashmap map[int64]interface{}
+	Hashmap      map[int64]interface{}
+	newUpdates   int
+	clearUpdates bool
+	sizeTracker  *Set
 }
 
 func NewArrayCacheByTimestamp(MaxSize interface{}) *ArrayCacheByTimestamp {
@@ -215,8 +273,9 @@ func NewArrayCacheByTimestamp(MaxSize interface{}) *ArrayCacheByTimestamp {
 		size = int(v)
 	}
 	return &ArrayCacheByTimestamp{
-		BaseCache: NewBaseCache(size),
-		Hashmap:   make(map[int64]interface{}),
+		BaseCache:   NewBaseCache(size),
+		Hashmap:     make(map[int64]interface{}),
+		sizeTracker: NewSet(),
 	}
 }
 
@@ -266,7 +325,14 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 		}
 	}
 
+	if c.clearUpdates {
+		c.clearUpdates = false
+		c.sizeTracker = NewSet()
+	}
+
 	c.AppendInternal(item)
+	c.sizeTracker.Add(ToString(ts))
+	c.newUpdates = c.sizeTracker.Size()
 }
 
 func (c *ArrayCacheByTimestamp) ToArray() []interface{} {
@@ -280,10 +346,11 @@ func (c *ArrayCacheByTimestamp) ToArray() []interface{} {
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
 func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) interface{} {
-	if limit != nil {
-		return limit
+	c.clearUpdates = true
+	if limit == nil {
+		return c.newUpdates
 	}
-	return len(c.ToArray())
+	return MathMin(c.newUpdates, limit)
 }
 
 // ArrayCacheBySymbolById nests two levels: symbol → id.
@@ -293,7 +360,9 @@ type ArrayCacheBySymbolById struct{ *ArrayCache }
 
 func NewArrayCacheBySymbolById(optionalArgs ...interface{}) *ArrayCacheBySymbolById {
 	maxSize := GetArg(optionalArgs, 0, nil)
-	return &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
+	cache := &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
+	cache.nestedNewUpdatesBySymbol = true
+	return cache
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
@@ -306,7 +375,9 @@ func (c *ArrayCacheBySymbolById) GetLimit(symbol interface{}, limit interface{})
 type ArrayCacheBySymbolBySide struct{ *ArrayCache }
 
 func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
-	return &ArrayCacheBySymbolBySide{NewArrayCache(nil)}
+	res := &ArrayCacheBySymbolBySide{NewArrayCache(nil)}
+	res.nestedNewUpdatesBySymbol = true
+	return res
 }
 
 // These specialised caches currently rely on ArrayCache.Append which tracks by
@@ -324,19 +395,103 @@ func (c *ArrayCacheBySymbolBySide) Append(item interface{}) {
 
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
+	shouldAppend := true
 
-	if symbol != "" && side != "" {
-		bySide := c.Hashmap[symbol]
-		if bySide == nil {
-			bySide = make(map[string]interface{})
-			c.Hashmap[symbol] = bySide
-		}
-		bySide[side] = item
+	// if symbol != "" && side != "" {
+	// 	bySide := c.Hashmap[symbol]
+	// 	if bySide == nil {
+	// 		bySide = make(map[string]interface{})
+	// 		c.Hashmap[symbol] = bySide
+	// 	}
+	// 	bySide[side] = item
+	// }
+
+	if _, found := c.Hashmap[symbol]; !found {
+		c.Hashmap[symbol] = make(map[string]interface{})
 	}
 
-	c.AppendInternal(item)
+	bySide := c.Hashmap[symbol]
+
+	if _, exists := bySide[side]; exists {
+		if om, ok := bySide[side].(map[string]interface{}); ok {
+			if nm, ok := item.(map[string]interface{}); ok {
+				for k, v := range nm {
+					om[k] = v
+				}
+				item = om
+			}
+		}
+		shouldAppend = false
+	} else {
+		bySide[side] = item
+	}
+	if shouldAppend {
+		c.AppendInternal(item)
+	} else {
+		// move to the end of the array to reflect recent update
+		for i, v := range c.Data {
+			if GetValue(v, "side") == side && GetValue(v, "symbol") == symbol {
+				// remove from current position
+				c.Data = append(c.Data[:i], c.Data[i+1:]...)
+				// append to the end
+				c.Data = append(c.Data, item)
+				break
+			}
+		}
+	}
+
+	if c.clearAllUpdates {
+		c.clearAllUpdates = false
+		c.clearUpdatesBySymbol = make(map[string]bool)
+		c.allNewUpdates = 0
+		c.newUpdatesBySymbol = make(map[string]Set)
+	}
+
+	if _, exists := c.newUpdatesBySymbol[symbol]; !exists {
+		c.newUpdatesBySymbol[symbol] = *NewSet()
+	}
+
+	if _, exists := c.clearUpdatesBySymbol[symbol]; exists {
+		c.clearUpdatesBySymbol[symbol] = false
+		c.newUpdatesBySymbol[symbol] = *NewSet()
+	}
+
+	sideSet := c.newUpdatesBySymbol[symbol]
+	beforeSize := sideSet.Size()
+	sideSet.Add(side)
+	afterSize := sideSet.Size()
+	c.allNewUpdates += (afterSize - beforeSize)
 }
 
 func (c *ArrayCacheBySymbolBySide) GetLimit(symbol interface{}, limit interface{}) interface{} {
 	return c.ArrayCache.GetLimit(symbol, limit)
+}
+
+// implement set for size-tracker and others
+
+type Set struct {
+	elements map[string]struct{}
+}
+
+func NewSet() *Set {
+	return &Set{
+		elements: make(map[string]struct{}),
+	}
+}
+
+func (s *Set) Add(value string) {
+	s.elements[value] = struct{}{}
+}
+
+func (s *Set) Remove(value string) {
+	delete(s.elements, value)
+}
+
+func (s *Set) Contains(value string) bool {
+	_, found := s.elements[value]
+	return found
+}
+
+func (s *Set) Size() int {
+	return len(s.elements)
 }
