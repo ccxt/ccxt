@@ -12,7 +12,7 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
     console.log (exchange.id, 'test', method);
 
     // Test 1: Basic market sharing
-    let exchange1 = new ccxt.binance ({});
+    const exchange1 = new ccxt.binance ({});
     const exchange2 = new ccxt.binance ({});
 
     // Load markets in first exchange
@@ -23,7 +23,7 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
     const differentExchange = new ccxt.coinbase ({});
     try {
         differentExchange.setMarketsFromExchange (exchange1);
-        assert (false, "Should have thrown an error when using different exchange");
+        assert (false, 'Should have thrown an error when using different exchange');
     } catch (error) {
         const errorMessage = safeString (error, 'message', '');
         assert (errorMessage.includes ('exchanges of the same type'), 'Should have thrown an error');
@@ -56,7 +56,7 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
 
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
-    assert (timeTaken < 100, `loadMarkets on shared markets should be fast, took ${timeTaken}ms`);
+    assert (timeTaken < 100, 'loadMarkets on shared markets should be fast');
 }
 
 testSetMarketsFromExchange (new ccxt.binance ({}));
