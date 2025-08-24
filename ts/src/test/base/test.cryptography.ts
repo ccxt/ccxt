@@ -12,18 +12,7 @@ import { rsa, jwt } from '../../base/functions/rsa.js';
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 
-function equals (a, b) {
-    // does not check if b has more properties than a
-    // eslint-disable-next-line no-restricted-syntax
-    for (const prop of Object.keys (a)) {
-        if (a[prop] !== b[prop]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function verifyEcdsaSignature (message, signature, publicKeyHex, algorithm = 'secp256k1') {
+function verify (signature, algorithm = 'secp256k1') {
     /**
      * Verify an ECDSA signature. Since coincurve produces non-deterministic signatures,
      * we verify that the signature is valid rather than checking for exact matches.
@@ -71,10 +60,6 @@ function verifyEcdsaSignature (message, signature, publicKeyHex, algorithm = 'se
 
 function testCryptography () {
 
-    // const exchange = new Exchange ();
-
-    // ---------------------------------------------------------------------------------------------------------------------
-
     assert (hash (encode (''), sha256, 'hex') === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     assert (hash (encode ('cheese'), sha256, 'hex') === '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34');
 
@@ -88,35 +73,15 @@ function testCryptography () {
 
     // ---------------------------------------------------------------------------------------------------------------------
 
-
     const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
 
     // Test ECDSA with signature verification instead of exact matching
     // since coincurve produces non-deterministic signatures
     const signature1 = ecdsa ('1a', privateKey, secp256k1, sha256);
-    assert (verifyEcdsaSignature ('1a', signature1, privateKey, 'secp256k1'), `Invalid signature: ${JSON.stringify (signature1)}`);
+    assert (verify (signature1, 'secp256k1'), 'Invalid signature');
 
     const signature2 = ecdsa (privateKey, privateKey, secp256k1, undefined);
-    assert (verifyEcdsaSignature (privateKey, signature2, privateKey, 'secp256k1'), `Invalid signature: ${JSON.stringify (signature2)}`);
-
-    // ---------------------------------------------------------------------------------------------------------------------
-
-    //
-    // assert (exchange.hashMessage (privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
-    //
-    // assert (equals (exchange.signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
-    //     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    //     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    //     'v': 27
-    // }));
-    //
-    // assert (equals (exchange.signMessage (privateKey, privateKey), {
-    //     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    //     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    //     'v': 27
-    // }));
-    //
-    // ---------------------------------------------------------------------------------------------------------------------
+    assert (verify (signature2, 'secp256k1'), 'Invalid signature');
 
     const pemKeyArray = [
         '-----BEGIN RSA PRIVATE KEY-----',
@@ -159,8 +124,6 @@ function testCryptography () {
     assert (crc32 ('hello', true) === 907060870);
     assert (crc32 ('tasty chicken breast :)', true) === 825820175);
     assert (crc32 ('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', true) === -51055998);
-
-    // assert (eddsa ('1b1b', privateKey, ed25519) === '3DBaaz8z4Pq9n6ncNCjB4pFLWaWTXbjaCUqKQmBgS3w7AP6opeDqANBhPssbV3jyfJB4LfK8kGR6pu6GU8fbjMuy');
 }
 
 export default testCryptography;
