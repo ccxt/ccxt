@@ -68,11 +68,8 @@ function testCryptography () {
 
     // Test ECDSA with signature verification instead of exact matching
     // since coincurve produces non-deterministic signatures
-    const signature1 = ecdsa ('1a', privateKey, secp256k1, sha256);
-    assert (verify (signature1), 'Invalid signature');
-
-    const signature2 = ecdsa (privateKey, privateKey, secp256k1, undefined);
-    assert (verify (signature2), 'Invalid signature');
+    assert (verify (ecdsa ('1a', privateKey, secp256k1, sha256)), 'Invalid signature');
+    assert (verify (ecdsa (privateKey, privateKey, secp256k1, undefined)), 'Invalid signature');
 
     const pemKeyArray = [
         '-----BEGIN RSA PRIVATE KEY-----',
