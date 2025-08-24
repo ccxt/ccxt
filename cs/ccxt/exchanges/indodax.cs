@@ -186,6 +186,16 @@ public partial class indodax : Exchange
                     { "Minimum order", typeof(InvalidOrder) },
                 } },
             } },
+            { "timeframes", new Dictionary<string, object>() {
+                { "1m", "1" },
+                { "15m", "15" },
+                { "30m", "30" },
+                { "1h", "60" },
+                { "4h", "240" },
+                { "1d", "1D" },
+                { "3d", "3D" },
+                { "1w", "1W" },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
@@ -195,16 +205,6 @@ public partial class indodax : Exchange
                     { "BSC", "bep20" },
                     { "TRC20", "trc20" },
                     { "MATIC", "polygon" },
-                } },
-                { "timeframes", new Dictionary<string, object>() {
-                    { "1m", "1" },
-                    { "15m", "15" },
-                    { "30m", "30" },
-                    { "1h", "60" },
-                    { "4h", "240" },
-                    { "1d", "1D" },
-                    { "3d", "3D" },
-                    { "1w", "1W" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -693,8 +693,7 @@ public partial class indodax : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object timeframes = getValue(this.options, "timeframes");
-        object selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
         object now = this.seconds();
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});

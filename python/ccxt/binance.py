@@ -1308,6 +1308,7 @@ class binance(Exchange, ImplicitAPI):
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
@@ -2751,13 +2752,6 @@ class binance(Exchange, ImplicitAPI):
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -8863,7 +8857,6 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.currency_to_precision(code, amount),
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
@@ -8875,6 +8868,7 @@ class binance(Exchange, ImplicitAPI):
         if network is not None:
             request['network'] = network
             params = self.omit(params, 'network')
+        request['amount'] = self.currency_to_precision(code, amount, network)
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
