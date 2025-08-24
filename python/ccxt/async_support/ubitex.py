@@ -130,7 +130,7 @@ class ubitex(Exchange, ImplicitAPI):
         response = await self.publicGetApiDashboardPairList(params)
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_market(response[i])
+            market = self.parse_market(response[i])
             result.append(market)
         return result
 
@@ -239,7 +239,7 @@ class ubitex(Exchange, ImplicitAPI):
         response = await self.publicGetApiDashboardPairList(params)
         result = {}
         for i in range(0, len(response)):
-            ticker = await self.parse_ticker(response[i])
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -260,7 +260,7 @@ class ubitex(Exchange, ImplicitAPI):
         }
         response = await self.publicGetApiDashboardPairList(request)
         pair = self.safe_dict(response, 0)
-        ticker = await self.parse_ticker(pair)
+        ticker = self.parse_ticker(pair)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

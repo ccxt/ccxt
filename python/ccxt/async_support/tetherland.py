@@ -127,7 +127,7 @@ class tetherland(Exchange, ImplicitAPI):
                 if markets[i]['symbol'] == 'USDT' and quotes[key] == 'USDT':
                     continue
                 markets[i]['quote'] = quotes[key]
-                market = await self.parse_market(markets[i])
+                market = self.parse_market(markets[i])
                 result.append(market)
         return result
 
@@ -252,7 +252,7 @@ class tetherland(Exchange, ImplicitAPI):
                     continue
                 markets[i]['quote'] = quotes[key]
                 markets[i]['id'] = markets[i]['symbol'] + '/' + markets[i]['quote']
-                market = await self.parse_ticker(markets[i])
+                market = self.parse_ticker(markets[i])
                 symbol = market['symbol']
                 result[symbol] = market
         return self.filter_by_array_tickers(result, 'symbol', symbols)

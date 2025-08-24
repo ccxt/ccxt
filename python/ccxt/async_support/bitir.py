@@ -137,7 +137,7 @@ class bitir(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -269,7 +269,7 @@ class bitir(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data')
         result = []
         for i in range(0, len(markets)):
-            ticker = await self.parse_ticker(markets[i])
+            ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -289,7 +289,7 @@ class bitir(Exchange, ImplicitAPI):
         }
         response = await self.publicGetV1Market(request)
         markets = self.safe_dict(response, 'data')
-        ticker = await self.parse_ticker(markets)
+        ticker = self.parse_ticker(markets)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

@@ -234,9 +234,9 @@ class farhadexchange(Exchange, ImplicitAPI):
         ask = self.safe_float(ticker, 'sell_price')
         last = self.safe_float(ticker, 'buy_price')
         if marketinfo['quote'] == 'IRT':
-            bid /= 10
-            ask /= 10
-            last /= 10
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            last = last / 10 if last else 0
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,

@@ -274,10 +274,11 @@ export default class ramzinex extends Exchange {
         const markets = this.safeList (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            if (!markets[i].financial || Object.keys (markets[i].financial).length === 0) {
+            const market = markets[i];
+            if (!market || !market.financial || Object.keys (market.financial).length === 0) {
                 continue;
             }
-            const ticker = this.parseTicker (markets[i]);
+            const ticker = this.parseTicker (market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

@@ -133,7 +133,7 @@ class arzplus extends Exchange {
             $response = Async\await($this->publicGetApiV1MarketSymbols ($request));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -257,7 +257,7 @@ class arzplus extends Exchange {
                     'symbol' => $response[$i]['name'],
                 );
                 $assetDetails = Async\await($this->publicGetApiV1MarketSymbols ($request));
-                $ticker = Async\await($this->parse_ticker($assetDetails));
+                $ticker = $this->parse_ticker($assetDetails);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -280,7 +280,7 @@ class arzplus extends Exchange {
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetApiV1MarketSymbols ($request));
-            $ticker = Async\await($this->parse_ticker($response));
+            $ticker = $this->parse_ticker($response);
             return $ticker;
         }) ();
     }

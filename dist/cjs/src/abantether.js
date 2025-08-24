@@ -133,7 +133,7 @@ class abantether extends abantether$1["default"] {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(response[i]);
+                const market = this.parseMarket(response[i]);
                 result.push(market);
             }
         }

@@ -134,7 +134,7 @@ export default class abantether extends Exchange {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(response[i]);
+                const market = this.parseMarket(response[i]);
                 result.push(market);
             }
         }

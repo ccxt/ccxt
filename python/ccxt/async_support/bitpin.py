@@ -137,7 +137,7 @@ class bitpin(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'results')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -218,7 +218,7 @@ class bitpin(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             is_active = self.safe_bool(markets[i], 'tradable')
             if is_active is True:
-                ticker = await self.parse_ticker(markets[i])
+                ticker = self.parse_ticker(markets[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

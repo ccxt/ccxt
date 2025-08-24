@@ -136,7 +136,7 @@ export default class bitimen extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket(response[index]);
+            const market = this.parseMarket(response[index]);
             result.push(market);
         }
         return result;
@@ -250,7 +250,7 @@ export default class bitimen extends Exchange {
             if (response[index]['last'] === '0') {
                 continue;
             }
-            const ticker = await this.parseTicker(response[index]);
+            const ticker = this.parseTicker(response[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -269,7 +269,7 @@ export default class bitimen extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetApiMarketStats(params);
-        const ticker = await this.parseTicker(response[market['id']]);
+        const ticker = this.parseTicker(response[market['id']]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

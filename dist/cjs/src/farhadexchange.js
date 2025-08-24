@@ -126,7 +126,7 @@ class farhadexchange extends farhadexchange$1["default"] {
         const response = await this.publicGetGetAllRate();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -211,7 +211,7 @@ class farhadexchange extends farhadexchange$1["default"] {
         const response = await this.publicGetGetAllRate();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -244,9 +244,9 @@ class farhadexchange extends farhadexchange$1["default"] {
         let ask = this.safeFloat(ticker, 'sell_price');
         let last = this.safeFloat(ticker, 'buy_price');
         if (marketinfo['quote'] === 'IRT') {
-            bid /= 10;
-            ask /= 10;
-            last /= 10;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            last = last ? last / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol,

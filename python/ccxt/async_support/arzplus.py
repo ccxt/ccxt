@@ -130,7 +130,7 @@ class arzplus(Exchange, ImplicitAPI):
         response = await self.publicGetApiV1MarketSymbols(request)
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_market(response[i])
+            market = self.parse_market(response[i])
             result.append(market)
         return result
 
@@ -248,7 +248,7 @@ class arzplus(Exchange, ImplicitAPI):
                 'symbol': response[i]['name'],
             }
             assetDetails = await self.publicGetApiV1MarketSymbols(request)
-            ticker = await self.parse_ticker(assetDetails)
+            ticker = self.parse_ticker(assetDetails)
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -267,7 +267,7 @@ class arzplus(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetApiV1MarketSymbols(request)
-        ticker = await self.parse_ticker(response)
+        ticker = self.parse_ticker(response)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

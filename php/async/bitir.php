@@ -140,7 +140,7 @@ class bitir extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -278,7 +278,7 @@ class bitir extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -302,7 +302,7 @@ class bitir extends Exchange {
             );
             $response = Async\await($this->publicGetV1Market ($request));
             $markets = $this->safe_dict($response, 'data');
-            $ticker = Async\await($this->parse_ticker($markets));
+            $ticker = $this->parse_ticker($markets);
             return $ticker;
         }) ();
     }

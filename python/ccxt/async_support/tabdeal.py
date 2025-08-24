@@ -138,7 +138,7 @@ class tabdeal(Exchange, ImplicitAPI):
         response = await self.publicGetPlotsMarketInformation(params)
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_market(response[i])
+            market = self.parse_market(response[i])
             result.append(market)
         return result
 
@@ -225,7 +225,7 @@ class tabdeal(Exchange, ImplicitAPI):
         response = await self.publicGetPlotsMarketInformation(params)
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_ticker(response[i])
+            market = self.parse_ticker(response[i])
             symbol = market['symbol']
             result[symbol] = market
         return self.filter_by_array_tickers(result, 'symbol', symbols)

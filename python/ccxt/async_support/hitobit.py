@@ -133,7 +133,7 @@ class hitobit(Exchange, ImplicitAPI):
         response = await self.publicGetHapiExchangeV1PublicAlltickers24hr(params)
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_market(response[i])
+            market = self.parse_market(response[i])
             result.append(market)
         return result
 
@@ -238,7 +238,7 @@ class hitobit(Exchange, ImplicitAPI):
         response = await self.publicGetHapiExchangeV1PublicAlltickers24hr(params)
         result = {}
         for i in range(0, len(response)):
-            ticker = await self.parse_ticker(response[i])
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -257,7 +257,7 @@ class hitobit(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetHapiExchangeV1PublicTicker24hr(request)
-        ticker = await self.parse_ticker(response)
+        ticker = self.parse_ticker(response)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

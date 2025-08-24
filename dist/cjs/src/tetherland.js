@@ -131,7 +131,7 @@ class tetherland extends tetherland$1["default"] {
                     continue;
                 }
                 markets[i]['quote'] = quotes[key];
-                const market = await this.parseMarket(markets[i]);
+                const market = this.parseMarket(markets[i]);
                 result.push(market);
             }
         }
@@ -262,7 +262,7 @@ class tetherland extends tetherland$1["default"] {
                 }
                 markets[i]['quote'] = quotes[key];
                 markets[i]['id'] = markets[i]['symbol'] + '/' + markets[i]['quote'];
-                const market = await this.parseTicker(markets[i]);
+                const market = this.parseTicker(markets[i]);
                 const symbol = market['symbol'];
                 result[symbol] = market;
             }

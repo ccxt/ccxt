@@ -136,7 +136,7 @@ class exir extends exir$1["default"] {
         for (let i = 0; i < marketKeys.length; i++) {
             const symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const market = await this.parseMarket(response[symbol]);
+            const market = this.parseMarket(response[symbol]);
             result.push(market);
         }
         return result;
@@ -234,7 +234,7 @@ class exir extends exir$1["default"] {
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const ticker = await this.parseTicker(response[symbol]);
+            const ticker = this.parseTicker(response[symbol]);
             symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -258,7 +258,7 @@ class exir extends exir$1["default"] {
         const response = await this.publicGetV2Ticker(request);
         response['symbol'] = market['id'];
         response['time'] = response['timestamp'];
-        const ticker = await this.parseTicker(response);
+        const ticker = this.parseTicker(response);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -342,7 +342,7 @@ class exir extends exir$1["default"] {
         const ohlcvs = [];
         for (let i = 0; i < response.length; i++) {
             const candle = response[i];
-            const ts = Date.parse(candle['time']);
+            const ts = new Date(candle['time']);
             const open = this.safeFloat(candle, 'open');
             const high = this.safeFloat(candle, 'high');
             const low = this.safeFloat(candle, 'low');
@@ -376,7 +376,7 @@ class exir extends exir$1["default"] {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Orderbook(request);
-        const timestamp = Date.parse(response[market['id']]['timestamp']);
+        const timestamp = Math.floor(Date.parse(response[market['id']]['timestamp']) / 1000);
         return this.parseOrderBook(response[market['id']], symbol, timestamp);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

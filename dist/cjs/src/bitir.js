@@ -140,7 +140,7 @@ class bitir extends bitir$1["default"] {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -276,7 +276,7 @@ class bitir extends bitir$1["default"] {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -299,7 +299,7 @@ class bitir extends bitir$1["default"] {
         };
         const response = await this.publicGetV1Market(request);
         const markets = this.safeDict(response, 'data');
-        const ticker = await this.parseTicker(markets);
+        const ticker = this.parseTicker(markets);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

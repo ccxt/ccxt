@@ -129,7 +129,7 @@ class jibitex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'content')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -238,7 +238,7 @@ class jibitex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'content')
         result = {}
         for i in range(0, len(markets)):
-            ticker = await self.parse_ticker(markets[i])
+            ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -260,7 +260,7 @@ class jibitex(Exchange, ImplicitAPI):
         }
         response = await self.publicGetApi1Markets(request)
         marketData = self.safe_list(response, 'content')
-        ticker = await self.parse_ticker(marketData[0])
+        ticker = self.parse_ticker(marketData[0])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

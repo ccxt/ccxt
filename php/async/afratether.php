@@ -131,7 +131,7 @@ class afratether extends Exchange {
             $markets = $this->safe_list($response, 'Items');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -232,7 +232,7 @@ class afratether extends Exchange {
             $markets = $this->safe_list($response, 'Items');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

@@ -132,7 +132,7 @@ class jibitex extends Exchange {
             $markets = $this->safe_list($response, 'content');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -247,7 +247,7 @@ class jibitex extends Exchange {
             $markets = $this->safe_list($response, 'content');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -273,7 +273,7 @@ class jibitex extends Exchange {
             );
             $response = Async\await($this->publicGetApi1Markets ($request));
             $marketData = $this->safe_list($response, 'content');
-            $ticker = Async\await($this->parse_ticker($marketData[0]));
+            $ticker = $this->parse_ticker($marketData[0]);
             return $ticker;
         }) ();
     }

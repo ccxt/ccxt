@@ -289,12 +289,12 @@ class excoino(Exchange, ImplicitAPI):
         last = self.safe_float(ticker, 'close', 0)
         quoteVolume = self.safe_float(ticker, 'twentyFourHourTurnover', 0)
         if marketinfo['quote'] == 'IRT':
-            high /= 10
-            low /= 10
-            open /= 10
-            close /= 10
-            last /= 10
-            quoteVolume /= 10
+            high = high / 10 if high else 0
+            low = low / 10 if low else 0
+            open = open / 10 if open else 0
+            close = close / 10 if close else 0
+            last = last / 10 if last else 0
+            quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -348,11 +348,11 @@ class excoino(Exchange, ImplicitAPI):
         response = self.publicGetMarketHistory(request)
         for i in range(0, len(response)):
             if market['quote'] == 'IRT':
-                response[i][1] /= 10
-                response[i][2] /= 10
-                response[i][3] /= 10
-                response[i][4] /= 10
-                response[i][5] /= 10
+                response[i][1] = (response[i][1] or 0) / 10
+                response[i][2] = (response[i][2] or 0) / 10
+                response[i][3] = (response[i][3] or 0) / 10
+                response[i][4] = (response[i][4] or 0) / 10
+                response[i][5] = (response[i][5] or 0) / 10
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -377,9 +377,9 @@ class excoino(Exchange, ImplicitAPI):
             bids = self.safe_dict(bids, 'items')
             asks = self.safe_dict(asks, 'items')
             for i in range(0, len(bids)):
-                bids[i]['price'] /= 10
+                bids[i]['price'] = (bids[i]['price'] or 0) / 10
             for i in range(0, len(asks)):
-                asks[i]['price'] /= 10
+                asks[i]['price'] = (asks[i]['price'] or 0) / 10
             orderBook['bids'] = bids
             orderBook['asks'] = asks
         else:

@@ -134,7 +134,7 @@ class twox extends Exchange {
                     }
                     $marketData['base'] = $base;
                     $marketData['quote'] = $quote;
-                    $market = Async\await($this->parse_market($marketData));
+                    $market = $this->parse_market($marketData);
                     $result[] = $market;
                 }
             }
@@ -256,7 +256,7 @@ class twox extends Exchange {
                     $response[$i]['base'] = $base;
                     $response[$i]['quote'] = $quote;
                     $response[$i]['symbol'] = $base . $quote;
-                    $ticker = Async\await($this->parse_ticker($response[$i]));
+                    $ticker = $this->parse_ticker($response[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }

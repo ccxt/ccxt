@@ -135,7 +135,7 @@ class sarmayex extends Exchange {
                     if ($base === $quote) {
                         continue;
                     }
-                    $market = Async\await($this->parse_market($markets[$i]));
+                    $market = $this->parse_market($markets[$i]);
                     $result[] = $market;
                 }
             }
@@ -271,7 +271,7 @@ class sarmayex extends Exchange {
                     $markets[$i]['base'] = $base;
                     $markets[$i]['quote'] = $quote;
                     $markets[$i]['symbol'] = $base . $quote;
-                    $ticker = Async\await($this->parse_ticker($markets[$i]));
+                    $ticker = $this->parse_ticker($markets[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }

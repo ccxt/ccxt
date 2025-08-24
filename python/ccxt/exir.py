@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.exir import ImplicitAPI
+import math
 from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
@@ -328,7 +329,7 @@ class exir(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(response)):
             candle = response[i]
-            ts = Date.parse(candle['time'])
+            ts = Date(candle['time'])
             open = self.safe_float(candle, 'open')
             high = self.safe_float(candle, 'high')
             low = self.safe_float(candle, 'low')
@@ -359,7 +360,7 @@ class exir(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = self.publicGetV2Orderbook(request)
-        timestamp = Date.parse(response[market['id']]['timestamp'])
+        timestamp = int(math.floor(Date.parse(response[market['id']]['timestamp'])) / 1000)
         return self.parse_order_book(response[market['id']], symbol, timestamp)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

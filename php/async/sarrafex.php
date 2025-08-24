@@ -144,7 +144,7 @@ class sarrafex extends Exchange {
             $markets = $this->safe_list($response, 'value');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -289,7 +289,7 @@ class sarrafex extends Exchange {
             $markets = $this->safe_list($response, 'value');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -313,7 +313,7 @@ class sarrafex extends Exchange {
             );
             $response = Async\await($this->publicGetApiGatewayExchangerQueryMarket ($request));
             $pair = $this->safe_list($response, 'value');
-            $ticker = Async\await($this->parse_ticker($pair[0]));
+            $ticker = $this->parse_ticker($pair[0]);
             return $ticker;
         }) ();
     }

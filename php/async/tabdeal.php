@@ -141,7 +141,7 @@ class tabdeal extends Exchange {
             $response = Async\await($this->publicGetPlotsMarketInformation ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -234,7 +234,7 @@ class tabdeal extends Exchange {
             $response = Async\await($this->publicGetPlotsMarketInformation ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_ticker($response[$i]));
+                $market = $this->parse_ticker($response[$i]);
                 $symbol = $market['symbol'];
                 $result[$symbol] = $market;
             }

@@ -123,7 +123,7 @@ class farhadexchange(Exchange, ImplicitAPI):
         response = await self.publicGetGetAllRate()
         result = []
         for i in range(0, len(response)):
-            market = await self.parse_market(response[i])
+            market = self.parse_market(response[i])
             result.append(market)
         return result
 
@@ -204,7 +204,7 @@ class farhadexchange(Exchange, ImplicitAPI):
         response = await self.publicGetGetAllRate()
         result = []
         for i in range(0, len(response)):
-            ticker = await self.parse_ticker(response[i])
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -234,9 +234,9 @@ class farhadexchange(Exchange, ImplicitAPI):
         ask = self.safe_float(ticker, 'sell_price')
         last = self.safe_float(ticker, 'buy_price')
         if marketinfo['quote'] == 'IRT':
-            bid /= 10
-            ask /= 10
-            last /= 10
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            last = last / 10 if last else 0
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,

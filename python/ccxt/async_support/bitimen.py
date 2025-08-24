@@ -132,7 +132,7 @@ class bitimen(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketKeys)):
             index = marketKeys[i]
-            market = await self.parse_market(response[index])
+            market = self.parse_market(response[index])
             result.append(market)
         return result
 
@@ -241,7 +241,7 @@ class bitimen(Exchange, ImplicitAPI):
             index = marketKeys[i]
             if response[index]['last'] == '0':
                 continue
-            ticker = await self.parse_ticker(response[index])
+            ticker = self.parse_ticker(response[index])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -257,7 +257,7 @@ class bitimen(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetApiMarketStats(params)
-        ticker = await self.parse_ticker(response[market['id']])
+        ticker = self.parse_ticker(response[market['id']])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

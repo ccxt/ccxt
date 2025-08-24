@@ -131,7 +131,7 @@ class tetherland extends Exchange {
                         continue;
                     }
                     $markets[$i]['quote'] = $quotes[$key];
-                    $market = Async\await($this->parse_market($markets[$i]));
+                    $market = $this->parse_market($markets[$i]);
                     $result[] = $market;
                 }
             }
@@ -264,7 +264,7 @@ class tetherland extends Exchange {
                     }
                     $markets[$i]['quote'] = $quotes[$key];
                     $markets[$i]['id'] = $markets[$i]['symbol'] . '/' . $markets[$i]['quote'];
-                    $market = Async\await($this->parse_ticker($markets[$i]));
+                    $market = $this->parse_ticker($markets[$i]);
                     $symbol = $market['symbol'];
                     $result[$symbol] = $market;
                 }

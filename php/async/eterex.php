@@ -127,7 +127,7 @@ class eterex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $market = Async\await($this->parse_market($markets[$index]));
+                $market = $this->parse_market($markets[$index]);
                 $result[] = $market;
             }
             return $result;
@@ -224,7 +224,7 @@ class eterex extends Exchange {
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
                 $markets[$index]['symbol'] = $index;
-                $ticker = Async\await($this->parse_ticker($markets[$index]));
+                $ticker = $this->parse_ticker($markets[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -246,7 +246,7 @@ class eterex extends Exchange {
             $response = Async\await($this->publicGetAdRates ($params));
             $markets = $this->safe_dict($response, 'markets');
             $markets[$market['id']]['symbol'] = $market['id'];
-            $ticker = Async\await($this->parse_ticker($markets[$market['id']]));
+            $ticker = $this->parse_ticker($markets[$market['id']]);
             return $ticker;
         }) ();
     }

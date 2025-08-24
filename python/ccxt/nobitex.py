@@ -288,14 +288,14 @@ class nobitex(Exchange, ImplicitAPI):
         quoteVolume = self.safe_float(ticker, 'volumeDst')
         baseVolume = self.safe_float(ticker, 'volumeSrc')
         if marketinfo['quote'] == 'IRT':
-            high /= 10
-            low /= 10
-            bid /= 10
-            ask /= 10
-            open /= 10
-            close /= 10
-            last /= 10
-            quoteVolume /= 10
+            high = high * 10 if high else 0
+            low = low / 10 if low else 0
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            open = open / 10 if open else 0
+            close = close / 10 if close else 0
+            last = last / 10 if last else 0
+            quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
             'symbol': symbol.replace('-', '/'),
             'timestamp': None,
@@ -358,11 +358,11 @@ class nobitex(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(openList)):
             if market['quote'] == 'IRT':
-                openList[i] /= 10
-                highList[i] /= 10
-                lowList[i] /= 10
-                closeList[i] /= 10
-                volumeList[i] /= 10
+                openList[i] = openList[i] / 10 if openList[i] else 0
+                highList[i] = highList[i] / 10 if highList[i] else 0
+                lowList[i] = lowList[i] / 10 if lowList[i] else 0
+                closeList[i] = closeList[i] / 10 if closeList[i] else 0
+                volumeList[i] = volumeList[i] / 10 if volumeList[i] else 0
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
@@ -392,9 +392,9 @@ class nobitex(Exchange, ImplicitAPI):
             bids = self.safe_list(response, 'bids')
             asks = self.safe_list(response, 'asks')
             for i in range(0, len(bids)):
-                bids[i][0] /= 10
+                bids[i][0] = bids[i][0] / 10 if bids[i][0] else 0
             for i in range(0, len(asks)):
-                asks[i][0] /= 10
+                asks[i][0] = asks[i][0] / 10 if asks[i][0] else 0
             response['bids'] = bids
             response['asks'] = asks
         timestamp = self.safe_integer(response, 'lastUpdate')

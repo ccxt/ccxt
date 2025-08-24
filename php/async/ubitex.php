@@ -133,7 +133,7 @@ class ubitex extends Exchange {
             $response = Async\await($this->publicGetApiDashboardPairList ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -248,7 +248,7 @@ class ubitex extends Exchange {
             $response = Async\await($this->publicGetApiDashboardPairList ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $ticker = Async\await($this->parse_ticker($response[$i]));
+                $ticker = $this->parse_ticker($response[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -273,7 +273,7 @@ class ubitex extends Exchange {
             );
             $response = Async\await($this->publicGetApiDashboardPairList ($request));
             $pair = $this->safe_dict($response, 0);
-            $ticker = Async\await($this->parse_ticker($pair));
+            $ticker = $this->parse_ticker($pair);
             return $ticker;
         }) ();
     }

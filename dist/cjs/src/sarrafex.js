@@ -144,7 +144,7 @@ class sarrafex extends sarrafex$1["default"] {
         const markets = this.safeList(response, 'value');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -287,7 +287,7 @@ class sarrafex extends sarrafex$1["default"] {
         const markets = this.safeList(response, 'value');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -310,7 +310,7 @@ class sarrafex extends sarrafex$1["default"] {
         };
         const response = await this.publicGetApiGatewayExchangerQueryMarket(request);
         const pair = this.safeList(response, 'value');
-        const ticker = await this.parseTicker(pair[0]);
+        const ticker = this.parseTicker(pair[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

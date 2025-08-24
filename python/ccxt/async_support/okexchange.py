@@ -138,7 +138,7 @@ class okexchange(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'tickers')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -215,7 +215,7 @@ class okexchange(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'tickers')
         result = {}
         for index in range(0, len(markets)):
-            ticker = await self.parse_ticker(markets[index])
+            ticker = self.parse_ticker(markets[index])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

@@ -141,7 +141,7 @@ class okexchange extends Exchange {
             $markets = $this->safe_value($response, 'tickers');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -224,7 +224,7 @@ class okexchange extends Exchange {
             $markets = $this->safe_value($response, 'tickers');
             $result = array();
             for ($index = 0; $index < count($markets); $index++) {
-                $ticker = Async\await($this->parse_ticker($markets[$index]));
+                $ticker = $this->parse_ticker($markets[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

@@ -359,10 +359,10 @@ class ompfinex extends Exchange {
         $last = $this->safe_float($ticker, 'last_price');
         $quoteVolume = $this->safe_float($ticker, 'last_volume');
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high * 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         $baseVolume = $quoteVolume / $last;
         return $this->safe_ticker(array(
@@ -431,11 +431,11 @@ class ompfinex extends Exchange {
         $ohlcvs = array();
         for ($i = 0; $i < count($openList); $i++) {
             if ($market['quote'] === 'IRT') {
-                $openList[$i] /= 10;
-                $highList[$i] /= 10;
-                $lastList[$i] /= 10;
-                $closeList[$i] /= 10;
-                $volumeList[$i] /= 10;
+                $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                $lastList[$i] = $lastList[$i] ? $lastList[$i] / 10 : 0;
+                $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
             }
             $ohlcvs[] = [
                 $timestampList[$i],
@@ -467,10 +467,10 @@ class ompfinex extends Exchange {
             $bids = $this->safe_list($orderbook, 'bids');
             $asks = $this->safe_list($orderbook, 'asks');
             for ($i = 0; $i < count($bids); $i++) {
-                $bids[$i][0] /= 10;
+                $bids[$i][0] = $bids[$i][0] ? $bids[$i][0] / 10 : 0;
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $asks[$i][0] /= 10;
+                $asks[$i][0] = $asks[$i][0] ? $asks[$i][0] / 10 : 0;
             }
             $orderbook['bids'] = $asks;
             $orderbook['asks'] = $bids;

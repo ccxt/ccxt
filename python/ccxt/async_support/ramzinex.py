@@ -140,7 +140,7 @@ class ramzinex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -264,9 +264,10 @@ class ramzinex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data')
         result = []
         for i in range(0, len(markets)):
-            if not markets[i].financial or markets[i].financial == 0:
+            market = markets[i]
+            if not market or not market.financial or market.financial == 0:
                 continue
-            ticker = await self.parse_ticker(markets[i])
+            ticker = self.parse_ticker(market)
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -286,7 +287,7 @@ class ramzinex(Exchange, ImplicitAPI):
         }
         response = await self.publicGetExchangeApiV10ExchangePairs(request)
         markets = self.safe_dict(response, 'data')
-        ticker = await self.parse_ticker(markets)
+        ticker = self.parse_ticker(markets)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -352,14 +353,14 @@ class ramzinex(Exchange, ImplicitAPI):
         quoteVolume = self.safe_float(tickerinfo, 'quote_volume')
         baseVolume = self.safe_float(tickerinfo, 'base_volume')
         if marketinfo['quote'] == 'IRT':
-            high /= 10
-            low /= 10
-            bid /= 10
-            ask /= 10
-            open /= 10
-            close /= 10
-            last /= 10
-            quoteVolume /= 10
+            high = high * 10 if high else 0
+            low = low / 10 if low else 0
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            open = open / 10 if open else 0
+            close = close / 10 if close else 0
+            last = last / 10 if last else 0
+            quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -422,11 +423,11 @@ class ramzinex(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(openList)):
             if market['quote'] == 'IRT':
-                openList[i] /= 10
-                highList[i] /= 10
-                lastList[i] /= 10
-                closeList[i] /= 10
-                volumeList[i] /= 10
+                openList[i] = openList[i] / 10 if openList[i] else 0
+                highList[i] = highList[i] / 10 if highList[i] else 0
+                lastList[i] = lastList[i] / 10 if lastList[i] else 0
+                closeList[i] = closeList[i] / 10 if closeList[i] else 0
+                volumeList[i] = volumeList[i] / 10 if volumeList[i] else 0
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
@@ -457,9 +458,9 @@ class ramzinex(Exchange, ImplicitAPI):
             bids = self.safe_list(orderbook, 'sells')
             asks = self.safe_list(orderbook, 'buys')
             for i in range(0, len(bids)):
-                bids[i][0] /= 10
+                bids[i][0] = bids[i][0] / 10 if bids[i][0] else 0
             for i in range(0, len(asks)):
-                asks[i][0] /= 10
+                asks[i][0] = asks[i][0] / 10 if asks[i][0] else 0
             orderbook['buys'] = asks
             orderbook['sells'] = bids
         timestamp = Date.now()

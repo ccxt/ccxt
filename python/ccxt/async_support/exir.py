@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exir import ImplicitAPI
+import math
 from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
@@ -133,7 +134,7 @@ class exir(Exchange, ImplicitAPI):
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
             response[symbol]['symbol'] = symbol
-            market = await self.parse_market(response[symbol])
+            market = self.parse_market(response[symbol])
             result.append(market)
         return result
 
@@ -227,7 +228,7 @@ class exir(Exchange, ImplicitAPI):
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
             response[symbol]['symbol'] = symbol
-            ticker = await self.parse_ticker(response[symbol])
+            ticker = self.parse_ticker(response[symbol])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -248,7 +249,7 @@ class exir(Exchange, ImplicitAPI):
         response = await self.publicGetV2Ticker(request)
         response['symbol'] = market['id']
         response['time'] = response['timestamp']
-        ticker = await self.parse_ticker(response)
+        ticker = self.parse_ticker(response)
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -328,7 +329,7 @@ class exir(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(response)):
             candle = response[i]
-            ts = Date.parse(candle['time'])
+            ts = Date(candle['time'])
             open = self.safe_float(candle, 'open')
             high = self.safe_float(candle, 'high')
             low = self.safe_float(candle, 'low')
@@ -359,7 +360,7 @@ class exir(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetV2Orderbook(request)
-        timestamp = Date.parse(response[market['id']]['timestamp'])
+        timestamp = int(math.floor(Date.parse(response[market['id']]['timestamp'])) / 1000)
         return self.parse_order_book(response[market['id']], symbol, timestamp)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

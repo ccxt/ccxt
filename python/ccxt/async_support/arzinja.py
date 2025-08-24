@@ -124,7 +124,7 @@ class arzinja(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketKeys)):
             index = marketKeys[i]
-            market = await self.parse_market(markets[index])
+            market = self.parse_market(markets[index])
             result.append(market)
         return result
 
@@ -216,7 +216,7 @@ class arzinja(Exchange, ImplicitAPI):
         for i in range(0, len(marketKeys)):
             index = marketKeys[i]
             markets[index]['symbol'] = index
-            ticker = await self.parse_ticker(markets[index])
+            ticker = self.parse_ticker(markets[index])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -234,7 +234,7 @@ class arzinja(Exchange, ImplicitAPI):
         response = await self.publicGetPrices(params)
         markets = self.safe_dict(response, 'markets')
         markets[market['id']]['symbol'] = market['id']
-        ticker = await self.parse_ticker(markets[market['id']])
+        ticker = self.parse_ticker(markets[market['id']])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

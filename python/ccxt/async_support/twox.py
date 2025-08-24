@@ -130,7 +130,7 @@ class twox(Exchange, ImplicitAPI):
                     break
                 marketData['base'] = base
                 marketData['quote'] = quote
-                market = await self.parse_market(marketData)
+                market = self.parse_market(marketData)
                 result.append(market)
         return result
 
@@ -244,7 +244,7 @@ class twox(Exchange, ImplicitAPI):
                 response[i]['base'] = base
                 response[i]['quote'] = quote
                 response[i]['symbol'] = base + quote
-                ticker = await self.parse_ticker(response[i])
+                ticker = self.parse_ticker(response[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

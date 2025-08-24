@@ -139,7 +139,7 @@ class wallex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketKeys)):
             index = marketKeys[i]
-            market = await self.parse_market(marketList[index])
+            market = self.parse_market(marketList[index])
             result.append(market)
         return result
 
@@ -266,7 +266,7 @@ class wallex(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(marketKeys)):
             index = marketKeys[i]
-            ticker = await self.parse_ticker(marketList[index])
+            ticker = self.parse_ticker(marketList[index])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -284,7 +284,7 @@ class wallex(Exchange, ImplicitAPI):
         response = await self.publicGetV1Markets(params)
         markets = self.safe_dict(response, 'result')
         marketList = self.safe_dict(markets, 'symbols')
-        ticker = await self.parse_ticker(marketList[market['id']])
+        ticker = self.parse_ticker(marketList[market['id']])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

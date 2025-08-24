@@ -131,7 +131,7 @@ class sarmayex(Exchange, ImplicitAPI):
                 markets[i]['quote'] = quote
                 if base == quote:
                     continue
-                market = await self.parse_market(markets[i])
+                market = self.parse_market(markets[i])
                 result.append(market)
         return result
 
@@ -259,7 +259,7 @@ class sarmayex(Exchange, ImplicitAPI):
                 markets[i]['base'] = base
                 markets[i]['quote'] = quote
                 markets[i]['symbol'] = base + quote
-                ticker = await self.parse_ticker(markets[i])
+                ticker = self.parse_ticker(markets[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

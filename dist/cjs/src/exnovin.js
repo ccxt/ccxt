@@ -127,7 +127,7 @@ class exnovin extends exnovin$1["default"] {
         const response = await this.publicGetV2Pairs();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -239,7 +239,7 @@ class exnovin extends exnovin$1["default"] {
         const response = await this.publicGetV2Pairs(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

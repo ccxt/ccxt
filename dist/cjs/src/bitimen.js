@@ -135,7 +135,7 @@ class bitimen extends bitimen$1["default"] {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket(response[index]);
+            const market = this.parseMarket(response[index]);
             result.push(market);
         }
         return result;
@@ -249,7 +249,7 @@ class bitimen extends bitimen$1["default"] {
             if (response[index]['last'] === '0') {
                 continue;
             }
-            const ticker = await this.parseTicker(response[index]);
+            const ticker = this.parseTicker(response[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -268,7 +268,7 @@ class bitimen extends bitimen$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetApiMarketStats(params);
-        const ticker = await this.parseTicker(response[market['id']]);
+        const ticker = this.parseTicker(response[market['id']]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

@@ -338,7 +338,7 @@ class exir extends Exchange {
         $ohlcvs = array();
         for ($i = 0; $i < count($response); $i++) {
             $candle = $response[$i];
-            $ts = Date.parse ($candle['time']);
+            $ts = new Date ($candle['time']);
             $open = $this->safe_float($candle, 'open');
             $high = $this->safe_float($candle, 'high');
             $low = $this->safe_float($candle, 'low');
@@ -371,7 +371,7 @@ class exir extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV2Orderbook ($request);
-        $timestamp = Date.parse ($response[$market['id']]['timestamp']);
+        $timestamp = (int) floor(Date.parse ($response[$market['id']]['timestamp']) / 1000);
         return $this->parse_order_book($response[$market['id']], $symbol, $timestamp);
     }
 

@@ -141,7 +141,7 @@ class sarrafex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'value')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -280,7 +280,7 @@ class sarrafex(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'value')
         result = {}
         for i in range(0, len(markets)):
-            ticker = await self.parse_ticker(markets[i])
+            ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -300,7 +300,7 @@ class sarrafex(Exchange, ImplicitAPI):
         }
         response = await self.publicGetApiGatewayExchangerQueryMarket(request)
         pair = self.safe_list(response, 'value')
-        ticker = await self.parse_ticker(pair[0])
+        ticker = self.parse_ticker(pair[0])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:

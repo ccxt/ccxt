@@ -132,7 +132,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -231,7 +231,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

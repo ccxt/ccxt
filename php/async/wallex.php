@@ -142,7 +142,7 @@ class wallex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $market = Async\await($this->parse_market($marketList[$index]));
+                $market = $this->parse_market($marketList[$index]);
                 $result[] = $market;
             }
             return $result;
@@ -275,7 +275,7 @@ class wallex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $ticker = Async\await($this->parse_ticker($marketList[$index]));
+                $ticker = $this->parse_ticker($marketList[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -297,7 +297,7 @@ class wallex extends Exchange {
             $response = Async\await($this->publicGetV1Markets ($params));
             $markets = $this->safe_dict($response, 'result');
             $marketList = $this->safe_dict($markets, 'symbols');
-            $ticker = Async\await($this->parse_ticker($marketList[$market['id']]));
+            $ticker = $this->parse_ticker($marketList[$market['id']]);
             return $ticker;
         }) ();
     }

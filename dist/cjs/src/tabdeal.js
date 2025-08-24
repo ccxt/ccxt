@@ -141,7 +141,7 @@ class tabdeal extends tabdeal$1["default"] {
         const response = await this.publicGetPlotsMarketInformation(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -232,7 +232,7 @@ class tabdeal extends tabdeal$1["default"] {
         const response = await this.publicGetPlotsMarketInformation(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseTicker(response[i]);
+            const market = this.parseTicker(response[i]);
             const symbol = market['symbol'];
             result[symbol] = market;
         }

@@ -134,7 +134,7 @@ class twox extends twox$1["default"] {
                 }
                 marketData['base'] = base;
                 marketData['quote'] = quote;
-                const market = await this.parseMarket(marketData);
+                const market = this.parseMarket(marketData);
                 result.push(market);
             }
         }
@@ -254,7 +254,7 @@ class twox extends twox$1["default"] {
                 response[i]['base'] = base;
                 response[i]['quote'] = quote;
                 response[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker(response[i]);
+                const ticker = this.parseTicker(response[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }

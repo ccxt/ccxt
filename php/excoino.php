@@ -296,12 +296,12 @@ class excoino extends Exchange {
         $last = $this->safe_float($ticker, 'close', 0);
         $quoteVolume = $this->safe_float($ticker, 'twentyFourHourTurnover', 0);
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $open /= 10;
-            $close /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high / 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -359,11 +359,11 @@ class excoino extends Exchange {
         $response = $this->publicGetMarketHistory ($request);
         for ($i = 0; $i < count($response); $i++) {
             if ($market['quote'] === 'IRT') {
-                $response[$i][1] /= 10;
-                $response[$i][2] /= 10;
-                $response[$i][3] /= 10;
-                $response[$i][4] /= 10;
-                $response[$i][5] /= 10;
+                $response[$i][1] = ($response[$i][1] || 0) / 10;
+                $response[$i][2] = ($response[$i][2] || 0) / 10;
+                $response[$i][3] = ($response[$i][3] || 0) / 10;
+                $response[$i][4] = ($response[$i][4] || 0) / 10;
+                $response[$i][5] = ($response[$i][5] || 0) / 10;
             }
         }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -391,10 +391,10 @@ class excoino extends Exchange {
             $bids = $this->safe_dict($bids, 'items');
             $asks = $this->safe_dict($asks, 'items');
             for ($i = 0; $i < count($bids); $i++) {
-                $bids[$i]['price'] /= 10;
+                $bids[$i]['price'] = ($bids[$i]['price'] || 0) / 10;
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $asks[$i]['price'] /= 10;
+                $asks[$i]['price'] = ($asks[$i]['price'] || 0) / 10;
             }
             $orderBook['bids'] = $bids;
             $orderBook['asks'] = $asks;

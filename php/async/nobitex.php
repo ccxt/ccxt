@@ -149,7 +149,7 @@ class nobitex extends Exchange {
                     continue;
                 }
                 $markets[$symbol]['symbol'] = $symbol;
-                $market = Async\await($this->parse_market($markets[$symbol]));
+                $market = $this->parse_market($markets[$symbol]);
                 $result[] = $market;
             }
             return $result;
@@ -252,7 +252,7 @@ class nobitex extends Exchange {
                     continue;
                 }
                 $markets[$symbol]['symbol'] = $symbol;
-                $ticker = Async\await($this->parse_ticker($markets[$symbol]));
+                $ticker = $this->parse_ticker($markets[$symbol]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -305,14 +305,14 @@ class nobitex extends Exchange {
         $quoteVolume = $this->safe_float($ticker, 'volumeDst');
         $baseVolume = $this->safe_float($ticker, 'volumeSrc');
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $bid /= 10;
-            $ask /= 10;
-            $open /= 10;
-            $close /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high * 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => str_replace('-', '/', $symbol),
@@ -381,11 +381,11 @@ class nobitex extends Exchange {
             $ohlcvs = array();
             for ($i = 0; $i < count($openList); $i++) {
                 if ($market['quote'] === 'IRT') {
-                    $openList[$i] /= 10;
-                    $highList[$i] /= 10;
-                    $lowList[$i] /= 10;
-                    $closeList[$i] /= 10;
-                    $volumeList[$i] /= 10;
+                    $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                    $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                    $lowList[$i] = $lowList[$i] ? $lowList[$i] / 10 : 0;
+                    $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                    $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
                 }
                 $ohlcvs[] = [
                     $timestampList[$i],
@@ -420,10 +420,10 @@ class nobitex extends Exchange {
                 $bids = $this->safe_list($response, 'bids');
                 $asks = $this->safe_list($response, 'asks');
                 for ($i = 0; $i < count($bids); $i++) {
-                    $bids[$i][0] /= 10;
+                    $bids[$i][0] = $bids[$i][0] ? $bids[$i][0] / 10 : 0;
                 }
                 for ($i = 0; $i < count($asks); $i++) {
-                    $asks[$i][0] /= 10;
+                    $asks[$i][0] = $asks[$i][0] ? $asks[$i][0] / 10 : 0;
                 }
                 $response['bids'] = $bids;
                 $response['asks'] = $asks;

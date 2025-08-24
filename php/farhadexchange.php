@@ -241,9 +241,9 @@ class farhadexchange extends Exchange {
         $ask = $this->safe_float($ticker, 'sell_price');
         $last = $this->safe_float($ticker, 'buy_price');
         if ($marketinfo['quote'] === 'IRT') {
-            $bid /= 10;
-            $ask /= 10;
-            $last /= 10;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $last = $last ? $last / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,

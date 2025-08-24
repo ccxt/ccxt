@@ -133,7 +133,7 @@ class arzplus extends arzplus$1["default"] {
         const response = await this.publicGetApiV1MarketSymbols(request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -255,7 +255,7 @@ class arzplus extends arzplus$1["default"] {
                 'symbol': response[i]['name'],
             };
             const assetDetails = await this.publicGetApiV1MarketSymbols(request);
-            const ticker = await this.parseTicker(assetDetails);
+            const ticker = this.parseTicker(assetDetails);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -277,7 +277,7 @@ class arzplus extends arzplus$1["default"] {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketSymbols(request);
-        const ticker = await this.parseTicker(response);
+        const ticker = this.parseTicker(response);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

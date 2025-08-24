@@ -150,7 +150,7 @@ export default class nobitex extends Exchange {
                 continue;
             }
             markets[symbol]['symbol'] = symbol;
-            const market = await this.parseMarket(markets[symbol]);
+            const market = this.parseMarket(markets[symbol]);
             result.push(market);
         }
         return result;
@@ -251,7 +251,7 @@ export default class nobitex extends Exchange {
                 continue;
             }
             markets[symbol]['symbol'] = symbol;
-            const ticker = await this.parseTicker(markets[symbol]);
+            const ticker = this.parseTicker(markets[symbol]);
             symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -301,14 +301,14 @@ export default class nobitex extends Exchange {
         let quoteVolume = this.safeFloat(ticker, 'volumeDst');
         const baseVolume = this.safeFloat(ticker, 'volumeSrc');
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            bid /= 10;
-            ask /= 10;
-            open /= 10;
-            close /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high * 10 : 0;
+            low = low ? low / 10 : 0;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            open = open ? open / 10 : 0;
+            close = close ? close / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol.replace('-', '/'),
@@ -377,11 +377,11 @@ export default class nobitex extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lowList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lowList[i] = lowList[i] ? lowList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push([
                 timestampList[i],
@@ -415,10 +415,10 @@ export default class nobitex extends Exchange {
             const bids = this.safeList(response, 'bids');
             const asks = this.safeList(response, 'asks');
             for (let i = 0; i < bids.length; i++) {
-                bids[i][0] /= 10;
+                bids[i][0] = bids[i][0] ? bids[i][0] / 10 : 0;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i][0] /= 10;
+                asks[i][0] = asks[i][0] ? asks[i][0] / 10 : 0;
             }
             response['bids'] = bids;
             response['asks'] = asks;

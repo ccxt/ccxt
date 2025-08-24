@@ -136,7 +136,7 @@ export default class sarmayex extends Exchange {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(markets[i]);
+                const market = this.parseMarket(markets[i]);
                 result.push(market);
             }
         }
@@ -270,7 +270,7 @@ export default class sarmayex extends Exchange {
                 markets[i]['base'] = base;
                 markets[i]['quote'] = quote;
                 markets[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker(markets[i]);
+                const ticker = this.parseTicker(markets[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }

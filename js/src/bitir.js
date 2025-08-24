@@ -141,7 +141,7 @@ export default class bitir extends Exchange {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -277,7 +277,7 @@ export default class bitir extends Exchange {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -300,7 +300,7 @@ export default class bitir extends Exchange {
         };
         const response = await this.publicGetV1Market(request);
         const markets = this.safeDict(response, 'data');
-        const ticker = await this.parseTicker(markets);
+        const ticker = this.parseTicker(markets);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

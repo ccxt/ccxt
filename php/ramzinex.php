@@ -254,9 +254,9 @@ class ramzinex extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple $markets, statistical information calculated over the past 24 hours for each market
+         * fetches price tickers for multiple $markets, statistical information calculated over the past 24 hours for each $market
          * @see https://api-doc.ramzinex.com/#get-5
-         * @param {string[]|null} $symbols unified $symbols of the $markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the $markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -268,10 +268,11 @@ class ramzinex extends Exchange {
         $markets = $this->safe_list($response, 'data');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            if (!$markets[$i].financial || $markets[$i].financial === 0) {
+            $market = $markets[$i];
+            if (!$market || !$market->financial || $market->financial === 0) {
                 continue;
             }
-            $ticker = $this->parse_ticker($markets[$i]);
+            $ticker = $this->parse_ticker($market);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
@@ -360,14 +361,14 @@ class ramzinex extends Exchange {
         $quoteVolume = $this->safe_float($tickerinfo, 'quote_volume');
         $baseVolume = $this->safe_float($tickerinfo, 'base_volume');
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $bid /= 10;
-            $ask /= 10;
-            $open /= 10;
-            $close /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high * 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -435,11 +436,11 @@ class ramzinex extends Exchange {
         $ohlcvs = array();
         for ($i = 0; $i < count($openList); $i++) {
             if ($market['quote'] === 'IRT') {
-                $openList[$i] /= 10;
-                $highList[$i] /= 10;
-                $lastList[$i] /= 10;
-                $closeList[$i] /= 10;
-                $volumeList[$i] /= 10;
+                $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                $lastList[$i] = $lastList[$i] ? $lastList[$i] / 10 : 0;
+                $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
             }
             $ohlcvs[] = [
                 $timestampList[$i],
@@ -473,10 +474,10 @@ class ramzinex extends Exchange {
             $bids = $this->safe_list($orderbook, 'sells');
             $asks = $this->safe_list($orderbook, 'buys');
             for ($i = 0; $i < count($bids); $i++) {
-                $bids[$i][0] /= 10;
+                $bids[$i][0] = $bids[$i][0] ? $bids[$i][0] / 10 : 0;
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $asks[$i][0] /= 10;
+                $asks[$i][0] = $asks[$i][0] ? $asks[$i][0] / 10 : 0;
             }
             $orderbook['buys'] = $asks;
             $orderbook['sells'] = $bids;

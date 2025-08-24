@@ -127,7 +127,7 @@ class eterex extends eterex$1["default"] {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket(markets[index]);
+            const market = this.parseMarket(markets[index]);
             result.push(market);
         }
         return result;
@@ -222,7 +222,7 @@ class eterex extends eterex$1["default"] {
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
             markets[index]['symbol'] = index;
-            const ticker = await this.parseTicker(markets[index]);
+            const ticker = this.parseTicker(markets[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -243,7 +243,7 @@ class eterex extends eterex$1["default"] {
         const response = await this.publicGetAdRates(params);
         const markets = this.safeDict(response, 'markets');
         markets[market['id']]['symbol'] = market['id'];
-        const ticker = await this.parseTicker(markets[market['id']]);
+        const ticker = this.parseTicker(markets[market['id']]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

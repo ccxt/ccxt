@@ -140,7 +140,7 @@ class bitpin extends Exchange {
             $markets = $this->safe_list($response, 'results');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -227,7 +227,7 @@ class bitpin extends Exchange {
             for ($i = 0; $i < count($markets); $i++) {
                 $is_active = $this->safe_bool($markets[$i], 'tradable');
                 if ($is_active === true) {
-                    $ticker = Async\await($this->parse_ticker($markets[$i]));
+                    $ticker = $this->parse_ticker($markets[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }

@@ -141,7 +141,7 @@ class okexchange extends okexchange$1["default"] {
         const markets = this.safeValue(response, 'tickers');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -222,7 +222,7 @@ class okexchange extends okexchange$1["default"] {
         const markets = this.safeValue(response, 'tickers');
         const result = {};
         for (let index = 0; index < markets.length; index++) {
-            const ticker = await this.parseTicker(markets[index]);
+            const ticker = this.parseTicker(markets[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

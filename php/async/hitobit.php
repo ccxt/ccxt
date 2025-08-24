@@ -136,7 +136,7 @@ class hitobit extends Exchange {
             $response = Async\await($this->publicGetHapiExchangeV1PublicAlltickers24hr ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -247,7 +247,7 @@ class hitobit extends Exchange {
             $response = Async\await($this->publicGetHapiExchangeV1PublicAlltickers24hr ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $ticker = Async\await($this->parse_ticker($response[$i]));
+                $ticker = $this->parse_ticker($response[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -270,7 +270,7 @@ class hitobit extends Exchange {
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetHapiExchangeV1PublicTicker24hr ($request));
-            $ticker = Async\await($this->parse_ticker($response));
+            $ticker = $this->parse_ticker($response);
             return $ticker;
         }) ();
     }

@@ -140,7 +140,7 @@ class excoino extends excoino$1["default"] {
         const response = await this.publicGetMarketSymbolThumbTrend();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -243,7 +243,7 @@ class excoino extends excoino$1["default"] {
         const response = await this.publicGetMarketSymbolThumbTrend();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -299,12 +299,12 @@ class excoino extends excoino$1["default"] {
         let last = this.safeFloat(ticker, 'close', 0);
         let quoteVolume = this.safeFloat(ticker, 'twentyFourHourTurnover', 0);
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            open /= 10;
-            close /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high / 10 : 0;
+            low = low ? low / 10 : 0;
+            open = open ? open / 10 : 0;
+            close = close ? close / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -363,11 +363,11 @@ class excoino extends excoino$1["default"] {
         const response = await this.publicGetMarketHistory(request);
         for (let i = 0; i < response.length; i++) {
             if (market['quote'] === 'IRT') {
-                response[i][1] /= 10;
-                response[i][2] /= 10;
-                response[i][3] /= 10;
-                response[i][4] /= 10;
-                response[i][5] /= 10;
+                response[i][1] = (response[i][1] || 0) / 10;
+                response[i][2] = (response[i][2] || 0) / 10;
+                response[i][3] = (response[i][3] || 0) / 10;
+                response[i][4] = (response[i][4] || 0) / 10;
+                response[i][5] = (response[i][5] || 0) / 10;
             }
         }
         return this.parseOHLCVs(response, market, timeframe, since, limit);
@@ -396,10 +396,10 @@ class excoino extends excoino$1["default"] {
             bids = this.safeDict(bids, 'items');
             asks = this.safeDict(asks, 'items');
             for (let i = 0; i < bids.length; i++) {
-                bids[i]['price'] /= 10;
+                bids[i]['price'] = (bids[i]['price'] || 0) / 10;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i]['price'] /= 10;
+                asks[i]['price'] = (asks[i]['price'] || 0) / 10;
             }
             orderBook['bids'] = bids;
             orderBook['asks'] = asks;
