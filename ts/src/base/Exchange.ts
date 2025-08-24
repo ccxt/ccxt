@@ -3410,17 +3410,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    /**
-     * @method
-     * @name Exchange#setMarketsFromExchange
-     * @description Shares market data from another exchange instance for memory efficiency.
-     * This method enables memory-efficient market sharing between exchange instances of the same type.
-     * All market-related data is copied by reference, allowing multiple instances to share the same market objects.
-     * This eliminates redundant API calls and reduces memory usage when using multiple exchange instances.
-     * @param {Exchange} sourceExchange - The exchange instance to share markets from
-     * @returns {Dictionary} markets - Dictionary of exchange.markets
-     */
-    setMarketsFromExchange (sourceExchange: Exchange): Dictionary<MarketInterface> {
+    setMarketsFromExchange (sourceExchange): Dictionary<MarketInterface> {
         // Validate that both exchanges are of the same type
         if (this.id !== sourceExchange.id) {
             throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange.id + ')');
