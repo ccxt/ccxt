@@ -395,7 +395,7 @@ class sarrafex extends Exchange {
         $datetime = $this->safe_string($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => Date.parse ($datetime),
+            'timestamp' => $this->safe_timestamp($ticker, 'timestamp'),
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,

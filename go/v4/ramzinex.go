@@ -296,10 +296,11 @@ func  (this *ramzinex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             var markets interface{} = this.SafeList(response, "data")
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-                if IsTrue(!IsTrue(GetValue(markets, i).Financial) || IsTrue(IsEqual(GetArrayLength(ObjectKeys(GetValue(markets, i).Financial)), 0))) {
+                var market interface{} = GetValue(markets, i)
+                if IsTrue(IsTrue(!IsTrue(market) || !IsTrue(GetValue(market, "financial"))) || IsTrue(IsEqual(GetArrayLength(ObjectKeys(GetValue(market, "financial"))), 0))) {
                     continue
                 }
-                var ticker interface{} = this.ParseTicker(GetValue(markets, i))
+                var ticker interface{} = this.ParseTicker(market)
                 var symbol interface{} = GetValue(ticker, "symbol")
                 AddElementToObject(result, symbol, ticker)
             }
@@ -327,8 +328,8 @@ func  (this *ramzinex) FetchTicker(symbol interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes2968 := (<-this.LoadMarkets())
-            PanicOnError(retRes2968)
+            retRes2978 := (<-this.LoadMarkets())
+            PanicOnError(retRes2978)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair_id": GetValue(market, "id"),
@@ -468,8 +469,8 @@ func  (this *ramzinex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes4168 := (<-this.LoadMarkets())
-            PanicOnError(retRes4168)
+            retRes4178 := (<-this.LoadMarkets())
+            PanicOnError(retRes4178)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(GetValue(market, "quote"), "IRT")) {
                 symbol = Add(GetValue(market, "base"), "IRR")
@@ -536,8 +537,8 @@ func  (this *ramzinex) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4768 := (<-this.LoadMarkets())
-            PanicOnError(retRes4768)
+            retRes4778 := (<-this.LoadMarkets())
+            PanicOnError(retRes4778)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair_id": GetValue(market, "id"),

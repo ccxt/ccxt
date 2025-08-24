@@ -272,7 +272,7 @@ class ramzinex extends ramzinex$1["default"] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            if (!market || !market.financial || Object.keys(market.financial).length === 0) {
+            if (!market || !market['financial'] || Object.keys(market['financial']).length === 0) {
                 continue;
             }
             const ticker = this.parseTicker(market);

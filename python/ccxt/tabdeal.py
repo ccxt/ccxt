@@ -268,7 +268,7 @@ class tabdeal(Exchange, ImplicitAPI):
         datetime = self.safe_string(ticker, 'created')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': self.safe_timestamp(ticker, 'created'),
             'datetime': datetime,
             'high': high,
             'low': low,

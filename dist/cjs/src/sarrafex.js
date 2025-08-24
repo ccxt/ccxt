@@ -390,7 +390,7 @@ class sarrafex extends sarrafex$1["default"] {
         const datetime = this.safeString(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'timestamp'),
             'datetime': datetime,
             'high': high,
             'low': low,

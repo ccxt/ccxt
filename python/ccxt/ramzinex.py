@@ -265,7 +265,7 @@ class ramzinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            if not market or not market.financial or market.financial == 0:
+            if not market or not market['financial'] or market['financial'] == 0:
                 continue
             ticker = self.parse_ticker(market)
             symbol = ticker['symbol']

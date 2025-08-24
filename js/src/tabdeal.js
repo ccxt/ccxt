@@ -279,7 +279,7 @@ export default class tabdeal extends Exchange {
         const datetime = this.safeString(ticker, 'created');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'created'),
             'datetime': datetime,
             'high': high,
             'low': low,

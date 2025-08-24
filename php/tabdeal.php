@@ -275,7 +275,7 @@ class tabdeal extends Exchange {
         $datetime = $this->safe_string($ticker, 'created');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => Date.parse ($datetime),
+            'timestamp' => $this->safe_timestamp($ticker, 'created'),
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,

@@ -325,7 +325,7 @@ func  (this *tabdeal) ParseTicker(ticker interface{}, optionalArgs ...interface{
     var datetime interface{} = this.SafeString(ticker, "created")
     return this.SafeTicker(map[string]interface{} {
         "symbol": symbol,
-        "timestamp": Date.Parse(datetime),
+        "timestamp": this.SafeTimestamp(ticker, "created"),
         "datetime": datetime,
         "high": high,
         "low": low,

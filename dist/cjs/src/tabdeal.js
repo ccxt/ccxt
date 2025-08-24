@@ -278,7 +278,7 @@ class tabdeal extends tabdeal$1["default"] {
         const datetime = this.safeString(ticker, 'created');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'created'),
             'datetime': datetime,
             'high': high,
             'low': low,

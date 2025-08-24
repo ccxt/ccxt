@@ -380,7 +380,7 @@ class sarrafex(Exchange, ImplicitAPI):
         datetime = self.safe_string(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': self.safe_timestamp(ticker, 'timestamp'),
             'datetime': datetime,
             'high': high,
             'low': low,

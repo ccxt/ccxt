@@ -437,7 +437,7 @@ func  (this *sarrafex) ParseTicker(ticker interface{}, optionalArgs ...interface
     var datetime interface{} = this.SafeString(ticker, "timestamp")
     return this.SafeTicker(map[string]interface{} {
         "symbol": symbol,
-        "timestamp": Date.Parse(datetime),
+        "timestamp": this.SafeTimestamp(ticker, "timestamp"),
         "datetime": datetime,
         "high": high,
         "low": low,

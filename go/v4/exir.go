@@ -407,7 +407,7 @@ func  (this *exir) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
             var ohlcvs interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var candle interface{} = GetValue(response, i)
-                var ts interface{} = Date.Parse(GetValue(candle, "time"))
+                var ts interface{} = this.SafeTimestamp(candle, "time")
                 var open interface{} = this.SafeFloat(candle, "open")
                 var high interface{} = this.SafeFloat(candle, "high")
                 var low interface{} = this.SafeFloat(candle, "low")
@@ -451,7 +451,7 @@ func  (this *exir) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
         
             response:= (<-this.PublicGetV2Orderbook(request))
             PanicOnError(response)
-            var timestamp interface{} = Date.Parse(GetValue(GetValue(response, GetValue(market, "id")), "timestamp"))
+            var timestamp interface{} = Divide(this.SafeTimestamp(GetValue(response, GetValue(market, "id")), "timestamp"), 1000)
         
             ch <- this.ParseOrderBook(GetValue(response, GetValue(market, "id")), symbol, timestamp)
             return nil

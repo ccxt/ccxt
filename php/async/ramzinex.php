@@ -274,7 +274,7 @@ class ramzinex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
-                if (!$market || !$market->financial || $market->financial === 0) {
+                if (!$market || !$market['financial'] || $market['financial'] === 0) {
                     continue;
                 }
                 $ticker = $this->parse_ticker($market);

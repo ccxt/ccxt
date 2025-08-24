@@ -343,7 +343,7 @@ export default class exir extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < response.length; i++) {
             const candle = response[i];
-            const ts = new Date(candle['time']);
+            const ts = this.safeTimestamp(candle, 'time');
             const open = this.safeFloat(candle, 'open');
             const high = this.safeFloat(candle, 'high');
             const low = this.safeFloat(candle, 'low');
@@ -377,7 +377,7 @@ export default class exir extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Orderbook(request);
-        const timestamp = Math.floor(Date.parse(response[market['id']]['timestamp']) / 1000);
+        const timestamp = this.safeTimestamp(response[market['id']], 'timestamp') / 1000;
         return this.parseOrderBook(response[market['id']], symbol, timestamp);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
