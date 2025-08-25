@@ -216,6 +216,7 @@ export default class hyperliquid extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
+                'USOL': 'SOL',
             },
             'options': {
                 'defaultType': 'swap',
