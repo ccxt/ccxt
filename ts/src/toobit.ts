@@ -91,6 +91,7 @@ export default class toobit extends Exchange {
                         '/api/v1/spot/batchOrders': 1,
                     },
                     'delete': {
+                        'api/v1/spot/order': 1,
                     },
                 },
             },
@@ -1164,9 +1165,36 @@ export default class toobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name alpaca#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        const request = {};
+        if (id !== undefined) {
+            request['orderId'] = id;
+        }
+        const response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
+        //
+        //  {"accountId":"1783404067076253952","symbol":"ETHUSDT","clientOrderId":"17561355785732021","orderId":"2025006439999870720","transactTime":"1756135579048","price":"3000","origQty":"0.002","executedQty":"0","status":"NEW","timeInForce":"GTC","type":"LIMIT","side":"BUY"}
+        //
+        const status = this.parseOrderStatus (this.safeString (response, 'status'));
+        if (status !== 'open') {
+            throw new OrderNotFound (this.id + ' ' + id + ' can not be canceled, ' + this.json (response));
+        }
+        return this.parseOrder (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
+        const isDelete = method === 'DELETE';
         const extraQuery = {};
         const query = this.omit (params, this.extractParams (path));
         if (api !== 'private') {
@@ -1184,7 +1212,7 @@ export default class toobit extends Exchange {
             extraQuery['timestamp'] = timestamp.toString ();
             const queryExtended = this.extend (query, extraQuery);
             let queryString = '';
-            if (isPost) {
+            if (isPost || isDelete) {
                 // everything else except Batch Orders
                 if (!Array.isArray (params)) {
                     body = this.urlencode (queryExtended);
