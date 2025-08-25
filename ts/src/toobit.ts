@@ -44,6 +44,7 @@ export default class toobit extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
@@ -91,6 +92,8 @@ export default class toobit extends Exchange {
                     'get': {
                         'api/v1/account': 1,
                         'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 1,
+                        'api/v1/spot/tradeOrders': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -100,7 +103,7 @@ export default class toobit extends Exchange {
                     'delete': {
                         'api/v1/spot/order': 1,
                         'api/v1/spot/openOrders': 1,
-                        'api/v1/spot/cancelOrderByIds ': 1,
+                        'api/v1/spot/cancelOrderByIds': 1,
                     },
                 },
             },
@@ -1101,7 +1104,7 @@ export default class toobit extends Exchange {
         //         "side": "SELL"
         //     }
         //
-        // fetchOrder (spot)
+        // fetchOrder, fetchOrders, fetchOpenOrders (spot)
         //
         //    {
         //        "accountId": "1783404067076253952",
@@ -1171,7 +1174,7 @@ export default class toobit extends Exchange {
             'side': rawSide.toLowerCase (),
             'price': this.omitZero (this.safeString (order, 'price')),
             'triggerPrice': triggerPrice,
-            'cost': undefined,
+            'cost': this.omitZero (this.safeString (order, 'cumulativeQuoteQty')),
             'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'origQty'),
             'filled': this.safeString (order, 'executedQty'),
@@ -1335,6 +1338,113 @@ export default class toobit extends Exchange {
             market = this.market (symbol);
         }
         return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchOpenOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetApiV1SpotOpenOrders (request);
+        //
+        //    [
+        //        {
+        //            "accountId": "1783404067076253952",
+        //            "exchangeId": "301",
+        //            "symbol": "ETHUSDT",
+        //            "symbolName": "ETHUSDT",
+        //            "clientOrderId": "17561415157172008",
+        //            "orderId": "2025056244339984384",
+        //            "price": "3000",
+        //            "origQty": "0.002",
+        //            "executedQty": "0",
+        //            "cummulativeQuoteQty": "0",
+        //            "cumulativeQuoteQty": "0",
+        //            "avgPrice": "0",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0.0",
+        //            "icebergQty": "0.0",
+        //            "time": "1756141516189",
+        //            "updateTime": "1756141516198",
+        //            "isWorking": true
+        //        }, ...
+        //    ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetApiV1SpotTradeOrders (request);
+        //
+        //    [
+        //        {
+        //            "accountId": "1783404067076253952",
+        //            "exchangeId": "301",
+        //            "symbol": "ETHUSDT",
+        //            "symbolName": "ETHUSDT",
+        //            "clientOrderId": "17561415157172008",
+        //            "orderId": "2025056244339984384",
+        //            "price": "3000",
+        //            "origQty": "0.002",
+        //            "executedQty": "0",
+        //            "cummulativeQuoteQty": "0",
+        //            "cumulativeQuoteQty": "0",
+        //            "avgPrice": "0",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0.0",
+        //            "icebergQty": "0.0",
+        //            "time": "1756141516189",
+        //            "updateTime": "1756141516198",
+        //            "isWorking": true
+        //        }, ...
+        //    ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
