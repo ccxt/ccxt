@@ -25,7 +25,7 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
             throw e;
         }
         // If we can't subscribe, we can't test unsubscribe, so skip this test
-        return;
+        return false;
     }
 
     // Verify that we have a subscription
@@ -70,6 +70,7 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
 
     // Verify resubscription works
     assert (Array.isArray (resubscribeResponse), exchange.id + ' ' + method + ' must allow resubscription after unwatch, returned ' + exchange.json (resubscribeResponse));
+    return true;
 }
 
 export default testUnwatchPositions;
