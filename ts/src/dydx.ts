@@ -1463,7 +1463,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTime === undefined) {
                 throw new ArgumentsRequired(this.id + ' goodTillBlockTime is required for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined) {
+            if (goodTillBlock !== undefined && goodTillBlock > 0) {
                 throw new Error(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
         } else {
@@ -1483,8 +1483,6 @@ export default class dydx extends Exchange {
                 'orderFlags': orderFlags,
                 'clobPairId': market['info']['clobPairId'],
             },
-            // 'goodTilBlock': (goodTillBlock === 0) ? undefined : goodTillBlock,
-            // 'goodTilBlockTime': (goodTillBlock === 0) ? goodTillBlockTime : undefined,
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
         }
