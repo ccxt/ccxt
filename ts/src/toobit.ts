@@ -92,6 +92,7 @@ export default class toobit extends Exchange {
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 1,
                     },
                 },
             },
@@ -1167,9 +1168,9 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name alpaca#cancelOrder
+     * @name arkm#cancelOrder
      * @description cancels an open order
-     * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1186,9 +1187,36 @@ export default class toobit extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (response, 'status'));
         if (status !== 'open') {
-            throw new OrderNotFound (this.id + ' ' + id + ' can not be canceled, ' + this.json (response));
+            throw new OrderNotFound (this.id + ' order ' + id + ' can not be canceled, ' + this.json (response));
         }
         return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name toobit#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
+     * @param {string} symbol unified symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateDeleteApiV1SpotOpenOrders (params);
+        //
+        // {"success":true}  // always same response
+        //
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
