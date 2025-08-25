@@ -562,7 +562,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray (bidAsk)) {
-                bookSide.storeArray (this.parseBidAsk (bidAsk));
+                bookSide.storeArray (this.parseOrderBookBidAsk (bidAsk));
             } else {
                 const price = this.safeFloat (bidAsk, 'p');
                 const amount = this.safeFloat (bidAsk, 's');
