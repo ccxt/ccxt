@@ -1,0 +1,19 @@
+{
+    "exchange": "zebpay",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://sapi.zebpay.com/api/v2/market/trades?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
