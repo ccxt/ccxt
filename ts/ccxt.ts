@@ -141,6 +141,7 @@ import poloniex from  './src/poloniex.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import toobit from  './src/toobit.js'
 import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
@@ -323,6 +324,7 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'toobit':                 toobit,
     'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
@@ -647,6 +649,7 @@ export {
     probit,
     timex,
     tokocrypto,
+    toobit,
     tradeogre,
     upbit,
     wavesexchange,

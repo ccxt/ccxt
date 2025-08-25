@@ -22,6 +22,7 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
         try:
             response = await exchange.watch_order_book_for_symbols(symbols)
         except Exception as e:
@@ -29,9 +30,12 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
             if not test_shared_methods.is_temporary_failure(e) and not (isinstance(e, InvalidNonce)):
                 raise e
             now = exchange.milliseconds()
-            continue
-        # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
-        now = exchange.milliseconds()
-        test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
-        test_order_book(exchange, skipped_properties, method, response, None)
+            # continue;
+            success = False
+        if success:
+            # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
+            now = exchange.milliseconds()
+            test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
+            test_order_book(exchange, skipped_properties, method, response, None)
+    return True

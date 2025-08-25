@@ -30,26 +30,26 @@ export default class toobit extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'fetchStatus': true,
-                'fetchTime': true,
-                'fetchMarkets': true,
-                'fetchOrderBook': true,
-                'fetchTrades': true,
-                'fetchOHLCV': true,
-                'fetchMarkOHLCV': true,
-                'fetchIndexOHLCV': true,
-                'fetchTickers': true,
-                'fetchLastPrices': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
+                'fetchIndexOHLCV': true,
+                'fetchLastPrices': true,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
+                'fetchOHLCV': true,
+                'fetchOrderBook': true,
+                'fetchStatus': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': '',
                 'api': {
-                    'common': 'https://api.toobit.com/',
-                    'spot': 'https://api.toobit.com/',
-                    'swap': 'https://api.toobit.com/',
+                    'common': 'https://api.toobit.com',
+                    'private': 'https://api.toobit.com',
                 },
                 'www': 'https://www.toobit.com/',
                 'doc': [
@@ -80,12 +80,9 @@ export default class toobit extends Exchange {
                         'api/v1/futures/historyFundingRate': 1,
                     },
                 },
-                'spot': {
-                    'get': {
-                    },
-                },
                 'private': {
                     'get': {
+                        'api/v1/account': 1,
                     },
                     'post': {
                     },
@@ -897,31 +894,67 @@ export default class toobit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
+            // Add timestamp to parameters for signed endpoints
+            query['timestamp'] = timestamp;
+            // Add recvWindow if not provided (defaults to 5000 as per documentation)
+            if (!('recvWindow' in query)) {
+                query['recvWindow'] = 5000;
+            }
             let queryString = '';
+            let requestBody = '';
             if (method === 'GET' || method === 'DELETE') {
+                // For GET/DELETE, all params go in query string
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
-                    url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
+                // For POST/PUT, params can be in query string, request body, or both
+                // Check if there are query parameters in the original URL
+                const urlParts = url.split ('?');
+                if (urlParts.length > 1) {
+                    queryString = urlParts[1];
+                    url = urlParts[0]; // Remove query from URL since we'll rebuild it
+                }
+                if (Object.keys (query).length) {
+                    requestBody = this.urlencode (query);
+                    body = requestBody;
+                }
             }
-            const payload = timestamp + method + '/' + path + (body || queryString || '');
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
+            // totalParams = query string concatenated with request body (no & separator between them)
+            const totalParams = queryString + requestBody;
+            // Create HMAC SHA256 signature using secretKey as key and totalParams as value
+            const signature = this.hmac (this.encode (totalParams), this.encode (this.secret), sha256, 'hex');
+            if (method === 'GET' || method === 'DELETE') {
+                // Add signature to query parameters
+                query['signature'] = signature;
+                url += '?' + this.urlencode (query);
+            } else {
+                // For POST/PUT requests
+                if (queryString) {
+                    // If there's a query string, add it back to URL
+                    url += '?' + queryString;
+                }
+                // Add signature to request body
+                if (requestBody) {
+                    body = requestBody + '&signature=' + signature;
+                } else {
+                    body = 'signature=' + signature;
+                }
+            }
             headers = {
-                'X-TB-APIKEY': this.apiKey,
-                'X-TB-TIMESTAMP': timestamp.toString (),
-                'X-TB-SIGNATURE': signature,
-                'Content-Type': 'application/json',
+                'X-BB-APIKEY': this.apiKey,
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
+        } else {
+            // Public endpoints
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
