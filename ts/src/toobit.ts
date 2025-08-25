@@ -1289,6 +1289,53 @@ export default class toobit extends Exchange {
         return this.parseOrders (response, market);
     }
 
+    /**
+     * @method
+     * @name toobit#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        const response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
+        //
+        //    {
+        //        "accountId": "1783404067076253952",
+        //        "exchangeId": "301",
+        //        "symbol": "ETHUSDT",
+        //        "symbolName": "ETHUSDT",
+        //        "clientOrderId": "17561402075722006",
+        //        "orderId": "2025045271033977089",
+        //        "price": "3000",
+        //        "origQty": "0.002",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "cumulativeQuoteQty": "0",
+        //        "avgPrice": "0",
+        //        "status": "NEW",
+        //        "timeInForce": "GTC",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "stopPrice": "0.0",
+        //        "icebergQty": "0.0",
+        //        "time": "1756140208069",
+        //        "updateTime": "1756140208078",
+        //        "isWorking": true
+        //    }
+        //
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrder (response, market);
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
