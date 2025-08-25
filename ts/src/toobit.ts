@@ -30,6 +30,7 @@ export default class toobit extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchFundingRateHistory': true,
@@ -85,6 +86,9 @@ export default class toobit extends Exchange {
                         'api/v1/account': 1,
                     },
                     'post': {
+                        '/api/v1/spot/orderTest': 1,
+                        '/api/v1/spot/order': 1,
+                        '/api/v1/spot/batchOrders': 1,
                     },
                     'delete': {
                     },
@@ -116,6 +120,45 @@ export default class toobit extends Exchange {
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'spot',
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
@@ -939,70 +982,233 @@ export default class toobit extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name toobit#createOrder
+     * @description create a trade order
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = {};
+        [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const order = await this.privatePostApiV1SpotOrder (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1783404067076253952",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1756115478113679",
+        //         "orderId": "2024837825254460160",
+        //         "transactTime": "1756115478604",
+        //         "price": "0",
+        //         "origQty": "0.001",
+        //         "executedQty": "0",
+        //         "status": "PENDING_NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "SELL"
+        //     }
+        //
+        return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#createOrders
+     * @description create a list of trade orders
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#place-multiple-orders-trade
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest[0]);
+        }
+        const request = ordersRequests;
+        const response = await this.privatePostApiV1SpotBatchOrders (request);
+        
+        return this.parseOrders (results);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const id = market['id'];
+        const request: Dict = {
+            'symbol': id,
+            'side': side.toUpperCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        let isPostOnly = undefined;
+        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (isPostOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        } else {
+            request['type'] = type.toUpperCase ();
+        }
+        return [ request, params ];
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder (spot)
+        //
+        //     {
+        //         "accountId": "1783404067076253952",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1756115478113679",
+        //         "orderId": "2024837825254460160",
+        //         "transactTime": "1756115478604",
+        //         "price": "0",
+        //         "origQty": "0.001",
+        //         "executedQty": "0",
+        //         "status": "PENDING_NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "MARKET",
+        //         "side": "SELL"
+        //     }
+        //
+        const timestamp = this.safeInteger (order, 'transactTime');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const rawType = this.safeString (order, 'type');
+        const rawSide = this.safeString (order, 'side');
+        let fee = undefined;
+        // const feeCurrency = this.safeString2 (order, 'tokenFeeCurrency', 'feeCcy');
+        // let feeCost: Str = undefined;
+        // let feeCurrencyCode: Str = undefined;
+        // const rate = this.safeString (order, 'fee');
+        // if (feeCurrency === undefined) {
+        //     feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+        // } else {
+        //     // poloniex accepts a 30% discount to pay fees in TRX
+        //     feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
+        //     feeCost = this.safeString2 (order, 'tokenFee', 'feeAmt');
+        // }
+        // if (feeCost !== undefined) {
+        //     fee = {
+        //         'rate': rate,
+        //         'cost': feeCost,
+        //         'currency': feeCurrencyCode,
+        //     };
+        // }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (rawType),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': (rawType === 'LIMIT_MAKER'),
+            'side': rawSide.toLowerCase (),
+            'price': this.omitZero (this.safeString (order, 'price')),
+            'triggerPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': this.safeString (order, 'origQty'),
+            'filled': this.safeString (order, 'executedQty'),
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': fee,
+            'marginMode': undefined,
+            'reduceOnly': undefined,
+            'leverage': undefined,
+            'hedged': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'PENDING_CANCEL': 'canceled',
+            'CANCELED': 'canceled',
+            'REJECTED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses: Dict = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        const isPost = method === 'POST';
+        const extraQuery = {};
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
+        if (api !== 'private') {
+            // Public endpoints
+            if (!isPost) {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+        } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             // Add timestamp to parameters for signed endpoints
-            query['timestamp'] = timestamp;
-            // Add recvWindow if not provided (defaults to 5000 as per documentation)
-            if (!('recvWindow' in query)) {
-                query['recvWindow'] = 5000;
-            }
+            extraQuery['recvWindow'] = this.safeString (this.options, 'recvWindow', '5000');
+            extraQuery['timestamp'] = timestamp.toString ();
+            const queryExtended = this.extend (query, extraQuery);
             let queryString = '';
-            let requestBody = '';
-            if (method === 'GET' || method === 'DELETE') {
-                // For GET/DELETE, all params go in query string
-                if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
+            if (isPost) {
+                // everything else except Batch Orders
+                if (!Array.isArray (params)) {
+                    body = this.urlencode (queryExtended);
+                } else {
+                    queryString = this.urlencode (extraQuery);
+                    body = this.json (query);
                 }
             } else {
-                // For POST/PUT, params can be in query string, request body, or both
-                // Check if there are query parameters in the original URL
-                const urlParts = url.split ('?');
-                if (urlParts.length > 1) {
-                    queryString = urlParts[1];
-                    url = urlParts[0]; // Remove query from URL since we'll rebuild it
-                }
-                if (Object.keys (query).length) {
-                    requestBody = this.urlencode (query);
-                    body = requestBody;
-                }
+                queryString = this.urlencode (queryExtended);
             }
             // totalParams = query string concatenated with request body (no & separator between them)
-            const totalParams = queryString + requestBody;
+            const totalParams = body + queryString;
             // Create HMAC SHA256 signature using secretKey as key and totalParams as value
             const signature = this.hmac (this.encode (totalParams), this.encode (this.secret), sha256, 'hex');
-            if (method === 'GET' || method === 'DELETE') {
-                // Add signature to query parameters
-                query['signature'] = signature;
-                url += '?' + this.urlencode (query);
+            if (queryString !== '') {
+                queryString += '&signature=' + signature;
+                url += '?' + queryString;
             } else {
-                // For POST/PUT requests
-                if (queryString) {
-                    // If there's a query string, add it back to URL
-                    url += '?' + queryString;
-                }
-                // Add signature to request body
-                if (requestBody) {
-                    body = requestBody + '&signature=' + signature;
-                } else {
-                    body = 'signature=' + signature;
-                }
+                body += '&signature=' + signature;
             }
             headers = {
                 'X-BB-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-        } else {
-            // Public endpoints
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
