@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/dydx.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
@@ -1090,80 +1090,6 @@ export default class dydx extends Exchange {
         return this.parsePositions (rows, symbols);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
-        //
-        //
-        const timestamp = this.safeIntegerN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
-        const orderId = this.safeStringN (order, [ 'id' ]);
-        const clientOrderId = this.omitZero (this.safeString (order, 'clientId'));
-        const ticker = this.safeString (order, 'ticker');
-        market = this.safeMarket (ticker, market);
-        const symbol = market['symbol'];
-        const price = this.safeString2 (order, 'order_price', 'price');
-        const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
-        const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
-        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
-        let status = this.safeValue2 (order, 'status', 'algoStatus');
-        const success = this.safeBool (order, 'success');
-        if (success !== undefined) {
-            status = (success) ? 'NEW' : 'REJECTED';
-        }
-        const side = this.safeStringLower (order, 'side');
-        const filled = this.omitZero (this.safeValue (order, 'totalFilled'));
-        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
-        const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue (order, 'Transactions');
-        const triggerPrice = this.safeNumber (order, 'triggerPrice');
-        let takeProfitPrice: Num = undefined;
-        let stopLossPrice: Num = undefined;
-        const childOrders = this.safeValue (order, 'childOrders');
-        if (childOrders !== undefined) {
-            const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
-            const innerChildOrdersLength = innerChildOrders.length;
-            if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
-                const stopLossOrder = this.safeValue (innerChildOrders, 1);
-                takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
-                stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
-            }
-        }
-        const lastUpdateAt = this.safeString (order, 'updatedAt');
-        // const lastUpdateTimestamp = this.safeInteger2 (order, 'updatedTime', 'updated_time');
-        return this.safeOrder ({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': this.parse8601 (lastUpdateAt),
-            'status': this.parseOrderStatus (status),
-            'symbol': symbol,
-            'type': this.parseOrderType (orderType),
-            'timeInForce': this.safeStringLower (order, 'timeInForce'),
-            'postOnly': this.safeBool (order, 'postOnly'),
-            'reduceOnly': this.safeBool (order, 'reduceOnly'),
-            'side': side,
-            'price': price,
-            'triggerPrice': triggerPrice,
-            'takeProfitPrice': takeProfitPrice,
-            'stopLossPrice': stopLossPrice,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
-            'trades': transactions,
-            'fee': {
-                'cost': fee,
-                'currency': feeCurrency,
-            },
-            'info': order,
-        }, market);
-    }
-
     hashMessage (message) {
         return this.hash (message, keccak, 'hex');
     }
@@ -1184,7 +1110,7 @@ export default class dydx extends Exchange {
     }
 
     signOnboardingAction (): object {
-        const message = {'action': this.encode ('dYdX Chain Onboarding')};
+        const message = { 'action': this.encode ('dYdX Chain Onboarding') };
         const chainId = 11155111; // TODO: chainid for production
         const domain: Dict = {
             'chainId': chainId,
@@ -1200,7 +1126,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    async recoverLocalWallet() {
+    async recoverLocalWallet (): Promise<any> {
         let wallet = this.safeDict (this.options, 'dydxLocalWallet');
         if (wallet !== undefined) {
             return wallet;
@@ -1253,15 +1179,21 @@ export default class dydx extends Exchange {
 
     toLong (numStr: string): object {
         // see: https://github.com/dcodeIO/long.js/blob/main/index.js
-        // TODO: change to Precise 4294967296
-        const TWO_PWR_16_DBL = 1 << 16;
-        const TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
-        const value = this.parseToInt (numStr);
-        return {
-            low: value % TWO_PWR_32_DBL | 0,
-            high: (value / TWO_PWR_32_DBL) | 0,
-            unsigned: false
+        const TWO_PWR_32_DBL = '4294967296'; // 2 ** 32
+        const TWO_PWR_63_DBL = '9223372036854776000'; // 2 ** 63
+        const ZERO = '0';
+        if (
+            Precise.stringLt (numStr, ZERO)
+            || Precise.stringGe (Precise.stringAdd (numStr, '1'), TWO_PWR_63_DBL)
+            || Precise.stringLt (numStr, '-' + TWO_PWR_63_DBL)
+        ) {
+            throw new BadRequest (this.id + ' number is out of bound');
         }
+        return {
+            'low': Precise.stringOr (Precise.stringMod (numStr, TWO_PWR_32_DBL), ZERO),
+            'high': Precise.stringOr (Precise.stringDiv (numStr, TWO_PWR_32_DBL), ZERO),
+            'unsigned': false,
+        };
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1292,7 +1224,7 @@ export default class dydx extends Exchange {
         let orderFlag = undefined;
         let timeInForceNumber = undefined;
         if (timeInForce === 'FOK') {
-            throw new Error(this.id + ' timeInForce fok has been deprecated');
+            throw new Error (this.id + ' timeInForce fok has been deprecated');
         }
         if (orderType === 'MARKET') {
             // short-term
@@ -1304,7 +1236,7 @@ export default class dydx extends Exchange {
             }
         } else if (orderType === 'LIMIT') {
             if (timeInForce === undefined) {
-                throw new ArgumentsRequired(this.id + ' timeInForce should be specified for limit order.');
+                throw new ArgumentsRequired (this.id + ' timeInForce should be specified for limit order.');
             }
             if (timeInForce === 'GTT') {
                 // long-term
@@ -1319,7 +1251,7 @@ export default class dydx extends Exchange {
                 if (timeInForce === 'IOC') {
                     timeInForceNumber = 1;
                 } else {
-                    throw new Error('unexpected code path: timeInForce');
+                    throw new Error ('unexpected code path: timeInForce');
                 }
             }
         }
@@ -1335,15 +1267,15 @@ export default class dydx extends Exchange {
             }
             conditionalOrderTriggerSubticks = Precise.stringMul (conditionalOrderTriggerSubticks, priceScale);
         }
-        let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
-        let goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
+        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        const goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
-                throw new ArgumentsRequired(this.id + ' goodTillBlock is required for short term order.');
+                throw new ArgumentsRequired (this.id + ' goodTillBlock is required for short term order.');
             }
         } else {
             if (goodTillBlockTime === undefined) {
-                throw new ArgumentsRequired('goodTillBlockTime is required.');
+                throw new ArgumentsRequired ('goodTillBlockTime is required.');
             }
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
@@ -1371,11 +1303,11 @@ export default class dydx extends Exchange {
                 'conditionType': conditionalType,
                 'conditionalOrderTriggerSubticks': this.toLong (conditionalOrderTriggerSubticks),
             },
-        }
+        };
         const signingPayload = {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
-        }
+        };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'goodTillBlock', 'goodTillBlockTime', 'subaccountId' ]);
         return this.extend (signingPayload, params);
     }
@@ -1401,7 +1333,7 @@ export default class dydx extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<any> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
@@ -1432,7 +1364,6 @@ export default class dydx extends Exchange {
     /**
      * @method
      * @name dydx#cancelOrder
-     * @see 
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1440,7 +1371,7 @@ export default class dydx extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<any> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (!isTrigger && (symbol === undefined)) {
@@ -1460,14 +1391,14 @@ export default class dydx extends Exchange {
         }
         if (orderFlags > 0) {
             if (goodTillBlockTime === undefined) {
-                throw new ArgumentsRequired(this.id + ' goodTillBlockTime is required for long term or conditional order.');
+                throw new ArgumentsRequired (this.id + ' goodTillBlockTime is required for long term or conditional order.');
             }
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
-                throw new Error(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
+                throw new Error (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
         } else {
             if (goodTillBlock === undefined) {
-                throw new ArgumentsRequired(this.id + ' goodTillBlock is required for short term order.');
+                throw new ArgumentsRequired (this.id + ' goodTillBlock is required for short term order.');
             }
         }
         const wallet = await this.recoverLocalWallet ();
@@ -1484,11 +1415,11 @@ export default class dydx extends Exchange {
             },
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
-        }
+        };
         const signingPayload = {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
-        }
+        };
         const signedCancel = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
         const request = {
             'tx': signedCancel,
