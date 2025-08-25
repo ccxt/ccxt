@@ -891,6 +891,54 @@ export default class toobit extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name toobit#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1Account ();
+        //
+        //    {
+        //        "userId": "912902020",
+        //        "balances": [
+        //            {
+        //                "asset": "ETH",
+        //                "assetId": "ETH",
+        //                "assetName": "ETH",
+        //                "total": "0.025",
+        //                "free": "0.025",
+        //                "locked": "0"
+        //            }
+        //        ]
+        //    }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const balances = this.safeList (response, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
