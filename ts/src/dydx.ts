@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, Strings, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -1401,16 +1401,15 @@ export default class dydx extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const signedOrder = await this.signDydxOrder (wallet, orderRequest, 'dydx-testnet-4', undefined, account);
+        const signedOrder = await this.signDydxTx (wallet, orderRequest, 'dydx-testnet-4', undefined, account);
         const request = {
             'tx': signedOrder,
         };
-        console.log (this.json (orderRequest));
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
         //
@@ -1441,7 +1440,7 @@ export default class dydx extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<any> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
         if (!isTrigger && (symbol === undefined)) {
@@ -1490,11 +1489,10 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         }
-        const signedCancel = await this.signDydxOrder (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
+        const signedCancel = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
         const request = {
             'tx': signedCancel,
         };
-        console.log (this.json (signingPayload));
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
         //

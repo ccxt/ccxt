@@ -1667,7 +1667,7 @@ export default class Exchange {
         return wallet;
     }
 
-    async signDydxOrder(
+    async signDydxTx(
         wallet: any,
         message: any,
         // zeroFee?: boolean,
@@ -1677,11 +1677,6 @@ export default class Exchange {
         account?: any,
         authenticators?: number[],
       ): Promise<string> {
-        // const msgsPromise = await messaging();
-        // const accountPromise = account ? await account() : this.account(wallet.address!);
-        // const msgsAndAccount = await Promise.all([msgsPromise, accountPromise]);
-        // const msgs = msgsAndAccount[0];
-        // return this.signTransaction(wallet, msgs, msgsAndAccount[1], zeroFee, gasPrice, memo);
         const messages = [ message ];
         const sequence = this.milliseconds ();
         const fee = {
