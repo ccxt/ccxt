@@ -31,6 +31,7 @@
     "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
+    "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildGO": "go build -C go ./v4",
     "transpileGO": "tsx build/goTranspiler.ts",
     "buildCSRelease": "dotnet build cs --configuration Release",

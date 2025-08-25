@@ -1,2 +1,2 @@
 export = $root;
-declare var $root: {};
+declare var $root: any;
