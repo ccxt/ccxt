@@ -21,6 +21,7 @@
 	- [bigone](exchanges/bigone.md)
 	- [binance](exchanges/binance.md)
 	- [bingx](exchanges/bingx.md)
+	- [bit24()](exchanges/bit24().md)
 	- [bit2c](exchanges/bit2c.md)
 	- [bitbank](exchanges/bitbank.md)
 	- [bitbns](exchanges/bitbns.md)

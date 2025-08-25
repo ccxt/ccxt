@@ -133,7 +133,7 @@ class abantether extends Exchange {
                     if ($base === $quote) {
                         continue;
                     }
-                    $market = Async\await($this->parse_market($response[$i]));
+                    $market = $this->parse_market($response[$i]);
                     $result[] = $market;
                 }
             }

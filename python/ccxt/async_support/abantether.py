@@ -129,7 +129,7 @@ class abantether(Exchange, ImplicitAPI):
                 response[i]['quote'] = quote
                 if base == quote:
                     continue
-                market = await self.parse_market(response[i])
+                market = self.parse_market(response[i])
                 result.append(market)
         return result
 

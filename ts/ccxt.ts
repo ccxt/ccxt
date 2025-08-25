@@ -60,6 +60,7 @@ import binancecoinm from  './src/binancecoinm.js'
 import binanceus from  './src/binanceus.js'
 import binanceusdm from  './src/binanceusdm.js'
 import bingx from  './src/bingx.js'
+import bit24 from  './src/bit24.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
@@ -269,6 +270,7 @@ const exchanges = {
     'binanceus':              binanceus,
     'binanceusdm':            binanceusdm,
     'bingx':                  bingx,
+    'bit24':                  bit24,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbns':                 bitbns,
@@ -621,6 +623,7 @@ export {
     binanceus,
     binanceusdm,
     bingx,
+    bit24,
     bit2c,
     bitbank,
     bitbns,

@@ -352,6 +352,7 @@ class Exchange {
         'binanceus',
         'binanceusdm',
         'bingx',
+        'bit24',
         'bit2c',
         'bitbank',
         'bitbns',
