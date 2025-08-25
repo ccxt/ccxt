@@ -3735,7 +3735,7 @@ export default class bitfinex extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     * @returns {object} a [margin modification structure]{@link https://docs.ccxt.com/#/?id=margin-modification-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
@@ -3782,7 +3782,7 @@ export default class bitfinex extends Exchange {
             'status': marginStatus,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        } as MarginModification;
     }
 
     /**

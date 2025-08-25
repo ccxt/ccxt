@@ -933,6 +933,21 @@
                   1
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set the cross leverage",
+                "method": "setLeverage",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-leverage",
+                "input": [
+                    10,
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"leverage\":\"10\",\"open_type\":\"cross\"}"
+            }
         ]
     }
 }
