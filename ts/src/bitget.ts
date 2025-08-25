@@ -2075,9 +2075,6 @@ export default class bitget extends Exchange {
                 minCost = this.safeNumber (market, 'minTradeUSDT');
             }
             const contractSize = contract ? 1 : undefined;
-            if (marketId === 'BTCUSDC') {
-                console.log ('here');
-            }
             result.push (this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': symbol,
