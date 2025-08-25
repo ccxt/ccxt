@@ -31,6 +31,10 @@ export default class toobit extends Exchange {
                 'future': false,
                 'option': false,
                 'createOrder': true,
+                'createOrders': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
+                'cancelOrders': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchFundingRateHistory': true,
@@ -39,6 +43,8 @@ export default class toobit extends Exchange {
                 'fetchLastPrices': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
@@ -84,15 +90,17 @@ export default class toobit extends Exchange {
                 'private': {
                     'get': {
                         'api/v1/account': 1,
+                        'api/v1/spot/order': 1,
                     },
                     'post': {
-                        '/api/v1/spot/orderTest': 1,
-                        '/api/v1/spot/order': 1,
-                        '/api/v1/spot/batchOrders': 1,
+                        'api/v1/spot/orderTest': 1,
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/batchOrders': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
                         'api/v1/spot/openOrders': 1,
+                        'api/v1/spot/cancelOrderByIds ': 1,
                     },
                 },
             },
@@ -148,7 +156,9 @@ export default class toobit extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 20,
+                    },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -1073,7 +1083,7 @@ export default class toobit extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // createOrder (spot)
+        // createOrder, cancelOrder (spot)
         //
         //     {
         //         "accountId": "1783404067076253952",
@@ -1091,7 +1101,33 @@ export default class toobit extends Exchange {
         //         "side": "SELL"
         //     }
         //
-        const timestamp = this.safeInteger (order, 'transactTime');
+        // fetchOrder (spot)
+        //
+        //    {
+        //        "accountId": "1783404067076253952",
+        //        "exchangeId": "301",
+        //        "symbol": "ETHUSDT",
+        //        "symbolName": "ETHUSDT",
+        //        "clientOrderId": "17561402075722006",
+        //        "orderId": "2025045271033977089",
+        //        "price": "3000",
+        //        "origQty": "0.002",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "cumulativeQuoteQty": "0",
+        //        "avgPrice": "0",
+        //        "status": "NEW",
+        //        "timeInForce": "GTC",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "stopPrice": "0.0",
+        //        "icebergQty": "0.0",
+        //        "time": "1756140208069",
+        //        "updateTime": "1756140208078",
+        //        "isWorking": true
+        //    }
+        //
+        const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
@@ -1115,6 +1151,10 @@ export default class toobit extends Exchange {
         //         'currency': feeCurrencyCode,
         //     };
         // }
+        let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        if (triggerPrice === '0.0') {
+            triggerPrice = undefined;
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -1122,6 +1162,7 @@ export default class toobit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': market['symbol'],
             'type': this.parseOrderType (rawType),
@@ -1129,9 +1170,9 @@ export default class toobit extends Exchange {
             'postOnly': (rawType === 'LIMIT_MAKER'),
             'side': rawSide.toLowerCase (),
             'price': this.omitZero (this.safeString (order, 'price')),
-            'triggerPrice': undefined,
+            'triggerPrice': triggerPrice,
             'cost': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'amount': this.safeString (order, 'origQty'),
             'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
@@ -1189,7 +1230,11 @@ export default class toobit extends Exchange {
         if (status !== 'open') {
             throw new OrderNotFound (this.id + ' order ' + id + ' can not be canceled, ' + this.json (response));
         }
-        return this.parseOrder (response);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrder (response, market);
     }
 
     /**
@@ -1219,6 +1264,32 @@ export default class toobit extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name toobit#cancelOrders
+     * @description cancel multiple orders
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const idsString = ids.join (',');
+        const request: Dict = {
+            'ids': idsString,
+        };
+        const response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
+        //
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrders (response, market);
+    }
+
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
@@ -1241,7 +1312,7 @@ export default class toobit extends Exchange {
             const queryExtended = this.extend (query, extraQuery);
             let queryString = '';
             if (isPost || isDelete) {
-                // everything else except Batch Orders
+                // everything else except Batch-Orders
                 if (!Array.isArray (params)) {
                     body = this.urlencode (queryExtended);
                 } else {
@@ -1251,10 +1322,11 @@ export default class toobit extends Exchange {
             } else {
                 queryString = this.urlencode (queryExtended);
             }
-            // totalParams = query string concatenated with request body (no & separator between them)
-            const totalParams = body + queryString;
-            // Create HMAC SHA256 signature using secretKey as key and totalParams as value
-            const signature = this.hmac (this.encode (totalParams), this.encode (this.secret), sha256, 'hex');
+            let payload = queryString;
+            if (body !== undefined) {
+                payload = body + payload;
+            }
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             if (queryString !== '') {
                 queryString += '&signature=' + signature;
                 url += '?' + queryString;
