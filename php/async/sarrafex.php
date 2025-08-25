@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\sarrafex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class sarrafex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'sarrafex',
             'name' => 'Sarrafex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -132,8 +132,8 @@ class sarrafex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for sarrafex
              * @see https://sarrafex.io/
@@ -144,7 +144,7 @@ class sarrafex extends Exchange {
             $markets = $this->safe_list($response, 'value');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -289,7 +289,7 @@ class sarrafex extends Exchange {
             $markets = $this->safe_list($response, 'value');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -313,7 +313,7 @@ class sarrafex extends Exchange {
             );
             $response = Async\await($this->publicGetApiGatewayExchangerQueryMarket ($request));
             $pair = $this->safe_list($response, 'value');
-            $ticker = Async\await($this->parse_ticker($pair[0]));
+            $ticker = $this->parse_ticker($pair[0]);
             return $ticker;
         }) ();
     }
@@ -395,7 +395,7 @@ class sarrafex extends Exchange {
         $datetime = $this->safe_string($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => Date.parse ($datetime),
+            'timestamp' => $this->safe_timestamp($ticker, 'timestamp'),
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,

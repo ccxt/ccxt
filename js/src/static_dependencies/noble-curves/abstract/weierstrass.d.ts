@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 import * as mod from './modular.js';
 import * as ut from './utils.js';
@@ -86,6 +87,30 @@ export declare type CurvePointsRes<T> = {
     normPrivateKeyToScalar: (key: PrivKey) => bigint;
     weierstrassEquation: (x: T) => T;
     isWithinCurveOrder: (num: bigint) => boolean;
+};
+export declare const DER: {
+    Err: {
+        new (m?: string): {
+            name: string;
+            message: string;
+            stack?: string;
+        };
+        captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+        prepareStackTrace?: (err: Error, stackTraces: NodeJS.CallSite[]) => any;
+        stackTraceLimit: number;
+    };
+    _parseInt(data: Uint8Array): {
+        d: bigint;
+        l: Uint8Array;
+    };
+    toSig(hex: string | Uint8Array): {
+        r: bigint;
+        s: bigint;
+    };
+    hexFromSig(sig: {
+        r: bigint;
+        s: bigint;
+    }): string;
 };
 export declare function weierstrassPoints<T>(opts: CurvePointsType<T>): {
     ProjectivePoint: ProjConstructor<T>;

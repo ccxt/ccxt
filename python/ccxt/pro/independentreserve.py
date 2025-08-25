@@ -5,16 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Trade
+from ccxt.base.types import Any, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,
@@ -22,6 +22,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': False,
                 'watchOrderBook': True,
@@ -33,7 +34,9 @@ class independentreserve(ccxt.async_support.independentreserve):
                 },
             },
             'options': {
-                'checksum': False,  # TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': True,  # TODO: currently only working for snapshot
+                },
             },
             'streaming': {
             },
@@ -196,7 +199,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-        checksum = self.safe_bool(self.options, 'checksum', True)
+        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         if checksum and receivedSnapshot:
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
@@ -212,7 +215,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             calculatedChecksum = self.crc32(payload, True)
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:
-                error = InvalidNonce(self.id + ' invalid checksum')
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 del client.subscriptions[messageHash]
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)

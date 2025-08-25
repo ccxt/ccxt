@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\ompfinex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ompfinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ompfinex',
             'name' => 'OMPFinex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -126,8 +126,8 @@ class ompfinex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for ompfinex
              * @see https://apidocs.ompfinex.ir/#6ae2dae4a2
@@ -138,7 +138,7 @@ class ompfinex extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -275,7 +275,7 @@ class ompfinex extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -299,7 +299,7 @@ class ompfinex extends Exchange {
             );
             $response = Async\await($this->publicGetV1Market ($request));
             $markets = $this->safe_dict($response, 'data');
-            $ticker = Async\await($this->parse_ticker($markets));
+            $ticker = $this->parse_ticker($markets);
             return $ticker;
         }) ();
     }
@@ -367,11 +367,12 @@ class ompfinex extends Exchange {
         $last = $this->safe_float($ticker, 'last_price');
         $quoteVolume = $this->safe_float($ticker, 'last_volume');
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high * 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
+        $baseVolume = $quoteVolume / $last;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -390,7 +391,7 @@ class ompfinex extends Exchange {
             'change' => $change,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);
@@ -439,11 +440,11 @@ class ompfinex extends Exchange {
             $ohlcvs = array();
             for ($i = 0; $i < count($openList); $i++) {
                 if ($market['quote'] === 'IRT') {
-                    $openList[$i] /= 10;
-                    $highList[$i] /= 10;
-                    $lastList[$i] /= 10;
-                    $closeList[$i] /= 10;
-                    $volumeList[$i] /= 10;
+                    $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                    $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                    $lastList[$i] = $lastList[$i] ? $lastList[$i] / 10 : 0;
+                    $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                    $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
                 }
                 $ohlcvs[] = [
                     $timestampList[$i],
@@ -477,10 +478,10 @@ class ompfinex extends Exchange {
                 $bids = $this->safe_list($orderbook, 'bids');
                 $asks = $this->safe_list($orderbook, 'asks');
                 for ($i = 0; $i < count($bids); $i++) {
-                    $bids[$i][0] /= 10;
+                    $bids[$i][0] = $bids[$i][0] ? $bids[$i][0] / 10 : 0;
                 }
                 for ($i = 0; $i < count($asks); $i++) {
-                    $asks[$i][0] /= 10;
+                    $asks[$i][0] = $asks[$i][0] ? $asks[$i][0] / 10 : 0;
                 }
                 $orderbook['bids'] = $asks;
                 $orderbook['asks'] = $bids;

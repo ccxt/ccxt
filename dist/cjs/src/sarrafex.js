@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var sarrafex$1 = require('./abstract/sarrafex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class sarrafex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class sarrafex extends sarrafex$1 {
+class sarrafex extends sarrafex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'sarrafex',
             'name': 'Sarrafex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -129,7 +131,7 @@ class sarrafex extends sarrafex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name sarrafex#fetchMarkets
@@ -142,7 +144,7 @@ class sarrafex extends sarrafex$1 {
         const markets = this.safeList(response, 'value');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -285,7 +287,7 @@ class sarrafex extends sarrafex$1 {
         const markets = this.safeList(response, 'value');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -308,7 +310,7 @@ class sarrafex extends sarrafex$1 {
         };
         const response = await this.publicGetApiGatewayExchangerQueryMarket(request);
         const pair = this.safeList(response, 'value');
-        const ticker = await this.parseTicker(pair[0]);
+        const ticker = this.parseTicker(pair[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -388,7 +390,7 @@ class sarrafex extends sarrafex$1 {
         const datetime = this.safeString(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'timestamp'),
             'datetime': datetime,
             'high': high,
             'low': low,
@@ -497,4 +499,4 @@ class sarrafex extends sarrafex$1 {
     }
 }
 
-module.exports = sarrafex;
+exports["default"] = sarrafex;

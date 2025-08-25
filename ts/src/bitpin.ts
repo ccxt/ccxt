@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class bitpin extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'bitpin',
             'name': 'bitpin',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -128,7 +128,7 @@ export default class bitpin extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitpin#fetchMarkets
@@ -138,10 +138,10 @@ export default class bitpin extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetV1MktMarkets (params);
-        const markets = this.safeDict (response, 'results');
+        const markets = this.safeList (response, 'results');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket (markets[i]);
+            const market = this.parseMarket (markets[i]);
             result.push (market);
         }
         return result;
@@ -223,12 +223,12 @@ export default class bitpin extends Exchange {
             symbols = this.marketSymbols (symbols);
         }
         const response = await this.publicGetV1MktMarkets (params);
-        const markets = this.safeDict (response, 'results');
+        const markets = this.safeList (response, 'results');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
             const is_active = this.safeBool (markets[i], 'tradable');
             if (is_active === true) {
-                const ticker = await this.parseTicker (markets[i]);
+                const ticker = this.parseTicker (markets[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
@@ -370,9 +370,10 @@ export default class bitpin extends Exchange {
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const high = this.safeFloat (priceInfo, 'max', 0);
         const low = this.safeFloat (priceInfo, 'min', 0);
-        const last = this.safeFloat (priceInfo, 'lastPrice', 0);
+        const last = this.safeFloat (priceInfo, 'price', 0);
         const change = this.safeFloat (priceInfo, 'change', 0);
-        const quoteVolume = this.safeFloat (priceInfo, '24h_quoteVolume', 0);
+        const baseVolume = this.safeFloat (priceInfo, 'amount', 0);
+        const quoteVolume = this.safeFloat (priceInfo, 'value', 0);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -391,7 +392,7 @@ export default class bitpin extends Exchange {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);

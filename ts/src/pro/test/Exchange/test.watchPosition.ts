@@ -2,8 +2,9 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchPosition (exchange, skippedProperties, symbol) {
+async function testWatchPosition (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPosition';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

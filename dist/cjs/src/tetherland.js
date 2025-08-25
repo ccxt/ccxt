@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var tetherland$1 = require('./abstract/tetherland.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class tetherland
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class tetherland extends tetherland$1 {
+class tetherland extends tetherland$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tetherland',
             'name': 'TetherLand',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -110,7 +112,7 @@ class tetherland extends tetherland$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name tetherland#fetchMarkets
@@ -129,7 +131,7 @@ class tetherland extends tetherland$1 {
                     continue;
                 }
                 markets[i]['quote'] = quotes[key];
-                const market = await this.parseMarket(markets[i]);
+                const market = this.parseMarket(markets[i]);
                 result.push(market);
             }
         }
@@ -260,7 +262,7 @@ class tetherland extends tetherland$1 {
                 }
                 markets[i]['quote'] = quotes[key];
                 markets[i]['id'] = markets[i]['symbol'] + '/' + markets[i]['quote'];
-                const market = await this.parseTicker(markets[i]);
+                const market = this.parseTicker(markets[i]);
                 const symbol = market['symbol'];
                 result[symbol] = market;
             }
@@ -363,4 +365,4 @@ class tetherland extends tetherland$1 {
     }
 }
 
-module.exports = tetherland;
+exports["default"] = tetherland;

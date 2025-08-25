@@ -17,7 +17,7 @@ export default class bitir extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bitir',
             'name': 'Bit.ir',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -128,7 +128,7 @@ export default class bitir extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name bitir#fetchMarkets
@@ -141,7 +141,7 @@ export default class bitir extends Exchange {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -277,7 +277,7 @@ export default class bitir extends Exchange {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -300,7 +300,7 @@ export default class bitir extends Exchange {
         };
         const response = await this.publicGetV1Market(request);
         const markets = this.safeDict(response, 'data');
-        const ticker = await this.parseTicker(markets);
+        const ticker = this.parseTicker(markets);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -361,24 +361,24 @@ export default class bitir extends Exchange {
         const marketId = this.safeString(ticker, 'id');
         const marketinfo = this.market(marketId);
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        let high = this.safeFloat(ticker, 'max_price');
-        let low = this.safeFloat(ticker, 'min_price');
-        let bid = this.safeFloat(ticker, 'min_price');
-        let ask = this.safeFloat(ticker, 'max_price');
-        let open = this.safeFloat(ticker, 'last_price');
-        let close = this.safeFloat(ticker, 'last_price');
-        const change = this.safeFloat(ticker, 'day_change_percent');
-        let last = this.safeFloat(ticker, 'last_price');
-        let quoteVolume = this.safeFloat(ticker, 'last_volume');
+        let high = this.safeFloat(ticker, 'max_price', 0);
+        let low = this.safeFloat(ticker, 'min_price', 0);
+        let bid = this.safeFloat(ticker, 'min_price', 0);
+        let ask = this.safeFloat(ticker, 'max_price', 0);
+        let open = this.safeFloat(ticker, 'last_price', 0);
+        let close = this.safeFloat(ticker, 'last_price', 0);
+        const change = this.safeFloat(ticker, 'day_change_percent', 0);
+        let last = this.safeFloat(ticker, 'last_price', 0);
+        let quoteVolume = this.safeFloat(ticker, 'last_volume', 0);
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            bid /= 10;
-            ask /= 10;
-            open /= 10;
-            close /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high / 10 : 0;
+            low = low ? low / 10 : 0;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            open = open ? open / 10 : 0;
+            close = close ? close / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -447,11 +447,11 @@ export default class bitir extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lowList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lowList[i] = lowList[i] ? lowList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push([
                 timestampList[i],
@@ -485,17 +485,17 @@ export default class bitir extends Exchange {
         const orberbook = { 'asks': [], 'bids': [] };
         for (let i = 0; i < orderbookList.length; i++) {
             const orderType = this.safeString(orderbookList[i], 'type');
-            let price = this.safeFloat(orderbookList[i], 'price');
-            const amount = this.safeFloat(orderbookList[i], 'amount');
+            let price = this.safeFloat(orderbookList[i], 'price', 0);
+            const amount = this.safeFloat(orderbookList[i], 'amount', 0);
             if (orderType === 'sell') {
                 if (market['quote'] === 'IRT') {
-                    price /= 10;
+                    price = price / 10;
                 }
                 orberbook['asks'].push([price, amount]);
             }
             if (orderType === 'buy') {
                 if (market['quote'] === 'IRT') {
-                    price /= 10;
+                    price = price / 10;
                 }
                 orberbook['bids'].push([price, amount]);
             }

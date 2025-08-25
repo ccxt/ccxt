@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class tetherland extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'tetherland',
             'name': 'TetherLand',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class tetherland extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tetherland#fetchMarkets
@@ -132,7 +132,7 @@ export default class tetherland extends Exchange {
                     continue;
                 }
                 markets[i]['quote'] = quotes[key];
-                const market = await this.parseMarket (markets[i]);
+                const market = this.parseMarket (markets[i]);
                 result.push (market);
             }
         }
@@ -265,7 +265,7 @@ export default class tetherland extends Exchange {
                 }
                 markets[i]['quote'] = quotes[key];
                 markets[i]['id'] = markets[i]['symbol'] + '/' + markets[i]['quote'];
-                const market = await this.parseTicker (markets[i]);
+                const market = this.parseTicker (markets[i]);
                 const symbol = market['symbol'];
                 result[symbol] = market;
             }

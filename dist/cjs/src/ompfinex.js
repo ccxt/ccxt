@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ompfinex$1 = require('./abstract/ompfinex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ompfinex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ompfinex extends ompfinex$1 {
+class ompfinex extends ompfinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ompfinex',
             'name': 'OMPFinex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -123,7 +125,7 @@ class ompfinex extends ompfinex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ompfinex#fetchMarkets
@@ -136,7 +138,7 @@ class ompfinex extends ompfinex$1 {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -271,7 +273,7 @@ class ompfinex extends ompfinex$1 {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -294,7 +296,7 @@ class ompfinex extends ompfinex$1 {
         };
         const response = await this.publicGetV1Market(request);
         const markets = this.safeDict(response, 'data');
-        const ticker = await this.parseTicker(markets);
+        const ticker = this.parseTicker(markets);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -360,11 +362,12 @@ class ompfinex extends ompfinex$1 {
         let last = this.safeFloat(ticker, 'last_price');
         let quoteVolume = this.safeFloat(ticker, 'last_volume');
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high * 10 : 0;
+            low = low ? low / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
+        const baseVolume = quoteVolume / last;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -383,7 +386,7 @@ class ompfinex extends ompfinex$1 {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
@@ -432,11 +435,11 @@ class ompfinex extends ompfinex$1 {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lastList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lastList[i] = lastList[i] ? lastList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push([
                 timestampList[i],
@@ -469,10 +472,10 @@ class ompfinex extends ompfinex$1 {
             const bids = this.safeList(orderbook, 'bids');
             const asks = this.safeList(orderbook, 'asks');
             for (let i = 0; i < bids.length; i++) {
-                bids[i][0] /= 10;
+                bids[i][0] = bids[i][0] ? bids[i][0] / 10 : 0;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i][0] /= 10;
+                asks[i][0] = asks[i][0] ? asks[i][0] / 10 : 0;
             }
             orderbook['bids'] = asks;
             orderbook['asks'] = bids;
@@ -497,4 +500,4 @@ class ompfinex extends ompfinex$1 {
     }
 }
 
-module.exports = ompfinex;
+exports["default"] = ompfinex;

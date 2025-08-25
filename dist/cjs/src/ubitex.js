@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ubitex$1 = require('./abstract/ubitex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ubitex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ubitex extends ubitex$1 {
+class ubitex extends ubitex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ubitex',
             'name': 'Ubitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -119,7 +121,7 @@ class ubitex extends ubitex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ubitex#fetchMarkets
@@ -131,7 +133,7 @@ class ubitex extends ubitex$1 {
         const response = await this.publicGetApiDashboardPairList(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -244,7 +246,7 @@ class ubitex extends ubitex$1 {
         const response = await this.publicGetApiDashboardPairList(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -268,7 +270,7 @@ class ubitex extends ubitex$1 {
         };
         const response = await this.publicGetApiDashboardPairList(request);
         const pair = this.safeDict(response, 0);
-        const ticker = await this.parseTicker(pair);
+        const ticker = this.parseTicker(pair);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -429,4 +431,4 @@ class ubitex extends ubitex$1 {
     }
 }
 
-module.exports = ubitex;
+exports["default"] = ubitex;

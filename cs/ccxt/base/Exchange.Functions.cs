@@ -17,7 +17,7 @@ public partial class Exchange
 
     public dict keysort(object parameters2)
     {
-        var parameters = (dict)parameters2;
+        var parameters = (IDictionary<string, object>)parameters2;
         var keys = new List<string>(parameters.Keys);
         keys.Sort();
         var outDict = new dict();
@@ -26,6 +26,34 @@ public partial class Exchange
             outDict.Add(key, parameters[key]);
         }
         return outDict;
+    }
+
+    public List<string> sort(object inputListObj)
+    {
+        var sortedList = new List<string>();
+
+        if (inputListObj is IList<string> stringList)
+        {
+            sortedList.AddRange(stringList);
+        }
+        else if (inputListObj is IList<object> objectList)
+        {
+            foreach (var item in objectList)
+            {
+                if (item is string str)
+                {
+                    sortedList.Add(str);
+                }
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
+            return sortedList;
+        }
+
+        sortedList.Sort();
+        return sortedList;
     }
 
 
@@ -154,10 +182,41 @@ public partial class Exchange
         return null;
     }
 
+    // public List<object> aggregate(object bidasks)
+    // {
+    //     var outList = new List<object>();
+    //     return outList; // stub to override
+    // }
+
     public List<object> aggregate(object bidasks)
     {
-        var outList = new List<object>();
-        return outList; // stub to override
+        var result = new Dictionary<double, double>();
+
+        if (bidasks is IList<object> list)
+        {
+            foreach (var entry in list)
+            {
+                if (entry is IList<object> pair && pair.Count >= 2)
+                {
+                    double price = Convert.ToDouble(pair[0]);
+                    double volume = Convert.ToDouble(pair[1]);
+
+                    if (volume > 0)
+                    {
+                        if (!result.ContainsKey(price))
+                        {
+                            result[price] = 0;
+                        }
+                        result[price] += volume;
+                    }
+                }
+            }
+        }
+
+        var res = result
+            .Select(kv => new List<object> { kv.Key, kv.Value })
+            .ToList();
+        return res.Select(x => (object)x).ToList();
     }
 
     // public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)
@@ -252,6 +311,13 @@ public partial class Exchange
     {
         if (obj == null)
             return null;
+        // Check if the object is an exception
+        if (obj is Exception ex)
+        {
+            var errorObj = new { name = ex.GetType().Name };
+            return JsonConvert.SerializeObject(errorObj);
+        }
+
         return JsonConvert.SerializeObject(obj);
         // if (obj.GetType() == typeof(dict))
         // {

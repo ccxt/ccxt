@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class wallex extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'wallex',
             'name': 'Wallex',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -127,7 +127,7 @@ export default class wallex extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name wallex#fetchMarkets
@@ -143,7 +143,7 @@ export default class wallex extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (marketList[index]);
+            const market = this.parseMarket (marketList[index]);
             result.push (market);
         }
         return result;
@@ -276,7 +276,7 @@ export default class wallex extends Exchange {
         const result = {};
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const ticker = await this.parseTicker (marketList[index]);
+            const ticker = this.parseTicker (marketList[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -298,7 +298,7 @@ export default class wallex extends Exchange {
         const response = await this.publicGetV1Markets (params);
         const markets = this.safeDict (response, 'result');
         const marketList = this.safeDict (markets, 'symbols');
-        const ticker = await this.parseTicker (marketList[market['id']]);
+        const ticker = this.parseTicker (marketList[market['id']]);
         return ticker;
     }
 

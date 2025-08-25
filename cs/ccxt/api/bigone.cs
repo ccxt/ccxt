@@ -211,9 +211,9 @@ public partial class bigone : Exchange
         return await this.callAsync ("contractPrivateDeleteOrdersBatch",parameters);
     }
 
-    public async Task<object> webExchangeGetUcV2Assets (object parameters = null)
+    public async Task<object> webExchangeGetV3Assets (object parameters = null)
     {
-        return await this.callAsync ("webExchangeGetUcV2Assets",parameters);
+        return await this.callAsync ("webExchangeGetV3Assets",parameters);
     }
 
 }

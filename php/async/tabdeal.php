@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\tabdeal as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class tabdeal extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tabdeal',
             'name' => 'Tabdeal',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -130,8 +130,8 @@ class tabdeal extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for tabdeal
              * @see https://docs.tabdeal.org/#e626e3bd10
@@ -141,7 +141,7 @@ class tabdeal extends Exchange {
             $response = Async\await($this->publicGetPlotsMarketInformation ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -234,7 +234,7 @@ class tabdeal extends Exchange {
             $response = Async\await($this->publicGetPlotsMarketInformation ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_ticker($response[$i]));
+                $market = $this->parse_ticker($response[$i]);
                 $symbol = $market['symbol'];
                 $result[$symbol] = $market;
             }
@@ -279,10 +279,11 @@ class tabdeal extends Exchange {
         $ask = $this->safe_float($ticker, 'price', 0);
         $last = $this->safe_float($ticker, 'price', 0);
         $baseVolume = $this->safe_float($ticker, 'volume', 0);
+        $quoteVolume = $baseVolume * $last;
         $datetime = $this->safe_string($ticker, 'created');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => Date.parse ($datetime),
+            'timestamp' => $this->safe_timestamp($ticker, 'created'),
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,
@@ -299,7 +300,7 @@ class tabdeal extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => null,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);
     }

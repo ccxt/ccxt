@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var sarmayex$1 = require('./abstract/sarmayex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class sarmayex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class sarmayex extends sarmayex$1 {
+class sarmayex extends sarmayex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'sarmayex',
             'name': 'Sarmayex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -110,7 +112,7 @@ class sarmayex extends sarmayex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name sarmayex#fetchMarkets
@@ -133,7 +135,7 @@ class sarmayex extends sarmayex$1 {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(markets[i]);
+                const market = this.parseMarket(markets[i]);
                 result.push(market);
             }
         }
@@ -267,7 +269,7 @@ class sarmayex extends sarmayex$1 {
                 markets[i]['base'] = base;
                 markets[i]['quote'] = quote;
                 markets[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker(markets[i]);
+                const ticker = this.parseTicker(markets[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
@@ -371,4 +373,4 @@ class sarmayex extends sarmayex$1 {
     }
 }
 
-module.exports = sarmayex;
+exports["default"] = sarmayex;

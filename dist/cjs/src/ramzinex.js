@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ramzinex$1 = require('./abstract/ramzinex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class ramzinex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class ramzinex extends ramzinex$1 {
+class ramzinex extends ramzinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ramzinex',
             'name': 'Ramzinex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -128,7 +130,7 @@ class ramzinex extends ramzinex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name ramzinex#fetchMarkets
@@ -141,7 +143,7 @@ class ramzinex extends ramzinex$1 {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -269,7 +271,11 @@ class ramzinex extends ramzinex$1 {
         const markets = this.safeList(response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const market = markets[i];
+            if (!market || !market['financial'] || Object.keys(market['financial']).length === 0) {
+                continue;
+            }
+            const ticker = this.parseTicker(market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -292,7 +298,7 @@ class ramzinex extends ramzinex$1 {
         };
         const response = await this.publicGetExchangeApiV10ExchangePairs(request);
         const markets = this.safeDict(response, 'data');
-        const ticker = await this.parseTicker(markets);
+        const ticker = this.parseTicker(markets);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -358,14 +364,14 @@ class ramzinex extends ramzinex$1 {
         let quoteVolume = this.safeFloat(tickerinfo, 'quote_volume');
         const baseVolume = this.safeFloat(tickerinfo, 'base_volume');
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            bid /= 10;
-            ask /= 10;
-            open /= 10;
-            close /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high * 10 : 0;
+            low = low ? low / 10 : 0;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            open = open ? open / 10 : 0;
+            close = close ? close / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -434,11 +440,11 @@ class ramzinex extends ramzinex$1 {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lastList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lastList[i] = lastList[i] ? lastList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push([
                 timestampList[i],
@@ -473,10 +479,10 @@ class ramzinex extends ramzinex$1 {
             const bids = this.safeList(orderbook, 'sells');
             const asks = this.safeList(orderbook, 'buys');
             for (let i = 0; i < bids.length; i++) {
-                bids[i][0] /= 10;
+                bids[i][0] = bids[i][0] ? bids[i][0] / 10 : 0;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i][0] /= 10;
+                asks[i][0] = asks[i][0] ? asks[i][0] / 10 : 0;
             }
             orderbook['buys'] = asks;
             orderbook['sells'] = bids;
@@ -501,4 +507,4 @@ class ramzinex extends ramzinex$1 {
     }
 }
 
-module.exports = ramzinex;
+exports["default"] = ramzinex;

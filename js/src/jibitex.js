@@ -17,7 +17,7 @@ export default class jibitex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'jibitex',
             'name': 'Jibitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -120,7 +120,7 @@ export default class jibitex extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name jibitex#fetchMarkets
@@ -133,7 +133,7 @@ export default class jibitex extends Exchange {
         const markets = this.safeList(response, 'content');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -246,7 +246,7 @@ export default class jibitex extends Exchange {
         const markets = this.safeList(response, 'content');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -271,7 +271,7 @@ export default class jibitex extends Exchange {
         };
         const response = await this.publicGetApi1Markets(request);
         const marketData = this.safeList(response, 'content');
-        const ticker = await this.parseTicker(marketData[0]);
+        const ticker = this.parseTicker(marketData[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

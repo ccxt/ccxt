@@ -17,7 +17,7 @@ export default class arzplus extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'arzplus',
             'name': 'Arzplus',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -118,7 +118,7 @@ export default class arzplus extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name arzplus#fetchMarkets
@@ -134,7 +134,7 @@ export default class arzplus extends Exchange {
         const response = await this.publicGetApiV1MarketSymbols(request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -256,7 +256,7 @@ export default class arzplus extends Exchange {
                 'symbol': response[i]['name'],
             };
             const assetDetails = await this.publicGetApiV1MarketSymbols(request);
-            const ticker = await this.parseTicker(assetDetails);
+            const ticker = this.parseTicker(assetDetails);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -278,7 +278,7 @@ export default class arzplus extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketSymbols(request);
-        const ticker = await this.parseTicker(response);
+        const ticker = this.parseTicker(response);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {

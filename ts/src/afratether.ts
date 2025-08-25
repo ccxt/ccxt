@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class afratether extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'afratether',
             'name': 'Afratether',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -115,7 +115,7 @@ export default class afratether extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name afratether#fetchMarkets
@@ -132,7 +132,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList (response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket (markets[i]);
+            const market = this.parseMarket (markets[i]);
             result.push (market);
         }
         return result;
@@ -233,7 +233,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList (response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker (markets[i]);
+            const ticker = this.parseTicker (markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

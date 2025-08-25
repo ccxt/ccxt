@@ -10,11 +10,11 @@ use ccxt\abstract\exir as Exchange;
 
 class exir extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'exir',
             'name' => 'Exir',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -120,7 +120,7 @@ class exir extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for exir
          * @see https://apidocs.exir.io/#tickers
@@ -338,7 +338,7 @@ class exir extends Exchange {
         $ohlcvs = array();
         for ($i = 0; $i < count($response); $i++) {
             $candle = $response[$i];
-            $ts = Date.parse ($candle['time']);
+            $ts = $this->safe_timestamp($candle, 'time');
             $open = $this->safe_float($candle, 'open');
             $high = $this->safe_float($candle, 'high');
             $low = $this->safe_float($candle, 'low');
@@ -371,7 +371,7 @@ class exir extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV2Orderbook ($request);
-        $timestamp = Date.parse ($response[$market['id']]['timestamp']);
+        $timestamp = $this->safe_timestamp($response[$market['id']], 'timestamp') / 1000;
         return $this->parse_order_book($response[$market['id']], $symbol, $timestamp);
     }
 

@@ -1,0 +1,17 @@
+setuptools>=60.9.0
+certifi>=2018.1.18
+requests>=2.18.4
+cryptography>=2.6.1
+typing_extensions>=4.4.0
+
+[:python_version>="3.5.2"]
+aiohttp>=3.10.11
+aiodns>=1.1.1
+yarl>=1.7.2
+
+[qa]
+ruff==0.0.292
+tox>=4.8.0
+
+[type]
+mypy==1.6.1

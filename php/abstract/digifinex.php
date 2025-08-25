@@ -214,6 +214,9 @@ abstract class digifinex extends \ccxt\Exchange {
     public function private_swap_get_trade_order_info($params = array()) {
         return $this->request('trade/order_info', array('private', 'swap'), 'GET', $params, null, null, array());
     }
+    public function private_swap_post_account_transfer($params = array()) {
+        return $this->request('account/transfer', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
     public function private_swap_post_account_leverage($params = array()) {
         return $this->request('account/leverage', array('private', 'swap'), 'POST', $params, null, null, array());
     }
@@ -474,6 +477,9 @@ abstract class digifinex extends \ccxt\Exchange {
     }
     public function privateSwapGetTradeOrderInfo($params = array()) {
         return $this->request('trade/order_info', array('private', 'swap'), 'GET', $params, null, null, array());
+    }
+    public function privateSwapPostAccountTransfer($params = array()) {
+        return $this->request('account/transfer', array('private', 'swap'), 'POST', $params, null, null, array());
     }
     public function privateSwapPostAccountLeverage($params = array()) {
         return $this->request('account/leverage', array('private', 'swap'), 'POST', $params, null, null, array());

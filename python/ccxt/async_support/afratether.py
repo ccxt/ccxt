@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.afratether import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class afratether(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(afratether, self).describe(), {
             'id': 'afratether',
             'name': 'Afratether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -113,10 +113,10 @@ class afratether(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for afratether
-        :see: https://afratether.com/
+        https://afratether.com/
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -128,7 +128,7 @@ class afratether(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'Items')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -207,7 +207,7 @@ class afratether(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://afratether.com/
+        https://afratether.com/
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -223,7 +223,7 @@ class afratether(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'Items')
         result = []
         for i in range(0, len(markets)):
-            ticker = await self.parse_ticker(markets[i])
+            ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -231,7 +231,7 @@ class afratether(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://afratether.com/
+        https://afratether.com/
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`

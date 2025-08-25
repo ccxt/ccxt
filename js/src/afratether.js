@@ -17,7 +17,7 @@ export default class afratether extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'afratether',
             'name': 'Afratether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -115,7 +115,7 @@ export default class afratether extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name afratether#fetchMarkets
@@ -132,7 +132,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -231,7 +231,7 @@ export default class afratether extends Exchange {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

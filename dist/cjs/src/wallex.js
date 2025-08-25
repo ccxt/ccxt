@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wallex$1 = require('./abstract/wallex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wallex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class wallex extends wallex$1 {
+class wallex extends wallex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wallex',
             'name': 'Wallex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -124,7 +126,7 @@ class wallex extends wallex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name wallex#fetchMarkets
@@ -140,7 +142,7 @@ class wallex extends wallex$1 {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket(marketList[index]);
+            const market = this.parseMarket(marketList[index]);
             result.push(market);
         }
         return result;
@@ -271,7 +273,7 @@ class wallex extends wallex$1 {
         const result = {};
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const ticker = await this.parseTicker(marketList[index]);
+            const ticker = this.parseTicker(marketList[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -292,7 +294,7 @@ class wallex extends wallex$1 {
         const response = await this.publicGetV1Markets(params);
         const markets = this.safeDict(response, 'result');
         const marketList = this.safeDict(markets, 'symbols');
-        const ticker = await this.parseTicker(marketList[market['id']]);
+        const ticker = this.parseTicker(marketList[market['id']]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -463,4 +465,4 @@ class wallex extends wallex$1 {
     }
 }
 
-module.exports = wallex;
+exports["default"] = wallex;

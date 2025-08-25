@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\okexchange as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class okexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okexchange',
             'name' => 'OK-EX',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -129,8 +129,8 @@ class okexchange extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for okexchange
              * @see https://docs.ok-ex.io/#available-coin
@@ -141,7 +141,7 @@ class okexchange extends Exchange {
             $markets = $this->safe_value($response, 'tickers');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -224,7 +224,7 @@ class okexchange extends Exchange {
             $markets = $this->safe_value($response, 'tickers');
             $result = array();
             for ($index = 0; $index < count($markets); $index++) {
-                $ticker = Async\await($this->parse_ticker($markets[$index]));
+                $ticker = $this->parse_ticker($markets[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

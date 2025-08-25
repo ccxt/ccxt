@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\tetherland as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class tetherland extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tetherland',
             'name' => 'TetherLand',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class tetherland extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for tetherland
              * @see https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
@@ -131,7 +131,7 @@ class tetherland extends Exchange {
                         continue;
                     }
                     $markets[$i]['quote'] = $quotes[$key];
-                    $market = Async\await($this->parse_market($markets[$i]));
+                    $market = $this->parse_market($markets[$i]);
                     $result[] = $market;
                 }
             }
@@ -264,7 +264,7 @@ class tetherland extends Exchange {
                     }
                     $markets[$i]['quote'] = $quotes[$key];
                     $markets[$i]['id'] = $markets[$i]['symbol'] . '/' . $markets[$i]['quote'];
-                    $market = Async\await($this->parse_ticker($markets[$i]));
+                    $market = $this->parse_ticker($markets[$i]);
                     $symbol = $market['symbol'];
                     $result[$symbol] = $market;
                 }

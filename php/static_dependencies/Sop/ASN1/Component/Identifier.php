@@ -85,7 +85,7 @@ class Identifier implements Encodable
      *
      * @return self
      */
-    public static function fromDER(string $data, int &$offset = null): Identifier
+    public static function fromDER(string $data, ?int &$offset = null): Identifier
     {
         $idx = $offset ?? 0;
         $datalen = strlen($data);

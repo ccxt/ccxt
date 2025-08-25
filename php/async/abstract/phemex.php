@@ -73,6 +73,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function v2_get_public_products($params = array()) {
         return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function v2_get_public_products_plus($params = array()) {
+        return $this->request('public/products-plus', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v2_get_md_v2_orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -304,6 +307,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function private_put_g_orders_replace($params = array()) {
         return $this->request('g-orders/replace', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
+    public function private_put_g_orders_create($params = array()) {
+        return $this->request('g-orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
     public function private_put_positions_leverage($params = array()) {
         return $this->request('positions/leverage', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
@@ -405,6 +411,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function v2GetPublicProducts($params = array()) {
         return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function v2GetPublicProductsPlus($params = array()) {
+        return $this->request('public/products-plus', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
     public function v2GetMdV2Orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
@@ -636,6 +645,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function privatePutGOrdersReplace($params = array()) {
         return $this->request('g-orders/replace', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function privatePutGOrdersCreate($params = array()) {
+        return $this->request('g-orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privatePutPositionsLeverage($params = array()) {
         return $this->request('positions/leverage', 'private', 'PUT', $params, null, null, array("cost" => 5));

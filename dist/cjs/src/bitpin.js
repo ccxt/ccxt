@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitpin$1 = require('./abstract/bitpin.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitpin
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class bitpin extends bitpin$1 {
+class bitpin extends bitpin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitpin',
             'name': 'bitpin',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -125,7 +127,7 @@ class bitpin extends bitpin$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name bitpin#fetchMarkets
@@ -135,10 +137,10 @@ class bitpin extends bitpin$1 {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetV1MktMarkets(params);
-        const markets = this.safeDict(response, 'results');
+        const markets = this.safeList(response, 'results');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -218,12 +220,12 @@ class bitpin extends bitpin$1 {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetV1MktMarkets(params);
-        const markets = this.safeDict(response, 'results');
+        const markets = this.safeList(response, 'results');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
             const is_active = this.safeBool(markets[i], 'tradable');
             if (is_active === true) {
-                const ticker = await this.parseTicker(markets[i]);
+                const ticker = this.parseTicker(markets[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
@@ -363,9 +365,10 @@ class bitpin extends bitpin$1 {
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const high = this.safeFloat(priceInfo, 'max', 0);
         const low = this.safeFloat(priceInfo, 'min', 0);
-        const last = this.safeFloat(priceInfo, 'lastPrice', 0);
+        const last = this.safeFloat(priceInfo, 'price', 0);
         const change = this.safeFloat(priceInfo, 'change', 0);
-        const quoteVolume = this.safeFloat(priceInfo, '24h_quoteVolume', 0);
+        const baseVolume = this.safeFloat(priceInfo, 'amount', 0);
+        const quoteVolume = this.safeFloat(priceInfo, 'value', 0);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -384,7 +387,7 @@ class bitpin extends bitpin$1 {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
@@ -473,4 +476,4 @@ class bitpin extends bitpin$1 {
     }
 }
 
-module.exports = bitpin;
+exports["default"] = bitpin;

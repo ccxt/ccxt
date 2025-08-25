@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\arzinja as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class arzinja extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'arzinja',
             'name' => 'Arzinja',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class arzinja extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for arzinja
              * @see https://arzinja.app/prices
@@ -127,7 +127,7 @@ class arzinja extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $market = Async\await($this->parse_market($markets[$index]));
+                $market = $this->parse_market($markets[$index]);
                 $result[] = $market;
             }
             return $result;
@@ -225,7 +225,7 @@ class arzinja extends Exchange {
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
                 $markets[$index]['symbol'] = $index;
-                $ticker = Async\await($this->parse_ticker($markets[$index]));
+                $ticker = $this->parse_ticker($markets[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -247,7 +247,7 @@ class arzinja extends Exchange {
             $response = Async\await($this->publicGetPrices ($params));
             $markets = $this->safe_dict($response, 'markets');
             $markets[$market['id']]['symbol'] = $market['id'];
-            $ticker = Async\await($this->parse_ticker($markets[$market['id']]));
+            $ticker = $this->parse_ticker($markets[$market['id']]);
             return $ticker;
         }) ();
     }

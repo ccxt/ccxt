@@ -32,15 +32,17 @@ public partial class bitrue : ccxt.bitrue
             } },
             { "api", new Dictionary<string, object>() {
                 { "open", new Dictionary<string, object>() {
-                    { "private", new Dictionary<string, object>() {
-                        { "post", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey", 1 },
-                        } },
-                        { "put", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey/{listenKey}", 1 },
-                        } },
-                        { "delete", new Dictionary<string, object>() {
-                            { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                    { "v1", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "post", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey", 1 },
+                            } },
+                            { "put", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                            } },
+                            { "delete", new Dictionary<string, object>() {
+                                { "poseidon/api/v1/listenKey/{listenKey}", 1 },
+                            } },
                         } },
                     } },
                 } },
@@ -54,16 +56,16 @@ public partial class bitrue : ccxt.bitrue
         });
     }
 
+    /**
+     * @method
+     * @name bitrue#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object url = await this.authenticate();
         object messageHash = "balance";
@@ -177,19 +179,19 @@ public partial class bitrue : ccxt.bitrue
         this.balance = this.safeBalance(this.balance);
     }
 
+    /**
+     * @method
+     * @name bitrue#watchOrders
+     * @description watches information on user orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+     * @param {string} symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum amount of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#watchOrders
-        * @description watches information on user orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-        * @param {string[]} symbols unified symbols of the market to watch the orders for
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum amount of orders to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(!isEqual(symbol, null)))
@@ -456,16 +458,7 @@ public partial class bitrue : ccxt.bitrue
         object listenKey = this.safeValue(this.options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
         {
-            object response = null;
-            try
-            {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey(parameters);
-            } catch(Exception error)
-            {
-                ((IDictionary<string,object>)this.options)["listenKey"] = null;
-                ((IDictionary<string,object>)this.options)["listenKeyUrl"] = null;
-                return null;
-            }
+            object response = await this.openV1PrivatePostPoseidonApiV1ListenKey(parameters);
             //
             //     {
             //         "msg": "succ",
@@ -494,7 +487,7 @@ public partial class bitrue : ccxt.bitrue
         };
         try
         {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
+            await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
         } catch(Exception error)
         {
             ((IDictionary<string,object>)this.options)["listenKey"] = null;

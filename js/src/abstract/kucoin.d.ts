@@ -17,7 +17,9 @@ interface Exchange {
     publicGetTimestamp(params?: {}): Promise<implicitReturnType>;
     publicGetStatus(params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceSymbolCurrent(params?: {}): Promise<implicitReturnType>;
+    publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
+    publicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -46,8 +48,10 @@ interface Exchange {
     privateGetMarketOrderbookLevelLevel(params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel2(params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel3(params?: {}): Promise<implicitReturnType>;
+    privateGetHfAccountsOpened(params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActive(params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActiveSymbols(params?: {}): Promise<implicitReturnType>;
+    privateGetHfMarginOrderActiveSymbols(params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersDone(params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersClientOrderClientOid(params?: {}): Promise<implicitReturnType>;
@@ -75,6 +79,7 @@ interface Exchange {
     privateGetMarginCurrencies(params?: {}): Promise<implicitReturnType>;
     privateGetRiskLimitStrategy(params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedSymbols(params?: {}): Promise<implicitReturnType>;
+    privateGetMarginSymbols(params?: {}): Promise<implicitReturnType>;
     privateGetIsolatedAccountSymbol(params?: {}): Promise<implicitReturnType>;
     privateGetMarginBorrow(params?: {}): Promise<implicitReturnType>;
     privateGetMarginRepay(params?: {}): Promise<implicitReturnType>;
@@ -84,6 +89,8 @@ interface Exchange {
     privateGetRedeemOrders(params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    privateGetMigrateUserAccountStatus(params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateInviterStatistics(params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;
@@ -116,6 +123,8 @@ interface Exchange {
     privatePostRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostLendPurchaseUpdate(params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;
+    privatePostPositionUpdateUserLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddressCreate(params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey(params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId(params?: {}): Promise<implicitReturnType>;
@@ -192,6 +201,7 @@ interface Exchange {
     brokerGetBrokerNdAccount(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccountApikey(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    brokerGetAssetNdbrokerDepositList(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdTransferDetail(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdDepositDetail(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdWithdrawDetail(params?: {}): Promise<implicitReturnType>;

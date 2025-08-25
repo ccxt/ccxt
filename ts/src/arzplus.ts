@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class arzplus extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'arzplus',
             'name': 'Arzplus',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -118,7 +118,7 @@ export default class arzplus extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name arzplus#fetchMarkets
@@ -134,7 +134,7 @@ export default class arzplus extends Exchange {
         const response = await this.publicGetApiV1MarketSymbols (request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;
@@ -258,7 +258,7 @@ export default class arzplus extends Exchange {
                 'symbol': response[i]['name'],
             };
             const assetDetails = await this.publicGetApiV1MarketSymbols (request);
-            const ticker = await this.parseTicker (assetDetails);
+            const ticker = this.parseTicker (assetDetails);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -281,7 +281,7 @@ export default class arzplus extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketSymbols (request);
-        const ticker = await this.parseTicker (response);
+        const ticker = this.parseTicker (response);
         return ticker;
     }
 

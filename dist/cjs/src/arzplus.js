@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var arzplus$1 = require('./abstract/arzplus.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class arzplus
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class arzplus extends arzplus$1 {
+class arzplus extends arzplus$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'arzplus',
             'name': 'Arzplus',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -115,7 +117,7 @@ class arzplus extends arzplus$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name arzplus#fetchMarkets
@@ -131,7 +133,7 @@ class arzplus extends arzplus$1 {
         const response = await this.publicGetApiV1MarketSymbols(request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -253,7 +255,7 @@ class arzplus extends arzplus$1 {
                 'symbol': response[i]['name'],
             };
             const assetDetails = await this.publicGetApiV1MarketSymbols(request);
-            const ticker = await this.parseTicker(assetDetails);
+            const ticker = this.parseTicker(assetDetails);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -275,7 +277,7 @@ class arzplus extends arzplus$1 {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketSymbols(request);
-        const ticker = await this.parseTicker(response);
+        const ticker = this.parseTicker(response);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -432,4 +434,4 @@ class arzplus extends arzplus$1 {
     }
 }
 
-module.exports = arzplus;
+exports["default"] = arzplus;

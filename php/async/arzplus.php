@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\arzplus as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class arzplus extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'arzplus',
             'name' => 'Arzplus',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -118,8 +118,8 @@ class arzplus extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for arzplus
              * @see https://api.arzplus.net/
@@ -133,7 +133,7 @@ class arzplus extends Exchange {
             $response = Async\await($this->publicGetApiV1MarketSymbols ($request));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -257,7 +257,7 @@ class arzplus extends Exchange {
                     'symbol' => $response[$i]['name'],
                 );
                 $assetDetails = Async\await($this->publicGetApiV1MarketSymbols ($request));
-                $ticker = Async\await($this->parse_ticker($assetDetails));
+                $ticker = $this->parse_ticker($assetDetails);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -280,7 +280,7 @@ class arzplus extends Exchange {
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetApiV1MarketSymbols ($request));
-            $ticker = Async\await($this->parse_ticker($response));
+            $ticker = $this->parse_ticker($response);
             return $ticker;
         }) ();
     }

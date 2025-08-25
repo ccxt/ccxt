@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\nobitex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class nobitex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'nobitex',
             'name' => 'Nobitex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -87,7 +87,7 @@ class nobitex extends Exchange {
             'urls' => array(
                 'logo' => 'https://cdn.arz.digital/cr-odin/img/exchanges/nobitex/64x64.png',
                 'api' => array(
-                    'public' => 'https://api.nobitex.ir',
+                    'public' => 'https://apiv2.nobitex.ir',
                 ),
                 'www' => 'https://nobitex.ir/',
                 'doc' => array(
@@ -131,19 +131,15 @@ class nobitex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for nobitex
              * @see https://apidocs.nobitex.ir/#6ae2dae4a2
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $request = array(
-                'srcCurrency' => 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-                'dstCurrency' => 'rls,usdt',
-            );
-            $response = Async\await($this->publicGetMarketStats ($request));
+            $response = Async\await($this->publicGetMarketStats ());
             $markets = $this->safe_dict($response, 'stats');
             $marketKeys = is_array($markets) ? array_keys($markets) : array();
             $result = array();
@@ -153,7 +149,7 @@ class nobitex extends Exchange {
                     continue;
                 }
                 $markets[$symbol]['symbol'] = $symbol;
-                $market = Async\await($this->parse_market($markets[$symbol]));
+                $market = $this->parse_market($markets[$symbol]);
                 $result[] = $market;
             }
             return $result;
@@ -246,11 +242,7 @@ class nobitex extends Exchange {
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
             }
-            $request = array(
-                'srcCurrency' => 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-                'dstCurrency' => 'rls,usdt',
-            );
-            $response = Async\await($this->publicGetMarketStats ($request));
+            $response = Async\await($this->publicGetMarketStats ());
             $markets = $this->safe_dict($response, 'stats');
             $marketKeys = is_array($markets) ? array_keys($markets) : array();
             $result = array();
@@ -260,7 +252,7 @@ class nobitex extends Exchange {
                     continue;
                 }
                 $markets[$symbol]['symbol'] = $symbol;
-                $ticker = Async\await($this->parse_ticker($markets[$symbol]));
+                $ticker = $this->parse_ticker($markets[$symbol]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -313,14 +305,14 @@ class nobitex extends Exchange {
         $quoteVolume = $this->safe_float($ticker, 'volumeDst');
         $baseVolume = $this->safe_float($ticker, 'volumeSrc');
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $bid /= 10;
-            $ask /= 10;
-            $open /= 10;
-            $close /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high * 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => str_replace('-', '/', $symbol),
@@ -361,6 +353,9 @@ class nobitex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $endTime = Date.now ();
+            if ($market['quote'] === 'IRT') {
+                $market['id'] = str_replace('RLS', 'IRT', $market['id']);
+            }
             $request = array(
                 'symbol' => $market['id'],
                 'from' => ($endTime / 1000) - (24 * 60 * 60),
@@ -386,11 +381,11 @@ class nobitex extends Exchange {
             $ohlcvs = array();
             for ($i = 0; $i < count($openList); $i++) {
                 if ($market['quote'] === 'IRT') {
-                    $openList[$i] /= 10;
-                    $highList[$i] /= 10;
-                    $lowList[$i] /= 10;
-                    $closeList[$i] /= 10;
-                    $volumeList[$i] /= 10;
+                    $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                    $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                    $lowList[$i] = $lowList[$i] ? $lowList[$i] / 10 : 0;
+                    $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                    $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
                 }
                 $ohlcvs[] = [
                     $timestampList[$i],
@@ -425,10 +420,10 @@ class nobitex extends Exchange {
                 $bids = $this->safe_list($response, 'bids');
                 $asks = $this->safe_list($response, 'asks');
                 for ($i = 0; $i < count($bids); $i++) {
-                    $bids[$i][0] /= 10;
+                    $bids[$i][0] = $bids[$i][0] ? $bids[$i][0] / 10 : 0;
                 }
                 for ($i = 0; $i < count($asks); $i++) {
-                    $asks[$i][0] /= 10;
+                    $asks[$i][0] = $asks[$i][0] ? $asks[$i][0] / 10 : 0;
                 }
                 $response['bids'] = $bids;
                 $response['asks'] = $asks;

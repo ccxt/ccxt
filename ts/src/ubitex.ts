@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class ubitex extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'ubitex',
             'name': 'Ubitex',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +122,7 @@ export default class ubitex extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ubitex#fetchMarkets
@@ -134,7 +134,7 @@ export default class ubitex extends Exchange {
         const response = await this.publicGetApiDashboardPairList (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;
@@ -249,7 +249,7 @@ export default class ubitex extends Exchange {
         const response = await this.publicGetApiDashboardPairList (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker (response[i]);
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -274,7 +274,7 @@ export default class ubitex extends Exchange {
         };
         const response = await this.publicGetApiDashboardPairList (request);
         const pair = this.safeDict (response, 0);
-        const ticker = await this.parseTicker (pair);
+        const ticker = this.parseTicker (pair);
         return ticker;
     }
 

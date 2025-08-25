@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var twox$1 = require('./abstract/twox.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class twox
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class twox extends twox$1 {
+class twox extends twox$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'twox',
             'name': 'Twox',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -110,7 +112,7 @@ class twox extends twox$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name twox#fetchMarkets
@@ -132,7 +134,7 @@ class twox extends twox$1 {
                 }
                 marketData['base'] = base;
                 marketData['quote'] = quote;
-                const market = await this.parseMarket(marketData);
+                const market = this.parseMarket(marketData);
                 result.push(market);
             }
         }
@@ -252,7 +254,7 @@ class twox extends twox$1 {
                 response[i]['base'] = base;
                 response[i]['quote'] = quote;
                 response[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker(response[i]);
+                const ticker = this.parseTicker(response[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
@@ -340,4 +342,4 @@ class twox extends twox$1 {
     }
 }
 
-module.exports = twox;
+exports["default"] = twox;

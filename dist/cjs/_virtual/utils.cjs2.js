@@ -3,95 +3,201 @@
 var _commonjsHelpers = require('./_commonjsHelpers.js');
 
 const commonjsRegister = _commonjsHelpers.commonjsRegister;
-commonjsRegister("/$$rollup_base$$/js/src/static_dependencies/node-rsa/utils.cjs", function (module, exports) {
-/*
- * Utils functions
- *
- */
-/**
- * Break string str each maxLen symbols
- * @param str
- * @param maxLen
- * @returns {string}
- */
-module.exports.linebrk = function (str, maxLen) {
-    var res = '';
-    var i = 0;
-    while (i + maxLen < str.length) {
-        res += str.substring(i, i + maxLen) + "\n";
-        i += maxLen;
+commonjsRegister("/$$rollup_base$$/test-ccxt-ir/node_modules/ccxt-ir/js/src/static_dependencies/qs/utils.cjs", function (module, exports) {
+var has = Object.prototype.hasOwnProperty;
+var isArray = Array.isArray;
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
     }
-    return res + str.substring(i, str.length);
+    return array;
+}());
+var compactQueue = function compactQueue(queue) {
+    while (queue.length > 1) {
+        var item = queue.pop();
+        var obj = item.obj[item.prop];
+        if (isArray(obj)) {
+            var compacted = [];
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
+                }
+            }
+            item.obj[item.prop] = compacted;
+        }
+    }
 };
-/**
- * Trying get a 32-bit unsigned integer from the partial buffer
- * @param buffer
- * @param offset
- * @returns {Number}
- */
-module.exports.get32IntFromBuffer = function (buffer, offset) {
-    offset = offset || 0;
-    var size = 0;
-    if ((size = buffer.length - offset) > 0) {
-        if (size >= 4) {
-            return buffer.readUInt32BE(offset);
+var arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? Object.create(null) : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
+        }
+    }
+    return obj;
+};
+var merge = function merge(target, source, options) {
+    if (!source) {
+        return target;
+    }
+    if (typeof source !== 'object') {
+        if (isArray(target)) {
+            target.push(source);
+        }
+        else if (target && typeof target === 'object') {
+            if ((options && (options.plainObjects || options.allowPrototypes)) || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
         }
         else {
-            var res = 0;
-            for (var i = offset + size, d = 0; i > offset; i--, d += 2) {
-                res += buffer[i - 1] * Math.pow(16, d);
-            }
-            return res;
+            return [target, source];
         }
+        return target;
     }
-    else {
-        return NaN;
+    if (!target || typeof target !== 'object') {
+        return [target].concat(source);
+    }
+    var mergeTarget = target;
+    if (isArray(target) && !isArray(source)) {
+        mergeTarget = arrayToObject(target, options);
+    }
+    if (isArray(target) && isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                var targetItem = target[i];
+                if (targetItem && typeof targetItem === 'object' && item && typeof item === 'object') {
+                    target[i] = merge(targetItem, item, options);
+                }
+                else {
+                    target.push(item);
+                }
+            }
+            else {
+                target[i] = item;
+            }
+        });
+        return target;
+    }
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+        if (has.call(acc, key)) {
+            acc[key] = merge(acc[key], value, options);
+        }
+        else {
+            acc[key] = value;
+        }
+        return acc;
+    }, mergeTarget);
+};
+var assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+var decode = function (str, decoder, charset) {
+    var strWithoutPlus = str.replace(/\+/g, ' ');
+    if (charset === 'iso-8859-1') {
+        // unescape never throws, no try...catch needed:
+        return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
+    }
+    // utf-8
+    try {
+        return decodeURIComponent(strWithoutPlus);
+    }
+    catch (e) {
+        return strWithoutPlus;
     }
 };
-module.exports._ = {
-    isObject: function (value) {
-        var type = typeof value;
-        return !!value && (type == 'object' || type == 'function');
-    },
-    isString: function (value) {
-        return typeof value == 'string' || value instanceof String;
-    },
-    isNumber: function (value) {
-        return typeof value == 'number' || !isNaN(parseFloat(value)) && isFinite(value);
-    },
-    /**
-     * Returns copy of `obj` without `removeProp` field.
-     * @param obj
-     * @param removeProp
-     * @returns Object
-     */
-    omit: function (obj, removeProp) {
-        var newObj = {};
-        for (var prop in obj) {
-            if (!obj.hasOwnProperty(prop) || prop === removeProp) {
-                continue;
-            }
-            newObj[prop] = obj[prop];
+var encode = function encode(str, defaultEncoder, charset) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
+    }
+    var string = typeof str === 'string' ? str : String(str);
+    if (charset === 'iso-8859-1') {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
+            return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+        });
+    }
+    var out = '';
+    for (var i = 0; i < string.length; ++i) {
+        var c = string.charCodeAt(i);
+        if (c === 0x2D // -
+            || c === 0x2E // .
+            || c === 0x5F // _
+            || c === 0x7E // ~
+            || (c >= 0x30 && c <= 0x39) // 0-9
+            || (c >= 0x41 && c <= 0x5A) // a-z
+            || (c >= 0x61 && c <= 0x7A) // A-Z
+        ) {
+            out += string.charAt(i);
+            continue;
         }
-        return newObj;
+        if (c < 0x80) {
+            out = out + hexTable[c];
+            continue;
+        }
+        if (c < 0x800) {
+            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+        if (c < 0xD800 || c >= 0xE000) {
+            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+        i += 1;
+        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+        out += hexTable[0xF0 | (c >> 18)]
+            + hexTable[0x80 | ((c >> 12) & 0x3F)]
+            + hexTable[0x80 | ((c >> 6) & 0x3F)]
+            + hexTable[0x80 | (c & 0x3F)];
     }
+    return out;
 };
-/**
- * Strips everything around the opening and closing lines, including the lines
- * themselves.
- */
-module.exports.trimSurroundingText = function (data, opening, closing) {
-    var trimStartIndex = 0;
-    var trimEndIndex = data.length;
-    var openingBoundaryIndex = data.indexOf(opening);
-    if (openingBoundaryIndex >= 0) {
-        trimStartIndex = openingBoundaryIndex + opening.length;
+var compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
+        }
     }
-    var closingBoundaryIndex = data.indexOf(closing, openingBoundaryIndex);
-    if (closingBoundaryIndex >= 0) {
-        trimEndIndex = closingBoundaryIndex;
+    compactQueue(queue);
+    return value;
+};
+var isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+var isBuffer = function isBuffer(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return false;
     }
-    return data.substring(trimStartIndex, trimEndIndex);
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+var combine = function combine(a, b) {
+    return [].concat(a, b);
+};
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    combine: combine,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    merge: merge
 };
 
 });

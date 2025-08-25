@@ -42,6 +42,8 @@
                     "average": null,
                     "baseVolume": 1.58603722,
                     "quoteVolume": 113619.71423736,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "high": "73595.39",
                         "low": "69500",

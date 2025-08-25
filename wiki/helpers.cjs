@@ -17,6 +17,7 @@ exports.getFragment = function (func) {
 }
 
 exports.cleanNames = function (names) {
+    if (!names) return []
     return names.map (name => name.replace (/Array./g, 'Array'))
 }
 

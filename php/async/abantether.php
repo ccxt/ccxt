@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\abantether as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class abantether extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'abantether',
             'name' => 'Aban tether',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class abantether extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for abantether
              * @see https://abantether.com/management/all-coins/?format=json
@@ -333,7 +333,7 @@ class abantether extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api']['public'] . '/' . $path . '?format=json';
-        $headers = array( 'Content-Type' => 'application/json', 'Cookie' => '__arcsco=9593a1412d8bfc752c7170b1d2264544' );
+        $headers = array( 'Content-Type' => 'application/json', 'Cookie' => '__arcsco=42f03956ded5873c087d9f052b33cbff' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

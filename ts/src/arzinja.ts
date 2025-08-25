@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class arzinja extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'arzinja',
             'name': 'Arzinja',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class arzinja extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name arzinja#fetchMarkets
@@ -128,7 +128,7 @@ export default class arzinja extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (markets[index]);
+            const market = this.parseMarket (markets[index]);
             result.push (market);
         }
         return result;
@@ -226,7 +226,7 @@ export default class arzinja extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
             markets[index]['symbol'] = index;
-            const ticker = await this.parseTicker (markets[index]);
+            const ticker = this.parseTicker (markets[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -248,7 +248,7 @@ export default class arzinja extends Exchange {
         const response = await this.publicGetPrices (params);
         const markets = this.safeDict (response, 'markets');
         markets[market['id']]['symbol'] = market['id'];
-        const ticker = await this.parseTicker (markets[market['id']]);
+        const ticker = this.parseTicker (markets[market['id']]);
         return ticker;
     }
 

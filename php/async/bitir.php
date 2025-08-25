@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\bitir as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitir extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitir',
             'name' => 'Bit.ir',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -128,8 +128,8 @@ class bitir extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitir
              * @see https://www.bit.ir/fa
@@ -140,7 +140,7 @@ class bitir extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -278,7 +278,7 @@ class bitir extends Exchange {
             $markets = $this->safe_list($response, 'data');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -302,7 +302,7 @@ class bitir extends Exchange {
             );
             $response = Async\await($this->publicGetV1Market ($request));
             $markets = $this->safe_dict($response, 'data');
-            $ticker = Async\await($this->parse_ticker($markets));
+            $ticker = $this->parse_ticker($markets);
             return $ticker;
         }) ();
     }
@@ -365,24 +365,24 @@ class bitir extends Exchange {
         $marketId = $this->safe_string($ticker, 'id');
         $marketinfo = $this->market($marketId);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $high = $this->safe_float($ticker, 'max_price');
-        $low = $this->safe_float($ticker, 'min_price');
-        $bid = $this->safe_float($ticker, 'min_price');
-        $ask = $this->safe_float($ticker, 'max_price');
-        $open = $this->safe_float($ticker, 'last_price');
-        $close = $this->safe_float($ticker, 'last_price');
-        $change = $this->safe_float($ticker, 'day_change_percent');
-        $last = $this->safe_float($ticker, 'last_price');
-        $quoteVolume = $this->safe_float($ticker, 'last_volume');
+        $high = $this->safe_float($ticker, 'max_price', 0);
+        $low = $this->safe_float($ticker, 'min_price', 0);
+        $bid = $this->safe_float($ticker, 'min_price', 0);
+        $ask = $this->safe_float($ticker, 'max_price', 0);
+        $open = $this->safe_float($ticker, 'last_price', 0);
+        $close = $this->safe_float($ticker, 'last_price', 0);
+        $change = $this->safe_float($ticker, 'day_change_percent', 0);
+        $last = $this->safe_float($ticker, 'last_price', 0);
+        $quoteVolume = $this->safe_float($ticker, 'last_volume', 0);
         if ($marketinfo['quote'] === 'IRT') {
-            $high /= 10;
-            $low /= 10;
-            $bid /= 10;
-            $ask /= 10;
-            $open /= 10;
-            $close /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high / 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -451,11 +451,11 @@ class bitir extends Exchange {
             $ohlcvs = array();
             for ($i = 0; $i < count($openList); $i++) {
                 if ($market['quote'] === 'IRT') {
-                    $openList[$i] /= 10;
-                    $highList[$i] /= 10;
-                    $lowList[$i] /= 10;
-                    $closeList[$i] /= 10;
-                    $volumeList[$i] /= 10;
+                    $openList[$i] = $openList[$i] ? $openList[$i] / 10 : 0;
+                    $highList[$i] = $highList[$i] ? $highList[$i] / 10 : 0;
+                    $lowList[$i] = $lowList[$i] ? $lowList[$i] / 10 : 0;
+                    $closeList[$i] = $closeList[$i] ? $closeList[$i] / 10 : 0;
+                    $volumeList[$i] = $volumeList[$i] ? $volumeList[$i] / 10 : 0;
                 }
                 $ohlcvs[] = [
                     $timestampList[$i],
@@ -490,17 +490,17 @@ class bitir extends Exchange {
             $orberbook = array( 'asks' => array(), 'bids' => array() );
             for ($i = 0; $i < count($orderbookList); $i++) {
                 $orderType = $this->safe_string($orderbookList[$i], 'type');
-                $price = $this->safe_float($orderbookList[$i], 'price');
-                $amount = $this->safe_float($orderbookList[$i], 'amount');
+                $price = $this->safe_float($orderbookList[$i], 'price', 0);
+                $amount = $this->safe_float($orderbookList[$i], 'amount', 0);
                 if ($orderType === 'sell') {
                     if ($market['quote'] === 'IRT') {
-                        $price /= 10;
+                        $price = $price / 10;
                     }
                     $orberbook['asks'][] = array( $price, $amount );
                 }
                 if ($orderType === 'buy') {
                     if ($market['quote'] === 'IRT') {
-                        $price /= 10;
+                        $price = $price / 10;
                     }
                     $orberbook['bids'][] = array( $price, $amount );
                 }

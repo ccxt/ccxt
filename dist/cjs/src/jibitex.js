@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var jibitex$1 = require('./abstract/jibitex.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class jibitex
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class jibitex extends jibitex$1 {
+class jibitex extends jibitex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'jibitex',
             'name': 'Jibitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -117,7 +119,7 @@ class jibitex extends jibitex$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name jibitex#fetchMarkets
@@ -130,7 +132,7 @@ class jibitex extends jibitex$1 {
         const markets = this.safeList(response, 'content');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -243,7 +245,7 @@ class jibitex extends jibitex$1 {
         const markets = this.safeList(response, 'content');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -268,7 +270,7 @@ class jibitex extends jibitex$1 {
         };
         const response = await this.publicGetApi1Markets(request);
         const marketData = this.safeList(response, 'content');
-        const ticker = await this.parseTicker(marketData[0]);
+        const ticker = this.parseTicker(marketData[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -412,4 +414,4 @@ class jibitex extends jibitex$1 {
     }
 }
 
-module.exports = jibitex;
+exports["default"] = jibitex;

@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var exnovin$1 = require('./abstract/exnovin.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class exnovin
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class exnovin extends exnovin$1 {
+class exnovin extends exnovin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'exnovin',
             'name': 'Exnovin',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +115,7 @@ class exnovin extends exnovin$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name exnovin#fetchMarkets
@@ -125,7 +127,7 @@ class exnovin extends exnovin$1 {
         const response = await this.publicGetV2Pairs();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -237,7 +239,7 @@ class exnovin extends exnovin$1 {
         const response = await this.publicGetV2Pairs(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -374,4 +376,4 @@ class exnovin extends exnovin$1 {
     }
 }
 
-module.exports = exnovin;
+exports["default"] = exnovin;

@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\bitimen as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitimen extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitimen',
             'name' => 'Bitimen',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -122,8 +122,8 @@ class bitimen extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitimen
              * @see https://bitimen.com
@@ -135,7 +135,7 @@ class bitimen extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $market = Async\await($this->parse_market($response[$index]));
+                $market = $this->parse_market($response[$index]);
                 $result[] = $market;
             }
             return $result;
@@ -251,7 +251,7 @@ class bitimen extends Exchange {
                 if ($response[$index]['last'] === '0') {
                     continue;
                 }
-                $ticker = Async\await($this->parse_ticker($response[$index]));
+                $ticker = $this->parse_ticker($response[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -271,7 +271,7 @@ class bitimen extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $response = Async\await($this->publicGetApiMarketStats ($params));
-            $ticker = Async\await($this->parse_ticker($response[$market['id']]));
+            $ticker = $this->parse_ticker($response[$market['id']]);
             return $ticker;
         }) ();
     }

@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\sarmayex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class sarmayex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'sarmayex',
             'name' => 'Sarmayex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class sarmayex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for sarmayex
              * @see https://api.sarmayex.com/api/v1/public/currencies
@@ -135,7 +135,7 @@ class sarmayex extends Exchange {
                     if ($base === $quote) {
                         continue;
                     }
-                    $market = Async\await($this->parse_market($markets[$i]));
+                    $market = $this->parse_market($markets[$i]);
                     $result[] = $market;
                 }
             }
@@ -271,7 +271,7 @@ class sarmayex extends Exchange {
                     $markets[$i]['base'] = $base;
                     $markets[$i]['quote'] = $quote;
                     $markets[$i]['symbol'] = $base . $quote;
-                    $ticker = Async\await($this->parse_ticker($markets[$i]));
+                    $ticker = $this->parse_ticker($markets[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }

@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okexchange$1 = require('./abstract/okexchange.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okexchange
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class okexchange extends okexchange$1 {
+class okexchange extends okexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okexchange',
             'name': 'OK-EX',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -126,7 +128,7 @@ class okexchange extends okexchange$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name okexchange#fetchMarkets
@@ -139,7 +141,7 @@ class okexchange extends okexchange$1 {
         const markets = this.safeValue(response, 'tickers');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -220,7 +222,7 @@ class okexchange extends okexchange$1 {
         const markets = this.safeValue(response, 'tickers');
         const result = {};
         for (let index = 0; index < markets.length; index++) {
-            const ticker = await this.parseTicker(markets[index]);
+            const ticker = this.parseTicker(markets[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -369,4 +371,4 @@ class okexchange extends okexchange$1 {
     }
 }
 
-module.exports = okexchange;
+exports["default"] = okexchange;

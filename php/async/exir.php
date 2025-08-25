@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\exir as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class exir extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'exir',
             'name' => 'Exir',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -122,8 +122,8 @@ class exir extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for exir
              * @see https://apidocs.exir.io/#tickers
@@ -136,7 +136,7 @@ class exir extends Exchange {
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $symbol = $marketKeys[$i];
                 $response[$symbol]['symbol'] = $symbol;
-                $market = Async\await($this->parse_market($response[$symbol]));
+                $market = $this->parse_market($response[$symbol]);
                 $result[] = $market;
             }
             return $result;
@@ -236,7 +236,7 @@ class exir extends Exchange {
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $symbol = $marketKeys[$i];
                 $response[$symbol]['symbol'] = $symbol;
-                $ticker = Async\await($this->parse_ticker($response[$symbol]));
+                $ticker = $this->parse_ticker($response[$symbol]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -261,7 +261,7 @@ class exir extends Exchange {
             $response = Async\await($this->publicGetV2Ticker ($request));
             $response['symbol'] = $market['id'];
             $response['time'] = $response['timestamp'];
-            $ticker = Async\await($this->parse_ticker($response));
+            $ticker = $this->parse_ticker($response);
             return $ticker;
         }) ();
     }
@@ -347,7 +347,7 @@ class exir extends Exchange {
             $ohlcvs = array();
             for ($i = 0; $i < count($response); $i++) {
                 $candle = $response[$i];
-                $ts = Date.parse ($candle['time']);
+                $ts = $this->safe_timestamp($candle, 'time');
                 $open = $this->safe_float($candle, 'open');
                 $high = $this->safe_float($candle, 'high');
                 $low = $this->safe_float($candle, 'low');
@@ -382,7 +382,7 @@ class exir extends Exchange {
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetV2Orderbook ($request));
-            $timestamp = Date.parse ($response[$market['id']]['timestamp']);
+            $timestamp = $this->safe_timestamp($response[$market['id']], 'timestamp') / 1000;
             return $this->parse_order_book($response[$market['id']], $symbol, $timestamp);
         }) ();
     }

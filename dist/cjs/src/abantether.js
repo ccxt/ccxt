@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var abantether$1 = require('./abstract/abantether.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class abantether
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class abantether extends abantether$1 {
+class abantether extends abantether$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'abantether',
             'name': 'Aban tether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -110,7 +112,7 @@ class abantether extends abantether$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name abantether#fetchMarkets
@@ -131,7 +133,7 @@ class abantether extends abantether$1 {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(response[i]);
+                const market = this.parseMarket(response[i]);
                 result.push(market);
             }
         }
@@ -325,9 +327,9 @@ class abantether extends abantether$1 {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['public'] + '/' + path + '?format=json';
-        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=9593a1412d8bfc752c7170b1d2264544' };
+        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=42f03956ded5873c087d9f052b33cbff' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
 
-module.exports = abantether;
+exports["default"] = abantether;

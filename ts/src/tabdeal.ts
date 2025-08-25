@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class tabdeal extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'tabdeal',
             'name': 'Tabdeal',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -130,7 +130,7 @@ export default class tabdeal extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tabdeal#fetchMarkets
@@ -142,7 +142,7 @@ export default class tabdeal extends Exchange {
         const response = await this.publicGetPlotsMarketInformation (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;
@@ -235,7 +235,7 @@ export default class tabdeal extends Exchange {
         const response = await this.publicGetPlotsMarketInformation (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseTicker (response[i]);
+            const market = this.parseTicker (response[i]);
             const symbol = market['symbol'];
             result[symbol] = market;
         }
@@ -279,10 +279,11 @@ export default class tabdeal extends Exchange {
         const ask = this.safeFloat (ticker, 'price', 0);
         const last = this.safeFloat (ticker, 'price', 0);
         const baseVolume = this.safeFloat (ticker, 'volume', 0);
+        const quoteVolume = baseVolume * last;
         const datetime = this.safeString (ticker, 'created');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': Date.parse (datetime),
+            'timestamp': this.safeTimestamp (ticker, 'created'),
             'datetime': datetime,
             'high': high,
             'low': low,
@@ -299,7 +300,7 @@ export default class tabdeal extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }

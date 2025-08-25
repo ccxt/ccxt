@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class farhadexchange extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'farhadexchange',
             'name': 'Farhad Exchange',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -115,7 +115,7 @@ export default class farhadexchange extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name farhadexchange#fetchMarkets
@@ -127,7 +127,7 @@ export default class farhadexchange extends Exchange {
         const response = await this.publicGetGetAllRate ();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket (response[i]);
+            const market = this.parseMarket (response[i]);
             result.push (market);
         }
         return result;
@@ -214,7 +214,7 @@ export default class farhadexchange extends Exchange {
         const response = await this.publicGetGetAllRate ();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker (response[i]);
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -249,9 +249,9 @@ export default class farhadexchange extends Exchange {
         let ask = this.safeFloat (ticker, 'sell_price');
         let last = this.safeFloat (ticker, 'buy_price');
         if (marketinfo['quote'] === 'IRT') {
-            bid /= 10;
-            ask /= 10;
-            last /= 10;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            last = last ? last / 10 : 0;
         }
         return this.safeTicker ({
             'symbol': symbol,

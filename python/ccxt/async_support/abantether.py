@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.abantether import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class abantether(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(abantether, self).describe(), {
             'id': 'abantether',
             'name': 'Aban tether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -111,10 +111,10 @@ class abantether(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for abantether
-        :see: https://abantether.com/management/all-coins/?format=json
+        https://abantether.com/management/all-coins/?format=json
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -218,7 +218,7 @@ class abantether(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://abantether.com/management/all-coins/?format=json
+        https://abantether.com/management/all-coins/?format=json
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -246,7 +246,7 @@ class abantether(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://abantether.com/management/all-coins/?format=json
+        https://abantether.com/management/all-coins/?format=json
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -312,5 +312,5 @@ class abantether(Exchange, ImplicitAPI):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['public'] + '/' + path + '?format=json'
-        headers = {'Content-Type': 'application/json', 'Cookie': '__arcsco=9593a1412d8bfc752c7170b1d2264544'}
+        headers = {'Content-Type': 'application/json', 'Cookie': '__arcsco=42f03956ded5873c087d9f052b33cbff'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -53,5 +53,16 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "XRP": {
+        "id": "Xrp",
+        "code": "XRP",
+        "precision": 1e-8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
     }
 }

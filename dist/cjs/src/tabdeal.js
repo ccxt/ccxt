@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var tabdeal$1 = require('./abstract/tabdeal.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class tabdeal
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class tabdeal extends tabdeal$1 {
+class tabdeal extends tabdeal$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tabdeal',
             'name': 'Tabdeal',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -127,7 +129,7 @@ class tabdeal extends tabdeal$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name tabdeal#fetchMarkets
@@ -139,7 +141,7 @@ class tabdeal extends tabdeal$1 {
         const response = await this.publicGetPlotsMarketInformation(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -230,7 +232,7 @@ class tabdeal extends tabdeal$1 {
         const response = await this.publicGetPlotsMarketInformation(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseTicker(response[i]);
+            const market = this.parseTicker(response[i]);
             const symbol = market['symbol'];
             result[symbol] = market;
         }
@@ -272,10 +274,11 @@ class tabdeal extends tabdeal$1 {
         const ask = this.safeFloat(ticker, 'price', 0);
         const last = this.safeFloat(ticker, 'price', 0);
         const baseVolume = this.safeFloat(ticker, 'volume', 0);
+        const quoteVolume = baseVolume * last;
         const datetime = this.safeString(ticker, 'created');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'created'),
             'datetime': datetime,
             'high': high,
             'low': low,
@@ -292,7 +295,7 @@ class tabdeal extends tabdeal$1 {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }
@@ -382,4 +385,4 @@ class tabdeal extends tabdeal$1 {
     }
 }
 
-module.exports = tabdeal;
+exports["default"] = tabdeal;

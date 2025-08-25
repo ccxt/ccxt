@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class exir extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'exir',
             'name': 'Exir',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +122,7 @@ export default class exir extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name exir#fetchMarkets
@@ -137,7 +137,7 @@ export default class exir extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const market = await this.parseMarket (response[symbol]);
+            const market = this.parseMarket (response[symbol]);
             result.push (market);
         }
         return result;
@@ -237,7 +237,7 @@ export default class exir extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
-            const ticker = await this.parseTicker (response[symbol]);
+            const ticker = this.parseTicker (response[symbol]);
             symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -262,7 +262,7 @@ export default class exir extends Exchange {
         const response = await this.publicGetV2Ticker (request);
         response['symbol'] = market['id'];
         response['time'] = response['timestamp'];
-        const ticker = await this.parseTicker (response);
+        const ticker = this.parseTicker (response);
         return ticker;
     }
 
@@ -348,7 +348,7 @@ export default class exir extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < response.length; i++) {
             const candle = response[i];
-            const ts = Date.parse (candle['time']);
+            const ts = this.safeTimestamp (candle, 'time');
             const open = this.safeFloat (candle, 'open');
             const high = this.safeFloat (candle, 'high');
             const low = this.safeFloat (candle, 'low');
@@ -383,7 +383,7 @@ export default class exir extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Orderbook (request);
-        const timestamp = Date.parse (response[market['id']]['timestamp']);
+        const timestamp = this.safeTimestamp (response[market['id']], 'timestamp') / 1000;
         return this.parseOrderBook (response[market['id']], symbol, timestamp);
     }
 

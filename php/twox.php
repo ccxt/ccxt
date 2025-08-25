@@ -10,11 +10,11 @@ use ccxt\abstract\twox as Exchange;
 
 class twox extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'twox',
             'name' => 'Twox',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -111,7 +111,7 @@ class twox extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for twox
          * @see https://api.twox.ir/api/currencies

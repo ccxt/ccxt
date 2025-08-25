@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class ramzinex extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'ramzinex',
             'name': 'Ramzinex',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -131,7 +131,7 @@ export default class ramzinex extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ramzinex#fetchMarkets
@@ -144,7 +144,7 @@ export default class ramzinex extends Exchange {
         const markets = this.safeList (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket (markets[i]);
+            const market = this.parseMarket (markets[i]);
             result.push (market);
         }
         return result;
@@ -274,7 +274,11 @@ export default class ramzinex extends Exchange {
         const markets = this.safeList (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker (markets[i]);
+            const market = markets[i];
+            if (!market || !market['financial'] || Object.keys (market['financial']).length === 0) {
+                continue;
+            }
+            const ticker = this.parseTicker (market);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -298,7 +302,7 @@ export default class ramzinex extends Exchange {
         };
         const response = await this.publicGetExchangeApiV10ExchangePairs (request);
         const markets = this.safeDict (response, 'data');
-        const ticker = await this.parseTicker (markets);
+        const ticker = this.parseTicker (markets);
         return ticker;
     }
 
@@ -365,14 +369,14 @@ export default class ramzinex extends Exchange {
         let quoteVolume = this.safeFloat (tickerinfo, 'quote_volume');
         const baseVolume = this.safeFloat (tickerinfo, 'base_volume');
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            bid /= 10;
-            ask /= 10;
-            open /= 10;
-            close /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high * 10 : 0;
+            low = low ? low / 10 : 0;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            open = open ? open / 10 : 0;
+            close = close ? close / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -442,11 +446,11 @@ export default class ramzinex extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lastList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lastList[i] = lastList[i] ? lastList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push ([
                 timestampList[i],
@@ -482,10 +486,10 @@ export default class ramzinex extends Exchange {
             const bids = this.safeList (orderbook, 'sells');
             const asks = this.safeList (orderbook, 'buys');
             for (let i = 0; i < bids.length; i++) {
-                bids[i][0] /= 10;
+                bids[i][0] = bids[i][0] ? bids[i][0] / 10 : 0;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i][0] /= 10;
+                asks[i][0] = asks[i][0] ? asks[i][0] / 10 : 0;
             }
             orderbook['buys'] = asks;
             orderbook['sells'] = bids;

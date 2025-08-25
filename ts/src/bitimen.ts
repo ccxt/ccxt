@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class bitimen extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'bitimen',
             'name': 'Bitimen',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +122,7 @@ export default class bitimen extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitimen#fetchMarkets
@@ -136,7 +136,7 @@ export default class bitimen extends Exchange {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket (response[index]);
+            const market = this.parseMarket (response[index]);
             result.push (market);
         }
         return result;
@@ -252,7 +252,7 @@ export default class bitimen extends Exchange {
             if (response[index]['last'] === '0') {
                 continue;
             }
-            const ticker = await this.parseTicker (response[index]);
+            const ticker = this.parseTicker (response[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -272,7 +272,7 @@ export default class bitimen extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.publicGetApiMarketStats (params);
-        const ticker = await this.parseTicker (response[market['id']]);
+        const ticker = this.parseTicker (response[market['id']]);
         return ticker;
     }
 

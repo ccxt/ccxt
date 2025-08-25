@@ -12,11 +12,11 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class ompfinex extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'ompfinex',
             'name': 'OMPFinex',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -126,7 +126,7 @@ export default class ompfinex extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name ompfinex#fetchMarkets
@@ -139,7 +139,7 @@ export default class ompfinex extends Exchange {
         const markets = this.safeList (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket (markets[i]);
+            const market = this.parseMarket (markets[i]);
             result.push (market);
         }
         return result;
@@ -276,7 +276,7 @@ export default class ompfinex extends Exchange {
         const markets = this.safeList (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker (markets[i]);
+            const ticker = this.parseTicker (markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -300,7 +300,7 @@ export default class ompfinex extends Exchange {
         };
         const response = await this.publicGetV1Market (request);
         const markets = this.safeDict (response, 'data');
-        const ticker = await this.parseTicker (markets);
+        const ticker = this.parseTicker (markets);
         return ticker;
     }
 
@@ -367,11 +367,12 @@ export default class ompfinex extends Exchange {
         let last = this.safeFloat (ticker, 'last_price');
         let quoteVolume = this.safeFloat (ticker, 'last_volume');
         if (marketinfo['quote'] === 'IRT') {
-            high /= 10;
-            low /= 10;
-            last /= 10;
-            quoteVolume /= 10;
+            high = high ? high * 10 : 0;
+            low = low ? low / 10 : 0;
+            last = last ? last / 10 : 0;
+            quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
+        const baseVolume = quoteVolume / last;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -390,7 +391,7 @@ export default class ompfinex extends Exchange {
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
@@ -440,11 +441,11 @@ export default class ompfinex extends Exchange {
         const ohlcvs = [];
         for (let i = 0; i < openList.length; i++) {
             if (market['quote'] === 'IRT') {
-                openList[i] /= 10;
-                highList[i] /= 10;
-                lastList[i] /= 10;
-                closeList[i] /= 10;
-                volumeList[i] /= 10;
+                openList[i] = openList[i] ? openList[i] / 10 : 0;
+                highList[i] = highList[i] ? highList[i] / 10 : 0;
+                lastList[i] = lastList[i] ? lastList[i] / 10 : 0;
+                closeList[i] = closeList[i] ? closeList[i] / 10 : 0;
+                volumeList[i] = volumeList[i] ? volumeList[i] / 10 : 0;
             }
             ohlcvs.push ([
                 timestampList[i],
@@ -478,10 +479,10 @@ export default class ompfinex extends Exchange {
             const bids = this.safeList (orderbook, 'bids');
             const asks = this.safeList (orderbook, 'asks');
             for (let i = 0; i < bids.length; i++) {
-                bids[i][0] /= 10;
+                bids[i][0] = bids[i][0] ? bids[i][0] / 10 : 0;
             }
             for (let i = 0; i < asks.length; i++) {
-                asks[i][0] /= 10;
+                asks[i][0] = asks[i][0] ? asks[i][0] / 10 : 0;
             }
             orderbook['bids'] = asks;
             orderbook['asks'] = bids;

@@ -5,17 +5,17 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.exir import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class exir(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(exir, self).describe(), {
             'id': 'exir',
             'name': 'Exir',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -120,10 +120,10 @@ class exir(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for exir
-        :see: https://apidocs.exir.io/#tickers
+        https://apidocs.exir.io/#tickers
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -213,7 +213,7 @@ class exir(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://apidocs.exir.io/#tickers
+        https://apidocs.exir.io/#tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -235,7 +235,7 @@ class exir(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://apidocs.exir.io/#ticker
+        https://apidocs.exir.io/#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -301,7 +301,7 @@ class exir(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://apidocs.exir.io/#chart
+        https://apidocs.exir.io/#chart
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -328,7 +328,7 @@ class exir(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(response)):
             candle = response[i]
-            ts = Date.parse(candle['time'])
+            ts = self.safe_timestamp(candle, 'time')
             open = self.safe_float(candle, 'open')
             high = self.safe_float(candle, 'high')
             low = self.safe_float(candle, 'low')
@@ -347,7 +347,7 @@ class exir(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :see: https://apidocs.exir.io/#orderbook
+        https://apidocs.exir.io/#orderbook
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -359,7 +359,7 @@ class exir(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = self.publicGetV2Orderbook(request)
-        timestamp = Date.parse(response[market['id']]['timestamp'])
+        timestamp = self.safe_timestamp(response[market['id']], 'timestamp') / 1000
         return self.parse_order_book(response[market['id']], symbol, timestamp)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

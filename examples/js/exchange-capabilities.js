@@ -128,7 +128,7 @@ async function main () {
         (notImplemented.toString ().lightRed), 'notImplemented',
     )
 
-    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R)\n".red)
+    log("\nMessy? Try piping to less (e.g. node script.js | less -S -R --header=3 )\n".red)
 
 }
 

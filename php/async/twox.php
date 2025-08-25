@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\twox as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class twox extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'twox',
             'name' => 'Twox',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,8 +113,8 @@ class twox extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for twox
              * @see https://api.twox.ir/api/currencies
@@ -134,7 +134,7 @@ class twox extends Exchange {
                     }
                     $marketData['base'] = $base;
                     $marketData['quote'] = $quote;
-                    $market = Async\await($this->parse_market($marketData));
+                    $market = $this->parse_market($marketData);
                     $result[] = $market;
                 }
             }
@@ -256,7 +256,7 @@ class twox extends Exchange {
                     $response[$i]['base'] = $base;
                     $response[$i]['quote'] = $quote;
                     $response[$i]['symbol'] = $base . $quote;
-                    $ticker = Async\await($this->parse_ticker($response[$i]));
+                    $ticker = $this->parse_ticker($response[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }

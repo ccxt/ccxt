@@ -12,11 +12,11 @@ import { Market, Strings, Ticker, Tickers } from './base/types.js';
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class twox extends Exchange {
-    describe () {
+    describe () : any {
         return this.deepExtend (super.describe (), {
             'id': 'twox',
             'name': 'Twox',
-            'country': [ 'IR' ],
+            'countries': [ 'IR' ],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class twox extends Exchange {
         });
     }
 
-    async fetchMarkets (symbols: Strings = undefined, params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name twox#fetchMarkets
@@ -135,7 +135,7 @@ export default class twox extends Exchange {
                 }
                 marketData['base'] = base;
                 marketData['quote'] = quote;
-                const market = await this.parseMarket (marketData);
+                const market = this.parseMarket (marketData);
                 result.push (market);
             }
         }
@@ -257,7 +257,7 @@ export default class twox extends Exchange {
                 response[i]['base'] = base;
                 response[i]['quote'] = quote;
                 response[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker (response[i]);
+                const ticker = this.parseTicker (response[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }

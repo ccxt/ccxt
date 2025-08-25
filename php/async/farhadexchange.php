@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\farhadexchange as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class farhadexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'farhadexchange',
             'name' => 'Farhad Exchange',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -115,8 +115,8 @@ class farhadexchange extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for farhadexchange
              * @see https://apidocs.farhadexchange.ir/#6ae2dae4a2
@@ -126,7 +126,7 @@ class farhadexchange extends Exchange {
             $response = Async\await($this->publicGetGetAllRate ());
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $market = Async\await($this->parse_market($response[$i]));
+                $market = $this->parse_market($response[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -213,7 +213,7 @@ class farhadexchange extends Exchange {
             $response = Async\await($this->publicGetGetAllRate ());
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $ticker = Async\await($this->parse_ticker($response[$i]));
+                $ticker = $this->parse_ticker($response[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -249,9 +249,9 @@ class farhadexchange extends Exchange {
         $ask = $this->safe_float($ticker, 'sell_price');
         $last = $this->safe_float($ticker, 'buy_price');
         if ($marketinfo['quote'] === 'IRT') {
-            $bid /= 10;
-            $ask /= 10;
-            $last /= 10;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $last = $last ? $last / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,

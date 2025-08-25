@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hitobit$1 = require('./abstract/hitobit.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hitobit
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class hitobit extends hitobit$1 {
+class hitobit extends hitobit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitobit',
             'name': 'Hitobit',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -122,7 +124,7 @@ class hitobit extends hitobit$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name hitobit#fetchMarkets
@@ -134,7 +136,7 @@ class hitobit extends hitobit$1 {
         const response = await this.publicGetHapiExchangeV1PublicAlltickers24hr(params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -243,7 +245,7 @@ class hitobit extends hitobit$1 {
         const response = await this.publicGetHapiExchangeV1PublicAlltickers24hr(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -265,7 +267,7 @@ class hitobit extends hitobit$1 {
             'symbol': market['id'],
         };
         const response = await this.publicGetHapiExchangeV1PublicTicker24hr(request);
-        const ticker = await this.parseTicker(response);
+        const ticker = this.parseTicker(response);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -408,4 +410,4 @@ class hitobit extends hitobit$1 {
     }
 }
 
-module.exports = hitobit;
+exports["default"] = hitobit;

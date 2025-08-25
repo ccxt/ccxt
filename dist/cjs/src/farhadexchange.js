@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var farhadexchange$1 = require('./abstract/farhadexchange.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class farhadexchange
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class farhadexchange extends farhadexchange$1 {
+class farhadexchange extends farhadexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'farhadexchange',
             'name': 'Farhad Exchange',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -112,7 +114,7 @@ class farhadexchange extends farhadexchange$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name farhadexchange#fetchMarkets
@@ -124,7 +126,7 @@ class farhadexchange extends farhadexchange$1 {
         const response = await this.publicGetGetAllRate();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = await this.parseMarket(response[i]);
+            const market = this.parseMarket(response[i]);
             result.push(market);
         }
         return result;
@@ -209,7 +211,7 @@ class farhadexchange extends farhadexchange$1 {
         const response = await this.publicGetGetAllRate();
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const ticker = await this.parseTicker(response[i]);
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -242,9 +244,9 @@ class farhadexchange extends farhadexchange$1 {
         let ask = this.safeFloat(ticker, 'sell_price');
         let last = this.safeFloat(ticker, 'buy_price');
         if (marketinfo['quote'] === 'IRT') {
-            bid /= 10;
-            ask /= 10;
-            last /= 10;
+            bid = bid ? bid / 10 : 0;
+            ask = ask ? ask / 10 : 0;
+            last = last ? last / 10 : 0;
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -276,4 +278,4 @@ class farhadexchange extends farhadexchange$1 {
     }
 }
 
-module.exports = farhadexchange;
+exports["default"] = farhadexchange;

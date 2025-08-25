@@ -61,6 +61,12 @@ abstract class alpaca extends \ccxt\async\Exchange {
     public function trader_private_get_v2_corporate_actions_announcements($params = array()) {
         return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array());
     }
+    public function trader_private_get_v2_wallets($params = array()) {
+        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array());
+    }
+    public function trader_private_get_v2_wallets_transfers($params = array()) {
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array());
+    }
     public function trader_private_post_v2_orders($params = array()) {
         return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array());
     }
@@ -72,6 +78,12 @@ abstract class alpaca extends \ccxt\async\Exchange {
     }
     public function trader_private_post_v2_watchlists_by_name($params = array()) {
         return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array());
+    }
+    public function trader_private_post_v2_wallets_transfers($params = array()) {
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array());
+    }
+    public function trader_private_put_v2_orders_order_id($params = array()) {
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
     }
     public function trader_private_put_v2_watchlists_watchlist_id($params = array()) {
         return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
@@ -259,6 +271,12 @@ abstract class alpaca extends \ccxt\async\Exchange {
     public function traderPrivateGetV2CorporateActionsAnnouncements($params = array()) {
         return $this->request('v2/corporate_actions/announcements', array('trader', 'private'), 'GET', $params, null, null, array());
     }
+    public function traderPrivateGetV2Wallets($params = array()) {
+        return $this->request('v2/wallets', array('trader', 'private'), 'GET', $params, null, null, array());
+    }
+    public function traderPrivateGetV2WalletsTransfers($params = array()) {
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'GET', $params, null, null, array());
+    }
     public function traderPrivatePostV2Orders($params = array()) {
         return $this->request('v2/orders', array('trader', 'private'), 'POST', $params, null, null, array());
     }
@@ -270,6 +288,12 @@ abstract class alpaca extends \ccxt\async\Exchange {
     }
     public function traderPrivatePostV2WatchlistsByName($params = array()) {
         return $this->request('v2/watchlists:by_name', array('trader', 'private'), 'POST', $params, null, null, array());
+    }
+    public function traderPrivatePostV2WalletsTransfers($params = array()) {
+        return $this->request('v2/wallets/transfers', array('trader', 'private'), 'POST', $params, null, null, array());
+    }
+    public function traderPrivatePutV2OrdersOrderId($params = array()) {
+        return $this->request('v2/orders/{order_id}', array('trader', 'private'), 'PUT', $params, null, null, array());
     }
     public function traderPrivatePutV2WatchlistsWatchlistId($params = array()) {
         return $this->request('v2/watchlists/{watchlist_id}', array('trader', 'private'), 'PUT', $params, null, null, array());

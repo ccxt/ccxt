@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\jibitex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class jibitex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'jibitex',
             'name' => 'Jibitex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -120,8 +120,8 @@ class jibitex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for jibitex
              * @see https://jibitex.co/
@@ -132,7 +132,7 @@ class jibitex extends Exchange {
             $markets = $this->safe_list($response, 'content');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -247,7 +247,7 @@ class jibitex extends Exchange {
             $markets = $this->safe_list($response, 'content');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $ticker = Async\await($this->parse_ticker($markets[$i]));
+                $ticker = $this->parse_ticker($markets[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -273,7 +273,7 @@ class jibitex extends Exchange {
             );
             $response = Async\await($this->publicGetApi1Markets ($request));
             $marketData = $this->safe_list($response, 'content');
-            $ticker = Async\await($this->parse_ticker($marketData[0]));
+            $ticker = $this->parse_ticker($marketData[0]);
             return $ticker;
         }) ();
     }

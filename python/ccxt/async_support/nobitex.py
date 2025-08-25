@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.nobitex import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class nobitex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(nobitex, self).describe(), {
             'id': 'nobitex',
             'name': 'Nobitex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -86,7 +86,7 @@ class nobitex(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/nobitex/64x64.png',
                 'api': {
-                    'public': 'https://api.nobitex.ir',
+                    'public': 'https://apiv2.nobitex.ir',
                 },
                 'www': 'https://nobitex.ir/',
                 'doc': [
@@ -129,18 +129,14 @@ class nobitex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for nobitex
-        :see: https://apidocs.nobitex.ir/#6ae2dae4a2
+        https://apidocs.nobitex.ir/#6ae2dae4a2
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        }
-        response = await self.publicGetMarketStats(request)
+        response = await self.publicGetMarketStats()
         markets = self.safe_dict(response, 'stats')
         marketKeys = list(markets.keys())
         result = []
@@ -149,7 +145,7 @@ class nobitex(Exchange, ImplicitAPI):
             if markets[symbol]['isClosed']:
                 continue
             markets[symbol]['symbol'] = symbol
-            market = await self.parse_market(markets[symbol])
+            market = self.parse_market(markets[symbol])
             result.append(market)
         return result
 
@@ -228,7 +224,7 @@ class nobitex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://apidocs.nobitex.ir/#6ae2dae4a2
+        https://apidocs.nobitex.ir/#6ae2dae4a2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -236,11 +232,7 @@ class nobitex(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbols is not None:
             symbols = self.market_symbols(symbols)
-        request = {
-            'srcCurrency': 'btc,usdt,eth,etc,doge,ada,bch,ltc,bnb,eos,xlm,xrp,trx,uni,link,dai,dot,shib,aave,ftm,matic,axs,mana,sand,avax,usdc,gmt,mkr,sol,atom,grt,bat,near,ape,qnt,chz,xmr,egala,busd,algo,hbar,1inch,yfi,flow,snx,enj,crv,fil,wbtc,ldo,dydx,apt,mask,comp,bal,lrc,lpt,ens,sushi,api3,one,glm,pmn,dao,cvc,nmr,storj,snt,ant,zrx,slp,egld,imx,blur,100k_floki,1b_babydoge,1m_nft,1m_btt,t,celr,arb,magic,gmx,band,cvx,ton,ssv,mdt,omg,wld,rdnt,jst,bico,rndr,woo,skl,gal,agix,fet,not,xtz,agld,trb,rsr,ethfi',
-            'dstCurrency': 'rls,usdt',
-        }
-        response = await self.publicGetMarketStats(request)
+        response = await self.publicGetMarketStats()
         markets = self.safe_dict(response, 'stats')
         marketKeys = list(markets.keys())
         result = []
@@ -249,7 +241,7 @@ class nobitex(Exchange, ImplicitAPI):
             if markets[symbol]['isClosed']:
                 continue
             markets[symbol]['symbol'] = symbol
-            ticker = await self.parse_ticker(markets[symbol])
+            ticker = self.parse_ticker(markets[symbol])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -257,7 +249,7 @@ class nobitex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://apidocs.nobitex.ir/#6ae2dae4a2
+        https://apidocs.nobitex.ir/#6ae2dae4a2
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -296,14 +288,14 @@ class nobitex(Exchange, ImplicitAPI):
         quoteVolume = self.safe_float(ticker, 'volumeDst')
         baseVolume = self.safe_float(ticker, 'volumeSrc')
         if marketinfo['quote'] == 'IRT':
-            high /= 10
-            low /= 10
-            bid /= 10
-            ask /= 10
-            open /= 10
-            close /= 10
-            last /= 10
-            quoteVolume /= 10
+            high = high * 10 if high else 0
+            low = low / 10 if low else 0
+            bid = bid / 10 if bid else 0
+            ask = ask / 10 if ask else 0
+            open = open / 10 if open else 0
+            close = close / 10 if close else 0
+            last = last / 10 if last else 0
+            quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
             'symbol': symbol.replace('-', '/'),
             'timestamp': None,
@@ -330,7 +322,7 @@ class nobitex(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://apidocs.nobitex.ir/#ohlc
+        https://apidocs.nobitex.ir/#ohlc
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -341,6 +333,8 @@ class nobitex(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         endTime = Date.now()
+        if market['quote'] == 'IRT':
+            market['id'] = market['id'].replace('RLS', 'IRT')
         request = {
             'symbol': market['id'],
             'from': (endTime / 1000) - (24 * 60 * 60),
@@ -364,11 +358,11 @@ class nobitex(Exchange, ImplicitAPI):
         ohlcvs = []
         for i in range(0, len(openList)):
             if market['quote'] == 'IRT':
-                openList[i] /= 10
-                highList[i] /= 10
-                lowList[i] /= 10
-                closeList[i] /= 10
-                volumeList[i] /= 10
+                openList[i] = openList[i] / 10 if openList[i] else 0
+                highList[i] = highList[i] / 10 if highList[i] else 0
+                lowList[i] = lowList[i] / 10 if lowList[i] else 0
+                closeList[i] = closeList[i] / 10 if closeList[i] else 0
+                volumeList[i] = volumeList[i] / 10 if volumeList[i] else 0
             ohlcvs.append([
                 timestampList[i],
                 openList[i],
@@ -382,7 +376,7 @@ class nobitex(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :see: https://apidocs.nobitex.ir/#orderbook
+        https://apidocs.nobitex.ir/#orderbook
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -398,9 +392,9 @@ class nobitex(Exchange, ImplicitAPI):
             bids = self.safe_list(response, 'bids')
             asks = self.safe_list(response, 'asks')
             for i in range(0, len(bids)):
-                bids[i][0] /= 10
+                bids[i][0] = bids[i][0] / 10 if bids[i][0] else 0
             for i in range(0, len(asks)):
-                asks[i][0] /= 10
+                asks[i][0] = asks[i][0] / 10 if asks[i][0] else 0
             response['bids'] = bids
             response['asks'] = asks
         timestamp = self.safe_integer(response, 'lastUpdate')

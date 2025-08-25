@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var afratether$1 = require('./abstract/afratether.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class afratether
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class afratether extends afratether$1 {
+class afratether extends afratether$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'afratether',
             'name': 'Afratether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -112,7 +114,7 @@ class afratether extends afratether$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name afratether#fetchMarkets
@@ -129,7 +131,7 @@ class afratether extends afratether$1 {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -228,7 +230,7 @@ class afratether extends afratether$1 {
         const markets = this.safeList(response, 'Items');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -304,4 +306,4 @@ class afratether extends afratether$1 {
     }
 }
 
-module.exports = afratether;
+exports["default"] = afratether;

@@ -115,7 +115,7 @@ print('----------------------------------------------------------------------')
 # https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
 
 print('Getting your positions:')
-response = exchange.fapiPrivateV2_get_positionrisk()
+response = exchange.fapiprivatev2_get_positionrisk()
 print(table(response))
 
 print('----------------------------------------------------------------------')
@@ -123,7 +123,7 @@ print('----------------------------------------------------------------------')
 # https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
 
 print('Getting your current position mode (One-way or Hedge Mode):')
-response = exchange.fapiPrivate_get_positionside_dual()
+response = exchange.fapiprivate_get_positionside_dual()
 if response['dualSidePosition']:
     print('You are in Hedge Mode')
 else:
@@ -132,13 +132,13 @@ else:
 print('----------------------------------------------------------------------')
 
 # print('Setting your position mode to One-way:')
-# response = exchange.fapiPrivate_post_positionside_dual({
+# response = exchange.fapiprivate_post_positionside_dual({
 #     'dualSidePosition': False,
 # })
 # print(response)
 
 # print('Setting your positions to Hedge mode:')
-# response = exchange.fapiPrivate_post_positionside_dual({
+# response = exchange.fapiprivate_post_positionside_dual({
 #     'dualSidePosition': True,
 # })
 # print(response)
@@ -148,14 +148,14 @@ print('----------------------------------------------------------------------')
 # # https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
 
 # print('Changing your', symbol, 'position margin mode to CROSSED:')
-# response = exchange.fapiPrivate_post_margintype({
+# response = exchange.fapiprivate_post_margintype({
 #     'symbol': market['id'],
 #     'marginType': 'CROSSED',
 # })
 # print(response)
 
 # print('Changing your', symbol, 'position margin mode to ISOLATED:')
-# response = exchange.fapiPrivate_post_margintype({
+# response = exchange.fapiprivate_post_margintype({
 #     'symbol': market['id'],
 #     'marginType': 'ISOLATED',
 # })
@@ -185,7 +185,7 @@ print('----------------------------------------------------------------------')
 
 # # for ISOLATED positions only
 # print('Modifying your ISOLATED', symbol, 'position margin:')
-# response = exchange.fapiPrivate_post_positionmargin({
+# response = exchange.fapiprivate_post_positionmargin({
 #     'symbol': market['id'],
 #     'amount': 123.45,  # ←-------------- YOUR AMOUNT HERE
 #     'positionSide': 'BOTH',  # use BOTH for One-way positions, LONG or SHORT for Hedge Mode

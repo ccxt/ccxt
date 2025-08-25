@@ -10,11 +10,11 @@ use ccxt\abstract\farhadexchange as Exchange;
 
 class farhadexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'farhadexchange',
             'name' => 'Farhad Exchange',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -113,7 +113,7 @@ class farhadexchange extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for farhadexchange
          * @see https://apidocs.farhadexchange.ir/#6ae2dae4a2
@@ -241,9 +241,9 @@ class farhadexchange extends Exchange {
         $ask = $this->safe_float($ticker, 'sell_price');
         $last = $this->safe_float($ticker, 'buy_price');
         if ($marketinfo['quote'] === 'IRT') {
-            $bid /= 10;
-            $ask /= 10;
-            $last /= 10;
+            $bid = $bid ? $bid / 10 : 0;
+            $ask = $ask ? $ask / 10 : 0;
+            $last = $last ? $last / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,

@@ -17,7 +17,7 @@ export default class sarrafex extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'sarrafex',
             'name': 'Sarrafex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -132,7 +132,7 @@ export default class sarrafex extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name sarrafex#fetchMarkets
@@ -145,7 +145,7 @@ export default class sarrafex extends Exchange {
         const markets = this.safeList(response, 'value');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = await this.parseMarket(markets[i]);
+            const market = this.parseMarket(markets[i]);
             result.push(market);
         }
         return result;
@@ -288,7 +288,7 @@ export default class sarrafex extends Exchange {
         const markets = this.safeList(response, 'value');
         const result = {};
         for (let i = 0; i < markets.length; i++) {
-            const ticker = await this.parseTicker(markets[i]);
+            const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -311,7 +311,7 @@ export default class sarrafex extends Exchange {
         };
         const response = await this.publicGetApiGatewayExchangerQueryMarket(request);
         const pair = this.safeList(response, 'value');
-        const ticker = await this.parseTicker(pair[0]);
+        const ticker = this.parseTicker(pair[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -391,7 +391,7 @@ export default class sarrafex extends Exchange {
         const datetime = this.safeString(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': Date.parse(datetime),
+            'timestamp': this.safeTimestamp(ticker, 'timestamp'),
             'datetime': datetime,
             'high': high,
             'low': low,

@@ -10,11 +10,11 @@ use ccxt\abstract\excoino as Exchange;
 
 class excoino extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'excoino',
             'name' => 'Excoino',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -127,7 +127,7 @@ class excoino extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for excoino
          * @see https://apidocs.excoino.ir/#6ae2dae4a2
@@ -288,20 +288,20 @@ class excoino extends Exchange {
         $marketId = $this->safe_value($ticker, 'symbol');
         $marketinfo = $this->market($marketId);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $high = $this->safe_float($ticker, 'high');
-        $low = $this->safe_float($ticker, 'low');
-        $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
-        $change = $this->safe_float($ticker, 'chg');
-        $last = $this->safe_float($ticker, 'close');
-        $quoteVolume = $this->safe_float($ticker, 'twentyFourHourTurnover');
+        $high = $this->safe_float($ticker, 'high', 0);
+        $low = $this->safe_float($ticker, 'low', 0);
+        $open = $this->safe_float($ticker, 'open', 0);
+        $close = $this->safe_float($ticker, 'close', 0);
+        $change = $this->safe_float($ticker, 'chg', 0);
+        $last = $this->safe_float($ticker, 'close', 0);
+        $quoteVolume = $this->safe_float($ticker, 'twentyFourHourTurnover', 0);
         if ($marketinfo['quote'] === 'IRT') {
-            $open /= 10;
-            $close /= 10;
-            $high /= 10;
-            $low /= 10;
-            $last /= 10;
-            $quoteVolume /= 10;
+            $high = $high ? $high / 10 : 0;
+            $low = $low ? $low / 10 : 0;
+            $open = $open ? $open / 10 : 0;
+            $close = $close ? $close / 10 : 0;
+            $last = $last ? $last / 10 : 0;
+            $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -359,11 +359,11 @@ class excoino extends Exchange {
         $response = $this->publicGetMarketHistory ($request);
         for ($i = 0; $i < count($response); $i++) {
             if ($market['quote'] === 'IRT') {
-                $response[$i][1] /= 10;
-                $response[$i][2] /= 10;
-                $response[$i][3] /= 10;
-                $response[$i][4] /= 10;
-                $response[$i][5] /= 10;
+                $response[$i][1] = ($response[$i][1] || 0) / 10;
+                $response[$i][2] = ($response[$i][2] || 0) / 10;
+                $response[$i][3] = ($response[$i][3] || 0) / 10;
+                $response[$i][4] = ($response[$i][4] || 0) / 10;
+                $response[$i][5] = ($response[$i][5] || 0) / 10;
             }
         }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -391,10 +391,10 @@ class excoino extends Exchange {
             $bids = $this->safe_dict($bids, 'items');
             $asks = $this->safe_dict($asks, 'items');
             for ($i = 0; $i < count($bids); $i++) {
-                $bids[$i]['price'] /= 10;
+                $bids[$i]['price'] = ($bids[$i]['price'] || 0) / 10;
             }
             for ($i = 0; $i < count($asks); $i++) {
-                $asks[$i]['price'] /= 10;
+                $asks[$i]['price'] = ($asks[$i]['price'] || 0) / 10;
             }
             $orderBook['bids'] = $bids;
             $orderBook['asks'] = $asks;

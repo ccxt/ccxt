@@ -4,11 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.htx import htx
+from ccxt.base.types import Any
 
 
 class huobi(htx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(huobi, self).describe(), {
             'alias': True,
             'id': 'huobi',

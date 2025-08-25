@@ -17,7 +17,7 @@ export default class abantether extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'abantether',
             'name': 'Aban tether',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -113,7 +113,7 @@ export default class abantether extends Exchange {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name abantether#fetchMarkets
@@ -134,7 +134,7 @@ export default class abantether extends Exchange {
                 if (base === quote) {
                     continue;
                 }
-                const market = await this.parseMarket(response[i]);
+                const market = this.parseMarket(response[i]);
                 result.push(market);
             }
         }
@@ -328,7 +328,7 @@ export default class abantether extends Exchange {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api']['public'] + '/' + path + '?format=json';
-        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=9593a1412d8bfc752c7170b1d2264544' };
+        headers = { 'Content-Type': 'application/json', 'Cookie': '__arcsco=42f03956ded5873c087d9f052b33cbff' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }

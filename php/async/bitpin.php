@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\bitpin as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitpin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitpin',
             'name' => 'bitpin',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -128,8 +128,8 @@ class bitpin extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitpin
              * @see https://api-docs.bitpin.ir/#be8d9c51a2
@@ -137,10 +137,10 @@ class bitpin extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetV1MktMarkets ($params));
-            $markets = $this->safe_dict($response, 'results');
+            $markets = $this->safe_list($response, 'results');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $market = Async\await($this->parse_market($markets[$i]));
+                $market = $this->parse_market($markets[$i]);
                 $result[] = $market;
             }
             return $result;
@@ -222,12 +222,12 @@ class bitpin extends Exchange {
                 $symbols = $this->market_symbols($symbols);
             }
             $response = Async\await($this->publicGetV1MktMarkets ($params));
-            $markets = $this->safe_dict($response, 'results');
+            $markets = $this->safe_list($response, 'results');
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $is_active = $this->safe_bool($markets[$i], 'tradable');
                 if ($is_active === true) {
-                    $ticker = Async\await($this->parse_ticker($markets[$i]));
+                    $ticker = $this->parse_ticker($markets[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }
@@ -370,9 +370,10 @@ class bitpin extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $high = $this->safe_float($priceInfo, 'max', 0);
         $low = $this->safe_float($priceInfo, 'min', 0);
-        $last = $this->safe_float($priceInfo, 'lastPrice', 0);
+        $last = $this->safe_float($priceInfo, 'price', 0);
         $change = $this->safe_float($priceInfo, 'change', 0);
-        $quoteVolume = $this->safe_float($priceInfo, '24h_quoteVolume', 0);
+        $baseVolume = $this->safe_float($priceInfo, 'amount', 0);
+        $quoteVolume = $this->safe_float($priceInfo, 'value', 0);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -391,7 +392,7 @@ class bitpin extends Exchange {
             'change' => $change,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);

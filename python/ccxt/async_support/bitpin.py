@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitpin import ImplicitAPI
-from ccxt.base.types import Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
 class bitpin(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitpin, self).describe(), {
             'id': 'bitpin',
             'name': 'bitpin',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -126,18 +126,18 @@ class bitpin(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitpin
-        :see: https://api-docs.bitpin.ir/#be8d9c51a2
+        https://api-docs.bitpin.ir/#be8d9c51a2
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetV1MktMarkets(params)
-        markets = self.safe_dict(response, 'results')
+        markets = self.safe_list(response, 'results')
         result = []
         for i in range(0, len(markets)):
-            market = await self.parse_market(markets[i])
+            market = self.parse_market(markets[i])
             result.append(market)
         return result
 
@@ -204,7 +204,7 @@ class bitpin(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://api-docs.bitpin.ir/#be8d9c51a2
+        https://api-docs.bitpin.ir/#be8d9c51a2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -213,12 +213,12 @@ class bitpin(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = await self.publicGetV1MktMarkets(params)
-        markets = self.safe_dict(response, 'results')
+        markets = self.safe_list(response, 'results')
         result = {}
         for i in range(0, len(markets)):
             is_active = self.safe_bool(markets[i], 'tradable')
             if is_active is True:
-                ticker = await self.parse_ticker(markets[i])
+                ticker = self.parse_ticker(markets[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -226,7 +226,7 @@ class bitpin(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api-docs.bitpin.ir/#be8d9c51a2
+        https://api-docs.bitpin.ir/#be8d9c51a2
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -354,9 +354,10 @@ class bitpin(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, None, marketType)
         high = self.safe_float(priceInfo, 'max', 0)
         low = self.safe_float(priceInfo, 'min', 0)
-        last = self.safe_float(priceInfo, 'lastPrice', 0)
+        last = self.safe_float(priceInfo, 'price', 0)
         change = self.safe_float(priceInfo, 'change', 0)
-        quoteVolume = self.safe_float(priceInfo, '24h_quoteVolume', 0)
+        baseVolume = self.safe_float(priceInfo, 'amount', 0)
+        quoteVolume = self.safe_float(priceInfo, 'value', 0)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -375,7 +376,7 @@ class bitpin(Exchange, ImplicitAPI):
             'change': change,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market)
@@ -383,7 +384,7 @@ class bitpin(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://api-docs.bitpin.ir/#be8d9c51a2
+        https://api-docs.bitpin.ir/#be8d9c51a2
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -422,7 +423,7 @@ class bitpin(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        :see: https://api-docs.bitpin.ir/#be8d9c51a2
+        https://api-docs.bitpin.ir/#be8d9c51a2
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint

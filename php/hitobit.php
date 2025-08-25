@@ -10,11 +10,11 @@ use ccxt\abstract\hitobit as Exchange;
 
 class hitobit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hitobit',
             'name' => 'Hitobit',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -123,7 +123,7 @@ class hitobit extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): array {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for hitobit
          * @see https://hitobit-docs.github.io/#general-info

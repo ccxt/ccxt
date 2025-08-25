@@ -4,19 +4,21 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bitstamp extends bitstampRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -45,16 +47,16 @@ export default class bitstamp extends bitstampRest {
         });
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitstamp#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -160,17 +162,17 @@ export default class bitstamp extends bitstampRest {
         return deltas.length;
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitstamp#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -270,17 +272,17 @@ export default class bitstamp extends bitstampRest {
         client.resolve (tradesArray, messageHash);
     }
 
+    /**
+     * @method
+     * @name bitstamp#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitstamp#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
@@ -317,6 +319,7 @@ export default class bitstamp extends bitstampRest {
         //        "price_str":"1000.00"
         //     },
         //     "channel":"private-my_orders_ltcusd-4848701",
+        //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
         const channel = this.safeString (message, 'channel');
@@ -329,6 +332,7 @@ export default class bitstamp extends bitstampRest {
         const subscription = this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
+        order['event'] = this.safeString (message, 'event');
         const parsed = this.parseWsOrder (order, market);
         stored.append (parsed);
         client.resolve (this.orders, channel);
@@ -336,23 +340,53 @@ export default class bitstamp extends bitstampRest {
 
     parseWsOrder (order, market = undefined) {
         //
-        //   {
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
+        //    {
+        //        "id": "1894876776091648",
+        //        "id_str": "1894876776091648",
+        //        "order_type": 0,
+        //        "order_subtype": 0,
+        //        "datetime": "1751451375",
+        //        "microtimestamp": "1751451375070000",
+        //        "amount": 1.1,
+        //        "amount_str": "1.10000000",
+        //        "amount_traded": "0",
+        //        "amount_at_create": "1.10000000",
+        //        "price": 10.23,
+        //        "price_str": "10.23",
+        //        "is_liquidation": false,
+        //        "trade_account_id": 0
         //    }
         //
         const id = this.safeString (order, 'id_str');
-        const orderType = this.safeStringLower (order, 'order_type');
+        const orderTypeRaw = this.safeStringLower (order, 'order_type');
+        const side = (orderTypeRaw === '1') ? 'sell' : 'buy';
+        const orderSubTypeRaw = this.safeStringLower (order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let orderType: Str = undefined;
+        let timeInForce: Str = undefined;
+        if (orderSubTypeRaw === '0') {
+            orderType = 'limit';
+        } else if (orderSubTypeRaw === '2') {
+            orderType = 'market';
+        } else if (orderSubTypeRaw === '4') {
+            orderType = 'limit';
+            timeInForce = 'IOC';
+        } else if (orderSubTypeRaw === '6') {
+            orderType = 'limit';
+            timeInForce = 'FOK';
+        } else if (orderSubTypeRaw === '8') {
+            orderType = 'limit';
+            timeInForce = 'GTD';
+        }
         const price = this.safeString (order, 'price_str');
         const amount = this.safeString (order, 'amount_str');
-        const side = (orderType === '1') ? 'sell' : 'buy';
+        const filled = this.safeString (order, 'amount_traded');
+        const event = this.safeString (order, 'event');
+        let status = undefined;
+        if (Precise.stringEq (filled, amount)) {
+            status = 'closed';
+        } else if (event === 'order_deleted') {
+            status = 'canceled';
+        }
         const timestamp = this.safeTimestamp (order, 'datetime');
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
@@ -364,8 +398,8 @@ export default class bitstamp extends bitstampRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
+            'type': orderType,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -374,9 +408,9 @@ export default class bitstamp extends bitstampRest {
             'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
-            'status': undefined,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -444,6 +478,7 @@ export default class bitstamp extends bitstampRest {
         //         "price_str":"1000.00"
         //         },
         //         "channel":"private-my_orders_ltcusd-4848701",
+        //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
         const channel = this.safeString (message, 'channel');
@@ -462,7 +497,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
@@ -475,7 +510,7 @@ export default class bitstamp extends bitstampRest {
             const code = this.safeNumber (data, 'code');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {
@@ -537,7 +572,7 @@ export default class bitstamp extends bitstampRest {
             //
             const sessionToken = this.safeString (response, 'token');
             if (sessionToken !== undefined) {
-                const userId = this.safeNumber (response, 'user_id');
+                const userId = this.safeString (response, 'user_id');
                 const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum (time, validity);
                 this.options['userId'] = userId;

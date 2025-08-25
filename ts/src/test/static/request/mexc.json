@@ -6,7 +6,50 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.mexc.com/api/v3/tradeFee?symbol=BTCUSDT&timestamp=1733827597442&recvWindow=5000&signature=672ed957158ae4048761a44c8d04c750fe3d1346bf67c86e3b0d11fe7c160f34",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
+            {
+                "description": "tif FOK",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ADAUSDT&side=BUY&type=FILL_OR_KILL&quantity=0.5&price=2&timestamp=1745858461503&recvWindow=5000&signature=cf86e5583b05a786abb7458c20a10b8119d52fdc9b2f8c01bc878f7d6828e703",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "tif IOC",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ADAUSDT&side=BUY&type=IMMEDIATE_OR_CANCEL&quantity=0.5&price=2&timestamp=1745858422724&recvWindow=5000&signature=1b39bae161190c73f75a1dc7fd129e2cfaaf848ece2c36c7eb7e60e651f4c8c5",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",
@@ -21,6 +64,17 @@
             },
             {
                 "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quantity=1&timestamp=1701338981732&recvWindow=5000&signature=b32153696c3ea535b0c796cefd1b5a576b140a6ba0bcb80c9bde15cee3384059",
+                "input": [
+                    "ATLAS/USDT",
+                    "market",
+                    "buy",
+                    1
+                ]
+            },
+            {
+                "description": "Spot market buy with price",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=6&price=6&timestamp=1701338981732&recvWindow=5000&signature=b32153696c3ea535b0c796cefd1b5a576b140a6ba0bcb80c9bde15cee3384059",
                 "input": [
@@ -44,24 +98,9 @@
                 ]
             },
             {
-                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
-                "method": "createOrder",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&createMarketBuyOrderRequiresPrice=false&timestamp=1701830554641&recvWindow=5000&signature=d759959eda792a05500a913b3607cae54bf02d9ec3da7ea68e7d6df28e54c5fd",
-                "input": [
-                    "ATLAS/USDT",
-                    "market",
-                    "buy",
-                    8,
-                    null,
-                    {
-                        "createMarketBuyOrderRequiresPrice": false
-                    }
-                ]
-            },
-            {
                 "description": "Spot market buy using the cost param",
                 "method": "createOrder",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&cost=8&timestamp=1701830656889&recvWindow=5000&signature=86d3ce4c125affa17221bfb95a77550fedbbb872c0f153d432abe1b1a23348e3",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&timestamp=1701830656889&recvWindow=5000&signature=86d3ce4c125affa17221bfb95a77550fedbbb872c0f153d432abe1b1a23348e3",
                 "input": [
                     "ATLAS/USDT",
                     "market",
@@ -101,12 +140,28 @@
                     }
                 ],
                 "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"triggerPrice\":\"0.7\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":1,\"price\":0.6,\"side\":3}"
+            },
+            {
+                "description": "spot market sell with cost",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=PYTHUSDT&side=SELL&type=MARKET&quoteOrderQty=5&timestamp=1727088487177&recvWindow=5000&signature=242ef7a21a3b00e4b68cbb6dc1ccb94b62489169d6627e4e771ee30e15d7aec6",
+                "input": [
+                  "PYTH/USDT",
+                  "market",
+                  "sell",
+                  0,
+                  null,
+                  {
+                    "cost": 5
+                  }
+                ]
             }
         ],
         "createOrders": [
             {
                 "description": "Spot create multiple buy orders at once",
                 "method": "createOrders",
+                "disabledGO": true,
                 "url": "https://api.mexc.com/api/v3/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221000%22%2C%22price%22%3A%220.005%22%7D%2C%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221100%22%2C%22price%22%3A%220.0054%22%7D%5D&timestamp=1701304049492&recvWindow=5000&signature=2b277d28ccda099ffe176604ab3e87f27fb151180a6d7a35d3ad1640ae6839f3",
                 "input": [
                     [
@@ -132,7 +187,7 @@
             {
                 "description": "Spot market buy order with cost",
                 "method": "createMarketBuyOrderWithCost",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&createMarketBuyOrderRequiresPrice=false&timestamp=1701830758140&recvWindow=5000&signature=0e5e245e6ed272d5d0c170259f27c2a7a2344af5037d821ea74e4ac2168538de",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&timestamp=1701830758140&recvWindow=5000&signature=0e5e245e6ed272d5d0c170259f27c2a7a2344af5037d821ea74e4ac2168538de",
                 "input": [
                     "ATLAS/USDT",
                     8
@@ -149,11 +204,50 @@
                 ]
             },
             {
+                "description": "Spot orders with until",
+                "method": "fetchOrders",
+                "url": "https://api.mexc.com/api/v3/allOrders?symbol=LTCUSDT&timestamp=1699458295321&recvWindow=5000&signature=5abde0d1bc718a8528ef3fb60023353897cefabdbd0ccb10f583eabe675f2b7c&startTime=1704067200000&endTime=1709251200000&limit=10",
+                "input": [
+                    "LTC/USDT",
+                    1704067200000,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
+                ]
+            },
+            {
                 "description": "Swap orders",
                 "method": "fetchOrders",
                 "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders with until",
+                "method": "fetchOrders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1704067200000&end_time=1709251200000&page_size=10",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1704067200000,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
+                ]
+            },
+            {
+                "description": "Swap orders with until only",
+                "method": "fetchOrders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1701475200001&end_time=1709251200000&page_size=10",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
                 ]
             }
         ],
@@ -179,9 +273,22 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "Spot private trades with since and until",
+                "method": "fetchMyTrades",
+                "url": "https://api.mexc.com/api/v3/myTrades?symbol=ATLASUSDT&startTime=1727693417000&limit=100&endTime=1727783452000&timestamp=1727783472149&recvWindow=5000&signature=7ea6bbb9c5d0bd1bf251a23c1ed411d98372a720216af0de781eccb482c96335",
+                "input": [
+                  "ATLAS/USDT",
+                  1727693417000,
+                  100,
+                  {
+                    "until": 1727783452000
+                  }
+                ]
+            },
+            {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.mexc.com/api/v3/myTrades?symbol=LTCUSDT&start_time=1699457638000&limit=5&timestamp=1699458296346&recvWindow=5000&signature=7dc7d5f1dd4aa27c8b16c58e6aa72b425dad4fe252fdc2e8f89ba505681a4794",
+                "url": "https://api.mexc.com/api/v3/myTrades?symbol=LTCUSDT&startTime=1699457638000&limit=5&timestamp=1699458296346&recvWindow=5000&signature=7dc7d5f1dd4aa27c8b16c58e6aa72b425dad4fe252fdc2e8f89ba505681a4794",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
@@ -332,10 +439,36 @@
         "fetchDepositAddress": [
             {
                 "description": "fetch USDT deposit address",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&timestamp=1699460640223&recvWindow=5000&signature=04c87095842f1fc7c122a8d44739b14eb01733fe99ce6f25ed84899f8c5802f4",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "fetch address with network",
+                "disabledGO": true,
+                "method": "fetchDepositAddress",
+                "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223738994&recvWindow=5000&signature=ccfd37c930d89725783e5ee1f8c1cba2445fa303a641bd030b838f6edbf8250b",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "SOL"
+                  }
+                ]
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create deposit address",
+                "method": "createDepositAddress",
+                "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223818141&recvWindow=5000&signature=055ceaaac46131aced34182d2335082895757f0403af8d794faeac8692b95852",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "SOL"
+                  }
                 ]
             }
         ],
@@ -607,11 +740,69 @@
                 "method": "fetchPositionsHistory",
                 "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions?page_size=5&symbol=SOL_USDT",
                 "input": [
-                  [ "SOL/USDT:USDT" ],
+                    [
+                        "SOL/USDT:USDT"
+                    ],
+                    null,
+                    5
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "https://api.mexc.com/api/v3/capital/withdraw?coin=USDT&address=THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7&amount=5&netWork=TRX&timestamp=1725196608420&recvWindow=5000&signature=090d7e388c8392ca12ca72c0041cc4b1ba44ee59053c74f55592dc48bc5c50a4",
+                "input": [
+                  "USDT",
+                  5,
+                  "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
                   null,
-                  5
+                  {
+                    "network": "TRC20"
+                  }
                 ]
               }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set isolated leverage",
+                "method": "setMarginMode",
+                "url": "https://contract.mexc.com/api/v1/private/position/change_leverage",
+                "input": [
+                  "isolated",
+                  "ADA/USDT:USDT",
+                  {
+                    "leverage": 20,
+                    "direction": "short"
+                  }
+                ],
+                "output": "{\"leverage\":20,\"openType\":1,\"symbol\":\"ADA_USDT\",\"positionType\":2}"
+            },
+            {
+                "description": "Set cross leverage",
+                "method": "setMarginMode",
+                "url": "https://contract.mexc.com/api/v1/private/position/change_leverage",
+                "input": [
+                  "cross",
+                  "ADA/USDT:USDT",
+                  {
+                    "leverage": 10,
+                    "direction": "long"
+                  }
+                ],
+                "output": "{\"leverage\":10,\"openType\":2,\"symbol\":\"ADA_USDT\",\"positionType\":1}"
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

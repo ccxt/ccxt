@@ -7,7 +7,7 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
  */
 export default class ramzinex extends Exchange {
     describe(): any;
-    fetchMarkets(symbols?: Strings, params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

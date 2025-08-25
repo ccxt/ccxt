@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.sarmayex import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class sarmayex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(sarmayex, self).describe(), {
             'id': 'sarmayex',
             'name': 'Sarmayex',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -111,10 +111,10 @@ class sarmayex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for sarmayex
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -131,7 +131,7 @@ class sarmayex(Exchange, ImplicitAPI):
                 markets[i]['quote'] = quote
                 if base == quote:
                     continue
-                market = await self.parse_market(markets[i])
+                market = self.parse_market(markets[i])
                 result.append(market)
         return result
 
@@ -237,7 +237,7 @@ class sarmayex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -259,7 +259,7 @@ class sarmayex(Exchange, ImplicitAPI):
                 markets[i]['base'] = base
                 markets[i]['quote'] = quote
                 markets[i]['symbol'] = base + quote
-                ticker = await self.parse_ticker(markets[i])
+                ticker = self.parse_ticker(markets[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -267,7 +267,7 @@ class sarmayex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api.sarmayex.com/api/v1/public/currencies
+        https://api.sarmayex.com/api/v1/public/currencies
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`

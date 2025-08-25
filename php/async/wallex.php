@@ -7,16 +7,16 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\wallex as Exchange;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class wallex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'wallex',
             'name' => 'Wallex',
-            'country' => array( 'IR' ),
+            'countries' => array( 'IR' ),
             'rateLimit' => 1000,
             'version' => '1',
             'certified' => false,
@@ -127,8 +127,8 @@ class wallex extends Exchange {
         ));
     }
 
-    public function fetch_markets(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_markets($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for wallex
              * @see https://api-docs.wallex.ir/#be8d9c51a2
@@ -142,7 +142,7 @@ class wallex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $market = Async\await($this->parse_market($marketList[$index]));
+                $market = $this->parse_market($marketList[$index]);
                 $result[] = $market;
             }
             return $result;
@@ -275,7 +275,7 @@ class wallex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $index = $marketKeys[$i];
-                $ticker = Async\await($this->parse_ticker($marketList[$index]));
+                $ticker = $this->parse_ticker($marketList[$index]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -297,7 +297,7 @@ class wallex extends Exchange {
             $response = Async\await($this->publicGetV1Markets ($params));
             $markets = $this->safe_dict($response, 'result');
             $marketList = $this->safe_dict($markets, 'symbols');
-            $ticker = Async\await($this->parse_ticker($marketList[$market['id']]));
+            $ticker = $this->parse_ticker($marketList[$market['id']]);
             return $ticker;
         }) ();
     }

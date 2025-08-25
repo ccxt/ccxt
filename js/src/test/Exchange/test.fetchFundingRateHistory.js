@@ -14,5 +14,6 @@ async function testFetchFundingRateHistory(exchange, skippedProperties, symbol) 
         testFundingRateHistory(exchange, skippedProperties, method, fundingRatesHistory[i], symbol);
     }
     testSharedMethods.assertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
+    return true;
 }
 export default testFetchFundingRateHistory;

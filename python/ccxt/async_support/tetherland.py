@@ -5,17 +5,17 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tetherland import ImplicitAPI
-from ccxt.base.types import Market, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Market, Strings, Ticker, Tickers
 from typing import List
 
 
 class tetherland(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(tetherland, self).describe(), {
             'id': 'tetherland',
             'name': 'TetherLand',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': False,
@@ -111,10 +111,10 @@ class tetherland(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, symbols: Strings = None, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for tetherland
-        :see: https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
+        https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -127,7 +127,7 @@ class tetherland(Exchange, ImplicitAPI):
                 if markets[i]['symbol'] == 'USDT' and quotes[key] == 'USDT':
                     continue
                 markets[i]['quote'] = quotes[key]
-                market = await self.parse_market(markets[i])
+                market = self.parse_market(markets[i])
                 result.append(market)
         return result
 
@@ -234,7 +234,7 @@ class tetherland(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
+        https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -252,7 +252,7 @@ class tetherland(Exchange, ImplicitAPI):
                     continue
                 markets[i]['quote'] = quotes[key]
                 markets[i]['id'] = markets[i]['symbol'] + '/' + markets[i]['quote']
-                market = await self.parse_ticker(markets[i])
+                market = self.parse_ticker(markets[i])
                 symbol = market['symbol']
                 result[symbol] = market
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -260,7 +260,7 @@ class tetherland(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
+        https://docs.tetherland.com/docs/tetherland/71ca11f41704f-user-api
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`

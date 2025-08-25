@@ -1,20 +1,22 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitimen$1 = require('./abstract/bitimen.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitimen
  * @augments Exchange
  * @description Set rateLimit to 1000 if fully verified
  */
-class bitimen extends bitimen$1 {
+class bitimen extends bitimen$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitimen',
             'name': 'Bitimen',
-            'country': ['IR'],
+            'countries': ['IR'],
             'rateLimit': 1000,
             'version': '1',
             'certified': false,
@@ -119,7 +121,7 @@ class bitimen extends bitimen$1 {
             },
         });
     }
-    async fetchMarkets(symbols = undefined, params = {}) {
+    async fetchMarkets(params = {}) {
         /**
          * @method
          * @name bitimen#fetchMarkets
@@ -133,7 +135,7 @@ class bitimen extends bitimen$1 {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const index = marketKeys[i];
-            const market = await this.parseMarket(response[index]);
+            const market = this.parseMarket(response[index]);
             result.push(market);
         }
         return result;
@@ -247,7 +249,7 @@ class bitimen extends bitimen$1 {
             if (response[index]['last'] === '0') {
                 continue;
             }
-            const ticker = await this.parseTicker(response[index]);
+            const ticker = this.parseTicker(response[index]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -266,7 +268,7 @@ class bitimen extends bitimen$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetApiMarketStats(params);
-        const ticker = await this.parseTicker(response[market['id']]);
+        const ticker = this.parseTicker(response[market['id']]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -420,4 +422,4 @@ class bitimen extends bitimen$1 {
     }
 }
 
-module.exports = bitimen;
+exports["default"] = bitimen;
