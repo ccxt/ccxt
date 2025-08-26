@@ -1401,6 +1401,63 @@
         ],
         "createOrder": [
             {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "1992319485461489920",
+                        "orderLinkId": "1992319485469878528"
+                    },
+                    "retExtInfo": {},
+                    "time": "1752238990423"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1992319485461489920",
+                        "orderLinkId": "1992319485469878528"
+                    },
+                    "id": "1992319485461489920",
+                    "clientOrderId": "1992319485469878528",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "create spot order",
                 "method": "createOrder",
                 "input": [
@@ -4083,7 +4140,7 @@
                     "timestamp": 1710892800000,
                     "datetime": "2024-03-20T00:00:00.000Z",
                     "id": "c88057b1-d3b3-4a19-861a-ae79a8762796",
-                    "amount": 0.1,
+                    "amount": 0.0007797,
                     "rate": 0.0001
                   },
                   {
@@ -4124,7 +4181,7 @@
                     "timestamp": 1710921600000,
                     "datetime": "2024-03-20T08:00:00.000Z",
                     "id": "89102b18-96c4-42d2-bc26-131699036635",
-                    "amount": 0.1,
+                    "amount": -0.00708126,
                     "rate": -0.000881
                   }
                 ]

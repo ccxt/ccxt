@@ -30,6 +30,9 @@ class ndax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
@@ -42,6 +45,7 @@ class ndax extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -72,12 +76,15 @@ class ndax extends Exchange {
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
@@ -85,6 +92,7 @@ class ndax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -2477,7 +2485,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

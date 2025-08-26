@@ -2,6 +2,7 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
+    fund_v1_private_get_account_balance = fundV1PrivateGetAccountBalance = Entry('account/balance', ['fund', 'v1', 'private'], 'GET', {'cost': 1})
     spot_v1_public_get_server_time = spotV1PublicGetServerTime = Entry('server/time', ['spot', 'v1', 'public'], 'GET', {'cost': 1})
     spot_v1_public_get_common_symbols = spotV1PublicGetCommonSymbols = Entry('common/symbols', ['spot', 'v1', 'public'], 'GET', {'cost': 1})
     spot_v1_public_get_market_trades = spotV1PublicGetMarketTrades = Entry('market/trades', ['spot', 'v1', 'public'], 'GET', {'cost': 1})
@@ -153,6 +154,9 @@ class ImplicitAPI:
     copytrading_v1_private_post_swap_trace_settpsl = copyTradingV1PrivatePostSwapTraceSetTPSL = Entry('swap/trace/setTPSL', ['copyTrading', 'v1', 'private'], 'POST', {'cost': 2})
     copytrading_v1_private_post_spot_trader_sellorder = copyTradingV1PrivatePostSpotTraderSellOrder = Entry('spot/trader/sellOrder', ['copyTrading', 'v1', 'private'], 'POST', {'cost': 10})
     api_v3_private_get_asset_transfer = apiV3PrivateGetAssetTransfer = Entry('asset/transfer', ['api', 'v3', 'private'], 'GET', {'cost': 1})
+    api_v3_private_get_asset_transferrecord = apiV3PrivateGetAssetTransferRecord = Entry('asset/transferRecord', ['api', 'v3', 'private'], 'GET', {'cost': 5})
     api_v3_private_get_capital_deposit_hisrec = apiV3PrivateGetCapitalDepositHisrec = Entry('capital/deposit/hisrec', ['api', 'v3', 'private'], 'GET', {'cost': 1})
     api_v3_private_get_capital_withdraw_history = apiV3PrivateGetCapitalWithdrawHistory = Entry('capital/withdraw/history', ['api', 'v3', 'private'], 'GET', {'cost': 1})
     api_v3_private_post_post_asset_transfer = apiV3PrivatePostPostAssetTransfer = Entry('post/asset/transfer', ['api', 'v3', 'private'], 'POST', {'cost': 1})
+    api_asset_v1_private_post_transfer = apiAssetV1PrivatePostTransfer = Entry('transfer', ['api', 'asset', 'v1', 'private'], 'POST', {'cost': 5})
+    api_asset_v1_public_get_transfer_supportcoins = apiAssetV1PublicGetTransferSupportCoins = Entry('transfer/supportCoins', ['api', 'asset', 'v1', 'public'], 'GET', {'cost': 5})

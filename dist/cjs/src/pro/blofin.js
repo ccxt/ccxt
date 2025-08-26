@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var blofin$1 = require('../blofin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class blofin extends blofin$1 {
+class blofin extends blofin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -737,4 +739,4 @@ class blofin extends blofin$1 {
     }
 }
 
-module.exports = blofin;
+exports["default"] = blofin;

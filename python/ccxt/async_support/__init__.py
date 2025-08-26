@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.92'
+__version__ = '4.5.2'
 
 # -----------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -116,13 +117,14 @@ from ccxt.async_support.delta import delta                                      
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
-from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
+from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
+from ccxt.async_support.hibachi import hibachi                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
@@ -159,7 +161,6 @@ from ccxt.async_support.timex import timex                                      
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
-from ccxt.async_support.vertex import vertex                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
@@ -223,13 +224,14 @@ exchanges = [
     'deribit',
     'derive',
     'digifinex',
-    'ellipx',
     'exmo',
     'fmfwio',
+    'foxbit',
     'gate',
     'gateio',
     'gemini',
     'hashkey',
+    'hibachi',
     'hitbtc',
     'hollaex',
     'htx',
@@ -266,7 +268,6 @@ exchanges = [
     'tokocrypto',
     'tradeogre',
     'upbit',
-    'vertex',
     'wavesexchange',
     'whitebit',
     'woo',

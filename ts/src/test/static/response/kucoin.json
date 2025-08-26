@@ -704,6 +704,7 @@
                   "USDT",
                   3,
                   "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  null,
                   {
                     "network": "OP"
                   }
@@ -1814,7 +1815,7 @@
                                     }
                                 }
                             },
-                            "OP": {
+                            "OPTIMISM": {
                                 "info": {
                                     "chainName": "OPTIMISM",
                                     "withdrawalMinSize": "3",
@@ -1834,7 +1835,7 @@
                                 },
                                 "id": "optimism",
                                 "name": "OPTIMISM",
-                                "code": "OP",
+                                "code": "OPTIMISM",
                                 "active": true,
                                 "fee": 1,
                                 "deposit": true,

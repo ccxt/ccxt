@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Bool, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -521,7 +521,7 @@ class bittrade(ccxt.async_support.bittrade):
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "ts": 1586323747018,

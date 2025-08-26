@@ -227,7 +227,7 @@ export default class bybit extends Exchange {
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -352,7 +352,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name bybit#fetchOrderClassic
@@ -617,7 +617,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name bybit#fetchPosition
@@ -680,7 +680,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.sellLeverage] leverage for sell side
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name bybit#setPositionMode

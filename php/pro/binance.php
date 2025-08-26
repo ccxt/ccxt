@@ -225,7 +225,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -427,6 +427,7 @@ class binance extends \ccxt\async\binance {
             'contracts' => $this->safe_number($liquidation, 'l'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'ap'),
+            'side' => $this->safe_string_lower($liquidation, 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -4113,7 +4114,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function fetch_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -4130,9 +4131,6 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
-            if ($symbol === null) {
-                throw new BadRequest($this->id . ' fetchTradesWs () requires a $symbol argument');
-            }
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchTradesWs', $market, $params);
             if ($type !== 'spot' && $type !== 'future') {
@@ -4393,7 +4391,7 @@ class binance extends \ccxt\async\binance {
         $code = $this->safe_integer($error, 'code');
         $msg = $this->safe_string($error, 'msg');
         try {
-            $this->handle_errors($code, $msg, $client->url, null, null, $this->json($error), $error, null, null);
+            $this->handle_errors($code, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
             // private endpoint uses $id

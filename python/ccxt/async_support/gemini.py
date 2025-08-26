@@ -276,7 +276,7 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': False,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': True,  # fetches from WEB
@@ -1616,7 +1616,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

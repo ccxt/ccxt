@@ -3209,7 +3209,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         if (market['swap']) {
-            return response;
+            return this.safeOrder ({ 'info': response });
         }
         const data = this.safeValue (response, 'data');
         if (data === true) {
@@ -3341,7 +3341,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3799,7 +3799,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.network] the network name for this withdrawal
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -4703,7 +4703,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.marginMode] 'isolated' or 'cross'
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

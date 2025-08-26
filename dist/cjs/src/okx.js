@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okx$1 = require('./abstract/okx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okx
  * @augments Exchange
  */
-class okx extends okx$1 {
+class okx extends okx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okx',
@@ -736,6 +738,7 @@ class okx extends okx$1 {
                     '51137': errors.InvalidOrder,
                     '51138': errors.InvalidOrder,
                     '51139': errors.InvalidOrder,
+                    '51155': errors.RestrictedLocation,
                     '51156': errors.BadRequest,
                     '51159': errors.BadRequest,
                     '51162': errors.InvalidOrder,
@@ -1147,7 +1150,9 @@ class okx extends okx$1 {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
+                'fetchMarkets': {
+                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
+                },
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1214,7 +1219,7 @@ class okx extends okx$1 {
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
-                'brokerId': 'e847386590ce4dBC',
+                'brokerId': '6b9ad766b55dBCDE',
             },
             'features': {
                 'default': {
@@ -1544,7 +1549,14 @@ class okx extends okx$1 {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const types = this.safeList(this.options, 'fetchMarkets', []);
+        let types = ['spot', 'future', 'swap', 'option'];
+        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList(fetchMarketsOption, 'types', types);
+        }
+        else {
+            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
+        }
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -2407,6 +2419,7 @@ class okx extends okx$1 {
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2414,6 +2427,7 @@ class okx extends okx$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2429,6 +2443,7 @@ class okx extends okx$1 {
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
+        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
@@ -2453,7 +2468,8 @@ class okx extends okx$1 {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                limit = Math.min(limit, 100); // max 100 for historical endpoint
+                const maxLimit = (price !== undefined) ? 100 : 300;
+                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2488,6 +2504,10 @@ class okx extends okx$1 {
         }
         else {
             if (isHistoryCandles) {
+                if (limitIsUndefined && (limit === 100)) {
+                    limit = 300;
+                    request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -2601,12 +2621,12 @@ class okx extends okx$1 {
             // it may be incorrect to use total, free and used for swap accounts
             const eq = this.safeString(balance, 'eq');
             const availEq = this.safeString(balance, 'availEq');
-            if ((eq === undefined) || (availEq === undefined)) {
+            account['total'] = eq;
+            if (availEq === undefined) {
                 account['free'] = this.safeString(balance, 'availBal');
                 account['used'] = this.safeString(balance, 'frozenBal');
             }
             else {
-                account['total'] = eq;
                 account['free'] = availEq;
             }
             result[code] = account;
@@ -2878,7 +2898,7 @@ class okx extends okx$1 {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
@@ -3043,7 +3063,8 @@ class okx extends okx$1 {
                 if (stopLossTriggerPrice === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
-                request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['slTriggerPx'] = slTriggerPx;
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
@@ -3134,6 +3155,14 @@ class okx extends okx$1 {
             // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
+            }
+            if (side === 'sell') {
+                request = this.omit(request, 'tgtCcy');
+            }
+            if (this.safeString(request, 'tdMode') === 'cash') {
+                // for some reason tdMode = cash throws
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode;
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitPrice);
@@ -3468,7 +3497,7 @@ class okx extends okx$1 {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -6294,7 +6323,7 @@ class okx extends okx$1 {
             this.checkRequiredCredentials();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
-                const brokerId = this.safeString(this.options, 'brokerId', 'e847386590ce4dBC');
+                const brokerId = this.safeString(this.options, 'brokerId', '6b9ad766b55dBCDE');
                 if (Array.isArray(params)) {
                     for (let i = 0; i < params.length; i++) {
                         const entry = params[i];
@@ -8986,4 +9015,4 @@ class okx extends okx$1 {
     }
 }
 
-module.exports = okx;
+exports["default"] = okx;

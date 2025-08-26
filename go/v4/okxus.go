@@ -4,63 +4,61 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 type okxus struct {
-    okx
-
+	okx
 }
 
-func NewOkxusCore() okxus {
-   p := okxus{}
-   setDefaults(&p)
-   return p
+func NewOkxusCore() *okxus {
+	p := &okxus{}
+	setDefaults(p)
+	return p
 }
 
-func  (this *okxus) Describe() interface{}  {
-    return this.DeepExtend(this.okx.Describe(), map[string]interface{} {
-        "id": "okxus",
-        "name": "OKX (US)",
-        "certified": false,
-        "pro": true,
-        "hostname": "us.okx.com",
-        "urls": map[string]interface{} {
-            "logo": "https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg",
-            "api": map[string]interface{} {
-                "rest": "https://{hostname}",
-            },
-            "www": "https://app.okx.com",
-            "doc": "https://app.okx.com/docs-v5/en/#overview",
-            "fees": "https://app.okx.com/pages/products/fees.html",
-            "referral": map[string]interface{} {
-                "url": "https://www.app.okx.com/join/CCXT2023",
-                "discount": 0.2,
-            },
-            "test": map[string]interface{} {
-                "rest": "https://{hostname}",
-            },
-        },
-        "has": map[string]interface{} {
-            "CORS": nil,
-            "spot": true,
-            "margin": nil,
-            "swap": false,
-            "future": false,
-            "option": false,
-        },
-        "features": map[string]interface{} {
-            "swap": map[string]interface{} {
-                "linear": nil,
-                "inverse": nil,
-            },
-            "future": map[string]interface{} {
-                "linear": nil,
-                "inverse": nil,
-            },
-        },
-    })
+func (this *okxus) Describe() interface{} {
+	return this.DeepExtend(this.okx.Describe(), map[string]interface{}{
+		"id":        "okxus",
+		"name":      "OKX (US)",
+		"certified": false,
+		"pro":       true,
+		"hostname":  "us.okx.com",
+		"urls": map[string]interface{}{
+			"logo": "https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg",
+			"api": map[string]interface{}{
+				"rest": "https://{hostname}",
+			},
+			"www":  "https://app.okx.com",
+			"doc":  "https://app.okx.com/docs-v5/en/#overview",
+			"fees": "https://app.okx.com/pages/products/fees.html",
+			"referral": map[string]interface{}{
+				"url":      "https://www.app.okx.com/join/CCXT2023",
+				"discount": 0.2,
+			},
+			"test": map[string]interface{}{
+				"rest": "https://{hostname}",
+			},
+		},
+		"has": map[string]interface{}{
+			"CORS":   nil,
+			"spot":   true,
+			"margin": nil,
+			"swap":   false,
+			"future": false,
+			"option": false,
+		},
+		"features": map[string]interface{}{
+			"swap": map[string]interface{}{
+				"linear":  nil,
+				"inverse": nil,
+			},
+			"future": map[string]interface{}{
+				"linear":  nil,
+				"inverse": nil,
+			},
+		},
+	})
 }
-
 
 func (this *okxus) Init(userConfig map[string]interface{}) {
-    this.okx.Init(this.DeepExtend(this.Describe(), userConfig))
-    this.Itf = this
-    this.Exchange.DerivedExchange = this
+	this.okx.Init(this.DeepExtend(this.Describe(), userConfig))
+	this.Itf = this
+	this.Exchange.DerivedExchange = this
 }

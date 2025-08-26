@@ -2938,7 +2938,7 @@ class delta(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

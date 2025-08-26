@@ -947,7 +947,7 @@ public partial class exmo : Exchange
             ((IDictionary<string,object>)request)["to"] = to;
         } else
         {
-            ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             if (isTrue(untilIsDefined))
             {
                 ((IDictionary<string,object>)request)["to"] = mathMin(until, now);

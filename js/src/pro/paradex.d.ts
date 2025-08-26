@@ -1,5 +1,5 @@
 import paradexRest from '../paradex.js';
-import type { Int, Trade, OrderBook, Ticker, Strings, Tickers } from '../base/types.js';
+import type { Int, Trade, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
@@ -49,6 +49,6 @@ export default class paradex extends paradexRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

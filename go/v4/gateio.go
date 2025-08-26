@@ -4,26 +4,24 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 type gateio struct {
-    gate
-
+	gate
 }
 
-func NewGateioCore() gateio {
-   p := gateio{}
-   setDefaults(&p)
-   return p
+func NewGateioCore() *gateio {
+	p := &gateio{}
+	setDefaults(p)
+	return p
 }
 
-func  (this *gateio) Describe() interface{}  {
-    return this.DeepExtend(this.gate.Describe(), map[string]interface{} {
-        "id": "gateio",
-        "alias": true,
-    })
+func (this *gateio) Describe() interface{} {
+	return this.DeepExtend(this.gate.Describe(), map[string]interface{}{
+		"id":    "gateio",
+		"alias": true,
+	})
 }
-
 
 func (this *gateio) Init(userConfig map[string]interface{}) {
-    this.gate.Init(this.DeepExtend(this.Describe(), userConfig))
-    this.Itf = this
-    this.Exchange.DerivedExchange = this
+	this.gate.Init(this.DeepExtend(this.Describe(), userConfig))
+	this.Itf = this
+	this.Exchange.DerivedExchange = this
 }

@@ -1268,7 +1268,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //

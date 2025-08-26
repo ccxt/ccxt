@@ -10,7 +10,7 @@ public partial class woo
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/systemInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class woo
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/systemInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class woo
     /// retrieves data on all markets for woo
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#exchange-information"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class woo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#market-trades-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/marketTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -101,10 +101,42 @@ public partial class woo
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetch the trading fees for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch trading fees in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-account-information-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -181,9 +213,11 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingAmount2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
+        var trailingAmount = trailingAmount2 == 0 ? null : (object)trailingAmount2;
+        var trailingTriggerPrice = trailingTriggerPrice2 == 0 ? null : (object)trailingTriggerPrice2;
         var res = await this.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters);
         return new Order(res);
     }
@@ -208,9 +242,11 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingPercent2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
+        var trailingPercent = trailingPercent2 == 0 ? null : (object)trailingPercent2;
+        var trailingTriggerPrice = trailingTriggerPrice2 == 0 ? null : (object)trailingTriggerPrice2;
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
         return new Order(res);
     }
@@ -218,8 +254,8 @@ public partial class woo
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -373,9 +409,8 @@ public partial class woo
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#cancel-algo-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#cancel-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#cancel-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -392,18 +427,17 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#cancel-all-pending-orders"/>  <br/>
-    /// See <see href="https://docs.woox.io/#cancel-orders"/>  <br/>
-    /// See <see href="https://docs.woox.io/#cancel-all-pending-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -420,16 +454,16 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#cancel-all-after"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -440,17 +474,17 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the api result.</returns>
-    public async Task<List<Order>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-algo-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#get-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,8 +510,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -516,12 +550,6 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trailing</term>
-    /// <description>
-    /// boolean : set to true if you want to fetch trailing orders
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : set to true if you want to fetch orders with pagination
@@ -541,8 +569,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -606,8 +634,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -671,7 +699,7 @@ public partial class woo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#orderbook-snapshot-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -698,8 +726,7 @@ public partial class woo
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#kline-public"/>  <br/>
-    /// See <see href="https://docs.woox.io/#kline-historical-data-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/klineHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -717,6 +744,12 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
     /// </description>
     /// </item>
     /// </list>
@@ -767,7 +800,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-trade-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -807,7 +840,8 @@ public partial class woo
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-assets-of-subaccounts"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/sub_accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -847,7 +881,7 @@ public partial class woo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-token-deposit-address"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -867,7 +901,7 @@ public partial class woo
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -907,7 +941,7 @@ public partial class woo
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -941,7 +975,7 @@ public partial class woo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -975,7 +1009,7 @@ public partial class woo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1035,7 +1069,7 @@ public partial class woo
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1086,7 +1120,7 @@ public partial class woo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1095,7 +1129,7 @@ public partial class woo
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-funding-fee-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1141,7 +1175,7 @@ public partial class woo
     /// fetch the current funding rate interval
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1161,7 +1195,7 @@ public partial class woo
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1181,7 +1215,7 @@ public partial class woo
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1201,7 +1235,7 @@ public partial class woo
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-funding-rate-history-for-one-market-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1247,7 +1281,7 @@ public partial class woo
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#update-position-mode"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/position_mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1267,7 +1301,8 @@ public partial class woo
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-account-information-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1282,7 +1317,7 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.position_mode</term>
+    /// <term>params.positionMode</term>
     /// <description>
     /// string : *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
     /// </description>
@@ -1299,8 +1334,8 @@ public partial class woo
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#update-leverage-setting"/>  <br/>
-    /// See <see href="https://docs.woox.io/#update-futures-leverage-setting"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/set_leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1321,9 +1356,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.position_side</term>
+    /// <term>params.positionMode</term>
     /// <description>
-    /// string : *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+    /// string : *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
     /// </description>
     /// </item>
     /// </list>
@@ -1334,11 +1369,41 @@ public partial class woo
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetch data on an open position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);

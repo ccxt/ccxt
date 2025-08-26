@@ -200,6 +200,139 @@
         }
     },
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "rolling tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ],
+                    {
+                        "rolling": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "-306.15000000",
+                        "priceChangePercent": "-0.258",
+                        "weightedAvgPrice": "118352.05464480",
+                        "openPrice": "118696.59000000",
+                        "highPrice": "119273.36000000",
+                        "lowPrice": "117427.50000000",
+                        "lastPrice": "118390.44000000",
+                        "volume": "14560.26477000",
+                        "quoteVolume": "1723237251.70184720",
+                        "openTime": "1753702740000",
+                        "closeTime": "1753789176708",
+                        "firstId": "5116055886",
+                        "lastId": "5117987410",
+                        "count": "1931525"
+                    },
+                    {
+                        "symbol": "ETHUSDT",
+                        "priceChange": "-51.30000000",
+                        "priceChangePercent": "-1.325",
+                        "weightedAvgPrice": "3809.98521582",
+                        "openPrice": "3871.36000000",
+                        "highPrice": "3889.99000000",
+                        "lowPrice": "3731.21000000",
+                        "lastPrice": "3820.06000000",
+                        "volume": "604756.07960000",
+                        "quoteVolume": "2304111722.45188600",
+                        "openTime": "1753702740000",
+                        "closeTime": "1753789176708",
+                        "firstId": "2663611526",
+                        "lastId": "2666831990",
+                        "count": "3220465"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1753789176708,
+                        "datetime": "2025-07-29T11:39:36.708Z",
+                        "high": 119273.36,
+                        "low": 117427.5,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 118352.0546448,
+                        "open": 118696.59,
+                        "close": 118390.44,
+                        "last": 118390.44,
+                        "previousClose": null,
+                        "change": -306.15,
+                        "percentage": -0.258,
+                        "average": 118543.515,
+                        "baseVolume": 14560.26477,
+                        "quoteVolume": 1723237251.7018473,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "priceChange": "-306.15000000",
+                            "priceChangePercent": "-0.258",
+                            "weightedAvgPrice": "118352.05464480",
+                            "openPrice": "118696.59000000",
+                            "highPrice": "119273.36000000",
+                            "lowPrice": "117427.50000000",
+                            "lastPrice": "118390.44000000",
+                            "volume": "14560.26477000",
+                            "quoteVolume": "1723237251.70184720",
+                            "openTime": "1753702740000",
+                            "closeTime": "1753789176708",
+                            "firstId": "5116055886",
+                            "lastId": "5117987410",
+                            "count": "1931525"
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1753789176708,
+                        "datetime": "2025-07-29T11:39:36.708Z",
+                        "high": 3889.99,
+                        "low": 3731.21,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 3809.98521582,
+                        "open": 3871.36,
+                        "close": 3820.06,
+                        "last": 3820.06,
+                        "previousClose": null,
+                        "change": -51.3,
+                        "percentage": -1.325,
+                        "average": 3845.71,
+                        "baseVolume": 604756.0796,
+                        "quoteVolume": 2304111722.451886,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "priceChange": "-51.30000000",
+                            "priceChangePercent": "-1.325",
+                            "weightedAvgPrice": "3809.98521582",
+                            "openPrice": "3871.36000000",
+                            "highPrice": "3889.99000000",
+                            "lowPrice": "3731.21000000",
+                            "lastPrice": "3820.06000000",
+                            "volume": "604756.07960000",
+                            "quoteVolume": "2304111722.45188600",
+                            "openTime": "1753702740000",
+                            "closeTime": "1753789176708",
+                            "firstId": "2663611526",
+                            "lastId": "2666831990",
+                            "count": "3220465"
+                        }
+                    }
+                }
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "with code",

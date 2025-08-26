@@ -1711,7 +1711,7 @@ export default class okcoin extends Exchange {
         const advanced = this.safeValue (params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (orderInner, 0);
+            return this.safeDict (orderInner, 0) as Order;
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -2538,7 +2538,7 @@ export default class okcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

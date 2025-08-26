@@ -437,6 +437,7 @@ public partial class binance : ccxt.binance
             { "contracts", this.safeNumber(liquidation, "l") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "ap") },
+            { "side", this.safeStringLower(liquidation, "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -4539,14 +4540,10 @@ public partial class binance : ccxt.binance
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    public async override Task<object> fetchTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new BadRequest ((string)add(this.id, " fetchTradesWs () requires a symbol argument")) ;
-        }
         object market = this.market(symbol);
         object type = this.getMarketType("fetchTradesWs", market, parameters);
         if (isTrue(isTrue(!isEqual(type, "spot")) && isTrue(!isEqual(type, "future"))))
@@ -4852,7 +4849,7 @@ public partial class binance : ccxt.binance
         object msg = this.safeString(error, "msg");
         try
         {
-            this.handleErrors(code, msg, client.url, null, null, this.json(error), error, null, null);
+            this.handleErrors(code, msg, client.url, "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;

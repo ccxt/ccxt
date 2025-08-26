@@ -1788,7 +1788,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

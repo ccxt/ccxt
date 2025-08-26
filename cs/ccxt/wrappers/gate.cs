@@ -60,9 +60,14 @@ public partial class gate
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<List<Dictionary<string, object>>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchContractMarkets(parameters);
+        var res = await this.fetchSwapMarkets(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    public async Task<List<Dictionary<string, object>>> FetchFutureMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFutureMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<List<Dictionary<string, object>>> FetchOptionMarkets(Dictionary<string, object> parameters = null)
@@ -761,7 +766,7 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

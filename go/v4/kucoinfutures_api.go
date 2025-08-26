@@ -7,3954 +7,990 @@
 
 package ccxt
 
-func (this *kucoinfutures) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetCurrenciesCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrenciesCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketOrderbookLevel1 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOrderbookLevel1", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketAllTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketAllTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketStats (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketStats", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketOrderbookLevelLevelLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOrderbookLevelLevelLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketOrderbookLevel220 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOrderbookLevel220", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketOrderbookLevel2100 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketOrderbookLevel2100", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketHistories (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketHistories", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetPrices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPrices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarkPriceSymbolCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkPriceSymbolCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarkPriceAllSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkPriceAllSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetMarginConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarginConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicGetAnnouncements (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAnnouncements", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PublicPostBulletPublic (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostBulletPublic", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetAccountsAccountId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountsAccountId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetAccountsLedgers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountsLedgers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfAccountsLedgers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfAccountsLedgers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginAccountLedgers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginAccountLedgers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetSubUser (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSubUser", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetSubAccountsSubUserId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSubAccountsSubUserId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetSubAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSubAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetIsolatedAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetIsolatedAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetDepositAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDepositAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDeposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHistDeposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHistDeposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHistWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHistWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetWithdrawalsQuotas (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawalsQuotas", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetAccountsTransferable (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountsTransferable", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetTransferList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransferList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetBaseFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBaseFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetTradeFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarketOrderbookLevelLevel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarketOrderbookLevelLevel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarketOrderbookLevel2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarketOrderbookLevel2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarketOrderbookLevel3 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarketOrderbookLevel3", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfAccountsOpened (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfAccountsOpened", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersActiveSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersActiveSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginOrderActiveSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginOrderActiveSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersDone (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersDone", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfOrdersDeadCancelAllQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfOrdersDeadCancelAllQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetLimitOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetLimitOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOrderClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrderClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetLimitFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetLimitFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetStopOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetStopOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetStopOrderOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetStopOrderOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetStopOrderQueryOrderByClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetStopOrderQueryOrderByClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOcoOrderOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOcoOrderOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOcoOrderDetailsOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOcoOrderDetailsOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOcoClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOcoClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetOcoOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOcoOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginOrdersActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginOrdersActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginOrdersDone (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginOrdersDone", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginOrdersClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetHfMarginFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetHfMarginFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetEtfInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetEtfInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetRiskLimitStrategy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRiskLimitStrategy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetIsolatedSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetIsolatedSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetIsolatedAccountSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetIsolatedAccountSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginBorrow (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginBorrow", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMarginInterest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMarginInterest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetProjectList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetProjectList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetProjectMarketInterestRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetProjectMarketInterestRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetRedeemOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRedeemOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetPurchaseOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPurchaseOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetBrokerApiRebaseDownload (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBrokerApiRebaseDownload", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetMigrateUserAccountStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetMigrateUserAccountStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateGetAffiliateInviterStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAffiliateInviterStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostSubUserCreated (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSubUserCreated", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostSubApiKeyUpdate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSubApiKeyUpdate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostDepositAddresses (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositAddresses", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostAccountsUniversalTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountsUniversalTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostAccountsSubTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountsSubTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostAccountsInnerTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountsInnerTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostTransferIn (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransferIn", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersSync (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersSync", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersMultiSync (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersMultiSync", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersAlter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersAlter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfOrdersDeadCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfOrdersDeadCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostOrdersTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostOrdersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostStopOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostStopOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostOcoOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOcoOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfMarginOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfMarginOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostHfMarginOrderTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostHfMarginOrderTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostMarginOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostMarginOrderTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginOrderTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostMarginBorrow (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginBorrow", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostMarginRepay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginRepay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostPurchase (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPurchase", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostRedeem (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostRedeem", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostLendPurchaseUpdate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostLendPurchaseUpdate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostBulletPrivate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBulletPrivate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostPositionUpdateUserLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionUpdateUserLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivatePostDepositAddressCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositAddressCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteWithdrawalsWithdrawalId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteWithdrawalsWithdrawalId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersSyncOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersSyncOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersSyncClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersSyncClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersCancelOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersCancelOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfOrdersCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfOrdersCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOrderClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrderClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteStopOrderOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteStopOrderOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteStopOrderCancelOrderByClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteStopOrderCancelOrderByClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteStopOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteStopOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOcoOrderOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOcoOrderOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOcoClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOcoClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteOcoOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOcoOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfMarginOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfMarginOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfMarginOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfMarginOrdersClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) PrivateDeleteHfMarginOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteHfMarginOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetContractsActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetContractsActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetContractsSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetContractsSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel2Snapshot (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel2Snapshot", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel2Depth20 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel2Depth20", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel2Depth100 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel2Depth100", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetKlineQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetKlineQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetInterestQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetInterestQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetIndexQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetIndexQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetMarkPriceSymbolCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetMarkPriceSymbolCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetPremiumQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetPremiumQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetTradeStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetTradeStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetFundingRateSymbolCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetFundingRateSymbolCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetContractFundingRates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetContractFundingRates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel2MessageQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel2MessageQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetContractsRiskLimitSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetContractsRiskLimitSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetAllTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetAllTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel2DepthLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel2DepthLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel3MessageQuery (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel3MessageQuery", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicGetLevel3Snapshot (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicGetLevel3Snapshot", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPublicPostBulletPublic (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPublicPostBulletPublic", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetAccountOverview (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetAccountOverview", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetAccountOverviewAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetAccountOverviewAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetTransferList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetTransferList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetStopOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetStopOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetRecentDoneOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetRecentDoneOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetOrdersByClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetOrdersByClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetRecentFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetRecentFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetOpenOrderStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetOpenOrderStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetPosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetPosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetMarginMaxWithdrawMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetMarginMaxWithdrawMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetContractsRiskLimitSymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetContractsRiskLimitSymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetFundingHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetFundingHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetDepositList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetDepositList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetWithdrawalsQuotas (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetWithdrawalsQuotas", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetWithdrawalList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetWithdrawalList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetTradeStatistics (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetTradeStatistics", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetTradeFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetTradeFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetHistoryPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetHistoryPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetGetMaxOpenSize (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetGetMaxOpenSize", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetGetCrossUserLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetGetCrossUserLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateGetPositionGetMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateGetPositionGetMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostTransferIn (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostTransferIn", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostOrdersTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostOrdersTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostOrdersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostOrdersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostPositionMarginAutoDepositStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostPositionMarginAutoDepositStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostMarginWithdrawMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostMarginWithdrawMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostPositionMarginDepositMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostPositionMarginDepositMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostPositionRiskLimitLevelChange (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostPositionRiskLimitLevelChange", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostBulletPrivate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostBulletPrivate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostStOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostStOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostSubApiKeyUpdate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostSubApiKeyUpdate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostChangeCrossUserLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostChangeCrossUserLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivatePostPositionChangeMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivatePostPositionChangeMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteOrdersClientOrderClientOid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteOrdersClientOrderClientOid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteStopOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteStopOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteWithdrawalsWithdrawalId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteWithdrawalsWithdrawalId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteCancelTransferOut (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteCancelTransferOut", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteSubApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteSubApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) FuturesPrivateDeleteOrdersMultiCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("futuresPrivateDeleteOrdersMultiCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) WebExchangeGetCurrencyCurrencyChainInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("webExchangeGetCurrencyCurrencyChainInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) WebExchangeGetContractSymbolFundingRates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("webExchangeGetContractSymbolFundingRates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdAccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdRebaseDownload (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdRebaseDownload", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetAssetNdbrokerDepositList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetAssetNdbrokerDepositList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdTransferDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdTransferDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdDepositDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdDepositDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerGetBrokerNdWithdrawDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerGetBrokerNdWithdrawDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerPostBrokerNdTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerPostBrokerNdTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerPostBrokerNdAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerPostBrokerNdAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerPostBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerPostBrokerNdAccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerPostBrokerNdAccountUpdateApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerPostBrokerNdAccountUpdateApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) BrokerDeleteBrokerNdAccountApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("brokerDeleteBrokerNdAccountApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetOtcLoanLoan (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetOtcLoanLoan", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetOtcLoanAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetOtcLoanAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnRedeemPreview (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnRedeemPreview", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnSavingProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnSavingProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnHoldAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnHoldAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnPromotionProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnPromotionProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnKcsStakingProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnKcsStakingProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnStakingProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnStakingProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnGetEarnEthStakingProducts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnGetEarnEthStakingProducts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnPostEarnOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnPostEarnOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *kucoinfutures) EarnDeleteEarnOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("earnDeleteEarnOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *kucoinfutures) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
+}
+
+func (this *kucoinfutures) PublicGetCurrenciesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrenciesCurrency", args...)
+}
+
+func (this *kucoinfutures) PublicGetSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSymbols", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketOrderbookLevel1(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel1", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketAllTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketAllTickers", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketStats", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketOrderbookLevelLevelLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevelLevelLimit", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketOrderbookLevel220(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel220", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketOrderbookLevel2100(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketOrderbookLevel2100", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketHistories(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketHistories", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
+}
+
+func (this *kucoinfutures) PublicGetPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPrices", args...)
+}
+
+func (this *kucoinfutures) PublicGetTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTimestamp", args...)
+}
+
+func (this *kucoinfutures) PublicGetStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatus", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarkPriceSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkPriceSymbolCurrent", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarkPriceAllSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkPriceAllSymbols", args...)
+}
+
+func (this *kucoinfutures) PublicGetMarginConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarginConfig", args...)
+}
+
+func (this *kucoinfutures) PublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAnnouncements", args...)
+}
+
+func (this *kucoinfutures) PublicPostBulletPublic(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostBulletPublic", args...)
+}
+
+func (this *kucoinfutures) PrivateGetUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUserInfo", args...)
+}
+
+func (this *kucoinfutures) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
+}
+
+func (this *kucoinfutures) PrivateGetAccountsAccountId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsAccountId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetAccountsLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsLedgers", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfAccountsLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfAccountsLedgers", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginAccountLedgers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginAccountLedgers", args...)
+}
+
+func (this *kucoinfutures) PrivateGetTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransactionHistory", args...)
+}
+
+func (this *kucoinfutures) PrivateGetSubUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubUser", args...)
+}
+
+func (this *kucoinfutures) PrivateGetSubAccountsSubUserId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountsSubUserId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetSubAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccounts", args...)
+}
+
+func (this *kucoinfutures) PrivateGetSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubApiKey", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccounts", args...)
+}
+
+func (this *kucoinfutures) PrivateGetIsolatedAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedAccounts", args...)
+}
+
+func (this *kucoinfutures) PrivateGetDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositAddresses", args...)
+}
+
+func (this *kucoinfutures) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHistDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHistDeposits", args...)
+}
+
+func (this *kucoinfutures) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHistWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHistWithdrawals", args...)
+}
+
+func (this *kucoinfutures) PrivateGetWithdrawalsQuotas(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawalsQuotas", args...)
+}
+
+func (this *kucoinfutures) PrivateGetAccountsTransferable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsTransferable", args...)
+}
+
+func (this *kucoinfutures) PrivateGetTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferList", args...)
+}
+
+func (this *kucoinfutures) PrivateGetBaseFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBaseFee", args...)
+}
+
+func (this *kucoinfutures) PrivateGetTradeFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeFees", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarketOrderbookLevelLevel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevelLevel", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarketOrderbookLevel2(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel2", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarketOrderbookLevel3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarketOrderbookLevel3", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfAccountsOpened(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfAccountsOpened", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersActive", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersActiveSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersActiveSymbols", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginOrderActiveSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrderActiveSymbols", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersDone(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersDone", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfOrdersDeadCancelAllQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfOrdersDeadCancelAllQuery", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfFills", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateGetLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLimitOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOrderClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
+}
+
+func (this *kucoinfutures) PrivateGetLimitFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLimitFills", args...)
+}
+
+func (this *kucoinfutures) PrivateGetStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrder", args...)
+}
+
+func (this *kucoinfutures) PrivateGetStopOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrderOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetStopOrderQueryOrderByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetStopOrderQueryOrderByClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOcoOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrderOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOcoOrderDetailsOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrderDetailsOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOcoClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateGetOcoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOcoOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginOrdersActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersActive", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginOrdersDone(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersDone", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginOrdersClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateGetHfMarginFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetHfMarginFills", args...)
+}
+
+func (this *kucoinfutures) PrivateGetEtfInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEtfInfo", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginCurrencies", args...)
+}
+
+func (this *kucoinfutures) PrivateGetRiskLimitStrategy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRiskLimitStrategy", args...)
+}
+
+func (this *kucoinfutures) PrivateGetIsolatedSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedSymbols", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginSymbols", args...)
+}
+
+func (this *kucoinfutures) PrivateGetIsolatedAccountSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetIsolatedAccountSymbol", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginBorrow", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginRepay", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMarginInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginInterest", args...)
+}
+
+func (this *kucoinfutures) PrivateGetProjectList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProjectList", args...)
+}
+
+func (this *kucoinfutures) PrivateGetProjectMarketInterestRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetProjectMarketInterestRate", args...)
+}
+
+func (this *kucoinfutures) PrivateGetRedeemOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRedeemOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateGetPurchaseOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPurchaseOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateGetBrokerApiRebaseDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBrokerApiRebaseDownload", args...)
+}
+
+func (this *kucoinfutures) PrivateGetMigrateUserAccountStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMigrateUserAccountStatus", args...)
+}
+
+func (this *kucoinfutures) PrivateGetAffiliateInviterStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
+}
+
+func (this *kucoinfutures) PrivatePostSubUserCreated(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubUserCreated", args...)
+}
+
+func (this *kucoinfutures) PrivatePostSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubApiKey", args...)
+}
+
+func (this *kucoinfutures) PrivatePostSubApiKeyUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubApiKeyUpdate", args...)
+}
+
+func (this *kucoinfutures) PrivatePostDepositAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositAddresses", args...)
+}
+
+func (this *kucoinfutures) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
+}
+
+func (this *kucoinfutures) PrivatePostAccountsUniversalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsUniversalTransfer", args...)
+}
+
+func (this *kucoinfutures) PrivatePostAccountsSubTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsSubTransfer", args...)
+}
+
+func (this *kucoinfutures) PrivatePostAccountsInnerTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountsInnerTransfer", args...)
+}
+
+func (this *kucoinfutures) PrivatePostTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferOut", args...)
+}
+
+func (this *kucoinfutures) PrivatePostTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransferIn", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrders", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersTest", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersSync(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersSync", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersMulti", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersMultiSync(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersMultiSync", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersAlter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersAlter", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfOrdersDeadCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfOrdersDeadCancelAll", args...)
+}
+
+func (this *kucoinfutures) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
+}
+
+func (this *kucoinfutures) PrivatePostOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersTest", args...)
+}
+
+func (this *kucoinfutures) PrivatePostOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersMulti", args...)
+}
+
+func (this *kucoinfutures) PrivatePostStopOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStopOrder", args...)
+}
+
+func (this *kucoinfutures) PrivatePostOcoOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOcoOrder", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfMarginOrder", args...)
+}
+
+func (this *kucoinfutures) PrivatePostHfMarginOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostHfMarginOrderTest", args...)
+}
+
+func (this *kucoinfutures) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
+}
+
+func (this *kucoinfutures) PrivatePostMarginOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrderTest", args...)
+}
+
+func (this *kucoinfutures) PrivatePostMarginBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginBorrow", args...)
+}
+
+func (this *kucoinfutures) PrivatePostMarginRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginRepay", args...)
+}
+
+func (this *kucoinfutures) PrivatePostPurchase(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPurchase", args...)
+}
+
+func (this *kucoinfutures) PrivatePostRedeem(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRedeem", args...)
+}
+
+func (this *kucoinfutures) PrivatePostLendPurchaseUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLendPurchaseUpdate", args...)
+}
+
+func (this *kucoinfutures) PrivatePostBulletPrivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBulletPrivate", args...)
+}
+
+func (this *kucoinfutures) PrivatePostPositionUpdateUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPositionUpdateUserLeverage", args...)
+}
+
+func (this *kucoinfutures) PrivatePostDepositAddressCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositAddressCreate", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSubApiKey", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteWithdrawalsWithdrawalId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteWithdrawalsWithdrawalId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersSyncOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersSyncClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersSyncClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersCancelOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfOrdersCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfOrdersCancelAll", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOrderClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrderClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteStopOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteStopOrderCancelOrderByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderCancelOrderByClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteStopOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteStopOrderCancel", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOcoOrderOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoOrderOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOcoClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteOcoOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOcoOrders", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfMarginOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfMarginOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrdersClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) PrivateDeleteHfMarginOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteHfMarginOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetContractsActive(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractsActive", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetContractsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractsSymbol", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTicker", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel2Snapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Snapshot", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel2Depth20(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth20", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel2Depth100(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2Depth100", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTradeHistory", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetKlineQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetKlineQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetInterestQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetInterestQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetIndexQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetIndexQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetMarkPriceSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetMarkPriceSymbolCurrent", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetPremiumQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetPremiumQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetTradeStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTradeStatistics", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetFundingRateSymbolCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetFundingRateSymbolCurrent", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetContractFundingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractFundingRates", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetTimestamp", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetStatus", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel2MessageQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetContractsRiskLimitSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetContractsRiskLimitSymbol", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetAllTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetAllTickers", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel2DepthLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel2DepthLimit", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel3MessageQuery(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel3MessageQuery", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicGetLevel3Snapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicGetLevel3Snapshot", args...)
+}
+
+func (this *kucoinfutures) FuturesPublicPostBulletPublic(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPublicPostBulletPublic", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTransactionHistory", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetAccountOverview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverview", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetAccountOverviewAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetAccountOverviewAll", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetTransferList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTransferList", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetStopOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetStopOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetRecentDoneOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetRecentDoneOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetOrdersByClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOrdersByClientOid", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetFills", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetRecentFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetRecentFills", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetOpenOrderStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetOpenOrderStatistics", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetPosition", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetPositions", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetMarginMaxWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetMarginMaxWithdrawMargin", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetContractsRiskLimitSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetContractsRiskLimitSymbol", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetFundingHistory", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetDepositAddress", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetDepositList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetDepositList", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetWithdrawalsQuotas(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetWithdrawalsQuotas", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetWithdrawalList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetWithdrawalList", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetSubApiKey", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetTradeStatistics(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTradeStatistics", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetTradeFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetTradeFees", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetHistoryPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetHistoryPositions", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetGetMaxOpenSize(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetGetMaxOpenSize", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetGetCrossUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetGetCrossUserLeverage", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateGetPositionGetMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateGetPositionGetMarginMode", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostTransferOut", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostTransferIn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostTransferIn", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostOrdersTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrdersTest", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostOrdersMulti", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostPositionMarginAutoDepositStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginAutoDepositStatus", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostMarginWithdrawMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostMarginWithdrawMargin", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostPositionMarginDepositMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionMarginDepositMargin", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostPositionRiskLimitLevelChange(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionRiskLimitLevelChange", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostBulletPrivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostBulletPrivate", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostWithdrawals", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostStOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostStOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostSubApiKey", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostSubApiKeyUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostSubApiKeyUpdate", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostChangeCrossUserLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostChangeCrossUserLeverage", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivatePostPositionChangeMarginMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivatePostPositionChangeMarginMode", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersOrderId", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteOrdersClientOrderClientOid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersClientOrderClientOid", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteStopOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteStopOrders", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteWithdrawalsWithdrawalId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteWithdrawalsWithdrawalId", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteCancelTransferOut(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteCancelTransferOut", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteSubApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteSubApiKey", args...)
+}
+
+func (this *kucoinfutures) FuturesPrivateDeleteOrdersMultiCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("futuresPrivateDeleteOrdersMultiCancel", args...)
+}
+
+func (this *kucoinfutures) WebExchangeGetCurrencyCurrencyChainInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGetCurrencyCurrencyChainInfo", args...)
+}
+
+func (this *kucoinfutures) WebExchangeGetContractSymbolFundingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGetContractSymbolFundingRates", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdInfo", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdAccount", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdAccountApikey", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdRebaseDownload(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
+}
+
+func (this *kucoinfutures) BrokerGetAssetNdbrokerDepositList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdTransferDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdTransferDetail", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdDepositDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdDepositDetail", args...)
+}
+
+func (this *kucoinfutures) BrokerGetBrokerNdWithdrawDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerGetBrokerNdWithdrawDetail", args...)
+}
+
+func (this *kucoinfutures) BrokerPostBrokerNdTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdTransfer", args...)
+}
+
+func (this *kucoinfutures) BrokerPostBrokerNdAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccount", args...)
+}
+
+func (this *kucoinfutures) BrokerPostBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountApikey", args...)
+}
+
+func (this *kucoinfutures) BrokerPostBrokerNdAccountUpdateApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
+}
+
+func (this *kucoinfutures) BrokerDeleteBrokerNdAccountApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("brokerDeleteBrokerNdAccountApikey", args...)
+}
+
+func (this *kucoinfutures) EarnGetOtcLoanLoan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanLoan", args...)
+}
+
+func (this *kucoinfutures) EarnGetOtcLoanAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetOtcLoanAccounts", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnRedeemPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnRedeemPreview", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnSavingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnSavingProducts", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnHoldAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnHoldAssets", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnPromotionProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnPromotionProducts", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnKcsStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnKcsStakingProducts", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnStakingProducts", args...)
+}
+
+func (this *kucoinfutures) EarnGetEarnEthStakingProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnGetEarnEthStakingProducts", args...)
+}
+
+func (this *kucoinfutures) EarnPostEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnPostEarnOrders", args...)
+}
+
+func (this *kucoinfutures) EarnDeleteEarnOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("earnDeleteEarnOrders", args...)
 }
