@@ -1241,6 +1241,21 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "market history should use limit=300",
+                "method": "fetchOHLCV",
+                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT-SWAP&bar=1H&limit=300",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "type": "HistoryCandles"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "historical endpoint instead of recent",
                 "method": "fetchOHLCV",
                 "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1700291781033",
