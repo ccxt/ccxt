@@ -221,7 +221,7 @@ class afratether(Exchange, ImplicitAPI):
         }
         response = await self.publicGetApiV10Price(request)
         markets = self.safe_list(response, 'Items')
-        result = []
+        result = {}
         for i in range(0, len(markets)):
             ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']

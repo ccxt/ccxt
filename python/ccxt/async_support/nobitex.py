@@ -235,7 +235,7 @@ class nobitex(Exchange, ImplicitAPI):
         response = await self.publicGetMarketStats()
         markets = self.safe_dict(response, 'stats')
         marketKeys = list(markets.keys())
-        result = []
+        result = {}
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
             if markets[symbol]['isClosed']:

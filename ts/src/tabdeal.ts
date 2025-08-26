@@ -233,7 +233,7 @@ export default class tabdeal extends Exchange {
             symbols = this.marketSymbols (symbols);
         }
         const response = await this.publicGetPlotsMarketInformation (params);
-        const result = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const market = this.parseTicker (response[i]);
             const symbol = market['symbol'];

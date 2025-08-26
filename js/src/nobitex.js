@@ -244,7 +244,7 @@ export default class nobitex extends Exchange {
         const response = await this.publicGetMarketStats();
         const markets = this.safeDict(response, 'stats');
         const marketKeys = Object.keys(markets);
-        const result = [];
+        const result = {};
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
             if (markets[symbol]['isClosed']) {
