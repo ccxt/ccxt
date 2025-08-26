@@ -41,6 +41,7 @@ export default class toobit extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchLastPrices': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -97,6 +98,7 @@ export default class toobit extends Exchange {
                         'api/v1/spot/openOrders': 1,
                         'api/v1/spot/tradeOrders': 1,
                         'api/v1/account/trades': 1,
+                        'api/v1/account/balanceFlow': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -1612,6 +1614,97 @@ export default class toobit extends Exchange {
             'toAccount': undefined,
             'status': undefined,
         };
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.symbol] *contract only* unified market symbol
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        let currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateSpotGetV1AccountBalanceFlow (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "id": "539870570957903104",
+        //         "accountId": "122216245228131",
+        //         "coin": "BTC",
+        //         "coinId": "BTC",
+        //         "coinName": "BTC",
+        //         "flowTypeValue": 51,
+        //         "flowType": "USER_ACCOUNT_TRANSFER",
+        //         "flowName": "Transfer",
+        //         "change": "-12.5",
+        //         "total": "379.624059937852365",
+        //         "created": "1579093587214"
+        //     },
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        const currencyId = this.safeString (item, 'coinId');
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.safeInteger (item, 'created');
+        const after = this.safeNumber (item, 'total');
+        const amountRaw = this.safeString (item, 'change');
+        const amount = this.parseNumber (Precise.stringAbs (amountRaw));
+        let direction = 'in';
+        if (amountRaw.startsWith ('-')) {
+            direction = 'out';
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerType (this.safeString (item, 'flowType')),
+            'currency': currency['code'],
+            'amount': amount,
+            'before': undefined,
+            'after': after,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerType (type) {
+        const types: Dict = {
+            'USER_ACCOUNT_TRANSFER': 'transfer',
+            'AIRDROP': 'rebate',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
