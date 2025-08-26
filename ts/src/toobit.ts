@@ -43,6 +43,7 @@ export default class toobit extends Exchange {
                 'fetchLastPrices': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -52,6 +53,7 @@ export default class toobit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'transfer': true,
             },
             'urls': {
                 'logo': '',
@@ -100,6 +102,7 @@ export default class toobit extends Exchange {
                         'api/v1/spot/orderTest': 1,
                         'api/v1/spot/order': 1,
                         'api/v1/spot/batchOrders': 1,
+                        'api/v1/subAccount/transfer': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -134,6 +137,10 @@ export default class toobit extends Exchange {
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'spot',
+                'accountsByType': {
+                    'spot': 'MAIN',
+                    'swap': 'FUTURES',
+                },
             },
             'features': {
                 'spot': {
@@ -1551,6 +1558,60 @@ export default class toobit extends Exchange {
         //        }, ...
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bigone#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request: Dict = {
+            'asset': currency['id'],
+            'quantity': this.currencyToPrecision (code, amount),
+            'fromAccountType': fromId,
+            'toAccountType': toId,
+        };
+        const response = await this.privatePostApiV1SubAccountTransfer (this.extend (request, params));
+        //
+        //    {
+        //     "code": 200, // 200 = success
+        //     "msg": "success" // response message
+        //    }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        //    {
+        //     "code": 200, // 200 = success
+        //     "msg": "success" // response message
+        //    }
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
