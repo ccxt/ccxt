@@ -1861,6 +1861,9 @@ func (this *Mexc) SetMarginMode(marginMode string, options ...SetMarginModeOptio
 
 // missing typed methods from base
 // nolint
+func (this *Mexc) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Mexc) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

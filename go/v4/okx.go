@@ -1121,7 +1121,7 @@ func (this *okx) Describe() interface{} {
 				"FUTURES": "FUTURES",
 				"OPTION":  "OPTION",
 			},
-			"brokerId": "e847386590ce4dBC",
+			"brokerId": "6b9ad766b55dBCDE",
 		},
 		"features": map[string]interface{}{
 			"default": map[string]interface{}{
@@ -7046,7 +7046,7 @@ func (this *okx) Sign(path interface{}, optionalArgs ...interface{}) interface{}
 		this.CheckRequiredCredentials()
 		// inject id in implicit api call
 		if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue((IsTrue(IsTrue(IsEqual(path, "trade/batch-orders")) || IsTrue(IsEqual(path, "trade/order-algo"))) || IsTrue(IsEqual(path, "trade/order"))))) {
-			var brokerId interface{} = this.SafeString(this.Options, "brokerId", "e847386590ce4dBC")
+			var brokerId interface{} = this.SafeString(this.Options, "brokerId", "6b9ad766b55dBCDE")
 			if IsTrue(IsArray(params)) {
 				for i := 0; IsLessThan(i, GetArrayLength(params)); i++ {
 					var entry interface{} = GetValue(params, i)

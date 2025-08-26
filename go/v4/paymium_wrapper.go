@@ -331,6 +331,9 @@ func (this *Paymium) Transfer(code string, amount float64, fromAccount string, t
 
 // missing typed methods from base
 // nolint
+func (this *Paymium) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Paymium) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

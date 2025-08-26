@@ -993,6 +993,9 @@ func (this *Upbit) Withdraw(code string, amount float64, address string, options
 
 // missing typed methods from base
 // nolint
+func (this *Upbit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Upbit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

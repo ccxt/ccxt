@@ -1724,6 +1724,9 @@ func (this *Coincatch) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry
 
 // missing typed methods from base
 // nolint
+func (this *Coincatch) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Coincatch) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

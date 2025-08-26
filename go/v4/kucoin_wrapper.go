@@ -1584,6 +1584,9 @@ func (this *Kucoin) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 
 // missing typed methods from base
 // nolint
+func (this *Kucoin) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Kucoin) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

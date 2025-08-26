@@ -1919,6 +1919,9 @@ func (this *Bingx) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
 
 // missing typed methods from base
 // nolint
+func (this *Bingx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bingx) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

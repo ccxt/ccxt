@@ -61,8 +61,15 @@ func (this *Gate) FetchSpotMarkets(params ...interface{}) ([]map[string]interfac
 	}
 	return res.([]map[string]interface{}), nil
 }
-func (this *Gate) FetchContractMarkets(params ...interface{}) ([]map[string]interface{}, error) {
-	res := <-this.Core.FetchContractMarkets(params...)
+func (this *Gate) FetchSwapMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchSwapMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res.([]map[string]interface{}), nil
+}
+func (this *Gate) FetchFutureMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -2168,6 +2175,9 @@ func (this *Gate) FetchPositionsHistory(options ...FetchPositionsHistoryOptions)
 
 // missing typed methods from base
 // nolint
+func (this *Gate) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

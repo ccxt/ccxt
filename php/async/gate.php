@@ -755,6 +755,9 @@ class gate extends Exchange {
                     'option' => 'options',
                     'options' => 'options',
                 ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot', 'swap', 'future', 'option' ),
+                ),
                 'swap' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt', 'btc' ),
@@ -1227,7 +1230,7 @@ class gate extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all $markets for gate
+             * retrieves data on all markets for gate
              *
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
@@ -1244,22 +1247,27 @@ class gate extends Exchange {
             if ($this->check_required_credentials(false)) {
                 Async\await($this->load_unified_status());
             }
+            $rawPromises = array();
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            $rawPromises = array(
-                $this->fetch_contract_markets($params),
-                $this->fetch_option_markets($params),
-            );
-            if (!$sandboxMode) {
-                // gate doesn't have a sandbox for spot $markets
-                $mainnetOnly = array( $this->fetch_spot_markets($params) );
-                $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
+            $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+            $types = $this->safe_list($fetchMarketsOptions, 'types', array( 'spot', 'swap', 'future', 'option' ));
+            for ($i = 0; $i < count($types); $i++) {
+                $marketType = $types[$i];
+                if ($marketType === 'spot') {
+                    if (!$sandboxMode) {
+                        // gate doesn't have a sandbox for spot markets
+                        $rawPromises[] = $this->fetch_spot_markets($params);
+                    }
+                } elseif ($marketType === 'swap') {
+                    $rawPromises[] = $this->fetch_swap_markets($params);
+                } elseif ($marketType === 'future') {
+                    $rawPromises[] = $this->fetch_future_markets($params);
+                } elseif ($marketType === 'option') {
+                    $rawPromises[] = $this->fetch_option_markets($params);
+                }
             }
-            $promises = Async\await(Promise\all($rawPromises));
-            $spotMarkets = $this->safe_value($promises, 0, array());
-            $contractMarkets = $this->safe_value($promises, 1, array());
-            $optionMarkets = $this->safe_value($promises, 2, array());
-            $markets = $this->array_concat($spotMarkets, $contractMarkets);
-            return $this->array_concat($markets, $optionMarkets);
+            $results = Async\await(Promise\all($rawPromises));
+            return $this->arrays_concat($results);
         }) ();
     }
 
@@ -1380,11 +1388,10 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_contract_markets($params = array ()) {
+    public function fetch_swap_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $result = array();
             $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
-            $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
             for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
                 $settleId = $swapSettlementCurrencies[$c];
                 $request = array(
@@ -1396,6 +1403,14 @@ class gate extends Exchange {
                     $result[] = $parsedMarket;
                 }
             }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_future_markets($params = array ()) {
+        return Async\async(function () use ($params) {
+            $result = array();
+            $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
             for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
                 $settleId = $futureSettlementCurrencies[$c];
                 $request = array(
@@ -2659,7 +2674,12 @@ class gate extends Exchange {
             //
             list($request, $query) = $this->prepare_request($market, $market['type'], $params);
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 10, max 100
+                if ($market['spot']) {
+                    $limit = min ($limit, 1000);
+                } else {
+                    $limit = min ($limit, 300);
+                }
+                $request['limit'] = $limit;
             }
             $request['with_id'] = true;
             $response = null;

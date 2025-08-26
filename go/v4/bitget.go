@@ -1896,7 +1896,7 @@ func (this *bitget) FetchDefaultMarkets(params interface{}) <-chan interface{} {
 			var res interface{} = this.SafeDict(results, i)
 			var data interface{} = this.SafeList(res, "data", []interface{}{})
 			var firstData interface{} = this.SafeDict(data, 0, map[string]interface{}{})
-			var isBorrowable interface{} = this.SafeString(firstData, "isBorrowable")
+			var isBorrowable interface{} = this.SafeBool(firstData, "isBorrowable")
 			if IsTrue(IsTrue(fetchMargins) && IsTrue(!IsEqual(isBorrowable, nil))) {
 				var keysList interface{} = ObjectKeys(this.IndexBy(data, "symbol"))
 				AddElementToObject(this.Options, "crossMarginPairsData", keysList)
