@@ -1035,7 +1035,11 @@ export default class zebpay extends Exchange {
                 response = await this.privateSpotDeleteV2ExOrder (this.extend (request, params));
             }
         } else {
-            request['clientOrderId'] = id;
+            // request['clientOrderId'] = id;
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            if (clientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter for ' + market['type'] + ' orders');
+            }
             request['symbol'] = market['id'];
             response = await this.privateSwapDeleteV1TradeOrder (this.extend (request, params));
         }
@@ -1232,7 +1236,10 @@ export default class zebpay extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const status = this.safeStringLower (order, 'status');
-        const orderId = this.safeString (order, 'orderId', undefined);
+        let orderId = this.safeString2 (order, 'orderId', 'id');
+        if (orderId === undefined) {
+            orderId = this.safeString (this.safeDict (order, 'info'), 'id');
+        }
         const parsedOrder = this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,

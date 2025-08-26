@@ -3,7 +3,49 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "fetch swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order/open-orders?symbol=ETHUSDT&timestamp=1756205366203",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order/open-orders?symbol=ETHUSDT&timestamp=1756205159788",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://www.zebstage.com/api/v2/ex/orders?symbol=ETH-USDT&currentPage=1&timestamp=1756205091920",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
         "cancelOrder": [
+            {
+                "description": "cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
+                "input": [
+                    41549,
+                    "ETH/USDT:USDT",
+                    {
+                        "clientOrderId": "c25a8b2db0089e6e867b-161-zeb"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"clientOrderId\":\"c25a8b2db0089e6e867b-161-zeb\",\"timestamp\":\"1756205470552\"}"
+            },
             {
                 "description": "cancel spot order",
                 "method": "cancelOrder",
@@ -16,6 +58,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "swap create order",
+                "method": "createOrder",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/trade/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    4090,
+                    {
+                        "leverage": 1
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"side\":\"BUY\",\"formType\":\"ORDER_FORM\",\"amount\":0.1,\"marginAsset\":\"INR\",\"leverage\":\"1\",\"type\":\"LIMIT\",\"price\":4090,\"timestamp\":\"1756205128628\"}"
+            },
             {
                 "description": "spot limit buy order",
                 "method": "createOrder",
