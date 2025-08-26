@@ -2409,6 +2409,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2416,6 +2417,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2437,6 +2439,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
+        object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100; // default 100, max 100
@@ -2465,7 +2468,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                limit = mathMin(limit, 100); // max 100 for historical endpoint
+                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
+                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2505,6 +2509,11 @@ public partial class okx : Exchange
         {
             if (isTrue(isHistoryCandles))
             {
+                if (isTrue(isTrue(limitIsUndefined) && isTrue((isEqual(limit, 100)))))
+                {
+                    limit = 300;
+                    ((IDictionary<string,object>)request)["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, parameters));
             } else
             {
