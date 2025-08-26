@@ -2892,8 +2892,8 @@ public partial class okx : Exchange
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2918,8 +2918,8 @@ public partial class okx : Exchange
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2968,6 +2968,8 @@ public partial class okx : Exchange
         object takeProfitDefined = (!isEqual(takeProfit, null));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
+        object isTrailingPriceOrder = !isEqual(trailingPrice, null);
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
         object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
@@ -3109,6 +3111,10 @@ public partial class okx : Exchange
         {
             object convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
             ((IDictionary<string,object>)request)["callbackRatio"] = convertedTrailingPercent;
+            ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
+        } else if (isTrue(isTrailingPriceOrder))
+        {
+            ((IDictionary<string,object>)request)["callbackSpread"] = trailingPrice;
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
         } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
         {
