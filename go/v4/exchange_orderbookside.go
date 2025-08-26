@@ -463,7 +463,8 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 		}
 		obs.Hashmap[id] = indexPrice
 		var index int = bisectLeft(obs.Index, indexPrice)
-		for index < obs.Length && obs.Index[index] == indexPrice && obs.Index[2] < id.(float64) { // TODO: this makes no sense, id is type [string, string]
+		// for index < obs.Length && obs.Index[index] == indexPrice && obs.Index[2] < id.(float64) { // TODO: this makes no sense, id is type [string, string]
+		for index < obs.Length && obs.Index[index] == indexPrice { // TODO: this makes no sense, id is type [string, string]
 			index++
 		}
 		// insert new price level into index
@@ -529,9 +530,8 @@ func (iobs *IndexedOrderBookSide) Limit() {
 	}
 	if iobs.Length > iobs.Depth {
 		iobs.Data = iobs.Data[:iobs.Depth]
+		iobs.Length = iobs.Depth
 	}
-	iobs.Length = iobs.Depth
-
 }
 
 // Asks and Bids types - these are just OrderBookSide with different Side values
