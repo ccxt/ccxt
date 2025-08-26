@@ -183,16 +183,66 @@ func (this *WsOrderBook) String() string {
 	return result.String()
 }
 
+func normalizeToFloat64SliceSlice(value interface{}) [][]float64 {
+	raw, ok := value.([]interface{})
+	if !ok {
+		return [][]float64{}
+	}
+	result := make([][]float64, 0, len(raw))
+	for _, row := range raw {
+		rowArr, ok := row.([]interface{})
+		if !ok {
+			continue
+		}
+		floatRow := make([]float64, 0, len(rowArr))
+		for _, num := range rowArr {
+			if f, ok := num.(float64); ok {
+				floatRow = append(floatRow, f)
+			} else if i, ok := num.(int); ok {
+				floatRow = append(floatRow, float64(i))
+			} else if i64, ok := num.(int64); ok {
+				floatRow = append(floatRow, float64(i64))
+			} else if f32, ok := num.(float32); ok {
+				floatRow = append(floatRow, float64(f32))
+			}
+		}
+		result = append(result, floatRow)
+	}
+	return result
+}
+
 func getAsksBids(snapshot interface{}) ([][]float64, [][]float64) {
-	asks, ok := snapshot.(map[string]interface{})["asks"].([][]float64)
-	if !ok {
-		asks = [][]float64{}
-	}
-	bids, ok := snapshot.(map[string]interface{})["bids"].([][]float64)
-	if !ok {
-		bids = [][]float64{}
-	}
+	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot.(map[string]interface{}), "asks", nil))
+	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot.(map[string]interface{}), "bids", nil))
 	return asks, bids
+}
+
+func getIndexedAsksBids(snapshot interface{}) ([][]interface{}, [][]interface{}) {
+	asks := SafeValue(snapshot.(map[string]interface{}), "asks", nil).([]interface{})
+	bids := SafeValue(snapshot.(map[string]interface{}), "bids", nil).([]interface{})
+	// normalize the price and size and keep the id as is (3rd value in a bidask delta)
+	// so that it can be used as a key in IndexedOrderBookSide
+	if asks == nil || bids == nil {
+		return [][]interface{}{}, [][]interface{}{}
+	}
+	// Normalize the price and size
+	newAsks := make([][]interface{}, len(asks))
+	newBids := make([][]interface{}, len(bids))
+	for i := range asks {
+		newAsks[i] = []interface{}{
+			normalizeNumber(asks[i].([]interface{})[0]),
+			normalizeNumber(asks[i].([]interface{})[1]),
+			asks[i].([]interface{})[2],
+		}
+	}
+	for i := range bids {
+		newBids[i] = []interface{}{
+			normalizeNumber(bids[i].([]interface{})[0]),
+			normalizeNumber(bids[i].([]interface{})[1]),
+			bids[i].([]interface{})[2],
+		}
+	}
+	return newAsks, newBids
 }
 
 // Replace toAsksBids with this if snapshot is coming from json.Unmarshal
@@ -270,7 +320,7 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) *IndexedOrderB
 		snapshot = make(map[string]interface{})
 	}
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
-	asks, bids := getAsksBids(snapshot)
+	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]interface{})
 	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
 
