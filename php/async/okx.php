@@ -2460,6 +2460,7 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks-history
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-candlesticks-history
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -2468,6 +2469,7 @@ class okx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {string} [$params->type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -2482,6 +2484,7 @@ class okx extends Exchange {
             $params = $this->omit($params, 'price');
             $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $timezone = $this->safe_string($options, 'timezone', 'UTC');
+            $limitIsUndefined = ($limit === null);
             if ($limit === null) {
                 $limit = 100; // default 100, max 100
             } else {
@@ -2505,7 +2508,8 @@ class okx extends Exchange {
                 $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
-                    $limit = min ($limit, 100); // max 100 for historical endpoint
+                    $maxLimit = ($price !== null) ? 100 : 300;
+                    $limit = min ($limit, $maxLimit); // max 300 for historical endpoint
                 }
                 $startTime = max ($since - 1, 0);
                 $request['before'] = $startTime;
@@ -2536,6 +2540,10 @@ class okx extends Exchange {
                 }
             } else {
                 if ($isHistoryCandles) {
+                    if ($limitIsUndefined && ($limit === 100)) {
+                        $limit = 300;
+                        $request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                    }
                     $response = Async\await($this->publicGetMarketHistoryCandles ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->publicGetMarketCandles ($this->extend($request, $params)));
