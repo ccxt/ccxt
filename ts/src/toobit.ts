@@ -38,6 +38,7 @@ export default class toobit extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchDeposits': true,
+                'fetchDepositAddress': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
@@ -103,6 +104,7 @@ export default class toobit extends Exchange {
                         'api/v1/account/balanceFlow': 1,
                         'api/v1/account/depositOrders': 1,
                         'api/v1/account/withdrawOrders': 1,
+                        'api/v1/account/deposit/address': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -1891,6 +1893,52 @@ export default class toobit extends Exchange {
             '3': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+        };
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : param["network"] is required');
+        }
+        const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, paramsOmitted));
+        //
+        //     {
+        //         "canDeposit":false,//Is it possible to recharge
+        //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+        //         "addressExt":"address tag",
+        //         "minQuantity":"100",//minimum amount
+        //         "requiredConfirmTimes ":1,//Arrival confirmation number
+        //         "canWithdrawConfirmNum ":12,//Withdrawal confirmation number
+        //         "coinType":"ERC20_TOKEN"
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
+            'network': undefined,
+            'address': address,
+            'tag': this.safeString (depositAddress, 'addressExt'),
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
