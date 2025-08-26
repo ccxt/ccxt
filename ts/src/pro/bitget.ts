@@ -900,8 +900,8 @@ export default class bitget extends bitgetRest {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
-            const asks = this.safeValue2 (rawOrderBook, 'asks', 'a', []);
-            const bids = this.safeValue2 (rawOrderBook, 'bids', 'b', []);
+            const asks = this.safeList2 (rawOrderBook, 'asks', 'a', []);
+            const bids = this.safeList2 (rawOrderBook, 'bids', 'b', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
             this.handleDeltas (storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;
