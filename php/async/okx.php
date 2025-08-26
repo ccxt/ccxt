@@ -2900,10 +2900,10 @@ class okx extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             * create a $market buy order by providing the $symbol and $cost
              *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
              *
-             * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2925,10 +2925,10 @@ class okx extends Exchange {
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             * create a $market buy order by providing the $symbol and $cost
              *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
              *
-             * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2992,6 +2992,8 @@ class okx extends Exchange {
         $takeProfitDefined = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
+        $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3097,6 +3099,9 @@ class okx extends Exchange {
         if ($isTrailingPercentOrder) {
             $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
             $request['callbackRatio'] = $convertedTrailingPercent;
+            $request['ordType'] = 'move_order_stop';
+        } elseif ($isTrailingPriceOrder) {
+            $request['callbackSpread'] = $trailingPrice;
             $request['ordType'] = 'move_order_stop';
         } elseif ($stopLossDefined || $takeProfitDefined) {
             if ($stopLossDefined) {
