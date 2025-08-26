@@ -192,8 +192,8 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -203,8 +203,8 @@ export default class okx extends Exchange {
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint

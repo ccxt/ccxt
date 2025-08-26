@@ -2855,8 +2855,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2877,8 +2877,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2941,6 +2941,8 @@ class okx extends okx$1["default"] {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
+        const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3055,6 +3057,10 @@ class okx extends okx$1["default"] {
         if (isTrailingPercentOrder) {
             const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
             request['callbackRatio'] = convertedTrailingPercent;
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (isTrailingPriceOrder) {
+            request['callbackSpread'] = trailingPrice;
             request['ordType'] = 'move_order_stop';
         }
         else if (stopLossDefined || takeProfitDefined) {
