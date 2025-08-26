@@ -37,6 +37,7 @@ export default class toobit extends Exchange {
                 'cancelOrders': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
@@ -54,6 +55,7 @@ export default class toobit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'transfer': true,
             },
             'urls': {
@@ -99,6 +101,8 @@ export default class toobit extends Exchange {
                         'api/v1/spot/tradeOrders': 1,
                         'api/v1/account/trades': 1,
                         'api/v1/account/balanceFlow': 1,
+                        'api/v1/account/depositOrders': 1,
+                        'api/v1/account/withdrawOrders': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -1634,18 +1638,16 @@ export default class toobit extends Exchange {
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
-        const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
         let currency = undefined;
         let request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1705,6 +1707,190 @@ export default class toobit extends Exchange {
             'AIRDROP': 'rebate',
         };
         return this.safeString (types, type, type);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposit structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchDepositsOrWithdrawalsHelper ('deposits', code, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
+    }
+
+    async fetchDepositsOrWithdrawalsHelper (type, code, since, limit, params) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        let request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        if (type === 'deposits') {
+            response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
+            //
+            // [
+            //     {
+            //         "time": 1499865549590,
+            //         "id": 100234,
+            //         "coinName": "EOS",
+            //         "statusCode": "DEPOSIT_CAN_WITHDRAW",
+            //         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
+            //         "address": "deposit2bb",
+            //         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+            //         "txIdUrl": "",
+            //         "requiredConfirmTimes": "5",
+            //         "confirmTimes": "5",
+            //         "quantity": "1.01",
+            //         "coin": "EOS",
+            //         "fromAddress": "clarkkent",
+            //         "fromAddressTag": "19029901"
+            //         "addressTag": "19012584",
+            //     }
+            // ]
+            //
+        } else if (type === 'withdrawals') {
+            response = await this.privateGetApiV1AccountWithdrawOrders (this.extend (request, params));
+            //
+            // [
+            //     {
+            //         "time":"1536232111669",
+            //         "id ":"90161227158286336",
+            //         "accountId":"517256161325920",
+            //         "coinName":"BHC",
+            //         "statusCode":"PROCESSING_STATUS",
+            //         "status":3,
+            //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+            //         "txId ":"",
+            //         "txIdUrl ":"",
+            //         "requiredConfirmTimes ":0, // Number of confirmation requests
+            //         "confirmTimes ":0, // number of confirmations
+            //         "quantity":"14", // Withdrawal amount
+            //         "coinId ":"BHC",
+            //         "addressExt":"address tag",
+            //         "arriveQuantity":"14",
+            //         "walletHandleTime":"1536232111669",
+            //         "feeCoinId ":"BHC",
+            //         "feeCoinName ":"BHC",
+            //         "fee":"0.1",
+            //         "kernelId":"", // Exclusive to BEAM and GRIN
+            //         "isInternalTransfer": false // Whether internal transfer
+            //     }
+            // ]
+            //
+        }
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits & fetchWithdrawals
+        //
+        //     {
+        //         "time": 1499865549590,
+        //         "id": 100234,
+        //         "coinName": "EOS",
+        //         "statusCode": "DEPOSIT_CAN_WITHDRAW",
+        //         "status": "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
+        //         "address": "deposit2bb",
+        //         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+        //         "txIdUrl": "",
+        //         "requiredConfirmTimes": "5",
+        //         "confirmTimes": "5",
+        //         "quantity": "1.01",
+        //         "coin": "EOS",                     // present in "fetchDeposits"
+        //         "coinId ":"BHC",                   // present in "fetchWithdrawals"
+        //         "addressTag": "19012584",          // present in "fetchDeposits"
+        //         "addressExt":"address tag",        // present in "fetchWithdrawals"
+        //         "fromAddress": "clarkkent",        // present in "fetchDeposits"
+        //         "fromAddressTag": "19029901"       // present in "fetchDeposits"
+        //         "arriveQuantity":"14",             // present in "fetchWithdrawals"
+        //         "walletHandleTime":"1536232111669",// present in "fetchWithdrawals"
+        //         "feeCoinId ":"BHC",                // present in "fetchWithdrawals"
+        //         "feeCoinName ":"BHC",              // present in "fetchWithdrawals"
+        //         "fee":"0.1",                       // present in "fetchWithdrawals"
+        //         "kernelId":"",                     // present in "fetchWithdrawals"
+        //         "isInternalTransfer": false        // present in "fetchWithdrawals"
+        //     }
+        //
+        const timestamp = this.safeInteger (transaction, 'time');
+        const currencyId = this.safeString2 (transaction, 'coin', 'coinId');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const feeString = this.safeString (transaction, 'fee');
+        const feeCoin = this.safeString (transaction, 'feeCoinName');
+        let fee = undefined;
+        if (feeString !== undefined) {
+            fee = {
+                'cost': this.parseNumber (feeString),
+                'currency': this.safeCurrencyCode (feeCoin),
+            };
+        }
+        const tagTo = this.safeString2 (transaction, 'addressTag', 'addressExt');
+        const tagFrom = this.safeString (transaction, 'fromAddressTag');
+        const addressTo = this.safeString (transaction, 'address');
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const isWithdraw = ('arriveQuantity' in transaction);
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': undefined,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
+            'type': (isWithdraw ? 'withdrawal' : 'deposit'),
+            'amount': this.safeNumber (transaction, 'quantity'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': undefined,
+            'fee': fee,
+            'comment': undefined,
+            'internal': undefined,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            '2': 'pending',
+            '12': 'pending',
+            '11': 'failed',
+            '3': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
