@@ -269,10 +269,21 @@ type CountedOrderBookSide struct {
 // NewCountedOrderBookSide constructor
 func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) *CountedOrderBookSide {
 
-	orderBookSide := &CountedOrderBookSide{
-		OrderBookSide: NewOrderBookSide(side, deltas, depth),
+	// orderBookSide := &CountedOrderBookSide{
+	// 	OrderBookSide: NewOrderBookSide(side, deltas, depth),
+	// }
+	orderBookSide := &OrderBookSide{
+		Data:   make([][]interface{}, 0),
+		Index:  make([]float64, len(SEED)),
+		Length: 0,
+		Depth:  math.MaxInt32,
+		Side:   side,
 	}
-	result := Init(orderBookSide, deltas, depth)
+
+	countedOrderBookSide := &CountedOrderBookSide{
+		OrderBookSide: orderBookSide,
+	}
+	result := Init(countedOrderBookSide, deltas, depth)
 	return result.(*CountedOrderBookSide)
 }
 
@@ -311,7 +322,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 
 	index := bisectLeft(obs.Index, indexPrice)
 
-	if size != 0 {
+	if size != 0 && count != 0 {
 		if obs.Index[index] == indexPrice {
 			obs.Data[index][1] = size
 			obs.Data[index][2] = count

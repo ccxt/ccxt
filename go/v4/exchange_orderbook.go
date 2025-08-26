@@ -290,7 +290,7 @@ func NewCountedOrderBook(snapshot interface{}, depth interface{}) *CountedOrderB
 		snapshot = make(map[string]interface{})
 	}
 	// Sanitize snapshot to ensure asks and bids are always [][]float64
-	asks, bids := getAsksBids(snapshot)
+	asks, bids := getIndexedAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]interface{})
 	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
 
