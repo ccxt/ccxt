@@ -77,8 +77,8 @@ export default class toobit extends Exchange {
                         'quote/v1/depth/merged': 1,
                         'quote/v1/trades': 1,
                         'quote/v1/klines': 1,
-                        'api/quote/v1/index/klines': 1,
-                        'api/quote/v1/markPrice/klines': 1,
+                        'quote/v1/index/klines': 1,
+                        'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
@@ -94,6 +94,7 @@ export default class toobit extends Exchange {
                         'api/v1/spot/order': 1,
                         'api/v1/spot/openOrders': 1,
                         'api/v1/spot/tradeOrders': 1,
+                        'api/v1/account/trades': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -533,15 +534,63 @@ export default class toobit extends Exchange {
         //            "ibm": true
         //        },
         //
-        const timestamp = this.safeInteger (trade, 't');
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 'q');
+        // fetchMyTrades
+        //
+        //        {
+        //            "id": "2024934575206059008",
+        //            "symbol": "ETHUSDT",
+        //            "symbolName": "ETHUSDT",
+        //            "orderId": "2024934575097029888",
+        //            "price": "4641.21",
+        //            "qty": "0.001",
+        //            "time": "1756127012094",
+        //            "isBuyer": false,
+        //            "isMaker": false,
+        //            "fee": {
+        //                "feeCoinId": "USDT",
+        //                "feeCoinName": "USDT",
+        //                "fee": "0.00464121"
+        //            },
+        //            "feeCoinId": "USDT",
+        //            "commission": "0.00464121",
+        //            "commissionAsset": "USDT",
+        //            "feeAmount": "0.00464121",
+        //            "makerRebate": "0",
+        //            "ticketId": "4864450547563401875"
+        //        },
+        //
+        const timestamp = this.safeInteger2 (trade, 't', 'time');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = undefined;
         const isBuyerMaker = this.safeBool (trade, 'ibm');
-        if (isBuyerMaker) {
-            side = 'sell';
+        if (isBuyerMaker !== undefined) {
+            if (isBuyerMaker) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
         } else {
-            side = 'buy';
+            if (isBuyer) {
+                side = 'buy';
+            } else {
+                side = 'sell';
+            }
+        }
+        const feeCurrencyId = this.safeString (trade, 'feeCoinId');
+        const feeAmount = this.safeString (trade, 'feeAmount');
+        let fee = undefined;
+        if (feeAmount !== undefined) {
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': feeAmount,
+            };
+        }
+        const isMaker = this.safeBool (trade, 'isMaker');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
@@ -550,15 +599,15 @@ export default class toobit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'order': undefined,
             'type': undefined,
             'side': side,
             'amount': amountString,
             'price': priceString,
             'cost': undefined,
-            'takerOrMaker': undefined,
-            'fee': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
         }, market);
     }
 
@@ -597,7 +646,7 @@ export default class toobit extends Exchange {
         let endpoint = undefined;
         [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
-            response = await this.commonGetApiQuoteV1IndexKlines (this.extend (request, params));
+            response = await this.commonGetQuoteV1IndexKlines (this.extend (request, params));
             //
             //     {
             //         "code": 200,
@@ -626,7 +675,7 @@ export default class toobit extends Exchange {
             //     }
             //
         } else if (endpoint === 'mark') {
-            response = await this.commonGetApiQuoteV1MarkPriceKlines (this.extend (request, params));
+            response = await this.commonGetQuoteV1MarkPriceKlines (this.extend (request, params));
             //
             //     {
             //         "code": 200,
@@ -1445,6 +1494,63 @@ export default class toobit extends Exchange {
         //    ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name alptoobitaca#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.page_token] page_token - used for paging
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let request: Dict = {};
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('until', request, params);
+        const response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "2024934575206059008",
+        //            "symbol": "ETHUSDT",
+        //            "symbolName": "ETHUSDT",
+        //            "orderId": "2024934575097029888",
+        //            "price": "4641.21",
+        //            "qty": "0.001",
+        //            "commission": "0.00464121",
+        //            "commissionAsset": "USDT",
+        //            "time": "1756127012094",
+        //            "isBuyer": false,
+        //            "isMaker": false,
+        //            "fee": {
+        //                "feeCoinId": "USDT",
+        //                "feeCoinName": "USDT",
+        //                "fee": "0.00464121"
+        //            },
+        //            "feeCoinId": "USDT",
+        //            "feeAmount": "0.00464121",
+        //            "makerRebate": "0",
+        //            "ticketId": "4864450547563401875"
+        //        }, ...
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
