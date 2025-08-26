@@ -3,7 +3,119 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/order?orderId=8226482&timestamp=1756204652003",
+                "input": [
+                    8226482,
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot limit buy order",
+                "method": "createOrder",
+                "url": "https://www.zebstage.com/api/v2/ex/orders",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    4090
+                ],
+                "output": "{\"symbol\":\"ETH-USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"clientOrderId\":\"8c8620df-9816-4aea-85fc-b92eb0e91fce\",\"timeInForce\":\"GTC\",\"amount\":\"0.1\",\"price\":\"4090\",\"timestamp\":\"1756204609686\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap candles",
+                "method": "fetchOHLCV",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/market/klines",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"limit\":5,\"interval\":\"60\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "swap balance",
+                "method": "fetchBalance",
+                "url": "https://dev-futuresbe.zebstage.com/api/v1/wallet/balance?timestamp=1756204500240",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.zebstage.com/api/v2/account/balance?timestamp=1756204318381",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap  ticker",
+                "method": "fetchTicker",
+                "url": "https://futuresbe.zebpay.com/api/v1/market/ticker24Hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://sapi.zebpay.com/api/v2/market/ticker?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://sapi.zebpay.com/api/v2/market/orderbook?symbol=BTC-USDT&limit=15",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://futuresbe.zebpay.com/api/v1/market/orderBook?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
+            {
+                "description": "spot trades",
+                "method": "fetchTrades",
+                "url": "https://sapi.zebpay.com/api/v2/market/trades?symbol=BTC-USDT&limit=1",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
             {
                 "description": "spot trades",
                 "method": "fetchTrades",
