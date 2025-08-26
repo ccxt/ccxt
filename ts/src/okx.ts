@@ -2477,7 +2477,8 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                limit = Math.min (limit, 300); // max 300 for historical endpoint
+                const maxLimit = (price !== undefined) ? 100 : 300;
+                limit = Math.min (limit, maxLimit); // max 300 for historical endpoint
             }
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
