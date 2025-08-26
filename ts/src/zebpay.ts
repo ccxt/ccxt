@@ -80,70 +80,70 @@ export default class zebpay extends Exchange {
                 'public': {
                     'spot': {
                         'get': {
-                            'v2/system/time': 10,
-                            'v2/system/status': 10,
-                            'v2/market/orderbook': 10,
-                            'v2/market/trades': 10,
-                            'v2/market/ticker': 10,
-                            'v2/market/allTickers': 10,
-                            'v2/ex/exchangeInfo': 10,
-                            'v2/ex/currencies': 10,
-                            'v2/market/klines': 10,
-                            'v2/ex/tradefees': 10,
+                            'v2/system/time': 1,
+                            'v2/system/status': 1,
+                            'v2/market/orderbook': 1,
+                            'v2/market/trades': 1,
+                            'v2/market/ticker': 1,
+                            'v2/market/allTickers': 1,
+                            'v2/ex/exchangeInfo': 1,
+                            'v2/ex/currencies': 1,
+                            'v2/market/klines': 1,
+                            'v2/ex/tradefees': 1,
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/system/time': 10,
-                            'v1/system/status': 10,
-                            'v1/exchange/tradefee': 10,
-                            'v1/exchange/tradefees': 10,
-                            'v1/market/orderBook': 10,
-                            'v1/market/ticker24Hr': 10,
-                            'v1/market/markets': 10,
+                            'v1/system/time': 1,
+                            'v1/system/status': 1,
+                            'v1/exchange/tradefee': 1,
+                            'v1/exchange/tradefees': 1,
+                            'v1/market/orderBook': 1,
+                            'v1/market/ticker24Hr': 1,
+                            'v1/market/markets': 1,
                         },
                         'post': {
-                            'v1/market/klines': 10,
+                            'v1/market/klines': 1,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'post': {
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': 2,
                         },
                         'get': {
-                            'v2/ex/orders': 10,
-                            'v2/account/balance': 10,
-                            'v2/ex/tradefee': 10,
-                            'v2/ex/order': 10,
-                            'v2/ex/order/fills': 10,
+                            'v2/ex/orders': 2,
+                            'v2/account/balance': 2,
+                            'v2/ex/tradefee': 2,
+                            'v2/ex/order': 2,
+                            'v2/ex/order/fills': 2,
                         },
                         'delete': {
-                            'v2/ex/order': 10,
-                            'v2/ex/orders': 10,
-                            'v2/ex/orders/cancelAll': 10,
+                            'v2/ex/order': 2,
+                            'v2/ex/orders': 2,
+                            'v2/ex/orders/cancelAll': 2,
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/wallet/balance': 10,
-                            'v1/trade/order': 10,
-                            'v1/trade/order/open-orders': 10,
-                            'v1/trade/userLeverages': 10,
-                            'v1/trade/userLeverage': 10,
-                            'v1/trade/positions': 10,
+                            'v1/wallet/balance': 2,
+                            'v1/trade/order': 2,
+                            'v1/trade/order/open-orders': 2,
+                            'v1/trade/userLeverages': 2,
+                            'v1/trade/userLeverage': 2,
+                            'v1/trade/positions': 2,
                         },
                         'post': {
-                            'v1/trade/order': 10,
-                            'v1/trade/order/addTPSL': 10,
-                            'v1/trade/addMargin': 10,
-                            'v1/trade/reduceMargin': 10,
-                            'v1/trade/position/close': 10,
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/order': 2,
+                            'v1/trade/order/addTPSL': 2,
+                            'v1/trade/addMargin': 2,
+                            'v1/trade/reduceMargin': 2,
+                            'v1/trade/position/close': 2,
+                            'v1/trade/update/userLeverage': 2,
                         },
                         'delete': {
-                            'v1/trade/order': 10,
+                            'v1/trade/order': 2,
                         },
                     },
                 },
@@ -433,7 +433,7 @@ export default class zebpay extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let response = undefined;
-        let data;
+        let data = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -533,7 +533,7 @@ export default class zebpay extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        limit = (limit === undefined) ? 10 : limit;
+        limit = (limit === undefined) ? 15 : limit;
         if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -667,7 +667,7 @@ export default class zebpay extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             'limit': limit,
-            'interval': timeframe,
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             if (market['spot']) {
@@ -1047,7 +1047,7 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        return this.safeDict (response, 'data');
+        return this.parseOrder (this.safeDict (response, 'data'));
     }
 
     /**
