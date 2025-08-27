@@ -1991,7 +1991,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     // ---------------------------------------------------------------------------------------------
     transpileWsOrderbookTestsToGo (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
+        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const goFile = `${outDir}/cache/orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
