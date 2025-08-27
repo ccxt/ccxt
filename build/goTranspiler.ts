@@ -2025,7 +2025,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     // ---------------------------------------------------------------------------------------------
     transpileWsCacheTestsToGo (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.Cache.ts';
+        const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const goFile = `${outDir}/cache/cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
