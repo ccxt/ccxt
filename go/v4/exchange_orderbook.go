@@ -18,6 +18,7 @@ type OrderBookInterface interface {
 	SetCache(cache interface{})
 	GetNonce() interface{}
 	GetValue(key string, defaultValue interface{}) interface{}
+	ToMap() map[string]interface{}
 }
 
 type WsOrderBook struct {
@@ -28,6 +29,39 @@ type WsOrderBook struct {
 	Datetime  interface{}    `json:"datetime"`
 	Nonce     interface{}    `json:"nonce"`
 	Symbol    string         `json:"symbol"`
+}
+
+func strOrNil(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
+func createOb(Obtype string) OrderBookInterface {
+	switch strings.ToLower(Obtype) {
+	case "counted":
+		return &CountedOrderBook{}
+	case "indexed":
+		return &IndexedOrderBook{}
+	// case "incremental":
+	// 	return &IncrementalOrderBook{}
+	// case "incrementalindexed":
+	// 	return &IncrementalIndexedOrderBook{}
+	default:
+		return &WsOrderBook{}
+	}
+}
+
+func (this *WsOrderBook) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"asks":      this.Asks.GetData(),
+		"bids":      this.Bids.GetData(),
+		"timestamp": this.Timestamp,
+		"datetime":  this.Datetime,
+		"nonce":     this.Nonce,
+		"symbol":    strOrNil(this.Symbol),
+	}
 }
 
 func (this *WsOrderBook) GetValue(key string, defaultValue interface{}) interface{} {
@@ -309,6 +343,17 @@ func NewCountedOrderBook(snapshot interface{}, depth interface{}) *CountedOrderB
 	}
 }
 
+func (this *CountedOrderBook) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"asks":      this.Asks.GetData(),
+		"bids":      this.Bids.GetData(),
+		"timestamp": this.Timestamp,
+		"datetime":  this.Datetime,
+		"nonce":     this.Nonce,
+		"symbol":    strOrNil(this.Symbol),
+	}
+}
+
 // indexed by order ids (3rd value in a bidask delta)
 type IndexedOrderBook struct {
 	*WsOrderBook
@@ -336,6 +381,17 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) *IndexedOrderB
 			Nonce:     SafeInteger(snapshotMap, "nonce", nil),
 			Symbol:    SafeString(snapshotMap, "symbol", "").(string),
 		},
+	}
+}
+
+func (this *IndexedOrderBook) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"asks":      this.Asks.GetData(),
+		"bids":      this.Bids.GetData(),
+		"timestamp": this.Timestamp,
+		"datetime":  this.Datetime,
+		"nonce":     this.Nonce,
+		"symbol":    strOrNil(this.Symbol),
 	}
 }
 
