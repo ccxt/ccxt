@@ -271,7 +271,7 @@ class ompfinex extends ompfinex$1["default"] {
         }
         const response = await this.publicGetV1Market();
         const markets = this.safeList(response, 'data');
-        const result = [];
+        const result = {};
         for (let i = 0; i < markets.length; i++) {
             const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
@@ -367,7 +367,10 @@ class ompfinex extends ompfinex$1["default"] {
             last = last ? last / 10 : 0;
             quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
-        const baseVolume = quoteVolume / last;
+        let baseVolume = 0;
+        if (last) {
+            baseVolume = quoteVolume / last;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -489,8 +492,10 @@ class ompfinex extends ompfinex$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         let url = this.urls['api']['public'] + '/' + path;
-        if (params['id'] !== undefined) {
-            url = url + '/' + params['id'];
+        // safer check
+        const pair_id = this.safeString(params, 'id');
+        if (pair_id !== undefined) {
+            url = url + '/' + pair_id;
         }
         if (path === 'v2/udf/real/history') {
             url = this.urls['api']['public'] + '/' + path + '?' + this.urlencode(query);

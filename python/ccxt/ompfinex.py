@@ -264,7 +264,7 @@ class ompfinex(Exchange, ImplicitAPI):
             symbols = self.market_symbols(symbols)
         response = self.publicGetV1Market()
         markets = self.safe_list(response, 'data')
-        result = []
+        result = {}
         for i in range(0, len(markets)):
             ticker = self.parse_ticker(markets[i])
             symbol = ticker['symbol']
@@ -356,7 +356,9 @@ class ompfinex(Exchange, ImplicitAPI):
             low = low / 10 if low else 0
             last = last / 10 if last else 0
             quoteVolume = quoteVolume / 10 if quoteVolume else 0
-        baseVolume = quoteVolume / last
+        baseVolume = 0
+        if last:
+            baseVolume = quoteVolume / last
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -465,8 +467,10 @@ class ompfinex(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['public'] + '/' + path
-        if params['id'] is not None:
-            url = url + '/' + params['id']
+        # safer check
+        pair_id = self.safe_string(params, 'id')
+        if pair_id is not None:
+            url = url + '/' + pair_id
         if path == 'v2/udf/real/history':
             url = self.urls['api']['public'] + '/' + path + '?' + self.urlencode(query)
         headers = {'Content-Type': 'application/json'}

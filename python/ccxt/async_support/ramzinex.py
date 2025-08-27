@@ -262,7 +262,7 @@ class ramzinex(Exchange, ImplicitAPI):
             symbols = self.market_symbols(symbols)
         response = await self.publicGetExchangeApiV10ExchangePairs()
         markets = self.safe_list(response, 'data')
-        result = []
+        result = {}
         for i in range(0, len(markets)):
             market = markets[i]
             if not market or not market['financial'] or market['financial'] == 0:
@@ -469,8 +469,9 @@ class ramzinex(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['public'] + '/' + path
-        if params['pair_id'] is not None:
-            url = url + '/' + params['pair_id']
+        pair_id = self.safe_string(params, 'pair_id')
+        if pair_id is not None:
+            url = url + '/' + pair_id
         if path == 'exchange/api/v1.0/exchange/chart/tv/history':
             url = self.urls['api']['public'] + '/' + path + '?' + self.urlencode(query)
         if path == 'exchange/api/v1.0/exchange/orderbooks':

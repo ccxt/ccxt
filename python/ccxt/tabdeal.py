@@ -223,7 +223,7 @@ class tabdeal(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = self.publicGetPlotsMarketInformation(params)
-        result = []
+        result = {}
         for i in range(0, len(response)):
             market = self.parse_ticker(response[i])
             symbol = market['symbol']

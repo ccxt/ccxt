@@ -501,8 +501,9 @@ class ramzinex extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['public'] . '/' . $path;
-        if ($params['pair_id'] !== null) {
-            $url = $url . '/' . $params['pair_id'];
+        $pair_id = $this->safe_string($params, 'pair_id');
+        if ($pair_id !== null) {
+            $url = $url . '/' . $pair_id;
         }
         if ($path === 'exchange/api/v1.0/exchange/chart/tv/history') {
             $url = $this->urls['api']['public'] . '/' . $path . '?' . $this->urlencode($query);
