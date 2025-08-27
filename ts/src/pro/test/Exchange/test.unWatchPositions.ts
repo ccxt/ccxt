@@ -7,7 +7,7 @@ async function createOrderAfterDelay (exchange: Exchange) {
     await exchange.createOrder ('BTC/USDT:USDT', 'market', 'buy', 0.001);
 }
 
-async function testUnwatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
+async function testUnWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchPositions';
     exchange.setSandboxMode (true);
 
@@ -73,5 +73,5 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
     return true;
 }
 
-export default testUnwatchPositions;
+export default testUnWatchPositions;
 

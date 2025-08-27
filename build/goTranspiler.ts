@@ -72,6 +72,7 @@ const goTypeOptions: any = {};
 const WRAPPER_METHODS: {} = {};
 
 let goTests: string[] = [];
+const goWsTests: string[] = [];
 
 const imports = [
     'import ccxt "github.com/ccxt/ccxt/go/v4"'
@@ -2284,6 +2285,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 tsFile: baseFolders.ts + test + '.ts',
                 goFile: baseFolders.go + test + '.go',
             });
+            goWsTests.push(test)
         });
 
         this.transpileAndSaveGoExchangeTests (tests, true);
@@ -2364,14 +2366,18 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         }
         this.transpileBaseTestsToGo();
         this.transpileExchangeTests();
-        this.createFunctionsMapFile();
         this.transpileWsExchangeTests();
+        this.createFunctionsMapFile();
     }
 
     createFunctionsMapFile() {
         // const normalizedTestNames = goTests.map(test => 'Test' + capitalize(test.replace('Test.', '').replace('test.', '')) );
         const normalizedTestNames: string[] = [];
         const normalizedFunctionNames: string[] = [];
+
+        //ws
+        const normalizedWsTestNames: string[] = [];
+        const normalizedWsFunctionNames: string[] = [];
         for (let test of goTests) {
             const skipTests = [
                 "test.sharedMethods",
@@ -2388,6 +2394,21 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             test = 'Test' + capitalize(methodName)
             normalizedTestNames.push(test);
         }
+
+        for (let test of goWsTests) {
+            const skipTests: any = [];
+            if (skipTests.includes(test)) {
+                continue;
+            }
+            if (test === 'test.ohlcv') {
+                test = 'test.OHLCV';
+            }
+            const methodName = test.replace('Test.', '').replace('test.', '');
+            normalizedWsFunctionNames.push(methodName);
+            test = 'Test' + capitalize(methodName)
+            normalizedWsTestNames.push(test);
+        }
+
         const file = [
             'package base',
             '',
@@ -2395,6 +2416,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             'var FunctionsMap = map[string]interface{}{',
             ...normalizedTestNames.map((test,i) => `    "${normalizedFunctionNames[i]}": ${test},`),
+            '}',
+            '',
+            'var WsFunctionsMap = map[string]interface{}{',
+            ...normalizedWsTestNames.map((test,i) => `    "${normalizedWsFunctionNames[i]}": ${test},`),
             '}',
         ].join('\n');
         overwriteFileAndFolder (BASE_TESTS_FOLDER + '/test.functions.go', file);

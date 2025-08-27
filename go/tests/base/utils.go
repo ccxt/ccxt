@@ -507,8 +507,11 @@ func GetTestFiles(properties2 interface{}, ws bool) <-chan map[string]interface{
 		// 		// }
 		// 	}
 		// }
-
-		ch <- FunctionsMap
+		if ws {
+			ch <- WsFunctionsMap
+		} else {
+			ch <- FunctionsMap
+		}
 	}()
 	return ch
 }
