@@ -364,7 +364,10 @@ class ompfinex extends Exchange {
             $last = $last ? $last / 10 : 0;
             $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
-        $baseVolume = $quoteVolume / $last;
+        $baseVolume = 0;
+        if ($last) {
+            $baseVolume = $quoteVolume / $last;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -484,8 +487,10 @@ class ompfinex extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['public'] . '/' . $path;
-        if ($params['id'] !== null) {
-            $url = $url . '/' . $params['id'];
+        // safer check
+        $pair_id = $this->safe_string($params, 'id');
+        if ($pair_id !== null) {
+            $url = $url . '/' . $pair_id;
         }
         if ($path === 'v2/udf/real/history') {
             $url = $this->urls['api']['public'] . '/' . $path . '?' . $this->urlencode($query);

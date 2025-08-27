@@ -269,7 +269,7 @@ class ramzinex extends ramzinex$1["default"] {
         }
         const response = await this.publicGetExchangeApiV10ExchangePairs();
         const markets = this.safeList(response, 'data');
-        const result = [];
+        const result = {};
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             if (!market || !market['financial'] || Object.keys(market['financial']).length === 0) {
@@ -493,8 +493,9 @@ class ramzinex extends ramzinex$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         let url = this.urls['api']['public'] + '/' + path;
-        if (params['pair_id'] !== undefined) {
-            url = url + '/' + params['pair_id'];
+        const pair_id = this.safeString(params, 'pair_id');
+        if (pair_id !== undefined) {
+            url = url + '/' + pair_id;
         }
         if (path === 'exchange/api/v1.0/exchange/chart/tv/history') {
             url = this.urls['api']['public'] + '/' + path + '?' + this.urlencode(query);

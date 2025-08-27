@@ -229,7 +229,7 @@ export default class afratether extends Exchange {
         };
         const response = await this.publicGetApiV10Price(request);
         const markets = this.safeList(response, 'Items');
-        const result = [];
+        const result = {};
         for (let i = 0; i < markets.length; i++) {
             const ticker = this.parseTicker(markets[i]);
             const symbol = ticker['symbol'];
