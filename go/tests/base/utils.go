@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtPro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 const (
@@ -446,13 +447,22 @@ func UnCamelCase(str string) string {
 // initExchange function to initialize an exchange (stub)
 func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.ICoreExchange {
 	var exchangeOptions interface{} = nil
+	var ws bool = false
 	if len(options) > 0 {
 		exchangeOptions = options[0]
+		ws = SafeValue(options, 1, false).(bool)
 	}
 	if exchangeOptions == nil {
 		exchangeOptions = make(map[string]interface{})
 	}
-	instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	var instance ccxt.ICoreExchange
+	var success bool = true
+	if ws {
+		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	} else {
+		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	}
+	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
 	if success == false {
 		return nil
 	}
