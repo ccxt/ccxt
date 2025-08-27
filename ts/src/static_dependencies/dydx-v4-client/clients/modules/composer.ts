@@ -126,7 +126,6 @@ export class Composer {
     const msg: MsgPlaceOrder = {
       order,
     };
-    console.log(JSON.stringify(msg))
     return {
       typeUrl: TYPE_URL_MSG_PLACE_ORDER,
       value: msg,

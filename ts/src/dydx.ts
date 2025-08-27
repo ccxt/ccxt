@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/dydx.js';
-import { ArgumentsRequired, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
@@ -115,7 +115,7 @@ export default class dydx extends Exchange {
                 'setLeverage': false,
                 'setMargin': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -223,6 +223,11 @@ export default class dydx extends Exchange {
                     'maker': this.parseNumber ('0.0001'),
                     'taker': this.parseNumber ('0.0005'),
                 },
+            },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'privateKey': false,
             },
             'options': {
                 'timeDifference': 0, // the difference between system clock and exchange clock
@@ -1566,6 +1571,103 @@ export default class dydx extends Exchange {
         params['methodName'] = 'fetchLedger';
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
         return this.parseLedger (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dydx#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from *main, subaccount*
+     * @param {string} toAccount account to transfer to *subaccount, address*
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
+        const nonce = this.milliseconds ();
+        if (code !== 'USDC') {
+            throw new NotSupported (this.id + ' transfer() only support USDC');
+        }
+        const fromSubaccountId = this.safeInteger (params, 'fromSubaccountId');
+        const toSubaccountId = this.safeInteger (params, 'toSubaccountId');
+        if (fromAccount !== 'main') {
+            // throw error if from subaccount id is undefind
+            if (fromAccount === undefined) {
+                throw new NotSupported (this.id + ' transfer only support main > subaccount and subaccount <> subaccount.');
+            }
+            if (fromSubaccountId === undefined || toSubaccountId === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer requires fromSubaccountId and toSubaccountId.');
+            }
+        }
+        params = this.omit (params, [ 'fromSubaccountId', 'toSubaccountId' ]);
+        const wallet = await this.recoverLocalWallet ();
+        const account = await this.fetchDydxAccount ();
+        const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
+        let payload = undefined;
+        let signingPayload = undefined;
+        if (fromAccount === 'main') {
+            // deposit to subaccount
+            if (toSubaccountId === undefined) {
+                throw new ArgumentsRequired (this.id + ' transfer() requeire toSubaccoutnId.');
+            }
+            payload = {
+                'sender': this.walletAddress,
+                'recipient': {
+                    'owner': this.walletAddress,
+                    'number': toSubaccountId,
+                },
+                'assetId': 0,
+                'quantums': usd,
+            };
+            signingPayload = {
+                'typeUrl': '/dydxprotocol.sending.MsgDepositToSubaccount',
+                'value': payload,
+            };
+        } else {
+            payload = {
+                'transfer': {
+                    'sender': {
+                        'owner': fromAccount,
+                        'number': fromSubaccountId,
+                    },
+                    'recipient': {
+                        'owner': toAccount,
+                        'number': toSubaccountId,
+                    },
+                    'assetId': 0,
+                    'amount': usd,
+                }
+            };
+            signingPayload = {
+                'typeUrl': '/dydxprotocol.sending.MsgCreateTransfer',
+                'value': payload,
+            };
+        }
+        const signedTx = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
+        const request = {
+            'tx': signedTx,
+        };
+        // nodeRpcGetBroadcastTxAsync
+        const response = await this.nodeRpcGetBroadcastTxSync (request);
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        return this.parseTransfer (response);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
