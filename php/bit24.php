@@ -338,9 +338,11 @@ class bit24 extends Exchange {
         // ),
         $marketType = 'spot';
         $base_coin = $this->safe_dict($ticker, 'base_coin', array());
-        $base_symbol = $this->safe_string($base_coin, 'symbol').toLocaleLowerCase ();
+        $base_symbol = $this->safe_string($base_coin, 'symbol');
+        $base_symbol = strtolower($base_symbol);
         $quote_coin = $this->safe_dict($ticker, 'quote_coin', array());
-        $quote_symbol = $this->safe_string($quote_coin, 'symbol').toLocaleLowerCase ();
+        $quote_symbol = $this->safe_string($quote_coin, 'symbol');
+        $quote_symbol = strtolower($quote_symbol);
         $marketId = $base_symbol . '-' . $quote_symbol;
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $last = $this->safe_float($ticker, 'each_price', 0);

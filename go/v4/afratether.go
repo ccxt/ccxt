@@ -257,7 +257,7 @@ func  (this *afratether) FetchTickers(optionalArgs ...interface{}) <- chan inter
             response:= (<-this.PublicGetApiV10Price(request))
             PanicOnError(response)
             var markets interface{} = this.SafeList(response, "Items")
-            var result interface{} = []interface{}{}
+            var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")

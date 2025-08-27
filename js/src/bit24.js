@@ -341,9 +341,11 @@ export default class bit24 extends Exchange {
         // },
         const marketType = 'spot';
         const base_coin = this.safeDict(ticker, 'base_coin', {});
-        const base_symbol = this.safeString(base_coin, 'symbol').toLocaleLowerCase();
+        let base_symbol = this.safeString(base_coin, 'symbol');
+        base_symbol = base_symbol.toLowerCase();
         const quote_coin = this.safeDict(ticker, 'quote_coin', {});
-        const quote_symbol = this.safeString(quote_coin, 'symbol').toLocaleLowerCase();
+        let quote_symbol = this.safeString(quote_coin, 'symbol');
+        quote_symbol = quote_symbol.toLowerCase();
         const marketId = base_symbol + '-' + quote_symbol;
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const last = this.safeFloat(ticker, 'each_price', 0);

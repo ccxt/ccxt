@@ -327,9 +327,11 @@ class bit24(Exchange, ImplicitAPI):
         # },
         marketType = 'spot'
         base_coin = self.safe_dict(ticker, 'base_coin', {})
-        base_symbol = self.safe_string(base_coin, 'symbol').toLocaleLowerCase()
+        base_symbol = self.safe_string(base_coin, 'symbol')
+        base_symbol = base_symbol.lower()
         quote_coin = self.safe_dict(ticker, 'quote_coin', {})
-        quote_symbol = self.safe_string(quote_coin, 'symbol').toLocaleLowerCase()
+        quote_symbol = self.safe_string(quote_coin, 'symbol')
+        quote_symbol = quote_symbol.lower()
         marketId = base_symbol + '-' + quote_symbol
         symbol = self.safe_symbol(marketId, market, None, marketType)
         last = self.safe_float(ticker, 'each_price', 0)

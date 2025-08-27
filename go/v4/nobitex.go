@@ -270,7 +270,7 @@ func  (this *nobitex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             PanicOnError(response)
             var markets interface{} = this.SafeDict(response, "stats")
             var marketKeys interface{} = ObjectKeys(markets)
-            var result interface{} = []interface{}{}
+            var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
                 var symbol interface{} = GetValue(marketKeys, i)
                 if IsTrue(GetValue(GetValue(markets, symbol), "isClosed")) {

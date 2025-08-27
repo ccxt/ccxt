@@ -296,7 +296,7 @@ func  (this *ompfinex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             response:= (<-this.PublicGetV1Market())
             PanicOnError(response)
             var markets interface{} = this.SafeList(response, "data")
-            var result interface{} = []interface{}{}
+            var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var ticker interface{} = this.ParseTicker(GetValue(markets, i))
                 var symbol interface{} = GetValue(ticker, "symbol")
@@ -414,7 +414,10 @@ func  (this *ompfinex) ParseTicker(ticker interface{}, optionalArgs ...interface
         last = Ternary(IsTrue(last), Divide(last, 10), 0)
         quoteVolume = Ternary(IsTrue(quoteVolume), Divide(quoteVolume, 10), 0)
     }
-    var baseVolume interface{} = Divide(quoteVolume, last)
+    var baseVolume interface{} = 0
+    if IsTrue(last) {
+        baseVolume = Divide(quoteVolume, last)
+    }
     return this.SafeTicker(map[string]interface{} {
         "symbol": symbol,
         "timestamp": nil,
@@ -464,8 +467,8 @@ func  (this *ompfinex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes4128 := (<-this.LoadMarkets())
-            PanicOnError(retRes4128)
+            retRes4158 := (<-this.LoadMarkets())
+            PanicOnError(retRes4158)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(GetValue(market, "quote"), "IRT")) {
                 symbol = Add(GetValue(market, "base"), "IRR")
@@ -532,8 +535,8 @@ func  (this *ompfinex) FetchOrderBook(symbol interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4728 := (<-this.LoadMarkets())
-            PanicOnError(retRes4728)
+            retRes4758 := (<-this.LoadMarkets())
+            PanicOnError(retRes4758)
             var market interface{} = this.Market(symbol)
         
             response:= (<-this.PublicGetV1Orderbook())
@@ -575,8 +578,10 @@ func  (this *ompfinex) Sign(path interface{}, optionalArgs ...interface{}) inter
     _ = body
     var query interface{} = this.Omit(params, this.ExtractParams(path))
     var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), "public"), "/"), path)
-    if IsTrue(!IsEqual(GetValue(params, "id"), nil)) {
-        url = Add(Add(url, "/"), GetValue(params, "id"))
+    // safer check
+    var pair_id interface{} = this.SafeString(params, "id")
+    if IsTrue(!IsEqual(pair_id, nil)) {
+        url = Add(Add(url, "/"), pair_id)
     }
     if IsTrue(IsEqual(path, "v2/udf/real/history")) {
         url = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "public"), "/"), path), "?"), this.Urlencode(query))
