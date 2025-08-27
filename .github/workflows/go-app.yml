@@ -171,9 +171,9 @@ jobs:
         run: go build -C go ./tests/main.go
       - name: Live tests
         if: env.important_modified == 'true'
-        run: node run-tests --go --useProxy
+        run: ./run-tests-simul.sh --go
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --go "${{ env.rest_files }}"
+        run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
 
 

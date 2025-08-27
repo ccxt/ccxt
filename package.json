@@ -127,6 +127,7 @@
     "live-tests-rest-csharp": "npm run live-tests -- --csharp",
     "live-tests-rest-go": "npm run live-tests -- --go",
     "live-tests-ws-csharp": "npm run live-tests -- --csharp --ws",
+    "live-tests-ws-go": "npm run live-tests -- --go --ws",
     "ti-ts": "tsx ts/src/test/tests.init.ts",
     "ti-js": "node js/src/test/tests.init.js",
     "ti-py": "python3 python/ccxt/test/tests_init.py",
