@@ -1552,7 +1552,7 @@ export default class mexc extends mexcRest {
         //         "ts": 1680059188190
         //     }
         //
-        const c = this.safeString2 (message, 'c', 'channel');
+        const c = this.safeString (message, 'c'); // do not add 'channel' here, this is especially for spot
         const type = (c === undefined) ? 'swap' : 'spot';
         const messageHash = 'balance:' + type;
         const data = this.safeDictN (message, [ 'd', 'data', 'privateAccount' ]);
