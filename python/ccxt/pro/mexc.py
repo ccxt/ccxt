@@ -181,7 +181,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
-        timestamp = self.safe_integer_2(message, 't', 'sendtime')
+        timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = None

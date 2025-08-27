@@ -1881,7 +1881,7 @@ public partial class bitget : Exchange
             object res = this.safeDict(results, i);
             object data = this.safeList(res, "data", new List<object>() {});
             object firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            object isBorrowable = this.safeString(firstData, "isBorrowable");
+            object isBorrowable = this.safeBool(firstData, "isBorrowable");
             if (isTrue(isTrue(fetchMargins) && isTrue(!isEqual(isBorrowable, null))))
             {
                 object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(data, "symbol")).Keys);
