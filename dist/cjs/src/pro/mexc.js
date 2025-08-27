@@ -1532,7 +1532,7 @@ class mexc extends mexc$1["default"] {
         //         "ts": 1680059188190
         //     }
         //
-        const c = this.safeString2(message, 'c', 'channel');
+        const c = this.safeString(message, 'c'); // do not add 'channel' here, this is especially for spot
         const type = (c === undefined) ? 'swap' : 'spot';
         const messageHash = 'balance:' + type;
         const data = this.safeDictN(message, ['d', 'data', 'privateAccount']);
@@ -1547,7 +1547,11 @@ class mexc extends mexc$1["default"] {
         const currencyId = this.safeStringN(data, ['a', 'currency', 'vcoinName']);
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
-        account['total'] = this.safeStringN(data, ['f', 'availableBalance', 'balanceAmount']);
+        const balanceAmount = this.safeString(data, 'balanceAmount');
+        if (balanceAmount !== undefined) {
+            account['free'] = balanceAmount;
+        }
+        account['total'] = this.safeStringN(data, ['f', 'availableBalance']);
         account['used'] = this.safeStringN(data, ['l', 'frozenBalance', 'frozenAmount']);
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);
