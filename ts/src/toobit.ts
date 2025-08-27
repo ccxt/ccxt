@@ -58,6 +58,7 @@ export default class toobit extends Exchange {
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': '',
@@ -111,6 +112,7 @@ export default class toobit extends Exchange {
                         'api/v1/spot/order': 1,
                         'api/v1/spot/batchOrders': 1,
                         'api/v1/subAccount/transfer': 1,
+                        'api/v1/account/withdraw': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -1844,6 +1846,16 @@ export default class toobit extends Exchange {
         //         "isInternalTransfer": false        // present in "fetchWithdrawals"
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "status": 0,
+        //         "success": true,
+        //         "needBrokerAudit": false, // Do you need a brokerage review?
+        //         "id": "423885103582776064",
+        //         "refuseReason":"" // failure rejection reason
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'time');
         const currencyId = this.safeString2 (transaction, 'coin', 'coinId');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1939,6 +1951,49 @@ export default class toobit extends Exchange {
             'address': address,
             'tag': this.safeString (depositAddress, 'addressExt'),
         } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name toobit#withdraw
+     * @description make a withdrawal
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag a memo for the transaction
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        this.checkAddress (address);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() : param["network"] is required');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+            'address': address,
+            'quantity': this.currencyToPrecision (currency['code'], amount),
+            'network': networkCode,
+        };
+        if (tag !== undefined) {
+            request['addressExt'] = tag;
+        }
+        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
+        //
+        // {
+        //     "status": 0,
+        //     "success": true,
+        //     "needBrokerAudit": false, // Do you need a brokerage review?
+        //     "id": "423885103582776064", // Withdrawal successful order id
+        //     "refuseReason":"" // failure rejection reason
+        // }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
