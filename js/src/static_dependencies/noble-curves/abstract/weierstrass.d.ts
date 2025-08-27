@@ -1,4 +1,3 @@
-/// <reference types="node" />
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 import * as mod from './modular.js';
 import * as ut from './utils.js';

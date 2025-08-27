@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *bequant) PublicGetPublicCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCurrency", args...)
+func (this *bequant) PublicGetPublicCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }
 
-func (this *bequant) PublicGetPublicCurrencyCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
+func (this *bequant) PublicGetPublicCurrencyCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
 }
 
-func (this *bequant) PublicGetPublicSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicSymbol", args...)
+func (this *bequant) PublicGetPublicSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicSymbolSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
+func (this *bequant) PublicGetPublicSymbolSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTicker", args...)
+func (this *bequant) PublicGetPublicTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTicker", args...)
 }
 
-func (this *bequant) PublicGetPublicTickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
+func (this *bequant) PublicGetPublicTickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicPriceRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceRate", args...)
+func (this *bequant) PublicGetPublicPriceRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceRate", args...)
 }
 
-func (this *bequant) PublicGetPublicPriceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
+func (this *bequant) PublicGetPublicPriceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
 }
 
-func (this *bequant) PublicGetPublicPriceTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
+func (this *bequant) PublicGetPublicPriceTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
 }
 
-func (this *bequant) PublicGetPublicPriceTickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
+func (this *bequant) PublicGetPublicPriceTickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTrades", args...)
+func (this *bequant) PublicGetPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTrades", args...)
 }
 
-func (this *bequant) PublicGetPublicTradesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
+func (this *bequant) PublicGetPublicTradesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOrderbook", args...)
+func (this *bequant) PublicGetPublicOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOrderbook", args...)
 }
 
-func (this *bequant) PublicGetPublicOrderbookSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
+func (this *bequant) PublicGetPublicOrderbookSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCandles", args...)
+func (this *bequant) PublicGetPublicCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCandles", args...)
 }
 
-func (this *bequant) PublicGetPublicCandlesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
+func (this *bequant) PublicGetPublicCandlesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicConvertedCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
+func (this *bequant) PublicGetPublicConvertedCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
 }
 
-func (this *bequant) PublicGetPublicConvertedCandlesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
+func (this *bequant) PublicGetPublicConvertedCandlesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
+func (this *bequant) PublicGetPublicFuturesInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesInfoSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesInfoSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesHistoryFunding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
+func (this *bequant) PublicGetPublicFuturesHistoryFunding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesHistoryFundingSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesHistoryFundingSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesIndexPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesIndexPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesIndexPriceSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesMarkPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesMarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesMarkPriceSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesPremiumIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesPremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesPremiumIndexSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
 }
 
-func (this *bequant) PublicGetPublicFuturesCandlesOpenInterestSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
+func (this *bequant) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
 }
 
-func (this *bequant) PrivateGetSpotBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotBalance", args...)
+func (this *bequant) PrivateGetSpotBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotBalance", args...)
 }
 
-func (this *bequant) PrivateGetSpotBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
+func (this *bequant) PrivateGetSpotBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
 }
 
-func (this *bequant) PrivateGetSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotOrder", args...)
+func (this *bequant) PrivateGetSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrder", args...)
 }
 
-func (this *bequant) PrivateGetSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
+func (this *bequant) PrivateGetSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateGetSpotFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotFee", args...)
+func (this *bequant) PrivateGetSpotFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotFee", args...)
 }
 
-func (this *bequant) PrivateGetSpotFeeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
+func (this *bequant) PrivateGetSpotFeeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
 }
 
-func (this *bequant) PrivateGetSpotHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
+func (this *bequant) PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
 }
 
-func (this *bequant) PrivateGetSpotHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
+func (this *bequant) PrivateGetSpotHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
 }
 
-func (this *bequant) PrivateGetMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *bequant) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *bequant) PrivateGetMarginAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
+func (this *bequant) PrivateGetMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *bequant) PrivateGetMarginAccountCrossCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
+func (this *bequant) PrivateGetMarginAccountCrossCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
 }
 
-func (this *bequant) PrivateGetMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginOrder", args...)
+func (this *bequant) PrivateGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginOrder", args...)
 }
 
-func (this *bequant) PrivateGetMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
+func (this *bequant) PrivateGetMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateGetMarginConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginConfig", args...)
+func (this *bequant) PrivateGetMarginConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginConfig", args...)
 }
 
-func (this *bequant) PrivateGetMarginHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
+func (this *bequant) PrivateGetMarginHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
 }
 
-func (this *bequant) PrivateGetMarginHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
+func (this *bequant) PrivateGetMarginHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
 }
 
-func (this *bequant) PrivateGetMarginHistoryPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
+func (this *bequant) PrivateGetMarginHistoryPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
 }
 
-func (this *bequant) PrivateGetMarginHistoryClearing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
+func (this *bequant) PrivateGetMarginHistoryClearing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
-func (this *bequant) PrivateGetFuturesBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesBalance", args...)
+func (this *bequant) PrivateGetFuturesBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesBalance", args...)
 }
 
-func (this *bequant) PrivateGetFuturesBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
+func (this *bequant) PrivateGetFuturesBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
 }
 
-func (this *bequant) PrivateGetFuturesAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAccount", args...)
+func (this *bequant) PrivateGetFuturesAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesAccount", args...)
 }
 
-func (this *bequant) PrivateGetFuturesAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
+func (this *bequant) PrivateGetFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *bequant) PrivateGetFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrder", args...)
+func (this *bequant) PrivateGetFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesOrder", args...)
 }
 
-func (this *bequant) PrivateGetFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
+func (this *bequant) PrivateGetFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateGetFuturesConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesConfig", args...)
+func (this *bequant) PrivateGetFuturesConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesConfig", args...)
 }
 
-func (this *bequant) PrivateGetFuturesFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFee", args...)
+func (this *bequant) PrivateGetFuturesFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesFee", args...)
 }
 
-func (this *bequant) PrivateGetFuturesFeeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
+func (this *bequant) PrivateGetFuturesFeeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
 }
 
-func (this *bequant) PrivateGetFuturesHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
+func (this *bequant) PrivateGetFuturesHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
 }
 
-func (this *bequant) PrivateGetFuturesHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
+func (this *bequant) PrivateGetFuturesHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
 }
 
-func (this *bequant) PrivateGetFuturesHistoryPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
+func (this *bequant) PrivateGetFuturesHistoryPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
 }
 
-func (this *bequant) PrivateGetFuturesHistoryClearing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
+func (this *bequant) PrivateGetFuturesHistoryClearing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
-func (this *bequant) PrivateGetWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletBalance", args...)
+func (this *bequant) PrivateGetWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalance", args...)
 }
 
-func (this *bequant) PrivateGetWalletBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
+func (this *bequant) PrivateGetWalletBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
 }
 
-func (this *bequant) PrivateGetWalletCryptoAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
+func (this *bequant) PrivateGetWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
 }
 
-func (this *bequant) PrivateGetWalletCryptoAddressRecentDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
+func (this *bequant) PrivateGetWalletCryptoAddressRecentDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
 }
 
-func (this *bequant) PrivateGetWalletCryptoAddressRecentWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
+func (this *bequant) PrivateGetWalletCryptoAddressRecentWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
 }
 
-func (this *bequant) PrivateGetWalletCryptoAddressCheckMine (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
+func (this *bequant) PrivateGetWalletCryptoAddressCheckMine(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
 }
 
-func (this *bequant) PrivateGetWalletTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *bequant) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *bequant) PrivateGetWalletTransactionsTxId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
+func (this *bequant) PrivateGetWalletTransactionsTxId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
 }
 
-func (this *bequant) PrivateGetWalletCryptoFeeEstimate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
+func (this *bequant) PrivateGetWalletCryptoFeeEstimate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
 }
 
-func (this *bequant) PrivateGetWalletAirdrops (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletAirdrops", args...)
+func (this *bequant) PrivateGetWalletAirdrops(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletAirdrops", args...)
 }
 
-func (this *bequant) PrivateGetWalletAmountLocks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
+func (this *bequant) PrivateGetWalletAmountLocks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
 }
 
-func (this *bequant) PrivateGetSubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccount", args...)
+func (this *bequant) PrivateGetSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccount", args...)
 }
 
-func (this *bequant) PrivateGetSubAccountAcl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountAcl", args...)
+func (this *bequant) PrivateGetSubAccountAcl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountAcl", args...)
 }
 
-func (this *bequant) PrivateGetSubAccountBalanceSubAccID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
+func (this *bequant) PrivateGetSubAccountBalanceSubAccID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
 }
 
-func (this *bequant) PrivateGetSubAccountCryptoAddressSubAccIDCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
+func (this *bequant) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
 }
 
-func (this *bequant) PrivatePostSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotOrder", args...)
+func (this *bequant) PrivatePostSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotOrder", args...)
 }
 
-func (this *bequant) PrivatePostSpotOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotOrderList", args...)
+func (this *bequant) PrivatePostSpotOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotOrderList", args...)
 }
 
-func (this *bequant) PrivatePostMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *bequant) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *bequant) PrivatePostMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrderList", args...)
+func (this *bequant) PrivatePostMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrderList", args...)
 }
 
-func (this *bequant) PrivatePostFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesOrder", args...)
+func (this *bequant) PrivatePostFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFuturesOrder", args...)
 }
 
-func (this *bequant) PrivatePostFuturesOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesOrderList", args...)
+func (this *bequant) PrivatePostFuturesOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFuturesOrderList", args...)
 }
 
-func (this *bequant) PrivatePostWalletCryptoAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
+func (this *bequant) PrivatePostWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
 }
 
-func (this *bequant) PrivatePostWalletCryptoWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
+func (this *bequant) PrivatePostWalletCryptoWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
 }
 
-func (this *bequant) PrivatePostWalletConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletConvert", args...)
+func (this *bequant) PrivatePostWalletConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletConvert", args...)
 }
 
-func (this *bequant) PrivatePostWalletTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletTransfer", args...)
+func (this *bequant) PrivatePostWalletTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *bequant) PrivatePostWalletInternalWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
+func (this *bequant) PrivatePostWalletInternalWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
 }
 
-func (this *bequant) PrivatePostWalletCryptoCheckOffchainAvailable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
+func (this *bequant) PrivatePostWalletCryptoCheckOffchainAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
 }
 
-func (this *bequant) PrivatePostWalletCryptoFeesEstimate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
+func (this *bequant) PrivatePostWalletCryptoFeesEstimate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
-func (this *bequant) PrivatePostWalletAirdropsIdClaim (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
+func (this *bequant) PrivatePostWalletAirdropsIdClaim(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
 }
 
-func (this *bequant) PrivatePostSubAccountFreeze (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
+func (this *bequant) PrivatePostSubAccountFreeze(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
 }
 
-func (this *bequant) PrivatePostSubAccountActivate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountActivate", args...)
+func (this *bequant) PrivatePostSubAccountActivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountActivate", args...)
 }
 
-func (this *bequant) PrivatePostSubAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
+func (this *bequant) PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
 }
 
-func (this *bequant) PrivatePostSubAccountAcl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountAcl", args...)
+func (this *bequant) PrivatePostSubAccountAcl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountAcl", args...)
 }
 
-func (this *bequant) PrivatePatchSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
+func (this *bequant) PrivatePatchSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivatePatchMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
+func (this *bequant) PrivatePatchMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivatePatchFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
+func (this *bequant) PrivatePatchFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateDeleteSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteSpotOrder", args...)
+func (this *bequant) PrivateDeleteSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrder", args...)
 }
 
-func (this *bequant) PrivateDeleteSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
+func (this *bequant) PrivateDeleteSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateDeleteMarginPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginPosition", args...)
+func (this *bequant) PrivateDeleteMarginPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginPosition", args...)
 }
 
-func (this *bequant) PrivateDeleteMarginPositionIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
+func (this *bequant) PrivateDeleteMarginPositionIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
 }
 
-func (this *bequant) PrivateDeleteMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginOrder", args...)
+func (this *bequant) PrivateDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginOrder", args...)
 }
 
-func (this *bequant) PrivateDeleteMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
+func (this *bequant) PrivateDeleteMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateDeleteFuturesPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
+func (this *bequant) PrivateDeleteFuturesPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
 }
 
-func (this *bequant) PrivateDeleteFuturesPositionMarginModeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
+func (this *bequant) PrivateDeleteFuturesPositionMarginModeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
 }
 
-func (this *bequant) PrivateDeleteFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
+func (this *bequant) PrivateDeleteFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
 }
 
-func (this *bequant) PrivateDeleteFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
+func (this *bequant) PrivateDeleteFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
 }
 
-func (this *bequant) PrivateDeleteWalletCryptoWithdrawId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
+func (this *bequant) PrivateDeleteWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
 }
 
-func (this *bequant) PrivatePutMarginAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
+func (this *bequant) PrivatePutMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *bequant) PrivatePutFuturesAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
+func (this *bequant) PrivatePutFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *bequant) PrivatePutWalletCryptoWithdrawId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
+func (this *bequant) PrivatePutWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
 }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.2'
+__version__ = '4.5.1'
 
 # -----------------------------------------------------------------------------
 
@@ -159,7 +159,6 @@ from ccxt.async_support.poloniex import poloniex                                
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
-from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
@@ -267,7 +266,6 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
-    'toobit',
     'tradeogre',
     'upbit',
     'wavesexchange',
