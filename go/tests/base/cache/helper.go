@@ -7,6 +7,13 @@ import (
 	"github.com/ccxt/tests/base"
 )
 
+func strOrNil(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
 func Equals(a interface{}, b interface{}) bool {
 	// return base.Equals(a, b)
 	// should handle a being WsOrderBook or ArrayCache or any other variant
@@ -30,11 +37,35 @@ func Equals(a interface{}, b interface{}) bool {
 	case *ccxt.ArrayCacheByTimestamp:
 		jsonA, errA = json.Marshal(a.Data)
 	case *ccxt.WsOrderBook:
-		jsonA, errA = json.Marshal(a)
+		ob := map[string]interface{}{
+			"bids":      a.Bids.GetData(),
+			"asks":      a.Asks.GetData(),
+			"nonce":     a.Nonce,
+			"timestamp": a.Timestamp,
+			"datetime":  a.Datetime,
+			"symbol":    strOrNil(a.Symbol),
+		}
+		jsonA, errA = json.Marshal(ob)
 	case *ccxt.IndexedOrderBook:
-		jsonA, errA = json.Marshal(a)
+		ob := map[string]interface{}{
+			"bids":      a.Bids.GetData(),
+			"asks":      a.Asks.GetData(),
+			"datetime":  a.Datetime,
+			"nonce":     a.Nonce,
+			"timestamp": a.Timestamp,
+			"symbol":    strOrNil(a.Symbol),
+		}
+		jsonA, errA = json.Marshal(ob)
 	case *ccxt.CountedOrderBook:
-		jsonA, errA = json.Marshal(a)
+		ob := map[string]interface{}{
+			"bids":      a.Bids.GetData(),
+			"asks":      a.Asks.GetData(),
+			"nonce":     a.Nonce,
+			"timestamp": a.Timestamp,
+			"datetime":  a.Datetime,
+			"symbol":    strOrNil(a.Symbol),
+		}
+		jsonA, errA = json.Marshal(ob)
 	default:
 		jsonA, errA = json.Marshal(a)
 
@@ -44,8 +75,16 @@ func Equals(a interface{}, b interface{}) bool {
 	if errA != nil || err2 != nil {
 		return false
 	}
-	strA := string(jsonA)
-	strB := string(jsonB)
+
+	normalize := func(j []byte) []byte {
+		var o interface{}
+		_ = json.Unmarshal(j, &o)
+		b, _ := json.Marshal(o) // Marshal normalizes key order
+		return b
+	}
+
+	strA := string(normalize(jsonA))
+	strB := string(normalize(jsonB))
 	res := strA == strB
 	if !res {
 		base.Print("[Error] Not equal: " + strA + " != " + strB)

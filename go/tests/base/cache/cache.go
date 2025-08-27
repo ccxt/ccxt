@@ -626,16 +626,16 @@ func TestWsCache()  {
         "side": "long",
         "contracts": 3,
     }) // create short position
-    Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4, 0), "symbol"), symbol))
-    Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4, 1), "symbol"), symbol2))
+    Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol))
+    Assert(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol2))
     cacheSymbolSide4.Append(map[string]interface{} {
         "symbol": symbol2,
         "side": "long",
         "contracts": 4,
     }) // update first position
-    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 0), "contracts"), 1)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 0), "symbol"), symbol)))
-    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 1), "contracts"), 3)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 1), "symbol"), symbol3)))
-    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 2), "contracts"), 4)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4, 2), "symbol"), symbol2)))
-    var arrayLength interface{} =     GetArrayLength(cacheSymbolSide4)
+    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "contracts"), 1)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol)))
+    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "contracts"), 3)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol3)))
+    Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "contracts"), 4)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "symbol"), symbol2)))
+    var arrayLength interface{} =     GetArrayLength(cacheSymbolSide4.ToArray())
     Assert(IsEqual(arrayLength, 3))
 }
