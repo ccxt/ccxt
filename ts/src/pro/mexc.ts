@@ -1567,7 +1567,11 @@ export default class mexc extends mexcRest {
         const currencyId = this.safeStringN (data, [ 'a', 'currency', 'vcoinName' ]);
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['total'] = this.safeStringN (data, [ 'f', 'availableBalance', 'balanceAmount' ]);
+        const balanceAmount = this.safeString (data, 'balanceAmount');
+        if (balanceAmount !== undefined) {
+            account['free'] = balanceAmount;
+        }
+        account['total'] = this.safeStringN (data, [ 'f', 'availableBalance' ]);
         account['used'] = this.safeStringN (data, [ 'l', 'frozenBalance', 'frozenAmount' ]);
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance (this.balance[type]);
