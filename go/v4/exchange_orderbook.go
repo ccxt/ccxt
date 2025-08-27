@@ -108,12 +108,13 @@ func (this *WsOrderBook) Reset(optionalArgs ...interface{}) interface{} {
 	if snapshot == nil {
 		snapshot = make(map[string]interface{})
 	}
-	bids, asks := getAsksBids(snapshot)
+	asks, bids := getAsksBids(snapshot)
 	snapshotMap := snapshot.(map[string]interface{})
 
 	for i := range *this.Asks.GetIndex() {
 		(*this.Asks.GetIndex())[i] = math.MaxFloat64
 	}
+	this.Asks.SetData([][]interface{}{})
 	this.Asks.SetLen(0)
 	for _, ask := range asks {
 		this.Asks.StoreArray(ask)
@@ -122,6 +123,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...interface{}) interface{} {
 	for i := range *this.Bids.GetIndex() {
 		(*this.Bids.GetIndex())[i] = math.MaxFloat64
 	}
+	this.Bids.SetData([][]interface{}{})
 	this.Bids.SetLen(0)
 	for _, bid := range bids {
 		this.Bids.StoreArray(bid)
