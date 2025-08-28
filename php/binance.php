@@ -6505,17 +6505,12 @@ class binance extends Exchange {
             }
         }
         if ($quantityIsRequired) {
-            // portfolio margin has a different $amount $precision
-            if ($isPortfolioMargin) {
-                $request['quantity'] = $this->parse_to_numeric($amount);
+            $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+            $isPrecisionAvailable = ($marketAmountPrecision !== null);
+            if ($isPrecisionAvailable) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
-                $isPrecisionAvailable = ($marketAmountPrecision !== null);
-                if ($isPrecisionAvailable) {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                } else {
-                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
-                }
+                $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
