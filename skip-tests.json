@@ -1097,6 +1097,8 @@
         }
     },
     "gemini": {
+        "skip": "temporary USDC symbol issue in their API engine for swaps",
+        "until": "2025-08-31",
         "skipPhpAsync": "tmp",
         "skipCSharp": "tmp",
         "skipMethods": {
