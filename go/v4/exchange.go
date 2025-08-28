@@ -1653,10 +1653,29 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		},
 		wsOptions,
 	)
-	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
+	var proxyUrl string = this.getWsProxy()
+	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
 
 	this.Clients[url.(string)] = client
 	return client
+}
+
+func (this *Exchange) getWsProxy() string {
+	proxies := this.CheckWsProxySettings()
+	var proxyUrl string
+	if proxySlice, ok := proxies.([]interface{}); ok {
+		httpProxy, _ := proxySlice[0].(string)
+		httpsProxy, _ := proxySlice[1].(string)
+		socksProxy, _ := proxySlice[2].(string)
+		if httpProxy != "" {
+			proxyUrl = httpProxy
+		} else if httpsProxy != "" {
+			proxyUrl = httpsProxy
+		} else if socksProxy != "" {
+			proxyUrl = socksProxy
+		}
+	}
+	return proxyUrl
 }
 
 func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
