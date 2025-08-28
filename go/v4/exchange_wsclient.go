@@ -12,6 +12,7 @@ package ccxt
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -30,16 +31,18 @@ type WSClient struct {
 	Protocols         interface{}
 	Options           interface{}
 	StartedConnecting bool
+	ProxyUrl          string
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
-func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *WSClient {
+func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), proxyUrl string, config ...map[string]interface{}) *WSClient {
 	// Call NewClient to do exactly the same initialization
 	client := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
 
 	// Wrap the Client in a WSClient
 	wsClient := &WSClient{
-		Client: client,
+		Client:   client,
+		ProxyUrl: proxyUrl,
 	}
 	wsClient.StartedConnecting = false
 
@@ -53,9 +56,16 @@ func (this *WSClient) CreateConnection() error {
 	this.ConnectionStarted = Milliseconds()
 	this.SetConnectionTimeout()
 
+	var proxy func(*http.Request) (*url.URL, error)
+	if this.ProxyUrl != "" {
+		urlproxyURL, _ := url.Parse(this.ProxyUrl)
+		proxy = http.ProxyURL(urlproxyURL)
+	} else {
+		proxy = http.ProxyFromEnvironment
+	}
 	// Create WebSocket dialer
 	dialer := websocket.Dialer{
-		Proxy:             http.ProxyFromEnvironment,
+		Proxy:             proxy,
 		HandshakeTimeout:  10 * time.Second,
 		EnableCompression: true,
 	}
