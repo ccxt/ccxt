@@ -214,6 +214,10 @@ export default class dydx extends Exchange {
                     'get': {
                         'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
                     },
+                    'post': {
+                        'cosmos/tx/v1beta1/encode': 1,
+                        'cosmos/tx/v1beta1/simulate': 1,
+                    },
                 },
             },
             'fees': {
@@ -1573,6 +1577,26 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
+    async simulateTx (params = {}): Promise<any> {
+        const request = {
+            'tx': {
+                'auth_info': {
+                    'fee': {},
+                    'signer_infos': {}
+                },
+                'body': {
+                    'messages': [],
+                    'memo': '',
+                },
+            },
+            'tx_bytes': '',
+        };
+        const response = this.nodeRestPostCosmosTxV1beta1Simulate (request);
+        //
+        //
+        return response;
+    }
+
     /**
      * @method
      * @name dydx#transfer
@@ -1998,6 +2022,11 @@ export default class dydx extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else {
+            body = this.json (params);
+            headers = {
+                'Content-type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

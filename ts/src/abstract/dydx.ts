@@ -60,6 +60,8 @@ interface Exchange {
     nodeRpcGetBroadcastTxSync (params?: {}): Promise<implicitReturnType>;
     nodeRpcGetTx (params?: {}): Promise<implicitReturnType>;
     nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (params?: {}): Promise<implicitReturnType>;
+    nodeRestPostCosmosTxV1beta1Encode (params?: {}): Promise<implicitReturnType>;
+    nodeRestPostCosmosTxV1beta1Simulate (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
