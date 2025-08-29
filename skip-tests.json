@@ -255,7 +255,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
