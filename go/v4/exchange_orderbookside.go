@@ -47,7 +47,7 @@ type IOrderBookSide interface {
 	Limit()
 	Len() int
 	SetLen(length int)
-	GetData() *[][]interface{}
+	GetData() [][]interface{}
 	SetData(data [][]interface{})
 	GetIndex() *[]float64
 	String() string
@@ -123,7 +123,7 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 			// 	if iobs, ok := obs.(*IndexedOrderBookSide); ok {
 			// 		iobs.SetLen(i)
 			// 	}
-			original := (*d.GetData())[i]
+			original := (d.GetData())[i]
 			deltaCopy := append([]interface{}(nil), original...)
 			obs.StoreArray(deltaCopy)
 		}
@@ -164,9 +164,9 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 		price = deltaArray[0]
 		size = deltaArray[1]
 	} else if isOB {
-		if len(*deltaOB.GetData()) > 0 && len((*deltaOB.GetData())[0]) >= 2 {
-			price = (*deltaOB.GetData())[0][0].(float64)
-			size = (*deltaOB.GetData())[0][1].(float64)
+		if len(deltaOB.GetData()) > 0 && len((deltaOB.GetData())[0]) >= 2 {
+			price = (deltaOB.GetData())[0][0].(float64)
+			size = (deltaOB.GetData())[0][1].(float64)
 		}
 	} else if isInterface {
 		price = normalizeNumber(deltaInterface[0])
@@ -196,7 +196,7 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 			if isArray {
 				obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1]}
 			} else if isOB {
-				obs.Data[index] = []interface{}{(*deltaOB.GetData())[0][0], (*deltaOB.GetData())[0][1]}
+				obs.Data[index] = []interface{}{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1]}
 			} else if isInterface {
 				obs.Data[index] = deltaInterface
 			}
@@ -305,9 +305,9 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 		size = normalizeNumber(deltaArray[1])
 		count = deltaArray[2]
 	} else if isOB {
-		price = (*deltaOB.GetData())[0][0].(float64)
-		size = (*deltaOB.GetData())[0][1].(float64)
-		count = (*deltaOB.GetData())[0][2]
+		price = (deltaOB.GetData())[0][0].(float64)
+		size = (deltaOB.GetData())[0][1].(float64)
+		count = (deltaOB.GetData())[0][2]
 	} else if isInterface {
 		price = normalizeNumber(deltaInterface[0])
 		size = normalizeNumber(deltaInterface[1])
@@ -338,7 +338,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 			if isArray {
 				obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1], deltaArray[2]}
 			} else if isOB {
-				obs.Data[index] = []interface{}{(*deltaOB.GetData())[0][0], (*deltaOB.GetData())[0][1], (*deltaOB.GetData())[0][2]}
+				obs.Data[index] = []interface{}{(deltaOB.GetData())[0][0], (deltaOB.GetData())[0][1], (deltaOB.GetData())[0][2]}
 			} else if isInterface {
 				obs.Data[index] = deltaInterface
 			}
@@ -415,10 +415,10 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 		size = normalizeNumber(deltaArray[1])
 		id = deltaArray[2]
 	} else if isOB {
-		if len(*deltaOB.GetData()) > 0 && len((*deltaOB.GetData())[0]) >= 2 {
-			price = normalizeNumber((*deltaOB.GetData())[0][0])
-			size = normalizeNumber((*deltaOB.GetData())[0][1])
-			id = (*deltaOB.GetData())[0][2]
+		if len(deltaOB.GetData()) > 0 && len((deltaOB.GetData())[0]) >= 2 {
+			price = normalizeNumber((deltaOB.GetData())[0][0])
+			size = normalizeNumber((deltaOB.GetData())[0][1])
+			id = (deltaOB.GetData())[0][2]
 		}
 	} else if isInterface {
 		price = normalizeNumber(deltaInterface[0])
@@ -456,7 +456,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 					obs.Data[index] = deltaInterface
 				} else if isOB {
 					// Convert float64 array to interface array
-					obs.Data[index] = (*deltaOB.GetData())[0] // TODO: correct?
+					obs.Data[index] = (deltaOB.GetData())[0] // TODO: correct?
 				}
 				return
 			} else {
@@ -492,7 +492,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 			obs.Data[index] = deltaInterface
 		} else if isOB {
 			// Convert interface array to float64 array
-			data := *deltaOB.GetData()
+			data := deltaOB.GetData()
 			floatArray := make([]interface{}, len(data))
 			for i, v := range data[0] { // TODO: correct?
 				if f, ok := v.(float64); ok {
@@ -637,8 +637,8 @@ func (obs *OrderBookSide) String() string {
 func (obs *OrderBookSide) Len() int {
 	return obs.Length
 }
-func (obs *OrderBookSide) GetData() *[][]interface{} {
-	return &obs.Data
+func (obs *OrderBookSide) GetData() [][]interface{} {
+	return obs.Data
 }
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
@@ -659,7 +659,7 @@ func (obs *OrderBookSide) SetDepth(depth int) {
 func (obs *CountedOrderBookSide) SetLen(length int) {
 	obs.OrderBookSide.SetLen(length)
 }
-func (obs *CountedOrderBookSide) GetData() *[][]interface{} {
+func (obs *CountedOrderBookSide) GetData() [][]interface{} {
 	return obs.OrderBookSide.GetData()
 }
 func (obs *CountedOrderBookSide) SetData(data [][]interface{}) {
@@ -692,8 +692,8 @@ func (obs *IndexedOrderBookSide) GetIndex() *[]float64 {
 func (obs *IndexedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
-func (obs *IndexedOrderBookSide) GetData() *[][]interface{} {
-	return &obs.Data
+func (obs *IndexedOrderBookSide) GetData() [][]interface{} {
+	return obs.Data
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length

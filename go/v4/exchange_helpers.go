@@ -349,7 +349,7 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 	default:
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := collection.(IOrderBookSide); ok {
-			return (*obs.GetData())[keyNum]
+			return (obs.GetData())[keyNum]
 		}
 	}
 
@@ -535,7 +535,7 @@ func GetArrayLength(value interface{}) int {
 	}
 
 	switch v := value.(type) {
-	case [][]interface{}:  // TODO: double/triple arrays of all the types
+	case [][]interface{}: // TODO: double/triple arrays of all the types
 		return len(v)
 	case []interface{}:
 		return len(v)
@@ -730,7 +730,7 @@ func IsEqual(a, b interface{}) bool {
 			return aVal == bVal
 		}
 	case *sync.Map:
-		if aVal == nil && b == nil {  // TODO: we know that b is not nil from the 4th line of this function
+		if aVal == nil && b == nil { // TODO: we know that b is not nil from the 4th line of this function
 			return true
 		}
 	}
@@ -875,7 +875,7 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 	// 	// This shouldn't happen with proper usage, but we'll handle it gracefully
 	// 	return
 	// }
-	
+
 	switch array := (*slicePtr).(type) {
 	case []interface{}:
 		*slicePtr = append(array, element)
@@ -889,7 +889,7 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 	default:
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := (*slicePtr).(IOrderBookSide); ok {
-			*slicePtr = append(*obs.GetData(), element.([]interface{}))
+			*slicePtr = append(obs.GetData(), element.([]interface{}))
 		}
 		// fmt.Println("Error: Unsupported slice type")
 	}
@@ -1172,19 +1172,19 @@ func IsDictionary(v interface{}) bool {
 		return false
 	}
 	switch v.(type) {
-		case map[string]interface{}:
-			return true
-		case *sync.Map:
-			if v == nil {  // TODO: we already know v's type is *sync.Map, why is this here
-				return false
-			}
-			return true
-		case Dict:
-			return true
-		case map[interface{}]interface{}:
-			return true
-		default:
+	case map[string]interface{}:
+		return true
+	case *sync.Map:
+		if v == nil { // TODO: we already know v's type is *sync.Map, why is this here
 			return false
+		}
+		return true
+	case Dict:
+		return true
+	case map[interface{}]interface{}:
+		return true
+	default:
+		return false
 	}
 	// return reflect.TypeOf(v).Kind() == reflect.Map
 }
@@ -3104,16 +3104,16 @@ func HandleDeltas(bookside interface{}, deltas interface{}) interface{} {
 }
 
 func GunzipSync(data []byte) ([]byte, error) {
-    r, err := gzip.NewReader(bytes.NewReader(data))
-    if err != nil {
-        return nil, err
-    }
-    defer r.Close()
-    return io.ReadAll(r)
+	r, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	return io.ReadAll(r)
 }
 
 func InflateSync(data []byte) ([]byte, error) {
-    r := flate.NewReader(bytes.NewReader(data))
-    defer r.Close()
-    return io.ReadAll(r)
+	r := flate.NewReader(bytes.NewReader(data))
+	defer r.Close()
+	return io.ReadAll(r)
 }
