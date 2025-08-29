@@ -7233,7 +7233,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "requestTime": 1700802995406,
         #         "data": [
         #             {
-        #                 "userId": "7264631750",
+        #                 "userId": "7264631751",
         #                 "symbol": "BTCUSDT",
         #                 "orderId": "1098394344925597696",
         #                 "tradeId": "1098394344974925824",
