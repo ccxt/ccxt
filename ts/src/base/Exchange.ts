@@ -3414,11 +3414,11 @@ export default class Exchange {
     setMarketsFromExchange (sourceExchange): Dictionary<MarketInterface> {
         // Validate that both exchanges are of the same type
         if (this.id !== sourceExchange['id']) {
-            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange.id + ')');
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
         }
         // Validate that source exchange has loaded markets
         if (!sourceExchange || this.isEmpty (sourceExchange['markets'])) {
-            throw new ExchangeError (sourceExchange.id + ' setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+            throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
         }
         // Set all market-related data
         this.markets = sourceExchange['markets'];
