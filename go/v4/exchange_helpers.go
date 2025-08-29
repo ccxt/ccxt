@@ -1521,7 +1521,7 @@ func IsArray(v interface{}) bool {
 		return false
 	}
 	switch v.(type) {
-	case []interface{}:
+	case []interface{}, [][]interface{}:
 		return true
 	case []string, []bool:
 		return true
