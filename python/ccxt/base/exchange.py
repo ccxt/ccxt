@@ -1505,7 +1505,7 @@ class Exchange(object):
         # Sign the digest deterministically
         # coincurve doesn't have a built-in deterministic signing, so we'll use a fixed nonce
         # This is not ideal for production use, but matches the test expectations
-        signature = private_key.sign(digest)
+        signature = private_key.sign_recoverable(digest)
         # coincurve returns a DER-encoded signature, we need to parse it properly
         # The signature format is typically: 0x30 + length + 0x02 + r_length + r + 0x02 + s_length + s
         # We'll parse this DER format to extract r and s values
