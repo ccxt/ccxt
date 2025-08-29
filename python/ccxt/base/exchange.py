@@ -4763,6 +4763,11 @@ class Exchange(object):
             return market
         return result
 
+    def market_or_null(self, symbol: str):
+        if symbol is None:
+            return None
+        return self.market(symbol)
+
     def check_required_credentials(self, error=True):
         """
  @ignore
