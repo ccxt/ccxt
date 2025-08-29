@@ -465,20 +465,20 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_ticker(string $symbols, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches a price ticker
              *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
              *
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
-            return Async\await($this->un_watch_tickers(array( $symbols ), $params));
+            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
         }) ();
     }
 

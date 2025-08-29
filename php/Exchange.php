@@ -3227,6 +3227,10 @@ class Exchange {
         throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
     }
 
+    public function un_watch_ticker(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
@@ -5820,6 +5824,13 @@ class Exchange {
             return $market;
         }
         return $result;
+    }
+
+    public function market_or_null(string $symbol) {
+        if ($symbol === null) {
+            return null;
+        }
+        return $this->market($symbol);
     }
 
     public function check_required_credentials($error = true) {

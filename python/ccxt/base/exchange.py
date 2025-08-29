@@ -2641,6 +2641,9 @@ class Exchange(object):
     def un_watch_positions(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
+    def un_watch_ticker(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
@@ -4762,6 +4765,11 @@ class Exchange(object):
         if market is not None:
             return market
         return result
+
+    def market_or_null(self, symbol: str):
+        if symbol is None:
+            return None
+        return self.market(symbol)
 
     def check_required_credentials(self, error=True):
         """

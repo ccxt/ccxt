@@ -2419,6 +2419,7 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2426,6 +2427,7 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2441,6 +2443,7 @@ class okx extends okx$1["default"] {
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
+        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
@@ -2465,7 +2468,8 @@ class okx extends okx$1["default"] {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                limit = Math.min(limit, 100); // max 100 for historical endpoint
+                const maxLimit = (price !== undefined) ? 100 : 300;
+                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2500,6 +2504,10 @@ class okx extends okx$1["default"] {
         }
         else {
             if (isHistoryCandles) {
+                if (limitIsUndefined && (limit === 100)) {
+                    limit = 300;
+                    request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -2847,8 +2855,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2869,8 +2877,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2933,6 +2941,8 @@ class okx extends okx$1["default"] {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
+        const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
+        const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3047,6 +3057,10 @@ class okx extends okx$1["default"] {
         if (isTrailingPercentOrder) {
             const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
             request['callbackRatio'] = convertedTrailingPercent;
+            request['ordType'] = 'move_order_stop';
+        }
+        else if (isTrailingPriceOrder) {
+            request['callbackSpread'] = trailingPrice;
             request['ordType'] = 'move_order_stop';
         }
         else if (stopLossDefined || takeProfitDefined) {
