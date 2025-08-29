@@ -5822,6 +5822,13 @@ class Exchange {
         return $result;
     }
 
+    public function market_or_null(string $symbol) {
+        if ($symbol === null) {
+            return null;
+        }
+        return $this->market($symbol);
+    }
+
     public function check_required_credentials($error = true) {
         /**
          * @ignore
