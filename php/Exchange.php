@@ -3227,6 +3227,10 @@ class Exchange {
         throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
     }
 
+    public function un_watch_ticker(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
