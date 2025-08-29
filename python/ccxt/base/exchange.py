@@ -2641,6 +2641,9 @@ class Exchange(object):
     def un_watch_positions(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
+    def un_watch_ticker(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
