@@ -5204,6 +5204,13 @@ export default class Exchange {
         return result;
     }
 
+    marketOrNull (symbol: string): MarketInterface {
+        if (symbol === undefined) {
+            return undefined;
+        }
+        return this.market (symbol);
+    }
+
     checkRequiredCredentials (error = true) {
         /**
          * @ignore
