@@ -4248,6 +4248,15 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object marketOrNull(object symbol)
+    {
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return null;
+        }
+        return this.market(symbol);
+    }
+
     public virtual object checkRequiredCredentials(object error = null)
     {
         /**
